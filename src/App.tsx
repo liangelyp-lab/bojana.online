@@ -174,7 +174,7 @@ export default function App() {
   // 3. ADMIN WORKSPACE (A SPECIFIC PROJECT SELECTED)
   if (selectedProjectId && currentProject) {
     return (
-      <div className="min-h-screen bg-[#F7F7F4] text-gray-900 font-sans flex flex-col">
+      <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col">
         {/* Studio Workspace Nav Bar */}
         <StudioNav
           activeTab="proyectos"
@@ -187,7 +187,7 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 sm:px-8 lg:px-20 py-8 lg:py-16">
+        <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
           <ProjectWorkspace
             project={currentProject}
             onBackToProjects={() => {
@@ -223,7 +223,7 @@ export default function App() {
 
   // 4. ADMIN MAIN SECTIONS (DASHBOARD | PROYECTOS | CLIENTES | CONFIGURACIÓN)
   return (
-    <div className="min-h-screen bg-[#F7F7F4] text-gray-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col">
       <StudioNav
         activeTab={studioNavTab}
         onTabChange={(tab) => setStudioNavTab(tab)}
@@ -231,7 +231,7 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 sm:px-8 lg:px-20 py-8 lg:py-16">
+      <main className="flex-1 w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-12">
         {studioNavTab === 'dashboard' && (
           <StudioDashboard
             projects={projects}
