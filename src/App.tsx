@@ -174,7 +174,7 @@ export default function App() {
   // 3. ADMIN WORKSPACE (A SPECIFIC PROJECT SELECTED)
   if (selectedProjectId && currentProject) {
     return (
-      <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col">
+      <div className="min-h-[100dvh] bg-white text-gray-900 font-sans flex flex-col">
         {/* Studio Workspace Nav Bar */}
         <StudioNav
           activeTab="proyectos"
@@ -223,7 +223,7 @@ export default function App() {
 
   // 4. ADMIN MAIN SECTIONS (DASHBOARD | PROYECTOS | CLIENTES | CONFIGURACIÓN)
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans flex flex-col">
+    <div className="min-h-[100dvh] bg-white text-gray-900 font-sans flex flex-col">
       <StudioNav
         activeTab={studioNavTab}
         onTabChange={(tab) => setStudioNavTab(tab)}
