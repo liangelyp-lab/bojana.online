@@ -198,7 +198,7 @@ export default function ProjectStoryView({
   };
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-amber-100 relative">
+    <div className="min-h-[100dvh] bg-white text-gray-900 font-sans selection:bg-amber-100 relative">
       
       {/* 1. TOP BAR (Admin Preview Mode or Client Status) */}
       {isAdminViewing ? (
