@@ -162,8 +162,8 @@ export default function App() {
         />
 
         {toastMessage && (
-          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-            <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-sm p-3.5 shadow-none z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
+            <BellRing className="w-4 h-4 text-white shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -174,7 +174,7 @@ export default function App() {
   // 3. ADMIN WORKSPACE (A SPECIFIC PROJECT SELECTED)
   if (selectedProjectId && currentProject) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans flex flex-col">
+      <div className="min-h-screen bg-[#F7F7F4] text-gray-900 font-sans flex flex-col">
         {/* Studio Workspace Nav Bar */}
         <StudioNav
           activeTab="proyectos"
@@ -205,8 +205,8 @@ export default function App() {
 
         {/* Global Toast */}
         {toastMessage && (
-          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-            <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-sm p-3.5 shadow-none z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
+            <BellRing className="w-4 h-4 text-white shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -223,7 +223,7 @@ export default function App() {
 
   // 4. ADMIN MAIN SECTIONS (DASHBOARD | PROYECTOS | CLIENTES | CONFIGURACIÓN)
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#F7F7F4] text-gray-900 font-sans flex flex-col">
       <StudioNav
         activeTab={studioNavTab}
         onTabChange={(tab) => setStudioNavTab(tab)}
@@ -279,8 +279,8 @@ export default function App() {
 
       {/* Global Toast */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-          <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-sm p-3.5 shadow-none z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
+          <BellRing className="w-4 h-4 text-white shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
