@@ -1,3 +1,4 @@
+import { publish } from './portalService';
 import { 
   ProjectData, 
   PortalModuleConfig, 
@@ -45,7 +46,7 @@ export const ADMIN_CREDENTIALS = {
 export function getEffectiveProgress(project: ProjectData): number {
   const status = project.lifecycleStatus ?? 'ACTIVO';
   if (status === 'BORRADOR' || status === 'LISTO_PARA_COMPARTIR') return 0;
-  return project.progresoTotalCalculado ?? 0;
+  return calculateProjectProgressFromDisciplines(project.disciplinasOperativas || []);
 }
 
 /**
@@ -58,7 +59,7 @@ export function getLifecycleLabel(status: ProjectLifecycleStatus): {
 } {
   switch (status) {
     case 'BORRADOR':
-      return { label: 'Borrador', color: 'text-stone-500', description: 'Presupuesto pendiente de aprobación' };
+      return { label: 'Borrador', color: 'text-stone-500', description: 'Preparación del portal' };
     case 'LISTO_PARA_COMPARTIR':
       return { label: 'Listo para compartir', color: 'text-amber-600', description: 'Portal configurado, invitación no enviada' };
     case 'ACTIVO':
@@ -943,7 +944,7 @@ export function updateTaskInDisciplines(
         // If subtasks changed, recalculate status if all completed
         if (updatedTask.subetapas && updatedTask.subetapas.length > 0) {
           const allSubsDone = updatedTask.subetapas.every(s => s.completada);
-          if (allSubsDone && updatedTask.estado !== 'Completado') {
+          if (taskUpdates.subetapas && allSubsDone && updatedTask.estado !== 'Completado' && !(updatedTask.accionCliente?.activa && updatedTask.accionCliente.estado === 'pendiente') && !['Pausada', 'Fuera de alcance'].includes(updatedTask.estado)) {
             updatedTask.estado = 'Completado';
           }
         }
@@ -1638,11 +1639,10 @@ export function getAllProjects(): ProjectData[] {
       return initial;
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      const initial = [INITIAL_PROJECT_LOS_ALISOS];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
-      return initial;
+    if (!Array.isArray(parsed)) {
+      throw new Error("El registro de proyectos no tiene un formato válido.");
     }
+    if (parsed.length === 0) return [];
     // ─ Migrate old projects without lifecycleStatus ─
     const migrated = parsed.map((p: ProjectData) => ({
       ...p,
@@ -1650,8 +1650,7 @@ export function getAllProjects(): ProjectData[] {
     }));
     return migrated;
   } catch (e) {
-    console.error('Error reading projects from storage:', e);
-    return [INITIAL_PROJECT_LOS_ALISOS];
+    throw new Error('No pudimos leer los proyectos de este navegador. Los datos guardados se conservan.');
   }
 }
 
@@ -1686,7 +1685,7 @@ export function saveAllProjects(projects: ProjectData[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
   } catch (e) {
-    console.error('Error saving projects to storage:', e);
+    throw new Error('No pudimos guardar los cambios. El almacenamiento del navegador está lleno o no está disponible. Conservá esta pantalla y probá nuevamente.');
   }
 }
 
@@ -1736,7 +1735,7 @@ export function createInvitationLog(
   project: ProjectData,
   recipientName: string,
   recipientEmail: string,
-  metodo: 'lark_smtp' | 'resend_api' | 'manual_link' = 'lark_smtp'
+  metodo: 'lark_smtp' | 'resend_api' | 'manual_link' = 'manual_link'
 ): ProjectInvitationLog {
   const now = new Date();
   const dateFormatted = `${now.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} · ${now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`;
@@ -1748,7 +1747,7 @@ export function createInvitationLog(
     enviadoPor: 'Bojana Estudio <proyectos@bojana.com.ar>',
     asunto: `Tu proyecto ${project.info?.nombre || ''} ya está disponible`,
     metodo,
-    estado: 'entregado',
+    estado: 'pendiente',
     fechaAcceso: undefined
   };
 }
@@ -1758,18 +1757,7 @@ export function createInvitationLog(
  * Communication is intentionally separate: sending email or copying a link happens after publishing.
  */
 export function publishAndActivateProject(project: ProjectData): ProjectData {
-  return {
-    ...project,
-    lifecycleStatus: 'ACTIVO',
-    info: {
-      ...project.info,
-      publicado: true,
-      portalPublicado: true,
-      cambiosSinPublicar: 0,
-      ultimaPublicacion: 'Recién publicado'
-    },
-    ultimaModificacion: new Date().toISOString()
-  };
+  return publish(project);
 }
 
 export function resetProjectDataToDefault(): ProjectData[] {

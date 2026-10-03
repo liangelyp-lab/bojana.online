@@ -1,296 +1,322 @@
-import React, { useState, useEffect } from 'react';
-import LoginView from './components/LoginView';
-import Banner from './components/Banner';
-
-// Studio Side Components
-import StudioNav, { StudioNavTab } from './components/studio/StudioNav';
-import StudioDashboard from './components/studio/StudioDashboard';
-import StudioProjectsList from './components/studio/StudioProjectsList';
-import ProjectWorkspace from './components/studio/ProjectWorkspace';
-import StudioClientsView from './components/studio/StudioClientsView';
-import StudioSettingsView from './components/studio/StudioSettingsView';
-import NewProjectModal from './components/studio/NewProjectModal';
-
-// Client Portal Container
-import ClientPortalContainer from './components/client/ClientPortalContainer';
-
-import { 
-  getAllProjects, 
-  saveProjectData, 
-  deleteProject,
-  resetProjectDataToDefault 
-} from './services/storageService';
-import { 
-  UserRole, 
-  ProjectData 
-} from './types';
-import { BellRing } from 'lucide-react';
-
+import React, { useEffect, useState } from "react";
+import {
+  getAllProjects,
+  saveProjectData,
+  resetProjectDataToDefault,
+} from "./services/storageService";
+import { ProjectData } from "./types";
+import {
+  visibleContent,
+  respond,
+  changeTask,
+  tasks,
+  uid,
+} from "./services/portalService";
+import {
+  Button,
+  EmptyState,
+  Feedback,
+  useOnline,
+} from "./components/ui/System";
+import {
+  ProjectList,
+  Clients,
+  Settings,
+  NewProject,
+} from "./components/studio/Screens";
+import Workspace from "./components/studio/Workspace";
+import Story from "./components/client/Story";
 export default function App() {
-  // ALL PROJECTS IN THE STUDIO
-  const [projects, setProjects] = useState<ProjectData[]>(() => getAllProjects());
-
-  // AUTHENTICATION
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole | null>(() => {
-    const saved = sessionStorage.getItem('BOJANA_AUTH_ROLE') as UserRole | null;
-    return saved || null;
-  });
-
-  // SELECTED PROJECT ID (IF NULL, SHOWS STUDIO MAIN SECTIONS)
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(() => {
-    const saved = sessionStorage.getItem('BOJANA_SELECTED_PROJECT');
-    return saved || null;
-  });
-
-  // STUDIO NAVIGATION TAB
-  const [studioNavTab, setStudioNavTab] = useState<StudioNavTab>('dashboard');
-
-  // STUDIO PREVIEW AS CLIENT
-  const [isPreviewingAsClient, setIsPreviewingAsClient] = useState<boolean>(false);
-
-  // NEW PROJECT MODAL
-  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
-
-  // TOAST NOTIFICATIONS
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
-  };
-
-  // ACTIVE PROJECT RESOLUTION
-  const currentProject = projects.find(p => p.id === selectedProjectId) || projects[0];
-
-  // CHECK URL ON LOAD FOR DEDICATED DIRECT LINK
+  const online = useOnline();
+  const [projects, setProjects] = useState(getAllProjects);
+  const [role, setRole] = useState<"admin" | "cliente" | "consulta" | null>(
+    null,
+  );
+  const [selected, setSelected] = useState<string>();
+  const [page, setPage] = useState("inicio");
+  const [preview, setPreview] = useState(false);
+  const [create, setCreate] = useState(false);
+  const [error, setError] = useState("");
+  const [toast, setToast] = useState("");
+  const p = projects.find((p) => p.id === selected);
+  const published = p?.publicacion?.contenido;
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const portalToken = params.get('portal');
-    if (portalToken) {
-      const matched = projects.find(p => p.cliente?.dedicatedToken === portalToken && p.cliente?.linkSinProteccion);
+    const token = new URLSearchParams(location.search).get("portal");
+    if (token) {
+      const matched = projects.find(
+        (p) => p.cliente.dedicatedToken === token && p.publicacion,
+      );
       if (matched) {
-        setCurrentUserRole('cliente');
-        setSelectedProjectId(matched.id);
-        setIsPreviewingAsClient(false);
-        sessionStorage.setItem('BOJANA_AUTH_ROLE', 'cliente');
-        sessionStorage.setItem('BOJANA_SELECTED_PROJECT', matched.id);
-        const pName = matched.info?.nombre || matched.brief?.nombre || 'Proyecto';
-        triggerToast(`Acceso directo validado: ${pName}`);
-      }
+        setSelected(matched.id);
+        setRole("cliente");
+      } else
+        setError(
+          "El enlace no corresponde a una publicación disponible en este navegador.",
+        );
     }
-  }, [projects]);
-
-  // LOGIN & LOGOUT HANDLERS
-  const handleLogin = (role: UserRole) => {
-    setCurrentUserRole(role);
-    setIsPreviewingAsClient(false);
-    sessionStorage.setItem('BOJANA_AUTH_ROLE', role);
-
-    if (role === 'admin') {
-      setSelectedProjectId(null);
-      setStudioNavTab('dashboard');
-      sessionStorage.removeItem('BOJANA_SELECTED_PROJECT');
-      triggerToast("Bienvenido al panel interno de Bojana Portal.");
-    } else {
-      const projId = projects[0]?.id || null;
-      setSelectedProjectId(projId);
-      if (projId) sessionStorage.setItem('BOJANA_SELECTED_PROJECT', projId);
-      triggerToast("Bienvenido a su Portal de Comitente.");
-    }
-  };
-
-  const handleLogout = () => {
-    setCurrentUserRole(null);
-    setSelectedProjectId(null);
-    setIsPreviewingAsClient(false);
-    sessionStorage.removeItem('BOJANA_AUTH_ROLE');
-    sessionStorage.removeItem('BOJANA_SELECTED_PROJECT');
-    if (window.location.search) {
-      window.history.replaceState({}, '', window.location.pathname);
-    }
-  };
-
-  // PROJECT DATA UPDATER
-  const handleUpdateProject = (updated: ProjectData) => {
-    saveProjectData(updated);
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+  useEffect(() => {
+    document.getElementById("main-content")?.focus();
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [page, selected, preview, role]);
+  const update = (next: ProjectData) => {
+    saveProjectData(next);
     setProjects(getAllProjects());
   };
-
-  // CREATE PROJECT (FROM SHORT ONBOARDING)
-  const handleCreateProject = (newProj: ProjectData) => {
-    saveProjectData(newProj);
-    const updated = getAllProjects();
-    setProjects(updated);
-    setSelectedProjectId(newProj.id);
-    setIsNewProjectModalOpen(false);
-    setIsPreviewingAsClient(false);
-    sessionStorage.setItem('BOJANA_SELECTED_PROJECT', newProj.id);
-    const pTitle = newProj.info?.nombre || 'Proyecto';
-    triggerToast(`¡Proyecto "${pTitle}" creado! Has ingresado a su workspace.`);
+  const logout = () => {
+    setRole(null);
+    setSelected(undefined);
+    setPreview(false);
+    history.replaceState({}, "", location.pathname);
   };
-
-  // RESET DEMO PROJECTS
-  const handleResetDefaults = () => {
-    const res = resetProjectDataToDefault();
-    setProjects(res);
-    setSelectedProjectId(null);
-    setStudioNavTab('dashboard');
-    triggerToast('Proyectos de demostración restablecidos.');
+  const select = (id: string) => {
+    setSelected(id);
+    setError("");
   };
-
-  // 1. IF NOT LOGGED IN -> LOGIN VIEW
-  if (!currentUserRole) {
-    return (
-      <LoginView
-        project={currentProject}
-        onLogin={handleLogin}
-      />
-    );
-  }
-
-  // 2. IF CLIENT (OR ADMIN IN PREVIEW MODE) -> PURE CLIENT PORTAL
-  if (currentUserRole === 'cliente' || (currentUserRole === 'admin' && isPreviewingAsClient && currentProject)) {
-    return (
-      <>
-        <ClientPortalContainer
-          project={currentProject}
-          isAdminViewing={currentUserRole === 'admin'}
-          onBackToWorkspace={() => setIsPreviewingAsClient(false)}
-          onLogout={handleLogout}
-          onUpdateProject={handleUpdateProject}
-          onToast={triggerToast}
-        />
-
-        {toastMessage && (
-          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-            <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  // 3. ADMIN WORKSPACE (A SPECIFIC PROJECT SELECTED)
-  if (selectedProjectId && currentProject) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans flex flex-col">
-        {/* Studio Workspace Nav Bar */}
-        <StudioNav
-          activeTab="proyectos"
-          onTabChange={(tab) => {
-            setSelectedProjectId(null);
-            setStudioNavTab(tab);
-            sessionStorage.removeItem('BOJANA_SELECTED_PROJECT');
-          }}
-          onNewProject={() => setIsNewProjectModalOpen(true)}
-          onLogout={handleLogout}
-        />
-
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <ProjectWorkspace
-            project={currentProject}
-            onBackToProjects={() => {
-              setSelectedProjectId(null);
-              setStudioNavTab('proyectos');
-              sessionStorage.removeItem('BOJANA_SELECTED_PROJECT');
-            }}
-            onViewClientPortal={() => setIsPreviewingAsClient(true)}
-            onUpdateProject={handleUpdateProject}
-            onToast={triggerToast}
-          />
-        </main>
-
-        <Banner />
-
-        {/* Global Toast */}
-        {toastMessage && (
-          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-            <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
-            <span>{toastMessage}</span>
-          </div>
-        )}
-
-        {/* New Project Modal */}
-        <NewProjectModal
-          isOpen={isNewProjectModalOpen}
-          onClose={() => setIsNewProjectModalOpen(false)}
-          onFinish={handleCreateProject}
-        />
-      </div>
-    );
-  }
-
-  // 4. ADMIN MAIN SECTIONS (DASHBOARD | PROYECTOS | CLIENTES | CONFIGURACIÓN)
+  const clientMode = role === "cliente" || role === "consulta" || preview;
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans flex flex-col">
-      <StudioNav
-        activeTab={studioNavTab}
-        onTabChange={(tab) => setStudioNavTab(tab)}
-        onNewProject={() => setIsNewProjectModalOpen(true)}
-        onLogout={handleLogout}
-      />
-
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">
-        {studioNavTab === 'dashboard' && (
-          <StudioDashboard
-            projects={projects}
-            onSelectProject={(id) => {
-              setSelectedProjectId(id);
-              sessionStorage.setItem('BOJANA_SELECTED_PROJECT', id);
+    <>
+      <a className="skip-link" href="#main-content">
+        Ir al contenido
+      </a>
+      <header className="site-header">
+        <div className="shell row between">
+          <Button
+            className="brand"
+            onClick={() => {
+              if (role === "admin") {
+                setSelected(undefined);
+                setPreview(false);
+                setPage("inicio");
+              }
             }}
-            onNavigateToProjects={() => setStudioNavTab('proyectos')}
-            onNewProject={() => setIsNewProjectModalOpen(true)}
-          />
-        )}
-
-        {studioNavTab === 'proyectos' && (
-          <StudioProjectsList
-            projects={projects}
-            onSelectProject={(id) => {
-              setSelectedProjectId(id);
-              sessionStorage.setItem('BOJANA_SELECTED_PROJECT', id);
+          >
+            Bojana
+          </Button>
+          {role === "admin" && !preview && (
+            <>
+              <nav aria-label="Navegación del estudio">
+                {[
+                  ["inicio", "Inicio"],
+                  ["proyectos", "Proyectos"],
+                  ["clientes", "Clientes"],
+                  ["configuracion", "Configuración"],
+                ].map(([id, label]) => (
+                  <Button
+                    key={id}
+                    aria-current={
+                      (selected ? "proyectos" : page) === id
+                        ? "page"
+                        : undefined
+                    }
+                    onClick={() => {
+                      setSelected(undefined);
+                      setPage(id);
+                    }}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </nav>
+              <Button primary onClick={() => setCreate(true)}>
+                Nuevo proyecto
+              </Button>
+            </>
+          )}
+          {role && (
+            <div className="row">
+              {preview && (
+                <Button onClick={() => setPreview(false)}>
+                  Volver al estudio
+                </Button>
+              )}
+              <Button onClick={logout}>Salir</Button>
+            </div>
+          )}
+        </div>
+      </header>
+      {!online && (
+        <p className="shell error" role="status">
+          Sin conexión. Podés leer y editar lo guardado. Recuperá la conexión
+          antes de publicar o responder.
+        </p>
+      )}
+      <main
+        className={`shell ${p && !clientMode ? "workspace-shell" : ""}`}
+        id="main-content"
+        tabIndex={-1}
+      >
+        {!role ? (
+          <div className="read-width stack">
+            <h1>Portal de proyectos</h1>
+            <p>
+              Demostración local de Bojana Estudio. Los datos se guardan
+              únicamente en este navegador; no es un acceso autenticado a
+              proyectos de producción.
+            </p>
+            <Button primary onClick={() => setRole("admin")}>
+              Abrir demostración del estudio
+            </Button>
+            <h2>Consultar una publicación</h2>
+            <p>Elegí el proyecto publicado que querés consultar.</p>
+            {projects
+              .filter((p) => p.publicacion)
+              .map((p) => (
+                <Button
+                  key={p.id}
+                  onClick={() => {
+                    select(p.id);
+                    setRole("cliente");
+                  }}
+                >
+                  {p.info.nombre}
+                </Button>
+              ))}
+            {!projects.some((p) => p.publicacion) && (
+              <EmptyState>
+                Publicá una versión desde el estudio para consultar el portal.
+              </EmptyState>
+            )}
+            {projects
+              .filter((p) => p.publicacion)
+              .map((p) => (
+                <Button
+                  key={`read-${p.id}`}
+                  onClick={() => {
+                    select(p.id);
+                    setRole("consulta");
+                  }}
+                >
+                  Consultar {p.info.nombre} sin responder
+                </Button>
+              ))}
+            <Feedback message={error} />
+          </div>
+        ) : clientMode ? (
+          published ? (
+            <>
+              <p className="meta">
+                {preview ? "Vista previa de la versión publicada · " : ""}
+                Versión {p!.publicacion!.version}
+              </p>
+              {role === "consulta" && (
+                <p className="muted">
+                  Vista de consulta. Las respuestas corresponden al cliente
+                  responsable.
+                </p>
+              )}
+              <Story
+                project={published}
+                preview={preview || role === "consulta"}
+                onRespond={(id, actionId, r) => {
+                  update(
+                    respond(p!, id, actionId, {
+                      ...r,
+                      autor: p!.cliente.nombre,
+                    }),
+                  );
+                  setToast("Respuesta registrada en el paso.");
+                }}
+                onComment={(id, text) => {
+                  if (!text) throw new Error("Escribí un comentario.");
+                  const publicTask = tasks(published).find((t) => t.id === id);
+                  if (!publicTask)
+                    throw new Error("Este paso ya no está disponible.");
+                  const c = {
+                    id: uid(),
+                    autor: p!.cliente.nombre,
+                    rol: "cliente" as const,
+                    fecha: new Date().toISOString(),
+                    texto: text,
+                  };
+                  const draft = changeTask(p!, id, {
+                    comentarios: [
+                      ...(tasks(p!).find((t) => t.id === id)?.comentarios ||
+                        []),
+                      c,
+                    ],
+                  });
+                  const content = changeTask(published, id, {
+                    comentarios: [...(publicTask.comentarios || []), c],
+                  });
+                  update({
+                    ...draft,
+                    publicacion: {
+                      ...p!.publicacion!,
+                      contenido: {
+                        ...content,
+                        progresoTotalCalculado:
+                          published.progresoTotalCalculado,
+                      },
+                    },
+                  });
+                  setToast("Comentario registrado.");
+                }}
+              />
+            </>
+          ) : (
+            <EmptyState>
+              Este proyecto todavía no tiene una versión publicada.
+            </EmptyState>
+          )
+        ) : p ? (
+          <Workspace
+            key={p.id}
+            project={p}
+            onUpdate={update}
+            onBack={() => {
+              setSelected(undefined);
+              setPage("proyectos");
             }}
-            onNewProject={() => setIsNewProjectModalOpen(true)}
-            onToast={triggerToast}
+            onPreview={() => setPreview(true)}
           />
-        )}
-
-        {studioNavTab === 'clientes' && (
-          <StudioClientsView
-            projects={projects}
-            onSelectProject={(id) => {
-              setSelectedProjectId(id);
-              sessionStorage.setItem('BOJANA_SELECTED_PROJECT', id);
+        ) : page === "clientes" ? (
+          <Clients projects={projects} onSelect={select} />
+        ) : page === "configuracion" ? (
+          <Settings
+            onReset={() => {
+              try {
+                setProjects(resetProjectDataToDefault());
+                setSelected(undefined);
+                setToast("Demostración restablecida.");
+              } catch (e) {
+                setError((e as Error).message);
+              }
             }}
-            onToast={triggerToast}
           />
-        )}
-
-        {studioNavTab === 'configuracion' && (
-          <StudioSettingsView
-            onResetDefaults={handleResetDefaults}
-            onToast={triggerToast}
+        ) : (
+          <ProjectList
+            projects={projects}
+            onSelect={select}
+            dashboard={page === "inicio"}
           />
         )}
       </main>
-
-      <Banner />
-
-      {/* Global Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-          <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
-          <span>{toastMessage}</span>
+      <footer className="demo-note">
+        Demostración local · Cambios guardados en este navegador. No hay envío
+        de email ni autenticación de producción.
+      </footer>
+      {toast && (
+        <div className="toast" role="status" aria-live="polite">
+          {toast}
         </div>
       )}
-
-      {/* New Project Modal */}
-      <NewProjectModal
-        isOpen={isNewProjectModalOpen}
-        onClose={() => setIsNewProjectModalOpen(false)}
-        onFinish={handleCreateProject}
-      />
-    </div>
+      {create && (
+        <NewProject
+          onClose={() => setCreate(false)}
+          onCreate={(p) => {
+            update(p);
+            select(p.id);
+            setCreate(false);
+            setToast("Proyecto creado en 0%.");
+          }}
+        />
+      )}
+    </>
   );
 }

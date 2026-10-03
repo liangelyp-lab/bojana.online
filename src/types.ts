@@ -290,6 +290,7 @@ export interface ClientActionAlternative {
 }
 
 export interface ClientActionRequired {
+  origenDecisionId?: string;
   id: string;
   activa: boolean;
   tipo: ClientActionType;
@@ -321,6 +322,7 @@ export interface ClientActionRequired {
 
   // Resolution by client
   respuestaCliente?: {
+    autor?: string;
     fecha: string;           // ej: "09 OCT · 14:32 hs"
     decision: 'aprobado' | 'requiere_cambios' | 'alternativa_elegida' | 'info_enviada';
     alternativaElegidaId?: string;
@@ -338,6 +340,19 @@ export interface SubEtapaItem {
 }
 
 export interface ExecutionTask {
+  motivoCambioAlcance?: string;
+  historialSolicitudes?: { solicitud: string; respuesta?: ClientActionRequired['respuestaCliente']; fechaReapertura: string; motivo: string }[];
+  recursos?: {
+    documentos?: DocumentoEntregable[];
+    avances?: AvancePost[];
+    visualizaciones?: GalleryRenderItem[];
+    tours?: PlanTour[];
+    materiales?: MaterialItem[];
+    decisiones?: DecisionItem[];
+  };
+  dependencias?: string[];
+  comentarios?: DecisionComment[];
+  cierreFecha?: string;
   id: string;
   titulo: string; // ej: "SUM — Vista hacia el lago", "Planta de demolición", "Definir piso SUM"
   pesoPorcentaje: number; // Legacy/configuración visual. En ADN v1 todas las tareas activas pesan igual.
@@ -449,6 +464,8 @@ export interface ProjectGeneralInfo {
 
 // The Complete Project Data Model
 export interface ProjectData {
+  publicacion?: { version: number; fecha: string; autor: string; contenido: ProjectData };
+  historialPublicaciones?: { version: number; fecha: string; autor: string; cambios: string[] }[];
   id: string;
 
   // ─── LIFECYCLE ─────────────────────────────────────────────────────────────

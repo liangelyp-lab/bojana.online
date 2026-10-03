@@ -68,7 +68,7 @@ export default function RequestClientActionModal({
   );
 
   // Attachments state
-  const [adjuntos, setAdjuntos] = useState<{ id: string; nombre: string; url?: string; tipo: 'pdf' | 'imagen' | 'otro' }[]>(
+  const [adjuntos, setAdjuntos] = useState<{ id: string; nombre: string; url?: string; tipo?: 'pdf' | 'imagen' | 'otro' }[]>(
     existing?.adjuntos || [
       { id: 'att-1', nombre: 'Propuesta técnica y planos de detalle.pdf', tipo: 'pdf' },
       { id: 'att-2', nombre: 'Render preliminar de visualización', tipo: 'imagen', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' }
