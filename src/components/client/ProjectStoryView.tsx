@@ -198,7 +198,7 @@ export default function ProjectStoryView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F3] text-gray-900 font-sans selection:bg-amber-100 relative">
+    <div className="min-h-screen bg-white text-gray-900 font-sans selection:bg-amber-100 relative">
       
       {/* 1. TOP BAR (Admin Preview Mode or Client Status) */}
       {isAdminViewing ? (
@@ -257,7 +257,7 @@ export default function ProjectStoryView({
         </header>
       )}
 
-      {/* Índice editorial persistente para recorrer la historia del proyecto. */}
+      {/* Índice contextual en el flujo para recorrer la historia del proyecto. */}
       <div className="story-layout">
         <nav className="story-index-rail" aria-label="Índice del proyecto">
           <ol>
