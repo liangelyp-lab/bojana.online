@@ -23,7 +23,7 @@ import {
   generateWorkflowFromDNA,
   getProjectNextAction,
   calculateProjectProgressFromDisciplines,
-  generateOperationalDisciplines
+  generateEmptyOperationalDisciplines
 } from '../../services/storageService';
 
 // Module Components for In-Place Continuous Editing
@@ -90,7 +90,7 @@ export default function ProjectWorkspace({
   // Extract DNA workflow steps or generate from project disciplines
   const dnaSteps: DNAWorkflowStep[] = project.dna?.pasosWorkflow || generateWorkflowFromDNA(
     project.disciplinas || ['Arquitectura', 'Construcción'],
-    project.dna?.necesidades || ['etapas', 'cronograma', 'planos', 'renders', 'avances', 'fotos', 'hitos']
+    project.dna?.necesidades || project.disciplinasOperativas?.flatMap(d => d.necesidades.map(n => n.id)) || []
   );
 
   // Active step in continuous workflow
@@ -110,9 +110,7 @@ export default function ProjectWorkspace({
   const dedicatedUrl = `${window.location.origin}${window.location.pathname}?portal=${project.cliente?.dedicatedToken || 'portal-direct'}`;
 
   // Operational disciplines & calculated project progress
-  const operationalDisciplines = project.disciplinasOperativas || generateOperationalDisciplines(
-    project.disciplinas || ['Arquitectura', 'Construcción']
-  );
+  const operationalDisciplines = project.disciplinasOperativas || generateEmptyOperationalDisciplines(project.disciplinas || []);
   const calculatedProjectProgress = calculateProjectProgressFromDisciplines(operationalDisciplines);
 
   // Active workspace view: 'operacion' (Default: Ejecución & Tareas) vs 'workflow' (ADN Setup Stepper)
@@ -277,15 +275,14 @@ export default function ProjectWorkspace({
                   Etapas del proyecto
                 </h3>
                 <p className="text-xs text-stone-500 font-sans">
-                  Fases secuenciales de avance (Anteproyecto → Proyecto → Documentación → Obra).
+                  La secuencia surge de las necesidades y tareas configuradas para el cliente.
                 </p>
               </div>
             </div>
 
-            <ProgresoModule
+            <OperationalExecutionPanel
               project={project}
-              isAdmin={true}
-              onUpdateProgress={(items) => onUpdateProject({ ...project, progreso: items })}
+              onUpdateProject={onUpdateProject}
               onToast={onToast}
             />
           </div>
@@ -654,7 +651,10 @@ export default function ProjectWorkspace({
 
           <button
             type="button"
-            onClick={() => setActiveStepId(nextAction.targetStepId)}
+            onClick={() => {
+              if (nextAction.targetStepId === 'operacion') setActiveWorkspaceView('operacion');
+              else { setActiveStepId(nextAction.targetStepId); setActiveWorkspaceView('workflow'); }
+            }}
             className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-mono font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shrink-0 self-start md:self-auto"
           >
             <span>{nextAction.ctaTexto} &rarr;</span>

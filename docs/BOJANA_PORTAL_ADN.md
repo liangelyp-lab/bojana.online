@@ -4,7 +4,7 @@
 
 Guía maestra para diseñar y construir una experiencia coherente entre el portal del cliente y el espacio de trabajo del estudio.
 
-**Versión 1.0**  
+**Versión 1.2**
 3 de octubre de 2026
 
 Donde la ingeniería encuentra la forma
@@ -20,6 +20,8 @@ Esta guía fija las decisiones que deben mantenerse constantes al crear pantalla
 - El cliente recorre una sola historia evolutiva del proyecto. No recibe un dashboard compuesto por módulos independientes.
 
 - El equipo trabaja en un único workspace por proyecto. La edición, el contexto y las acciones se mantienen juntos.
+
+- Todo el ADN se configura en Crear proyecto, desde el espacio administrativo: identidad, propósito, alcance, plazo, disciplinas, personas, orden de trabajo, siguiente acción y base documental. La configuración inicial no se reparte entre pantallas posteriores.
 
 - Todo proyecto comienza en 0 por ciento después de aprobar el presupuesto, aunque ya contenga información base y documentos técnicos.
 
@@ -90,7 +92,7 @@ La interfaz nace de una estructura única. Cada elemento que el equipo crea debe
 
 ## ADN del proyecto
 
-El ADN se completa al crear el proyecto desde el espacio administrativo. Define lo que la interfaz necesita para ordenar el trabajo y generar el portal inicial.
+Todo el ADN se configura dentro del flujo Crear proyecto, desde el espacio administrativo, después de aprobar el presupuesto. Define lo que la interfaz necesita para ordenar el trabajo y generar el portal inicial. El workspace recibe esa configuración y permite mantenerla durante la ejecución; no exige volver a completar un alta parcial.
 
 | **Campo**        | **Qué contiene**                                        | **Uso**                                                            |
 |------------------|---------------------------------------------------------|--------------------------------------------------------------------|
@@ -99,16 +101,51 @@ El ADN se completa al crear el proyecto desde el espacio administrativo. Define 
 | Alcance          | Qué incluye y qué queda fuera.                          | Control de cambios y lectura común del contrato.                   |
 | Plazo            | Fecha estimada y hitos relevantes.                      | Orientación temporal sin prometer fechas no confirmadas.           |
 | Disciplinas      | Áreas de Bojana que participan.                         | Organización de necesidades y responsables.                        |
+| Personas         | Cliente, participantes y responsables del estudio.     | Acceso, permisos y asignación del trabajo en contexto.             |
 | Orden de trabajo | Necesidades, etapas, tareas y dependencias.             | Genera la estructura operativa y el cálculo de avance.             |
 | Siguiente acción | Primer movimiento del estudio o del cliente.            | Evita un portal vacío y guía la bienvenida.                        |
 | Base documental  | Presupuesto aprobado y documentos técnicos disponibles. | Consulta desde el inicio sin alterar el 0 por ciento de ejecución. |
+
+## Configuración completa en Crear proyecto
+
+### Etapas derivadas del trabajo seleccionado
+
+Ningún proyecto nuevo incorpora automáticamente la secuencia Anteproyecto → Proyecto → Documentación → Obra. Seleccionar una disciplina no carga necesidades, tareas ni etapas. Las sugerencias sirven para elegir el alcance, sin incorporar trabajo de ejemplo.
+
+El estudio define las necesidades y sus tareas en Crear proyecto. Puede agrupar tareas en una etapa con nombre propio cuando aporta claridad. Sin agrupación, la necesidad organiza la secuencia. El orden y la visibilidad elegidos determinan qué aparece en la vista del cliente; las tareas internas siguen contando para el progreso real.
+
+La vista del cliente se deriva de esa estructura y se actualiza al publicar cambios. No mantiene un cronograma de etapas independiente ni inventa fases para completar un estado vacío. Si no hay trabajo visible, muestra un mensaje de preparación.
+
+Las dependencias se configuran entre tareas reales. No pueden formar ciclos. Una acción inicial del cliente pertenece a una tarea visible y no se envía automáticamente. Guardar el borrador no crea un proyecto ni publica el portal.
+
+La creación usa una vista organizada en secciones, con índice y resumen revisable. No se presenta como un onboarding de una pregunta por pantalla. Toda la configuración del ADN permanece accesible en este mismo flujo.
+
+| **Sección** | **Configuración** |
+|-------------|-------------------|
+| Identidad y propósito | Nombre, cliente, ubicación, tipo de proyecto, portada y resultado esperado. |
+| Alcance y plazo | Qué incluye, qué queda fuera, fecha estimada e hitos relevantes. Las fechas no confirmadas se identifican como tales. |
+| Disciplinas y personas | Áreas participantes, equipo, responsables y permisos de acceso. |
+| Orden de trabajo | Necesidades por disciplina, tareas, etapas cuando aportan claridad, responsables, visibilidad y dependencias. |
+| Siguiente acción | Primer movimiento del estudio o del cliente. Si requiere respuesta del cliente, queda asociado a la tarea correspondiente. |
+| Base documental | Presupuesto aprobado y documentos técnicos disponibles, con su contexto y visibilidad. |
+| Revisión | Resumen del ADN, estructura inicial y contenido que podrá mostrar la bienvenida. |
+
+**Guardar borrador** conserva la configuración incompleta para continuar dentro de Crear proyecto. No publica el portal ni envía una invitación.
+
+**Crear proyecto** finaliza el alta con el ADN revisado y genera el workspace a partir de esa misma información. Las necesidades, tareas y dependencias configuradas no se vuelven a cargar en otra pantalla. El proyecto comienza en 0 por ciento; adjuntar documentos o definir la estructura no suma avance.
+
+**Validación** señala los datos necesarios que falten en su sección antes de finalizar. No obliga a inventar fechas, etapas vacías, disciplinas que no participan ni documentos que todavía no existen. La estructura debe reflejar el alcance aprobado.
+
+**Portal inicial** se genera a partir del ADN guardado. Publicarlo, enviar la bienvenida por email y compartir un enlace siguen siendo acciones distintas y manuales.
+
+**Cambios posteriores** se realizan sobre el mismo ADN desde el workspace, sin repetir la creación. Las modificaciones de alcance se registran y los cambios visibles para el cliente siguen el flujo de revisión y publicación.
 
 ## Ciclo de vida
 
 | **Momento**          | **Acción del estudio**                                       | **Experiencia del cliente**                                                                      |
 |----------------------|--------------------------------------------------------------|--------------------------------------------------------------------------------------------------|
-| Presupuesto aprobado | Crea el proyecto y registra el ADN.                          | Todavía no recibe acceso.                                                                        |
-| Preparación          | Carga alcance, plazo, disciplinas, orden y documentos base.  | El progreso permanece en 0 por ciento.                                                           |
+| Presupuesto aprobado | Inicia Crear proyecto y configura todo el ADN.                          | Todavía no recibe acceso.                                                                        |
+| Creación             | Revisa el ADN completo y finaliza el alta; puede guardar un borrador antes.  | El progreso permanece en 0 por ciento.                                                           |
 | Portal inicial       | Genera y publica la bienvenida.                              | Ve el tipo de proyecto, el alcance, las disciplinas, la documentación inicial y el próximo paso. |
 | Bienvenida           | Envía email o comparte el enlace cuando lo decide.           | Recibe una invitación; el email avisa y el portal conserva la información.                       |
 | Ejecución            | Actualiza tareas, entregables y entradas de la historia.     | Sigue el avance y consulta decisiones en contexto.                                               |
@@ -540,7 +577,7 @@ El primer ciclo debe validar el lenguaje completo con pocas pantallas conectadas
 
 | **Orden** | **Pantalla**                     | **Objetivo**                                                            |
 |-----------|----------------------------------|-------------------------------------------------------------------------|
-| 01        | Admin Crear proyecto             | Definir ADN, alcance, plazo, disciplinas, orden y siguiente acción.     |
+| 01        | Admin Crear proyecto             | Configurar y revisar todo el ADN, incluida la estructura y los documentos base.     |
 | 02        | Admin Workspace activo           | Editar una necesidad con tareas, entregable, visibilidad y dependencia. |
 | 03        | Admin Revisión de publicación    | Separar cambios publicados de la comunicación posterior.                |
 | 04        | Cliente Bienvenida 0 por ciento  | Probar que existe contenido útil antes de ejecutar tareas.              |
@@ -574,6 +611,10 @@ Construir un proyecto de prueba con las cuatro disciplinas de Bojana y al menos 
 ## Criterios de validación
 
 - Una persona cliente identifica en menos de diez segundos cuál es el estado actual y si necesita hacer algo.
+
+- Una persona del estudio configura todo el ADN dentro de Crear proyecto, puede guardar un borrador y obtiene un workspace sin repetir la carga inicial.
+
+- Crear el proyecto lo deja en 0 por ciento y no publica ni comunica automáticamente el portal.
 
 - Una persona del estudio crea o actualiza una tarea sin cambiar de módulo.
 

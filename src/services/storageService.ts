@@ -24,6 +24,7 @@ import {
   calculateDisciplineProgress,
   calculateProjectProgressFromDisciplines
 } from '../types';
+import { getPendingTaskDependencies } from './projectStructure';
 
 export {
   calculateTaskProgress,
@@ -58,7 +59,7 @@ export function getLifecycleLabel(status: ProjectLifecycleStatus): {
 } {
   switch (status) {
     case 'BORRADOR':
-      return { label: 'Borrador', color: 'text-stone-500', description: 'Presupuesto pendiente de aprobación' };
+      return { label: 'Borrador', color: 'text-stone-500', description: 'Proyecto creado, portal sin publicar' };
     case 'LISTO_PARA_COMPARTIR':
       return { label: 'Listo para compartir', color: 'text-amber-600', description: 'Portal configurado, invitación no enviada' };
     case 'ACTIVO':
@@ -71,7 +72,7 @@ export function getLifecycleLabel(status: ProjectLifecycleStatus): {
 // 1. DISCIPLINE SUGGESTED NEEDS MAP
 export const DISCIPLINE_NEEDS_MAP: Record<DisciplinaType, { id: string; label: string; descripcion: string }[]> = {
   Arquitectura: [
-    { id: 'etapas', label: 'Etapas del proyecto', descripcion: 'Fases secuenciales (Anteproyecto → Proyecto → Documentación → Obra)' },
+    { id: 'etapas', label: 'Etapas del proyecto', descripcion: 'Agrupaciones opcionales definidas por las necesidades y tareas elegidas' },
     { id: 'planos', label: 'Planos arquitectónicos', descripcion: 'Plantas, cortes, vistas y detalles constructivos' },
     { id: 'renders', label: 'Renders & Visualizaciones', descripcion: 'Perspectivas 3D y tour sobre plano interactivo' },
     { id: 'entregables', label: 'Entregables & Memorias', descripcion: 'Memorias descriptivas y paquetes aprobados' },
@@ -117,11 +118,11 @@ export function generateWorkflowFromDNA(disciplinas: DisciplinaType[], selectedN
   let order = 2;
 
   // Etapas
-  if (selectedNeeds.includes('etapas') || disciplinas.includes('Arquitectura') || disciplinas.includes('Ingeniería')) {
+  if (selectedNeeds.includes('etapas')) {
     steps.push({
       id: 'etapas',
       titulo: 'Definir etapas',
-      subtitulo: 'Anteproyecto → Proyecto → Documentación → Obra',
+      subtitulo: 'Secuencia de las necesidades y tareas seleccionadas',
       descripcion: 'Configurá las fases secuenciales de avance del proyecto.',
       completado: true,
       orden: order++
@@ -129,7 +130,7 @@ export function generateWorkflowFromDNA(disciplinas: DisciplinaType[], selectedN
   }
 
   // Cronograma
-  if (selectedNeeds.includes('cronograma') || selectedNeeds.includes('hitos') || disciplinas.includes('Construcción')) {
+  if (selectedNeeds.includes('cronograma') || selectedNeeds.includes('hitos')) {
     steps.push({
       id: 'cronograma',
       titulo: 'Cargar cronograma',
@@ -153,7 +154,7 @@ export function generateWorkflowFromDNA(disciplinas: DisciplinaType[], selectedN
   }
 
   // Visualizaciones / Renders / Tour
-  if (selectedNeeds.includes('renders') || selectedNeeds.includes('propuestas') || disciplinas.includes('Arquitectura') || disciplinas.includes('Diseño')) {
+  if (selectedNeeds.includes('renders') || selectedNeeds.includes('propuestas')) {
     steps.push({
       id: 'visualizaciones',
       titulo: 'Configurar visualizaciones',
@@ -165,7 +166,7 @@ export function generateWorkflowFromDNA(disciplinas: DisciplinaType[], selectedN
   }
 
   // Avances
-  if (selectedNeeds.includes('avances') || selectedNeeds.includes('fotos') || disciplinas.includes('Construcción')) {
+  if (selectedNeeds.includes('avances') || selectedNeeds.includes('fotos')) {
     steps.push({
       id: 'avances',
       titulo: 'Preparar primer avance',
@@ -847,74 +848,27 @@ export function generateEmptyOperationalDisciplines(
     needId: string;
     discipline: DisciplinaType;
     label?: string;
-    tasks?: { id: string; titulo: string; pesoPorcentaje: number }[];
+    tasks?: (Pick<ExecutionTask, 'id' | 'titulo'> & Partial<ExecutionTask>)[];
   }[]
 ): OperationalDiscipline[] {
-  return disciplinas.map(disc => {
-    const base = DEFAULT_OPERATIONAL_DISCIPLINES[disc];
-    const discNeedsConfig = selectedNeedsConfig?.filter(c => c.discipline === disc);
-
-    if (discNeedsConfig && discNeedsConfig.length > 0) {
-      const necesidades: OperationalNeed[] = discNeedsConfig.map(cfg => {
-        const baseNeed = base?.necesidades.find(n => n.id === cfg.needId);
-        const tareasList: ExecutionTask[] = cfg.tasks && cfg.tasks.length > 0
-          ? cfg.tasks.map((t, idx) => ({
-              id: t.id || `${cfg.needId}-task-${idx + 1}`,
-              titulo: t.titulo,
-              pesoPorcentaje: t.pesoPorcentaje,
-              estado: 'Pendiente' as EstadoEtapa,
-              visibleCliente: true,
-              subetapas: [
-                { id: `sub-${t.id || idx}-1`, label: 'Iniciar', completada: false, pesoPorcentaje: 50 },
-                { id: `sub-${t.id || idx}-2`, label: 'Revisión final', completada: false, pesoPorcentaje: 50 }
-              ]
-            }))
-          : (baseNeed?.tareas || []).map(t => ({
-              ...t,
-              estado: 'Pendiente' as EstadoEtapa,
-              subetapas: (t.subetapas || []).map(s => ({ ...s, completada: false }))
-            }));
-
-        return {
-          id: cfg.needId,
-          nombre: cfg.label || baseNeed?.nombre || cfg.needId,
-          descripcion: baseNeed?.descripcion || 'Seguimiento técnico del ADN',
-          pesoPorcentaje: baseNeed?.pesoPorcentaje || Math.round(100 / discNeedsConfig.length),
-          tipoNecesidad: baseNeed?.tipoNecesidad || 'tareas',
-          tareas: tareasList,
-          progresoCalculado: 0
-        };
-      });
-
-      return {
-        id: disc,
-        necesidades,
-        progresoCalculado: 0
-      };
-    }
-
-    if (base) {
-      return {
-        ...base,
-        necesidades: base.necesidades.map(n => ({
-          ...n,
-          progresoCalculado: 0,
-          tareas: n.tareas.map(t => ({
-            ...t,
-            estado: 'Pendiente' as EstadoEtapa,
-            subetapas: (t.subetapas || []).map(s => ({ ...s, completada: false }))
-          }))
-        })),
-        progresoCalculado: 0
-      };
-    }
-
-    return {
-      id: disc,
-      necesidades: [],
-      progresoCalculado: 0
-    };
-  });
+  return disciplinas.map(disc => ({
+    id: disc,
+    necesidades: (selectedNeedsConfig || []).filter(c => c.discipline === disc).map(cfg => ({
+      id: cfg.needId,
+      nombre: cfg.label || cfg.needId,
+      tipoNecesidad: 'tareas' as const,
+      tareas: (cfg.tasks || []).map((task, index) => ({
+        ...task,
+        id: task.id || `${disc}-${cfg.needId}-task-${index + 1}`,
+        titulo: task.titulo.trim(),
+        pesoPorcentaje: 1,
+        estado: 'Pendiente' as EstadoEtapa,
+        visibleCliente: task.visibleCliente ?? true,
+      })),
+      progresoCalculado: 0,
+    })),
+    progresoCalculado: 0,
+  }));
 }
 
 export function updateTaskInDisciplines(
@@ -927,6 +881,13 @@ export function updateTaskInDisciplines(
   affectedDiscipline?: OperationalDiscipline;
   newProjectProgress: number;
 } {
+  const allTasks = disciplines.flatMap(d => d.necesidades.flatMap(n => n.tareas));
+  const currentTask = allTasks.find(task => task.id === taskId);
+  const executing = taskUpdates.estado && ['En curso', 'En revisión', 'Completado'].includes(taskUpdates.estado);
+  if (currentTask && executing && (getPendingTaskDependencies(allTasks, currentTask).length ||
+      (currentTask.accionCliente?.activa && currentTask.accionCliente.estado === 'pendiente' && taskUpdates.estado === 'Completado'))) {
+    return { updatedDisciplines: disciplines, newProjectProgress: calculateProjectProgressFromDisciplines(disciplines) };
+  }
   let affectedNeed: OperationalNeed | undefined;
   let affectedDiscipline: OperationalDiscipline | undefined;
 
