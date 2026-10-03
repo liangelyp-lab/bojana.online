@@ -8,7 +8,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "api": "node --watch server/index.mjs",
+    "start": "node server/index.mjs",
+    "test:storage": "node --test server/tests/*.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -31,5 +34,8 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.3",
     "@types/express": "^4.17.21"
+  },
+  "engines": {
+    "node": ">=24.0.0"
   }
 }

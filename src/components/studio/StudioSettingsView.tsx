@@ -1,3 +1,4 @@
+import DriveConnectionSettings from '../storage/DriveConnectionSettings';
 import React, { useState } from 'react';
 import { 
   Building2, 
@@ -112,6 +113,8 @@ export default function StudioSettingsView({
 
       </form>
 
+      <DriveConnectionSettings />
+
       {/* Demo Reset Card */}
       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 flex items-center justify-between gap-4">
         <div>
@@ -138,3 +141,4 @@ export default function StudioSettingsView({
     </div>
   );
 }
+

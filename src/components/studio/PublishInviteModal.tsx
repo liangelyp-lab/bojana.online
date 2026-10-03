@@ -30,7 +30,7 @@ interface PublishInviteModalProps {
   isOpen: boolean;
   project: ProjectData;
   onClose: () => void;
-  onPublish: () => void;
+  onPublish: () => void | Promise<void>;
   onToast: (msg: string) => void;
 }
 
@@ -41,13 +41,15 @@ export default function PublishInviteModal({
   onPublish,
   onToast
 }: PublishInviteModalProps) {
-  if (!isOpen) return null;
+  const [publishError, setPublishError] = useState('');
 
   const [activeTab, setActiveTab] = useState<'portal_preview' | 'email' | 'historial'>('portal_preview');
   const [recipientName, setRecipientName] = useState(project.cliente?.nombre || '');
   const [recipientEmail, setRecipientEmail] = useState(project.cliente?.email || '');
   const [copiedLink, setCopiedLink] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+
+  if (!isOpen) return null;
 
   const title = project.info?.nombre || 'Proyecto';
   const subtitle = project.info?.subtitulo || project.disciplinas?.join(' · ') || '';
@@ -73,12 +75,11 @@ export default function PublishInviteModal({
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  const handlePublish = () => {
-    setIsPublishing(true);
-    setTimeout(() => {
-      setIsPublishing(false);
-      onPublish();
-    }, 350);
+  const handlePublish = async () => {
+    setIsPublishing(true); setPublishError('');
+    try { await onPublish(); }
+    catch (error) { setPublishError((error as Error).message); }
+    finally { setIsPublishing(false); }
   };
 
   const handleSendEmail = () => {
@@ -588,6 +589,8 @@ export default function PublishInviteModal({
           </div>
         </div>
 
+        {publishError && <p role="alert" className="px-6 py-3 text-sm text-red-800">{publishError}</p>}
+
         {/* Publishing Overlay Step Message */}
         {isPublishing && (
           <div className="absolute inset-0 bg-stone-950/70 backdrop-blur-xs z-50 flex flex-col items-center justify-center p-6 text-center text-white space-y-3 animate-fade-in font-mono">
@@ -601,3 +604,4 @@ export default function PublishInviteModal({
     </div>
   );
 }
+

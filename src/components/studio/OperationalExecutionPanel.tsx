@@ -1,3 +1,5 @@
+import TaskDeliverables from '../storage/TaskDeliverables';
+import { publishStorageProject } from '../../services/driveStorageService';
 import React, { useState } from 'react';
 import { 
   ProjectData, 
@@ -116,11 +118,11 @@ export default function OperationalExecutionPanel({
   // Real calculated project progress (respecting lifecycle rules: 0% in BORRADOR or LISTO_PARA_COMPARTIR)
   const projectProgress = getEffectiveProgress(project);
 
-  const handlePublish = () => {
-    const updated = publishAndActivateProject(project);
+  const handlePublish = async () => {
+    const updated = await publishStorageProject(publishAndActivateProject(project));
     onUpdateProject(updated);
     setIsPublishModalOpen(false);
-    onToast('✓ Cambios publicados. Ahora podés enviar email o copiar el enlace como acciones independientes.');
+    onToast('Cambios publicados. Ahora podés enviar email o copiar el enlace.');
   };
 
   // Toggle discipline collapse
@@ -1114,14 +1116,26 @@ export default function OperationalExecutionPanel({
                                                 </div>
                                               )}
 
+                                              <TaskDeliverables
+                                                project={{ ...project, disciplinasOperativas: disciplines }}
+                                                taskId={task.id}
+                                                discipline={disc.id}
+                                                onChange={(storage, file) => {
+                                                  const updatedDisciplines = file
+                                                    ? updateTaskInDisciplines(disciplines, task.id, { archivos: [...(task.archivos || []), { nombre: file.name, url: file.url, tipo: file.mimeType.startsWith('image/') ? 'imagen' : file.mimeType === 'application/pdf' ? 'pdf' : 'archivo', storage: file }] }).updatedDisciplines
+                                                    : disciplines;
+                                                  onUpdateProject({ ...project, storage, disciplinasOperativas: updatedDisciplines, info: { ...project.info, cambiosSinPublicar: (project.info.cambiosSinPublicar || 0) + (file ? 1 : 0) } });
+                                                }}
+                                              />
+
                                               {/* Files attached */}
-                                              {task.archivos && task.archivos.length > 0 && (
+                                              {task.archivos?.some(arch => !arch.storage) && (
                                                 <div className="space-y-1">
                                                   <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-stone-500">
                                                     Archivos adjuntos
                                                   </span>
                                                   <div className="flex flex-wrap gap-2">
-                                                    {task.archivos.map((arch, aIdx) => (
+                                                    {task.archivos.filter(arch => !arch.storage).map((arch, aIdx) => (
                                                       <div key={aIdx} className="bg-white border border-stone-200 rounded-lg px-2.5 py-1 text-[11px] font-mono flex items-center gap-1.5 text-stone-700">
                                                         <Paperclip className="w-3 h-3 text-stone-400" />
                                                         <span>{arch.nombre}</span>
@@ -1439,3 +1453,4 @@ export default function OperationalExecutionPanel({
     </div>
   );
 }
+
