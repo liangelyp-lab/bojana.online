@@ -92,7 +92,7 @@ export default function LoginView({ project, onLogin }: LoginViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-gray-900 flex flex-col justify-between p-4 sm:p-6 font-sans">
+    <div className="min-h-[100dvh] bg-white text-gray-900 flex flex-col justify-between p-4 sm:p-6 font-sans">
       
       {/* Top Header */}
       <header className="max-w-4xl mx-auto w-full flex items-center justify-between py-2 border-b border-gray-200">
