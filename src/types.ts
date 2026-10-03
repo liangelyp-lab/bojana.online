@@ -11,9 +11,9 @@ export type DisciplinaType = 'Arquitectura' | 'Ingeniería' | 'Construcción' | 
 // Bojana formally creates it in the system. The lifecycle state controls
 // what is visible and editable, both in the admin panel and the client portal.
 export type ProjectLifecycleStatus =
-  | 'BORRADOR'              // Project configured but budget not yet approved
+  | 'BORRADOR'              // Project created after budget approval; portal not yet published
   | 'LISTO_PARA_COMPARTIR'  // Base configured, ready to send invite to client
-  | 'ACTIVO'                // Invitation sent / client has accessed the portal
+  | 'ACTIVO'                // Portal published; execution can start independently of communication
   | 'COMPLETADO';           // Project finished, portal becomes an archive
 
 // ─── CONTRACTUAL BASE ───────────────────────────────────────────────────────
@@ -21,6 +21,7 @@ export type ProjectLifecycleStatus =
 // loaded at project creation and does NOT affect execution progress (%).
 export interface ContractualBase {
   alcance: string;              // Scope description agreed upon with the client
+  fueraDeAlcance?: string;
   presupuestoAprobado: boolean; // True once the budget is formally approved
   fechaPresupuestoAprobado?: string; // ISO date when budget was approved
   plazoInicio: string;          // Agreed start date (e.g. '15 OCT 2026')
@@ -31,6 +32,8 @@ export interface ContractualBase {
     tipo: 'presupuesto' | 'planos_existentes' | 'documentacion_tecnica' | 'otros';
     url?: string;
     fecha: string;
+    visibleCliente?: boolean;
+    contexto?: string;
   }[];
   notasInternas?: string;       // Internal notes not visible to the client
 }
@@ -350,6 +353,9 @@ export interface ExecutionTask {
   archivos?: { nombre: string; url: string; tipo: 'imagen' | 'pdf' | 'archivo'; storage?: StoredDeliverable }[];
   comentarioInterno?: string;
   visibleCliente: boolean;
+  etapa?: string; // Optional grouping chosen inside a need; never a global default.
+  responsableId?: string;
+  dependencias?: string[];
   notaCliente?: string; // ej: "Finalizamos las vistas principales del SUM."
   
   // Contextual Client Action (No separate module: lives exactly where needed)
@@ -430,12 +436,15 @@ export interface ProjectDNA {
     ctaTexto: string;
     targetStepId?: string;
     targetPasoId?: string;
+    targetTaskId?: string;
   };
 }
 
 // Project Brief & General Info (Configuration, NOT a module)
 export interface ProjectGeneralInfo {
   nombre: string; // ej: "Los Alisos"
+  tipoProyecto?: string;
+  portadaUrl?: string;
   subtitulo: string; // ej: "Remodelación integral de áreas comunes"
   codigo?: string; // ej: "BA-024"
   descripcion: string;
@@ -644,4 +653,3 @@ export interface LibraryItem {
   fecha: string;
   tamano: string;
 }
-

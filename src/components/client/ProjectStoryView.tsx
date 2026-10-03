@@ -1,5 +1,6 @@
 import { useClientDeliverables, ClientStorageAccess, ClientTaskFiles } from '../storage/ClientDeliverables';
 import React, { useState } from 'react';
+import { getClientProjectSequence } from '../../services/projectStructure';
 import { 
   ProjectData, 
   AvancePost, 
@@ -15,7 +16,7 @@ import {
   calculateDisciplineProgress, 
   calculateNeedProgress, 
   calculateProjectProgressFromDisciplines,
-  generateOperationalDisciplines,
+  generateEmptyOperationalDisciplines,
   getEffectiveProgress,
   getLifecycleLabel
 } from '../../services/storageService';
@@ -83,10 +84,10 @@ export default function ProjectStoryView({
   const info = project.info || {} as any;
   const title = info.nombre || project.brief?.nombre || 'Los Alisos';
   const subtitle = info.subtitulo || project.brief?.subtitulo || 'Remodelación integral de áreas comunes';
-  const disciplines = project.disciplinas || ['Arquitectura', 'Construcción'];
+  const disciplines = project.disciplinas || [];
   const status = info.estadoGeneral || 'En Ejecución';
-  const currentStage = info.etapaActual || 'Documentación ejecutiva';
-  const nextMilestone = info.proximoHito || 'Inicio de obra · 18 octubre';
+  const currentStage = getClientProjectSequence(project).find(s => s.estado === 'En curso')?.nombre || getClientProjectSequence(project).find(s => s.estado !== 'Completado')?.nombre || (project.disciplinasOperativas === undefined ? info.etapaActual : '') || 'Trabajo del proyecto';
+  const nextMilestone = project.dna?.siguienteAccion?.titulo || project.siguienteAccionRecomendada?.titulo || info.proximoHito || 'Próximo paso por definir';
   const location = info.ubicacion || 'Nordelta, Tigre';
   const surface = info.superficie || '540 m²';
   const lastUpdate = info.ultimaActualizacion || '02 OCT 2026';
@@ -95,7 +96,7 @@ export default function ProjectStoryView({
   // Content items
   const avances = project.avances || [];
   const latestAvance = avances[0];
-  const allStages = (project.progreso || []).filter(p => p.tipo === 'etapa');
+  const allStages = getClientProjectSequence(project);
   const allMilestones = (project.progreso || []).filter(p => p.tipo === 'hito');
   const documentos = project.documentos || [];
   const storageAccess = useClientDeliverables(project.id, Boolean(project.storage));
@@ -108,24 +109,24 @@ export default function ProjectStoryView({
   const materiales = project.materiales || [];
 
   // Operational execution engine: real calculated project progress respecting lifecycle
-  const operationalDisciplines: OperationalDiscipline[] = project.disciplinasOperativas || generateOperationalDisciplines(
-    project.disciplinas || ['Arquitectura', 'Construcción']
+  const operationalDisciplines: OperationalDiscipline[] = project.disciplinasOperativas || generateEmptyOperationalDisciplines(
+    project.disciplinas || []
   );
   const realCalculatedProjectProgress = getEffectiveProgress(project);
   const isWelcomeMode = realCalculatedProjectProgress === 0;
 
   // Contractual base values
   const contractualBase = project.baseContractual;
-  const plazoInicio = contractualBase?.plazoInicio || info.fechaInicio || '15 OCT 2026';
-  const plazoFin = contractualBase?.plazoFin || info.fechaFin || '30 MAR 2027';
-  const docsBase = contractualBase?.documentosBase || [];
+  const plazoInicio = contractualBase?.plazoInicio || info.fechaInicio || 'A confirmar';
+  const plazoFin = contractualBase?.plazoFin || info.fechaFin || 'A confirmar';
+  const docsBase = (contractualBase?.documentosBase || []).filter(d => d.visibleCliente !== false);
   const alcanceContratado = contractualBase?.alcance || info.descripcion || '';
 
   // Selected tour hotspot pin
   const activePin = tourPuntos.find(p => p.id === selectedHotspotPinId) || tourPuntos[0];
 
   // Hero Cover Image
-  const heroImage = gallery[0]?.imagenUrl || (gallery[0] as any)?.url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85';
+  const heroImage = info.portadaUrl || gallery[0]?.imagenUrl || (gallery[0] as any)?.url || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=85';
 
   // Handle client approving or requesting changes on a decision
   const handleDecisionSubmit = (newStatus: 'Aprobado' | 'Requiere cambios') => {
@@ -251,7 +252,7 @@ export default function ProjectStoryView({
           href="#estado" 
           className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
         >
-          {isWelcomeMode ? 'Roadmap de Etapas' : 'En qué estamos'}
+          {isWelcomeMode ? 'Plan de trabajo' : 'En qué estamos'}
         </a>
         {avances.length > 0 && (
           <>
@@ -371,8 +372,11 @@ export default function ProjectStoryView({
 
           <div className="md:col-span-8 space-y-6">
             <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-light">
-              {alcanceContratado || info.descripcion || 'Intervención integral de Club House, SUM y accesos principales. Reorganización espacial y renovación de terminaciones con foco en materialidad noble y confort lumínico.'}
+              {info.descripcion || alcanceContratado || 'El estudio está preparando el alcance del proyecto.'}
             </p>
+
+            {contractualBase?.alcance && <div className="text-sm text-stone-700"><strong className="font-medium">Alcance contratado</strong><p className="mt-1">{contractualBase.alcance}</p></div>}
+            {contractualBase?.fueraDeAlcance && <div className="text-sm text-stone-700"><strong className="font-medium">Fuera del alcance</strong><p className="mt-1">{contractualBase.fueraDeAlcance}</p></div>}
 
             {/* Ficha técnica editorial */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-stone-200 font-mono text-xs">
@@ -408,7 +412,7 @@ export default function ProjectStoryView({
                     >
                       <div className="flex items-center gap-2 text-stone-800 truncate pr-2">
                         <FileText className="w-4 h-4 text-stone-400 shrink-0" />
-                        <span className="font-semibold truncate">{db.nombre}</span>
+                        {db.url ? <a href={db.url} target="_blank" rel="noopener noreferrer" className="font-semibold truncate underline underline-offset-4">{db.nombre}</a> : <span className="font-semibold truncate">{db.nombre}</span>}
                       </div>
                       <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold shrink-0 border border-emerald-200">
                         {db.tipo === 'presupuesto' ? 'Presupuesto' : db.tipo.replace('_', ' ')}
@@ -434,7 +438,7 @@ export default function ProjectStoryView({
                   ? 'text-amber-800 bg-amber-50 border-amber-200' 
                   : 'text-emerald-800 bg-emerald-50 border-emerald-200'
               }`}>
-                02 &mdash; {isWelcomeMode ? 'Roadmap de Etapas' : 'En qué estamos'}
+                02 &mdash; {isWelcomeMode ? 'Plan de trabajo' : 'En qué estamos'}
               </span>
               <h2 className="text-3xl sm:text-4xl font-serif font-light text-stone-950">
                 {isWelcomeMode ? 'Preparado para iniciar' : currentStage}
@@ -442,7 +446,7 @@ export default function ProjectStoryView({
               <p className="text-sm text-stone-600 max-w-2xl font-light">
                 {isWelcomeMode 
                   ? 'El proyecto está formalizado y listo para comenzar. A medida que avancen las tareas, planos y renders, los verás reflejados aquí en tiempo real.'
-                  : 'Estamos finalizando la documentación necesaria para comenzar la siguiente etapa constructiva.'}
+                  : 'El avance refleja las tareas reales del alcance contratado.'}
               </p>
             </div>
 
@@ -461,18 +465,13 @@ export default function ProjectStoryView({
             <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden">
               <div 
                 className="bg-stone-950 h-full transition-all duration-700 rounded-full"
-                style={{ width: `${Math.max(realCalculatedProjectProgress, isWelcomeMode ? 2 : 0)}%` }}
+                style={{ width: `${realCalculatedProjectProgress}%` }}
               />
             </div>
 
+            {allStages.length === 0 && <p className="text-sm text-stone-600">El estudio publicará las necesidades y tareas del alcance cuando estén listas para compartir.</p>}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 text-xs font-mono">
-              {(allStages.length > 0 ? allStages : [
-                { id: '1', nombre: 'Anteproyecto', estado: isWelcomeMode ? 'Próximo' : 'Completado' },
-                { id: '2', nombre: 'Documentación ejecutiva', estado: isWelcomeMode ? 'Próximo' : 'Completado' },
-                { id: '3', nombre: 'Preparación de obra', estado: isWelcomeMode ? 'Próximo' : 'En curso' },
-                { id: '4', nombre: 'Ejecución de obra', estado: 'Próximo' },
-                { id: '5', nombre: 'Cierre & Entrega', estado: 'Próximo' }
-              ]).map((stage, idx) => {
+              {allStages.map((stage, idx) => {
                 const isDone = stage.estado === 'Completado';
                 const isCurrent = stage.estado === 'En curso';
                 return (
@@ -506,18 +505,16 @@ export default function ProjectStoryView({
                 <span>Próximamente</span>
               </span>
               <h3 className="text-xl font-serif text-stone-950 font-bold">
-                {isWelcomeMode ? `Inicio formal de actividades · ${plazoInicio}` : nextMilestone}
+                {nextMilestone}
               </h3>
               <p className="text-xs text-stone-600 font-sans">
-                {isWelcomeMode 
-                  ? 'Firma de actas de inicio, convalidación de cronograma y replanteo con el equipo técnico de Bojana Estudio.'
-                  : 'Coordinación de replanteo con contratistas principales y firma de actas de inicio.'}
+                {project.dna?.siguienteAccion?.descripcion || 'El estudio te acompaña en el siguiente paso del proyecto.'}
               </p>
             </div>
 
             <div className="shrink-0 text-left sm:text-right font-mono">
               <span className="text-xs text-stone-500 block">Fecha estimada</span>
-              <strong className="text-stone-900 text-sm">{isWelcomeMode ? plazoInicio : '22 OCT 2026'}</strong>
+              <strong className="text-stone-900 text-sm">{plazoInicio}</strong>
             </div>
           </div>
 
@@ -530,6 +527,8 @@ export default function ProjectStoryView({
       {operationalDisciplines.map((disc, dIdx) => {
         const discProg = calculateDisciplineProgress(disc);
         const chapterNum = `0${dIdx + 3}`;
+        const visibleNeeds = disc.necesidades.filter(n => !n.tareas.length || n.tareas.some(t => t.visibleCliente && t.estado !== 'Fuera de alcance'));
+        if (!visibleNeeds.length) return null;
         const completedTasks = disc.necesidades.flatMap(n => n.tareas).filter(t => t.estado === 'Completado' && t.visibleCliente);
         const inProgressTasks = disc.necesidades.flatMap(n => n.tareas).filter(t => t.estado === 'En curso' && t.visibleCliente);
         const clientNotes = disc.necesidades.flatMap(n => n.tareas).filter(t => t.notaCliente && t.visibleCliente);
@@ -553,6 +552,18 @@ export default function ProjectStoryView({
                   </span>
                   <span className="text-xs font-mono text-stone-400 block">Avance de la disciplina</span>
                 </div>
+              </div>
+
+              <div className="space-y-5">
+                {visibleNeeds.map(need => <div key={need.id} className="border-t border-stone-200 pt-4">
+                  <h3 className="text-lg text-stone-950">{need.nombre}</h3>
+                  <ul className="mt-3 space-y-2 text-sm text-stone-700">
+                    {need.tareas.filter(t => t.visibleCliente && t.estado !== 'Fuera de alcance').map(task => <li key={task.id} className="flex flex-wrap justify-between gap-2">
+                      <span>{task.titulo}{task.etapa && <span className="text-stone-500"> · {task.etapa}</span>}</span>
+                      <span className="text-stone-500">{task.estado === 'Pendiente' ? 'Próximamente' : task.estado === 'Esperando al cliente' ? 'Esperando tu respuesta' : task.estado}</span>
+                    </li>)}
+                  </ul>
+                </div>)}
               </div>
 
               {/* Client Notes from Studio Tasks */}
@@ -601,7 +612,7 @@ export default function ProjectStoryView({
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-xs text-stone-400 italic">Tareas preparatorias en curso.</p>
+                    <p className="text-xs text-stone-500">Todavía no hay tareas en curso.</p>
                   )}
                 </div>
               </div>
@@ -610,7 +621,7 @@ export default function ProjectStoryView({
 
               {/* Needs Breakdown */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                {disc.necesidades.map(need => {
+                {visibleNeeds.map(need => {
                   const np = calculateNeedProgress(need);
                   return (
                     <div key={need.id} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-1.5">
@@ -964,14 +975,7 @@ export default function ProjectStoryView({
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
-                    <button
-                      type="button"
-                      onClick={() => onToast(`Consultando documento base: ${db.nombre}`)}
-                      className="px-4 py-2 rounded-xl bg-stone-950 hover:bg-stone-850 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Descargar</span>
-                    </button>
+{db.url ? <a href={db.url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-md bg-stone-950 text-white text-xs flex items-center gap-1.5"><Download className="w-3.5 h-3.5" /><span>Abrir documento</span></a> : <span className="text-xs text-stone-500">Archivo pendiente</span>}
                   </div>
                 </div>
               ))}

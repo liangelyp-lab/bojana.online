@@ -1,3 +1,4 @@
+import { getPendingTaskDependencies } from '../../services/projectStructure';
 import TaskDeliverables from '../storage/TaskDeliverables';
 import { publishStorageProject } from '../../services/driveStorageService';
 import React, { useState } from 'react';
@@ -16,7 +17,7 @@ import {
   calculateNeedProgress,
   calculateDisciplineProgress,
   calculateProjectProgressFromDisciplines,
-  generateOperationalDisciplines,
+  generateEmptyOperationalDisciplines,
   getEffectiveProgress,
   getLifecycleLabel,
   publishAndActivateProject
@@ -82,7 +83,7 @@ export default function OperationalExecutionPanel({
   // Ensure operational disciplines exist
   const disciplines: OperationalDiscipline[] = project.disciplinasOperativas && project.disciplinasOperativas.length > 0
     ? project.disciplinasOperativas
-    : generateOperationalDisciplines(project.disciplinas || ['Arquitectura', 'Construcción']);
+    : generateEmptyOperationalDisciplines(project.disciplinas || []);
 
   // Expanded disciplines state
   const [collapsedDisciplines, setCollapsedDisciplines] = useState<Record<string, boolean>>({});
@@ -162,6 +163,10 @@ export default function OperationalExecutionPanel({
     const oldDiscProg = calculateDisciplineProgress(disc);
     const oldProjProg = projectProgress;
 
+    const pendingDependencies = getPendingTaskDependencies(disciplines.flatMap(d => d.necesidades.flatMap(n => n.tareas)), task);
+    if (pendingDependencies.length || (task.accionCliente?.activa && task.accionCliente.estado === 'pendiente')) {
+      onToast('Esta tarea espera una dependencia o una respuesta del cliente.'); return;
+    }
     const isCurrentlyDone = (currentStatus || task.estado) === 'Completado';
     const nextStatus: EstadoEtapa = isCurrentlyDone ? 'En curso' : 'Completado';
 
@@ -226,6 +231,9 @@ export default function OperationalExecutionPanel({
     const oldDiscProg = calculateDisciplineProgress(disc);
     const oldProjProg = projectProgress;
 
+    if (getPendingTaskDependencies(disciplines.flatMap(d => d.necesidades.flatMap(n => n.tareas)), task).length) {
+      onToast('Completá las tareas de las que depende este trabajo.'); return;
+    }
     const updatedSubetapas = (task.subetapas || []).map(s => 
       s.id === subtaskId ? { ...s, completada: !s.completada } : s
     );
