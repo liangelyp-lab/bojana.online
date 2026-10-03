@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   ProjectData, 
   AvancePost, 
@@ -62,7 +62,7 @@ export default function ProjectStoryView({
   onToast
 }: ProjectStoryViewProps) {
   // Navigation anchors
-  const [activeSection, setActiveSection] = useState<'intro' | 'alcance' | 'estado' | 'avances' | 'plano' | 'renders' | 'documentos' | 'decisiones'>('intro');
+  const [activeSection, setActiveSection] = useState('intro');
 
   // Lightbox for photos/renders
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
@@ -119,6 +119,34 @@ export default function ProjectStoryView({
   const docsBase = contractualBase?.documentosBase || [];
   const alcanceContratado = contractualBase?.alcance || info.descripcion || '';
 
+  const storyIndexItems = [
+    { id: 'intro', label: 'Portada' },
+    { id: 'alcance', label: isWelcomeMode ? 'Bienvenida y alcance' : 'El proyecto' },
+    { id: 'estado', label: isWelcomeMode ? 'Roadmap de etapas' : 'En qué estamos' },
+    ...operationalDisciplines.map((discipline) => ({
+      id: `disc-${discipline.id.toLowerCase()}`,
+      label: discipline.nombre
+    })),
+    { id: 'sintesis', label: 'Síntesis de ejecución' },
+    ...(avances.length > 0 ? [{ id: 'avances', label: 'Avances' }] : []),
+    ...(mainTour ? [{ id: 'detalle', label: 'Plano interactivo' }] : []),
+    ...(gallery.length > 0 ? [{ id: 'renders', label: 'Visualizaciones' }] : []),
+    ...(documentos.length > 0 || docsBase.length > 0 ? [{ id: 'documentos', label: 'Documentos' }] : []),
+    ...(decisiones.length > 0 ? [{ id: 'decisiones', label: 'Decisiones' }] : [])
+  ];
+
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>('.story-content > section[id]');
+    if (!sections.length || !('IntersectionObserver' in window)) return;
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) setActiveSection(entry.target.id);
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
   // Selected tour hotspot pin
   const activePin = tourPuntos.find(p => p.id === selectedHotspotPinId) || tourPuntos[0];
 
@@ -170,7 +198,7 @@ export default function ProjectStoryView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] text-gray-900 font-sans selection:bg-amber-100 relative">
+    <div className="min-h-screen bg-[#FAF8F3] text-gray-900 font-sans selection:bg-amber-100 relative">
       
       {/* 1. TOP BAR (Admin Preview Mode or Client Status) */}
       {isAdminViewing ? (
@@ -229,75 +257,25 @@ export default function ProjectStoryView({
         </header>
       )}
 
-      {/* 2. FLOATING STORY INDEX (Quick access for client) */}
-      <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-950/90 text-white backdrop-blur-md px-3 sm:px-4 py-2 rounded-full shadow-2xl z-40 border border-white/10 flex items-center gap-1 sm:gap-2 text-[11px] font-mono">
-        <a 
-          href="#intro" 
-          className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
-        >
-          Portada
-        </a>
-        <span className="text-stone-600">&bull;</span>
-        <a 
-          href="#alcance" 
-          className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
-        >
-          {isWelcomeMode ? 'Bienvenida & Alcance' : 'El Proyecto'}
-        </a>
-        <span className="text-stone-600">&bull;</span>
-        <a 
-          href="#estado" 
-          className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
-        >
-          {isWelcomeMode ? 'Roadmap de Etapas' : 'En qué estamos'}
-        </a>
-        {avances.length > 0 && (
-          <>
-            <span className="text-stone-600">&bull;</span>
-            <a 
-              href="#avances" 
-              className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
-            >
-              Avances
-            </a>
-          </>
-        )}
-        {mainTour && (
-          <>
-            <span className="text-stone-600 hidden sm:inline-block">&bull;</span>
-            <a 
-              href="#detalle" 
-              className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white hidden sm:inline-block"
-            >
-              Plano interactivo
-            </a>
-          </>
-        )}
-        {(documentos.length > 0 || docsBase.length > 0) && (
-          <>
-            <span className="text-stone-600">&bull;</span>
-            <a 
-              href="#documentos" 
-              className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
-            >
-              Documentos
-            </a>
-          </>
-        )}
-        {pendingDecisiones.length > 0 && (
-          <>
-            <span className="text-stone-600">&bull;</span>
-            <a 
-              href="#decisiones" 
-              className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold transition flex items-center gap-1"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-              <span>Decisiones ({pendingDecisiones.length})</span>
-            </a>
-          </>
-        )}
-      </nav>
-
+      {/* Índice editorial persistente para recorrer la historia del proyecto. */}
+      <div className="story-layout">
+        <nav className="story-index-rail" aria-label="Índice del proyecto">
+          <ol>
+            {storyIndexItems.map((item, index) => (
+              <li key={item.id}>
+                <a
+                  href={`#${item.id}`}
+                  className={activeSection === item.id ? 'is-active' : ''}
+                  aria-current={activeSection === item.id ? 'location' : undefined}
+                >
+                  <span className="rail-number">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="rail-title">{item.label}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+        <main className="story-content" id="story-content">
       {/* 3. HERO / PORTADA EDITORIAL */}
       <section id="intro" className="relative min-h-[80vh] flex flex-col justify-end p-6 sm:p-12 lg:p-16 border-b border-stone-200 overflow-hidden bg-stone-900 text-white">
         {/* Background Image with architectural gradient */}
@@ -626,7 +604,7 @@ export default function ProjectStoryView({
       })}
 
       {/* SÍNTESIS GENERAL CALCULADA DEL PROYECTO */}
-      <section className="py-12 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
+      <section id="sintesis" className="py-12 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
         <div className="bg-stone-50 border border-stone-200 text-stone-900 rounded-3xl p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xs">
           <div className="space-y-2">
             <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-700 font-bold">
@@ -1176,6 +1154,8 @@ export default function ProjectStoryView({
           &copy; {new Date().getFullYear()} Bojana Estudio &bull; Project Story privada generada para {project.cliente?.nombre || 'Comitente'}
         </div>
       </footer>
+        </main>
+      </div>
 
       {/* LIGHTBOX MODAL */}
       {lightboxImage && (
