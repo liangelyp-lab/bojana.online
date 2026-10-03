@@ -86,7 +86,7 @@ export default function AdminProjectsDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-gray-900 font-sans flex flex-col">
+    <div className="min-h-[100dvh] bg-white text-gray-900 font-sans flex flex-col">
       
       {/* 1. TOP HEADER */}
       <header className="h-12 bg-white border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
