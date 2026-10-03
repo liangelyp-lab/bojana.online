@@ -141,6 +141,7 @@ button[class*="rounded-"] { border-radius: var(--radius-control) !important; }
 .transition, .transition-all, .transition-colors { transition-duration: 160ms !important; }
 button:active, a[class*="bg-"]:active { transform: scale(0.98); }
 button:disabled, input:disabled, textarea:disabled, select:disabled { cursor: not-allowed; opacity: 0.55; }
+button[class*="hover:bg-gray-850"]:hover { background-color: var(--primary-active) !important; }
 
 button[class*="bg-gray-950"], button[class*="bg-stone-950"],
 button[class*="bg-amber-"], button[class*="bg-emerald-"],
@@ -153,6 +154,7 @@ a[class*="bg-stone-950"], a[class*="bg-gray-950"] {
   letter-spacing: 0 !important;
   box-shadow: 0 1px 3px rgba(24, 29, 38, 0.12) !important;
 }
+input:not([type="checkbox"]):not([type="radio"]), select { min-height: 44px; }
 input, textarea, select { border: 1px solid var(--border-strong) !important; background: var(--canvas) !important; color: var(--ink) !important; }
 input:focus, textarea:focus, select:focus { border-color: var(--link) !important; outline: 2px solid rgba(69, 143, 255, 0.26) !important; outline-offset: 1px; }
 
@@ -160,7 +162,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--link) !important
 .story-layout { width: 100%; max-width: var(--content-max); margin: 0 auto; padding: 0 var(--page-gutter); display: block; }
 .story-index-rail { position: relative; height: auto; padding: 12px 0; margin-bottom: 8px; border-bottom: 1px solid var(--hairline); }
 .story-index-rail ol { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: thin; }
-.story-index-rail a { display: block; white-space: nowrap; padding: 9px 12px; border-radius: 8px; color: var(--muted); text-decoration: none; }
+.story-index-rail a { display: flex; min-height: 44px; align-items: center; white-space: nowrap; padding: 9px 12px; border-radius: 8px; color: var(--muted); text-decoration: none; }
 .story-index-rail a:hover, .story-index-rail a.is-active { color: var(--ink); background: var(--surface-soft); }
 .story-index-rail .rail-number { display: none; }
 .story-index-rail .rail-title { font-size: 0.875rem; line-height: 1.35; }
