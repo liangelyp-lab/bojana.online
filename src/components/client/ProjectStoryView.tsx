@@ -1,3 +1,4 @@
+import { useClientDeliverables, ClientStorageAccess, ClientTaskFiles } from '../storage/ClientDeliverables';
 import React, { useState } from 'react';
 import { 
   ProjectData, 
@@ -97,6 +98,7 @@ export default function ProjectStoryView({
   const allStages = (project.progreso || []).filter(p => p.tipo === 'etapa');
   const allMilestones = (project.progreso || []).filter(p => p.tipo === 'hito');
   const documentos = project.documentos || [];
+  const storageAccess = useClientDeliverables(project.id, Boolean(project.storage));
   const gallery = project.visualizaciones?.galeria || [];
   const tours = project.visualizaciones?.tours || [];
   const mainTour = tours[0];
@@ -522,6 +524,8 @@ export default function ProjectStoryView({
         </div>
       </section>
 
+      {project.storage && <ClientStorageAccess access={storageAccess} />}
+
       {/* CAPÍTULOS POR DISCIPLINA (ARQUITECTURA, CONSTRUCCIÓN, DISEÑO, INGENIERÍA) */}
       {operationalDisciplines.map((disc, dIdx) => {
         const discProg = calculateDisciplineProgress(disc);
@@ -601,6 +605,8 @@ export default function ProjectStoryView({
                   )}
                 </div>
               </div>
+
+              <ClientTaskFiles files={storageAccess.files} discipline={disc.id} />
 
               {/* Needs Breakdown */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
@@ -1358,3 +1364,4 @@ export default function ProjectStoryView({
     </div>
   );
 }
+

@@ -2,6 +2,15 @@
 @import "tailwindcss";
 
 @theme {
+  --color-bojana-canvas: #F7F7F4;
+  --color-bojana-surface: #FFFFFF;
+  --color-bojana-ink: #111111;
+  --color-bojana-muted: #686864;
+  --color-bojana-line: #D8D8D2;
+  --color-bojana-soft: #ECECE7;
+  --radius-bojana-control: 2px;
+  --radius-bojana-overlay: 4px;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
+

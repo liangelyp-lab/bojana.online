@@ -1,3 +1,4 @@
+import { publishStorageProject } from '../../services/driveStorageService';
 import React, { useState } from 'react';
 import { 
   ProjectData, 
@@ -16,6 +17,7 @@ import {
   DNAWorkflowStep
 } from '../../types';
 import { 
+  publishAndActivateProject,
   SYSTEM_MODULES, 
   getRecommendedModulesForDisciplines,
   generateWorkflowFromDNA,
@@ -165,20 +167,15 @@ export default function ProjectWorkspace({
   };
 
   // Toggle publish
-  const handleTogglePublish = () => {
-    const nextPub = !isPublished;
-    const updated: ProjectData = {
-      ...project,
-      info: {
-        ...project.info,
-        publicado: nextPub,
-        portalPublicado: nextPub,
-        cambiosSinPublicar: 0,
-        ultimaPublicacion: nextPub ? 'Recién publicado' : project.info.ultimaPublicacion
-      }
-    };
-    onUpdateProject(updated);
-    onToast(nextPub ? `¡Portal de ${title} publicado! Ya es accesible para el comitente.` : 'Portal despublicado (modo borrador).');
+  const [isPublishing, setIsPublishing] = useState(false);
+  const handleTogglePublish = async () => {
+    setIsPublishing(true);
+    try {
+      const updated = await publishStorageProject(publishAndActivateProject(project));
+      onUpdateProject(updated);
+      onToast(`Portal de ${title} publicado.`);
+    } catch (error) { onToast((error as Error).message); }
+    finally { setIsPublishing(false); }
   };
 
   // Quick copy link
@@ -524,11 +521,12 @@ export default function ProjectWorkspace({
               <button
                 type="button"
                 onClick={handleTogglePublish}
+                disabled={isPublishing}
                 className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-white text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md ${
                   isPublished ? 'bg-stone-950 hover:bg-stone-850' : 'bg-emerald-700 hover:bg-emerald-800'
                 }`}
               >
-                <span>{isPublished ? 'Re-publicar con cambios' : 'Publicar portal ahora'}</span>
+                <span>{isPublishing ? 'Publicando…' : isPublished ? 'Re-publicar con cambios' : 'Publicar portal ahora'}</span>
               </button>
             </div>
           </div>
@@ -797,3 +795,4 @@ export default function ProjectWorkspace({
     </div>
   );
 }
+

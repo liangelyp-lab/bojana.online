@@ -1,3 +1,4 @@
+import { getStorageStatus, prepareProjectStorage, storageRequest, storageJson } from './services/driveStorageService';
 import React, { useState, useEffect } from 'react';
 import LoginView from './components/LoginView';
 import Banner from './components/Banner';
@@ -43,7 +44,7 @@ export default function App() {
   });
 
   // STUDIO NAVIGATION TAB
-  const [studioNavTab, setStudioNavTab] = useState<StudioNavTab>('dashboard');
+  const [studioNavTab, setStudioNavTab] = useState<StudioNavTab>(new URLSearchParams(window.location.search).has('drive') ? 'configuracion' : 'dashboard');
 
   // STUDIO PREVIEW AS CLIENT
   const [isPreviewingAsClient, setIsPreviewingAsClient] = useState<boolean>(false);
@@ -59,8 +60,27 @@ export default function App() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  const [remoteClientProject, setRemoteClientProject] = useState<ProjectData | null>(null);
+
   // ACTIVE PROJECT RESOLUTION
-  const currentProject = projects.find(p => p.id === selectedProjectId) || projects[0];
+  const currentProject = (currentUserRole === 'cliente' ? remoteClientProject : null) || projects.find(p => p.id === selectedProjectId) || projects[0];
+
+  // Resolve published direct links on a fresh browser using server-side access controls.
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('portal');
+    if (!token || token.length < 32) return;
+    let cancelled = false;
+    void storageJson<{ project: ProjectData }>('/client-access', { token }).then(({ project }) => {
+      if (cancelled) return;
+      setRemoteClientProject(project);
+      setCurrentUserRole('cliente');
+      setSelectedProjectId(project.id);
+      setIsPreviewingAsClient(false);
+      sessionStorage.setItem('BOJANA_AUTH_ROLE', 'cliente');
+      sessionStorage.setItem('BOJANA_SELECTED_PROJECT', project.id);
+    }).catch(() => { /* Preserve existing demo access when the server is unavailable. */ });
+    return () => { cancelled = true; };
+  }, []);
 
   // CHECK URL ON LOAD FOR DEDICATED DIRECT LINK
   useEffect(() => {
@@ -100,6 +120,8 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    void storageRequest('/session', { method: 'DELETE' }).catch(() => {});
+    setRemoteClientProject(null);
     setCurrentUserRole(null);
     setSelectedProjectId(null);
     setIsPreviewingAsClient(false);
@@ -112,21 +134,31 @@ export default function App() {
 
   // PROJECT DATA UPDATER
   const handleUpdateProject = (updated: ProjectData) => {
+    if (currentUserRole === 'cliente' && remoteClientProject?.id === updated.id) { setRemoteClientProject(updated); return; }
     saveProjectData(updated);
     setProjects(getAllProjects());
   };
 
   // CREATE PROJECT (FROM SHORT ONBOARDING)
-  const handleCreateProject = (newProj: ProjectData) => {
+  const handleCreateProject = async (newProj: ProjectData) => {
     saveProjectData(newProj);
-    const updated = getAllProjects();
-    setProjects(updated);
+    setProjects(getAllProjects());
     setSelectedProjectId(newProj.id);
     setIsNewProjectModalOpen(false);
     setIsPreviewingAsClient(false);
     sessionStorage.setItem('BOJANA_SELECTED_PROJECT', newProj.id);
-    const pTitle = newProj.info?.nombre || 'Proyecto';
-    triggerToast(`¡Proyecto "${pTitle}" creado! Has ingresado a su workspace.`);
+    triggerToast(`Proyecto "${newProj.info.nombre}" creado.`);
+    try {
+      const status = await getStorageStatus();
+      if (!status.authorized || !status.connected) return;
+      const storage = await prepareProjectStorage(newProj);
+      // Keep edits made while folders were being created.
+      const latest = getAllProjects().find(p => p.id === newProj.id);
+      if (latest) { saveProjectData({ ...latest, storage }); setProjects(getAllProjects()); }
+      triggerToast('Carpetas del proyecto y sus disciplinas creadas en Drive.');
+    } catch (error) {
+      triggerToast(`Proyecto creado. Carpetas pendientes: ${(error as Error).message}`);
+    }
   };
 
   // RESET DEMO PROJECTS
@@ -294,3 +326,4 @@ export default function App() {
     </div>
   );
 }
+

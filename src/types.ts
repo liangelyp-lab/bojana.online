@@ -1,3 +1,5 @@
+import type { ProjectStorage, StoredDeliverable } from './services/driveStorageService';
+
 // Types for Bojana Estudio - Client & Admin Portal System
 
 export type UserRole = 'admin' | 'cliente';
@@ -345,7 +347,7 @@ export interface ExecutionTask {
   tipoEtapa?: TipoEtapa; // 'binaria' | 'estado' | 'coleccion'
   fecha?: string;
   subetapas?: SubEtapaItem[];
-  archivos?: { nombre: string; url: string; tipo: 'imagen' | 'pdf' | 'archivo' }[];
+  archivos?: { nombre: string; url: string; tipo: 'imagen' | 'pdf' | 'archivo'; storage?: StoredDeliverable }[];
   comentarioInterno?: string;
   visibleCliente: boolean;
   notaCliente?: string; // ej: "Finalizamos las vistas principales del SUM."
@@ -355,6 +357,7 @@ export interface ExecutionTask {
 }
 
 export interface OperationalNeed {
+  publishedProgress?: number; // Server-computed progress including hidden tasks in a public snapshot.
   id: string; // ej: 'etapas', 'planos', 'renders', 'entregables', 'aprobaciones', 'cronograma', 'avances', 'fotos', 'hitos', 'documentacion', 'materiales', 'revisiones'
   nombre: string; // ej: "Planos", "Renders", "Etapas", "Avances de obra", "Materiales"
   descripcion?: string;
@@ -366,6 +369,7 @@ export interface OperationalNeed {
 }
 
 export interface OperationalDiscipline {
+  publishedProgress?: number; // Server-computed progress including hidden tasks in a public snapshot.
   id: DisciplinaType; // 'Arquitectura' | 'Construcción' | 'Diseño' | 'Ingeniería'
   pesoPorcentaje?: number; // Legacy/configuración visual. En ADN v1 las disciplinas activas pesan igual.
   necesidades: OperationalNeed[];
@@ -379,6 +383,7 @@ export function calculateTaskProgress(task: ExecutionTask): number {
 }
 
 export function calculateNeedProgress(need: OperationalNeed): number {
+  if (need.publishedProgress !== undefined) return need.publishedProgress;
   const activeTasks = (need.tareas || []).filter(t => t.estado !== 'Fuera de alcance');
   if (activeTasks.length === 0) return 0;
 
@@ -387,6 +392,7 @@ export function calculateNeedProgress(need: OperationalNeed): number {
 }
 
 export function calculateDisciplineProgress(discipline: OperationalDiscipline): number {
+  if (discipline.publishedProgress !== undefined) return discipline.publishedProgress;
   const needs = discipline.necesidades || [];
   const activeTasks = needs.flatMap(n => (n.tareas || []).filter(t => t.estado !== 'Fuera de alcance'));
   if (activeTasks.length === 0) return 0;
@@ -450,6 +456,7 @@ export interface ProjectGeneralInfo {
 // The Complete Project Data Model
 export interface ProjectData {
   id: string;
+  storage?: ProjectStorage;
 
   // ─── LIFECYCLE ─────────────────────────────────────────────────────────────
   // Controls the stage of the project in the studio's workflow.
@@ -637,3 +644,4 @@ export interface LibraryItem {
   fecha: string;
   tamano: string;
 }
+
