@@ -187,7 +187,7 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 sm:px-8 lg:px-20 py-8 lg:py-16">
           <ProjectWorkspace
             project={currentProject}
             onBackToProjects={() => {
@@ -231,7 +231,7 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 w-full max-w-[1080px] mx-auto px-4 sm:px-8 lg:px-20 py-8 lg:py-16">
         {studioNavTab === 'dashboard' && (
           <StudioDashboard
             projects={projects}
