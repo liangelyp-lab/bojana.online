@@ -69,20 +69,25 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .text-gray-550, .text-gray-450, .text-gray-400, .text-stone-400, .text-stone-300,
 .text-stone-200, .text-slate-400, .text-zinc-650 { color: var(--muted) !important; }
 .text-white { color: #fff !important; }
+.bg-gray-950 .text-gray-300, .bg-gray-950 .text-stone-300,
+.bg-gray-950 .text-stone-200, .bg-stone-900 .text-stone-300,
+.bg-stone-900 .text-stone-200 { color: #d5d8de !important; }
+.bg-gray-950 .text-amber-400, .bg-stone-900 .text-amber-400 { color: var(--peach) !important; }
 .border-gray-100, .border-gray-200, .border-stone-100, .border-stone-200,
 .border-slate-200, .border-white\/10, .border-white\/15 { border-color: var(--hairline) !important; }
 .divide-stone-100 > :not([hidden]) ~ :not([hidden]) { border-color: var(--hairline) !important; }
 
 /* Semantic legacy color classes retain their meaning using the selected palette. */
 .bg-amber-50, .bg-amber-100, .bg-amber-200, .bg-amber-50\/60, .bg-amber-50\/80,
-.bg-yellow-50 { background-color: var(--cream) !important; }
+.bg-amber-500\/10, .bg-amber-500\/20, .bg-yellow-50 { background-color: var(--cream) !important; }
 .bg-amber-300, .bg-amber-400, .bg-amber-500, .bg-amber-600, .bg-amber-700,
 .bg-amber-800, .bg-amber-900, .bg-amber-500\/10, .bg-amber-500\/20 { background-color: var(--coral) !important; }
 .text-amber-900, .text-amber-800, .text-amber-700, .text-amber-600,
 .text-amber-500, .text-orange-800 { color: var(--coral) !important; }
 .border-amber-100, .border-amber-200, .border-amber-300 { border-color: var(--peach) !important; }
 .bg-emerald-50, .bg-emerald-100, .bg-emerald-50\/30, .bg-emerald-50\/40,
-.bg-emerald-50\/60, .bg-emerald-50\/80, .bg-green-50 { background-color: var(--mint) !important; }
+.bg-emerald-50\/60, .bg-emerald-50\/80, .bg-emerald-500\/10, .bg-emerald-200\/80,
+.bg-green-50 { background-color: var(--mint) !important; }
 .bg-emerald-400, .bg-emerald-500, .bg-emerald-600, .bg-emerald-700,
 .bg-green-400, .bg-green-600, .bg-emerald-500\/10, .bg-emerald-200\/80 { background-color: var(--forest) !important; }
 .text-emerald-950, .text-emerald-900, .text-emerald-800, .text-emerald-700,
@@ -99,10 +104,24 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .border-blue-200, .border-indigo-200 { border-color: #9bb8e4 !important; }
 .bg-orange-50, .bg-orange-100 { background-color: #f7e7e2 !important; }
 .text-orange-700, .text-orange-600 { color: var(--coral) !important; }
+*[class*="text-amber-"], *[class*="text-orange-"], *[class*="text-rose-"],
+*[class*="text-red-"] { color: var(--coral) !important; }
+*[class*="text-emerald-"], *[class*="text-green-"] { color: var(--forest) !important; }
+*[class*="text-blue-"], *[class*="text-indigo-"], *[class*="text-sky-"],
+*[class*="text-cyan-"], *[class*="text-teal-"] { color: var(--link-active) !important; }
+*[class*="border-amber-"] { border-color: var(--peach) !important; }
+*[class*="border-emerald-"], *[class*="border-green-"] { border-color: var(--mint) !important; }
+*[class*="border-rose-"], *[class*="border-red-"] { border-color: #d88b70 !important; }
+*[class*="border-blue-"], *[class*="border-indigo-"], *[class*="border-sky-"],
+*[class*="border-cyan-"], *[class*="border-teal-"] { border-color: #9bb8e4 !important; }
+button[class*="hover:bg-emerald-"]:hover, a[class*="hover:bg-emerald-"]:hover { background-color: var(--forest) !important; }
+button[class*="hover:bg-amber-"]:hover, a[class*="hover:bg-amber-"]:hover,
+button[class*="hover:bg-rose-"]:hover, a[class*="hover:bg-rose-"]:hover { background-color: #8d2500 !important; }
+button[class*="hover:bg-blue-"]:hover, a[class*="hover:bg-blue-"]:hover { background-color: var(--link-active) !important; }
 
 /* Typography follows the Haas-inspired system with local system fallbacks. */
-h1, h2, h3, h4, h5, h6, .font-serif { font-family: "Haas Groot Disp", "Haas", "Inter", system-ui, sans-serif !important; }
-p, li, blockquote, .font-sans, button, input, textarea, select { font-family: "Haas", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif !important; }
+h1, h2, h3, h4, h5, h6, .font-serif { font-family: "Haas Groot Disp", "Haas", "Inter Display", Inter, system-ui, sans-serif !important; }
+p, li, blockquote, .font-sans, button, input, textarea, select { font-family: "Haas", "Inter Display", Inter, system-ui, -apple-system, "Segoe UI", sans-serif !important; }
 .font-mono, code, kbd, pre { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace !important; }
 h1 { font-size: clamp(2.25rem, 4vw, 3rem) !important; line-height: 1.1 !important; font-weight: 500 !important; letter-spacing: 0 !important; }
 h2 { font-weight: 400 !important; letter-spacing: 0 !important; }
