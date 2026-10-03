@@ -260,7 +260,7 @@ Los estados se distinguen por texto, icono, forma y posición. No dependen de ve
 | UI                   | 14/20 sans medium | 14/20 sans medium | Botones, tabs y controles.                |
 | Metadato             | 12/18 sans        | 12/18 sans        | Uso corto. Nunca para contenido esencial. |
 
-**Familias de referencia** Haas Groot Display para títulos y Haas para interfaz. Si las fuentes propietarias no están instaladas, usar `Inter`, `system-ui`, `-apple-system`, `Segoe UI` y sans-serif en ese orden. No solicitar las fuentes a servicios externos desde producción.
+**Familias de referencia** Haas Groot Display para títulos y Haas para interfaz. Si las fuentes propietarias no están instaladas, usar `Inter Display`, `Inter`, `system-ui`, `-apple-system`, `Segoe UI` y sans-serif en ese orden. No solicitar las fuentes a servicios externos desde producción.
 
 **Peso** regular como base, medium para acciones y etiquetas. Bold solo para alertas o énfasis puntuales.
 
