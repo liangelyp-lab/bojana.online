@@ -4,7 +4,7 @@
 
 Guía maestra para diseñar y construir una experiencia coherente entre el portal del cliente y el espacio de trabajo del estudio.
 
-**Versión 1.0**  
+**Versión 1.1**  
 3 de octubre de 2026
 
 Donde la ingeniería encuentra la forma
@@ -227,19 +227,24 @@ Crear una tarea, adjuntar un entregable, solicitar una aprobación o publicar un
 
 # Sistema visual y tokens
 
-El lenguaje es editorial, técnico y silencioso. La grilla, la tipografía, el espacio y las líneas finas organizan la interfaz. El color no se usa para decorar ni para sustituir una etiqueta.
+La guía `DESIGN.md` del proyecto es la fuente de verdad para la capa visual del portal y el workspace. Se adopta su sistema editorial de superficies blancas, tinta oscura, tipografía sans basada en Haas con fallbacks locales, primarios casi negros, acentos de marca documentados y radios consistentes de 10 a 12 px. Esta decisión reemplaza la paleta monocromática estricta de la versión 1.0. El ADN de producto conserva la autoridad sobre arquitectura, datos, estados, permisos, publicación, accesibilidad y microcopy.
+
+En la interfaz operativa, los colores coral, verde, crema y azul se limitan a las superficies y estados semánticos previstos por `DESIGN.md`. Ningún estado depende solo del color. El portal mantiene una historia de proyecto continua y el workspace permanece unificado. El índice de la historia es contextual y no fijo para preservar área útil.
 
 ## Paleta
 
 | **Token**     | **Valor** | **Uso**                                                        |
 |---------------|-----------|----------------------------------------------------------------|
-| color.canvas  | \#F7F7F4  | Fondo principal tipo papel.                                    |
-| color.surface | \#FFFFFF  | Inputs, overlays y superficies que deben separarse del canvas. |
-| color.ink     | \#111111  | Texto principal, acción primaria y navegación.                 |
-| color.muted   | \#686864  | Metadatos y texto secundario con contraste suficiente.         |
-| color.line    | \#D8D8D2  | Divisores, bordes y estructura.                                |
-| color.soft    | \#ECECE7  | Fondo de selección, hover y filas alternas.                    |
-| color.inverse | \#FFFFFF  | Texto sobre fondo negro.                                       |
+| color.canvas      | \#FFFFFF  | Fondo principal.                                                 |
+| color.surface-soft | \#F8FAFC | Bandas suaves, filas alternas y selección.                       |
+| color.ink         | \#181D26  | Texto principal, navegación y acción primaria.                  |
+| color.body        | \#333840  | Texto de lectura.                                                |
+| color.muted       | \#5F6670  | Metadatos y texto secundario con contraste suficiente.          |
+| color.hairline    | \#DDDDDD  | Divisores y bordes.                                              |
+| color.coral       | \#AA2D00  | Acento de marca y alertas cálidas.                               |
+| color.forest      | \#0A2E0E  | Estado de éxito y acento secundario documentado.                 |
+| color.link        | \#1B61C9  | Enlaces y foco visible.                                          |
+| color.inverse     | \#FFFFFF  | Texto sobre fondos oscuros.                                      |
 
 Los estados se distinguen por texto, icono, forma y posición. No dependen de verde, amarillo o rojo. Los errores críticos pueden incorporar un color semántico en una fase posterior, siempre como apoyo y nunca como único indicador.
 
@@ -255,7 +260,7 @@ Los estados se distinguen por texto, icono, forma y posición. No dependen de ve
 | UI                   | 14/20 sans medium | 14/20 sans medium | Botones, tabs y controles.                |
 | Metadato             | 12/18 sans        | 12/18 sans        | Uso corto. Nunca para contenido esencial. |
 
-**Familias de referencia** serif editorial para identidad y títulos; sans neutra para interfaz. En implementación, definir una pila web estable antes de ajustar métricas.
+**Familias de referencia** Haas Groot Display para títulos y Haas para interfaz. Si las fuentes propietarias no están instaladas, usar `Inter`, `system-ui`, `-apple-system`, `Segoe UI` y sans-serif en ese orden. No solicitar las fuentes a servicios externos desde producción.
 
 **Peso** regular como base, medium para acciones y etiquetas. Bold solo para alertas o énfasis puntuales.
 
