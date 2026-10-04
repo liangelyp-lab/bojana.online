@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { JSDOM } from 'jsdom';
+import React, { act } from 'react';
+import type { ProjectData } from '../src/types';
+import { INITIAL_PROJECT_LOS_ALISOS } from '../src/services/storageService';
+const dom=new JSDOM('<div id="root"></div>',{url:'https://bojana.test'});
+Object.assign(globalThis,{window:dom.window,document:dom.window.document,localStorage:dom.window.localStorage,HTMLElement:dom.window.HTMLElement,IS_REACT_ACT_ENVIRONMENT:true});
+window.matchMedia=(()=>({matches:false,addEventListener(){},removeEventListener(){}})) as any;
+globalThis.fetch=async()=>new Response(JSON.stringify({configured:false,authorized:false,connected:false,maxUploadBytes:0}),{headers:{'content-type':'application/json'}});
+const {createRoot}=await import('react-dom/client');
+const {default:Workspace}=await import('../src/components/studio/OperationalExecutionPanel');
+const root=createRoot(document.getElementById('root')!);
+let project:ProjectData;
+let writes=0;
+const render=()=>root.render(<Workspace project={project} onUpdateProject={updated=>{project=updated;writes++;render();}} onToast={()=>{}} />);
+const button=(name:string)=>Array.from(document.querySelectorAll<HTMLButtonElement>('button')).find(b=>b.textContent?.trim()===name)!;
+const click=(element:HTMLElement)=>act(async()=>{element.click();});
+
+test('the inspector keeps dependency errors inline and saving a request retains its task without claiming email delivery',async()=>{
+  project=structuredClone(INITIAL_PROJECT_LOS_ALISOS);
+  project.lifecycleStatus='ACTIVO';
+  project.info.cambiosSinPublicar=1;
+  project.disciplinasOperativas=[{id:'Arquitectura',necesidades:[{id:'selected',nombre:'Necesidad elegida',tareas:[{id:'first',titulo:'Requisito previo',estado:'Pendiente',pesoPorcentaje:50,visibleCliente:true},{id:'second',titulo:'Tarea dependiente',estado:'Pendiente',pesoPorcentaje:50,visibleCliente:true,dependencias:['first']}]}]}];
+  await act(async()=>{render();});
+  await click(button('Tarea dependiente'));
+  const select=document.querySelector<HTMLSelectElement>('[aria-label="Inspector"] select')!;
+  await act(async()=>{select.value='En curso';select.dispatchEvent(new dom.window.Event('change',{bubbles:true}));});
+  assert.equal(writes,0);
+  assert.match(document.querySelector('[role="alert"]')!.textContent!,/espera una dependencia/);
+  await click(button('Solicitar acción del cliente'));
+  await click(button('Guardar solicitud'));
+  assert.equal(writes,1);
+  const task=project.disciplinasOperativas[0].necesidades[0].tareas[1];
+  assert.equal(task.estado,'Esperando al cliente');
+  assert.equal(task.accionCliente?.activa,true);
+  assert.equal(task.accionCliente?.solicitudEnviadaEmail,false);
+  assert.equal(task.accionCliente?.emailEntregado,false);
+  assert.equal(task.accionCliente?.fechaLimite,'');
+  assert.deepEqual(task.accionCliente?.adjuntos,[]);
+  await act(async()=>root.unmount());
+});
+
+test('reviewing pending changes opens publication review without changing project data',async()=>{
+  const container=document.createElement('div');document.body.append(container);const view=createRoot(container);
+  const p=structuredClone(INITIAL_PROJECT_LOS_ALISOS);p.lifecycleStatus='ACTIVO';p.info.cambiosSinPublicar=2;
+  let updates=0;
+  await act(async()=>view.render(<Workspace project={p} onUpdateProject={()=>updates++} onToast={()=>{}} />));
+  await click(button('Revisar y publicar'));
+  assert.equal(updates,0);
+  assert.equal(p.info.cambiosSinPublicar,2);
+  assert.ok(button('Publicar cambios'));
+  await act(async()=>view.unmount());container.remove();
+});

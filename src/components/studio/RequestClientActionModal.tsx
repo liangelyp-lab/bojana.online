@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
-import { 
-  ExecutionTask, 
-  ClientActionRequired, 
-  ClientActionType, 
-  ClientActionAlternative 
+import {
+  ExecutionTask,
+  ClientActionRequired,
+  ClientActionType,
+  ClientActionAlternative
 } from '../../types';
-import { 
-  X, 
-  Send, 
-  Mail, 
-  Paperclip, 
-  Plus, 
-  Trash2, 
-  Calendar, 
-  Lock, 
-  CheckCircle2, 
-  Sparkles, 
+import {
+  X,
+  Send,
+  Mail,
+  Paperclip,
+  Plus,
+  Trash2,
+  Calendar,
+  Lock,
+  CheckCircle2,
+  Sparkles,
   AlertCircle,
   ShieldCheck,
   FileText,
@@ -55,24 +55,18 @@ export default function RequestClientActionModal({
     existing?.mensaje || 'Necesitamos tu aprobación para continuar con el desarrollo final y la siguiente etapa del proyecto.'
   );
   const [accionTexto, setAccionTexto] = useState(existing?.accionRequeridaTexto || 'Aprobar propuesta');
-  const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || '12 OCT 2026');
+  const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || '');
   const [bloquear, setBloquear] = useState(existing?.bloquearSiguientesEtapas ?? true);
   const [pesoPct, setPesoPct] = useState(existing?.pesoPorcentaje ?? 10);
 
   // Alternatives state (if tipo === 'elegir_alternativa')
   const [alternativas, setAlternativas] = useState<ClientActionAlternative[]>(
-    existing?.alternativas || [
-      { id: 'alt-1', letra: 'Opción A', titulo: 'Roble natural con cantos ABS', descripcion: 'Tono cálido, textura de veta suave y acabado mate.' },
-      { id: 'alt-2', letra: 'Opción B', titulo: 'Roble oscuro tintado al aceite', descripcion: 'Contraste contemporáneo con herrajes negro mate.' }
-    ]
+    existing?.alternativas || []
   );
 
   // Attachments state
   const [adjuntos, setAdjuntos] = useState<{ id: string; nombre: string; url?: string; tipo: 'pdf' | 'imagen' | 'otro' }[]>(
-    existing?.adjuntos || [
-      { id: 'att-1', nombre: 'Propuesta técnica y planos de detalle.pdf', tipo: 'pdf' },
-      { id: 'att-2', nombre: 'Render preliminar de visualización', tipo: 'imagen', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80' }
-    ]
+    existing?.adjuntos || []
   );
   const [newAdjuntoName, setNewAdjuntoName] = useState('');
 
@@ -123,10 +117,10 @@ export default function RequestClientActionModal({
       adjuntos,
       estado: existing?.estado || 'pendiente',
       fechaSolicitud: existing?.fechaSolicitud || `${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }).toUpperCase()} · ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`,
-      solicitudEnviadaEmail: sendEmail ? true : (existing?.solicitudEnviadaEmail || false),
+      solicitudEnviadaEmail: existing?.solicitudEnviadaEmail || false,
       emailDestinatario: clientEmail,
-      emailEntregado: sendEmail ? true : (existing?.emailEntregado || false),
-      emailAbierto: sendEmail ? true : (existing?.emailAbierto || false),
+      emailEntregado: existing?.emailEntregado || false,
+      emailAbierto: existing?.emailAbierto || false,
       respuestaCliente: existing?.respuestaCliente
     };
 
@@ -135,33 +129,33 @@ export default function RequestClientActionModal({
       setTimeout(() => {
         setIsSending(false);
         onSaveAction(actionData, true);
-      }, 700);
+      }, 500);
     } else {
       onSaveAction(actionData, false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-950/60 backdrop-blur-xs animate-fade-in font-sans">
-      <div 
-        className="bg-white border border-stone-200 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-bojana-ink/60 backdrop-blur-xs animate-fade-in font-sans">
+      <div
+        className="bojana-modal bg-bojana-surface border border-bojana-line rounded-bojana-widget w-full max-w-bojana-modal max-h-[92vh] flex flex-col shadow-bojana-widget overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-6 border-b border-stone-100 flex items-start justify-between gap-4 bg-stone-50/50">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase bg-amber-100 text-amber-900 border border-amber-200 px-2.5 py-0.5 rounded-full font-bold">
+        <div className="p-6 border-b border-bojana-line flex items-start justify-between gap-bojana-block bg-bojana-surface/50">
+          <div className="space-y-bojana-inside">
+            <div className="flex items-center gap-bojana-inside">
+              <span className="text-xs font-sans uppercase bg-bojana-waiting text-bojana-ink border border-bojana-line px-2.5 py-0.5 rounded-bojana-badge font-medium">
                 Requiere acción del cliente
               </span>
-              <span className="text-xs font-mono text-stone-400">
+              <span className="text-xs font-sans text-bojana-muted">
                 Tarea: {task.titulo}
               </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-950">
+            <h2 className="bojana-heading-section text-xl sm:text-2xl font-sans font-medium text-bojana-ink">
               Solicitar aprobación o acción al comitente
             </h2>
-            <p className="text-xs text-stone-500 font-sans">
+            <p className="text-xs text-bojana-muted font-sans">
               La tarea pasará a estado &ldquo;Esperando al cliente&rdquo; sin romper el flujo ni computar avance falso.
             </p>
           </div>
@@ -169,21 +163,21 @@ export default function RequestClientActionModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition cursor-pointer"
+            className="bojana-icon-button p-2 text-bojana-muted hover:text-bojana-ink hover:bg-bojana-soft rounded-bojana-widget transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab selection */}
-        <div className="px-6 pt-2 border-b border-stone-100 flex items-center gap-2 text-xs font-mono">
+        <div className="px-6 pt-2 border-b border-bojana-line flex items-center gap-bojana-inside text-xs font-sans">
           <button
             type="button"
             onClick={() => setActiveTab('config')}
-            className={`px-3 py-2 border-b-2 font-bold transition cursor-pointer ${
-              activeTab === 'config'
-                ? 'border-stone-950 text-stone-950'
-                : 'border-transparent text-stone-400 hover:text-stone-700'
+            className={`bojana-button bojana-button-secondary px-3 py-2 border-b-2 font-medium transition cursor-pointer ${
+              activeTab === "config"
+                ? "border-bojana-line text-bojana-ink"
+                : "border-transparent text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             1. Configuración de la Solicitud
@@ -192,10 +186,10 @@ export default function RequestClientActionModal({
           <button
             type="button"
             onClick={() => setActiveTab('email_preview')}
-            className={`px-3 py-2 border-b-2 font-bold flex items-center gap-1.5 transition cursor-pointer ${
-              activeTab === 'email_preview'
-                ? 'border-stone-950 text-stone-950'
-                : 'border-transparent text-stone-400 hover:text-stone-700'
+            className={`bojana-button bojana-button-secondary px-3 py-2 border-b-2 font-medium flex items-center gap-bojana-inside transition cursor-pointer ${
+              activeTab === "email_preview"
+                ? "border-bojana-line text-bojana-ink"
+                : "border-transparent text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
@@ -204,16 +198,16 @@ export default function RequestClientActionModal({
         </div>
 
         {/* Body content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-stone-50/20 text-xs font-sans">
-          
+        <div className="flex-1 overflow-y-auto p-6 space-y-bojana-block bg-bojana-surface/20 text-xs font-sans">
+
           {activeTab === 'config' ? (
-            <div className="space-y-5 animate-fade-in">
+            <div className="space-y-bojana-block animate-fade-in">
               {/* Type Selector */}
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1.5 uppercase text-[11px]">
+                <label className="font-sans text-bojana-muted font-medium block mb-1.5 uppercase text-xs">
                   ¿Qué tipo de acción necesitas del cliente?
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-bojana-inside">
                   {[
                     { id: 'aprobar_rechazar', label: 'Aprobar / rechazar', desc: 'Validar propuesta o render' },
                     { id: 'elegir_alternativa', label: 'Elegir alternativa', desc: 'Selección entre Opción A / B' },
@@ -225,14 +219,14 @@ export default function RequestClientActionModal({
                       key={t.id}
                       type="button"
                       onClick={() => setTipo(t.id as ClientActionType)}
-                      className={`p-3 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                      className={`bojana-button bojana-button-primary p-3 rounded-bojana-widget border text-left transition cursor-pointer flex flex-col justify-between ${
                         tipo === t.id
-                          ? 'bg-stone-950 text-white border-stone-950 shadow-xs'
-                          : 'bg-white text-stone-800 border-stone-200 hover:border-stone-400'
+                          ? "bg-bojana-ink text-bojana-inverse border-bojana-line shadow-bojana-widget"
+                          : "bg-bojana-surface text-bojana-ink border-bojana-line hover:border-bojana-line"
                       }`}
                     >
-                      <strong className="block text-xs font-bold">{t.label}</strong>
-                      <span className={`text-[10px] block mt-0.5 ${tipo === t.id ? 'text-stone-300' : 'text-stone-500'}`}>
+                      <strong className="block text-xs font-medium">{t.label}</strong>
+                      <span className={`text-xs block mt-0.5 ${tipo === t.id ? "text-bojana-line" : "text-bojana-muted"}`}>
                         {t.desc}
                       </span>
                     </button>
@@ -241,9 +235,9 @@ export default function RequestClientActionModal({
               </div>
 
               {/* Title & Message */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block">
                 <div className="sm:col-span-2">
-                  <label className="font-mono text-stone-600 font-bold block mb-1">
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">
                     Título de la solicitud
                   </label>
                   <input
@@ -251,12 +245,12 @@ export default function RequestClientActionModal({
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="ej: Aprobación de propuesta de cocina"
-                    className="w-full bg-white border border-stone-200 rounded-xl p-2.5 text-stone-900 font-semibold focus:outline-hidden focus:border-stone-900"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink font-medium focus:outline-hidden focus:border-bojana-line"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="font-mono text-stone-600 font-bold block mb-1">
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">
                     Mensaje explicativo para el comitente
                   </label>
                   <textarea
@@ -264,12 +258,12 @@ export default function RequestClientActionModal({
                     value={mensaje}
                     onChange={(e) => setMensaje(e.target.value)}
                     placeholder="Explicá con claridad qué se está presentando y qué decisión se espera..."
-                    className="w-full bg-white border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-stone-900 leading-relaxed"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:outline-hidden focus:border-bojana-line leading-relaxed"
                   />
                 </div>
 
                 <div>
-                  <label className="font-mono text-stone-600 font-bold block mb-1">
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">
                     Texto del botón de acción en portal
                   </label>
                   <input
@@ -277,12 +271,12 @@ export default function RequestClientActionModal({
                     value={accionTexto}
                     onChange={(e) => setAccionTexto(e.target.value)}
                     placeholder="ej: Aprobar propuesta"
-                    className="w-full bg-white border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-stone-900"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:outline-hidden focus:border-bojana-line"
                   />
                 </div>
 
                 <div>
-                  <label className="font-mono text-stone-600 font-bold block mb-1">
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">
                     Fecha límite sugerida
                   </label>
                   <div className="relative">
@@ -291,42 +285,42 @@ export default function RequestClientActionModal({
                       value={fechaLimite}
                       onChange={(e) => setFechaLimite(e.target.value)}
                       placeholder="ej: 12 OCT 2026"
-                      className="w-full bg-white border border-stone-200 rounded-xl p-2.5 text-stone-900 focus:outline-hidden focus:border-stone-900 font-mono"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:outline-hidden focus:border-bojana-line font-sans"
                     />
-                    <Calendar className="w-3.5 h-3.5 text-stone-400 absolute right-3 top-3 pointer-events-none" />
+                    <Calendar className="w-3.5 h-3.5 text-bojana-muted absolute right-3 top-3 pointer-events-none" />
                   </div>
                 </div>
               </div>
 
               {/* Alternatives editor if tipo === 'elegir_alternativa' */}
               {tipo === 'elegir_alternativa' && (
-                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-3">
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[11px] uppercase font-bold text-stone-700">
+                    <span className="font-sans text-xs uppercase font-medium text-bojana-ink">
                       Alternativas para que elija el cliente ({alternativas.length})
                     </span>
                     <button
                       type="button"
                       onClick={handleAddAlternative}
-                      className="text-xs font-mono font-bold text-stone-900 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
+                      className="bojana-button bojana-button-text text-xs font-sans font-medium text-bojana-ink hover:text-bojana-success flex items-center gap-bojana-inside cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>+ Agregar alternativa</span>
                     </button>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-bojana-inside">
                     {alternativas.map((alt, idx) => (
-                      <div key={alt.id} className="bg-white border border-stone-200 rounded-xl p-3 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-mono text-[10px] font-bold text-stone-500 uppercase">
+                      <div key={alt.id} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 space-y-bojana-inside">
+                        <div className="flex items-center justify-between gap-bojana-inside">
+                          <span className="font-sans text-xs font-medium text-bojana-muted uppercase">
                             {alt.letra || `Opción ${idx + 1}`}
                           </span>
                           {alternativas.length > 1 && (
                             <button
                               type="button"
                               onClick={() => handleRemoveAlternative(alt.id)}
-                              className="text-stone-400 hover:text-rose-600 p-1"
+                              className="bojana-icon-button text-bojana-muted hover:text-bojana-error p-1"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -341,7 +335,7 @@ export default function RequestClientActionModal({
                             setAlternativas(updated);
                           }}
                           placeholder="Nombre de la alternativa"
-                          className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-900 font-semibold focus:bg-white"
+                          className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-bojana-ink font-medium focus:bg-bojana-surface"
                         />
                         <input
                           type="text"
@@ -352,7 +346,7 @@ export default function RequestClientActionModal({
                             setAlternativas(updated);
                           }}
                           placeholder="Descripción breve de materiales o acabados..."
-                          className="w-full bg-stone-50 border border-stone-200 rounded-lg p-1.5 text-stone-700 focus:bg-white text-[11px]"
+                          className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-1.5 text-bojana-ink focus:bg-bojana-surface text-xs"
                         />
                       </div>
                     ))}
@@ -361,20 +355,20 @@ export default function RequestClientActionModal({
               )}
 
               {/* Attachments Section */}
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 space-y-3">
-                <span className="font-mono text-[11px] uppercase font-bold text-stone-600 block">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3">
+                <span className="font-sans text-xs uppercase font-medium text-bojana-muted block">
                   Archivos adjuntos para revisión del cliente
                 </span>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-bojana-inside">
                   {adjuntos.map((att, idx) => (
-                    <div key={att.id || idx} className="bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 flex items-center gap-2 text-stone-800 text-[11px]">
-                      <Paperclip className="w-3 h-3 text-stone-400" />
+                    <div key={att.id || idx} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget px-3 py-1.5 flex items-center gap-bojana-inside text-bojana-ink text-xs">
+                      <Paperclip className="w-3 h-3 text-bojana-muted" />
                       <span className="font-medium truncate max-w-xs">{att.nombre}</span>
                       <button
                         type="button"
                         onClick={() => setAdjuntos(adjuntos.filter((_, i) => i !== idx))}
-                        className="text-stone-400 hover:text-rose-600 ml-1"
+                        className="bojana-icon-button text-bojana-muted hover:text-bojana-error ml-1"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -382,7 +376,7 @@ export default function RequestClientActionModal({
                   ))}
                 </div>
 
-                <div className="flex gap-2 pt-1">
+                <div className="flex gap-bojana-inside pt-1">
                   <input
                     type="text"
                     value={newAdjuntoName}
@@ -394,13 +388,13 @@ export default function RequestClientActionModal({
                       }
                     }}
                     placeholder="Agregar archivo (ej: Propuesta_cocina_v2.pdf o Render_01.jpg)..."
-                    className="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 text-xs text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                    className="bojana-field flex-1 bg-bojana-surface border border-bojana-line rounded-bojana-widget px-3 py-1.5 text-xs text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                   />
                   <button
                     type="button"
                     onClick={handleAddAdjunto}
                     disabled={!newAdjuntoName.trim()}
-                    className="px-3 py-1.5 rounded-xl bg-stone-950 text-white font-mono font-bold text-xs disabled:opacity-40"
+                    className="bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans font-medium text-xs disabled:opacity-40"
                   >
                     + Adjuntar
                   </button>
@@ -408,34 +402,34 @@ export default function RequestClientActionModal({
               </div>
 
               {/* Blocking & Weight Options */}
-              <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 space-y-3 font-mono text-xs">
-                <label className="flex items-start gap-2.5 cursor-pointer">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3 font-sans text-xs">
+                <label className="flex items-start gap-bojana-inside cursor-pointer">
                   <input
                     type="checkbox"
                     checked={bloquear}
                     onChange={(e) => setBloquear(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded text-stone-950 border-stone-300 focus:ring-0"
+                    className="mt-0.5 w-4 h-4 rounded-bojana-widget text-bojana-ink border-bojana-line focus:ring-0"
                   />
                   <div>
-                    <strong className="text-stone-900 font-sans block">
+                    <strong className="text-bojana-ink font-sans block">
                       Bloquear las siguientes etapas hasta recibir respuesta
                     </strong>
-                    <span className="text-[11px] text-stone-500 font-sans leading-tight block mt-0.5">
+                    <span className="text-xs text-bojana-muted font-sans leading-tight block mt-0.5">
                       Indica al sistema y al cliente que la continuación de la obra o documentación depende de esta decisión.
                     </span>
                   </div>
                 </label>
 
-                <div className="pt-2 border-t border-stone-200 flex items-center justify-between text-stone-600">
+                <div className="pt-2 border-t border-bojana-line flex items-center justify-between text-bojana-muted">
                   <span>Porcentaje que desbloquea la aprobación:</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-bojana-inside">
                     <input
                       type="number"
                       min={0}
                       max={100}
                       value={pesoPct}
                       onChange={(e) => setPesoPct(Number(e.target.value))}
-                      className="w-16 bg-white border border-stone-200 rounded-lg p-1 text-center font-bold text-stone-900"
+                      className="bojana-field w-16 bg-bojana-surface border border-bojana-line rounded-bojana-widget p-1 text-center font-medium text-bojana-ink"
                     />
                     <span>%</span>
                   </div>
@@ -444,62 +438,62 @@ export default function RequestClientActionModal({
             </div>
           ) : (
             /* Tab 2: EMAIL PREVIEW */
-            <div className="space-y-4 max-w-xl mx-auto animate-fade-in font-sans">
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 text-xs font-mono space-y-2 shadow-xs">
-                <div className="flex items-center justify-between text-stone-600 pb-2 border-b border-stone-100">
+            <div className="space-y-bojana-block max-w-xl mx-auto animate-fade-in font-sans">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 text-xs font-sans space-y-bojana-inside shadow-bojana-widget">
+                <div className="flex items-center justify-between text-bojana-muted pb-2 border-b border-bojana-line">
                   <div>
-                    <span className="text-stone-400 font-bold">De:</span>{' '}
+                    <span className="text-bojana-muted font-medium">De:</span>{' '}
                     <strong>Bojana Estudio</strong> &lt;proyectos@bojana.com.ar&gt;
                   </div>
-                  <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold">
+                  <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium">
                     Lark Suite SMTP ✓
                   </span>
                 </div>
                 <div>
-                  <span className="text-stone-400 font-bold">Para:</span>{' '}
-                  <strong className="text-stone-900">{clientName}</strong> &lt;{clientEmail}&gt;
+                  <span className="text-bojana-muted font-medium">Para:</span>{' '}
+                  <strong className="text-bojana-ink">{clientName}</strong> &lt;{clientEmail}&gt;
                 </div>
                 <div>
-                  <span className="text-stone-400 font-bold">Asunto:</span>{' '}
-                  <span className="text-stone-900 font-semibold">{projectName} &bull; Necesitamos tu aprobación</span>
+                  <span className="text-bojana-muted font-medium">Asunto:</span>{' '}
+                  <span className="text-bojana-ink font-medium">{projectName} &bull; Necesitamos tu aprobación</span>
                 </div>
               </div>
 
               {/* Styled Email Card */}
-              <div className="bg-white border border-stone-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5 text-stone-900">
-                <div className="border-b border-stone-100 pb-4 flex items-center justify-between">
-                  <span className="font-mono font-bold text-xs uppercase tracking-wider text-stone-950">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 shadow-bojana-widget space-y-bojana-block text-bojana-ink">
+                <div className="border-b border-bojana-line pb-4 flex items-center justify-between">
+                  <span className="font-sans font-medium text-xs uppercase tracking-normal text-bojana-ink">
                     BOJANA ESTUDIO
                   </span>
-                  <span className="text-[10px] font-mono text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 font-bold">
+                  <span className="text-xs font-sans text-bojana-ink bg-bojana-waiting px-2 py-0.5 rounded-bojana-badge border border-bojana-line font-medium">
                     Decisión requerida
                   </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  <span className="text-xs font-mono uppercase tracking-widest text-amber-700 font-bold">
+                <div className="space-y-bojana-inside">
+                  <span className="text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium">
                     {projectName}
                   </span>
-                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-stone-950">
+                  <h3 className="bojana-heading-component text-xl sm:text-2xl font-sans font-medium text-bojana-ink">
                     {titulo}
                   </h3>
-                  <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed pt-1">
+                  <p className="text-xs sm:text-sm text-bojana-muted font-medium leading-relaxed pt-1">
                     {mensaje}
                   </p>
                 </div>
 
                 {/* Direct CTA */}
                 <div className="pt-2 text-center">
-                  <div className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-stone-950 text-white font-mono text-xs font-bold shadow-md">
+                  <div className="bojana-widget inline-flex items-center justify-center gap-bojana-inside px-6 py-3 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium shadow-bojana-widget">
                     <span>{accionTexto} desde el portal</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                    <ExternalLink className="w-3.5 h-3.5 text-bojana-ink" />
                   </div>
-                  <p className="text-[10px] font-mono text-stone-400 mt-2">
+                  <p className="text-xs font-sans text-bojana-muted mt-2">
                     El botón dirige directamente a esta solicitud interactiva.
                   </p>
                 </div>
 
-                <div className="border-t border-stone-100 pt-4 text-[10px] font-mono text-stone-400 flex items-center justify-between">
+                <div className="border-t border-bojana-line pt-4 text-xs font-sans text-bojana-muted flex items-center justify-between">
                   <span>Fecha límite: {fechaLimite}</span>
                   <span>proyectos@bojana.com.ar</span>
                 </div>
@@ -510,20 +504,20 @@ export default function RequestClientActionModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-5 border-t border-stone-200 bg-stone-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-mono text-stone-600 hover:text-stone-900 px-3 py-2 rounded-xl transition cursor-pointer"
+            className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink px-3 py-2 rounded-bojana-widget transition cursor-pointer"
           >
             Cancelar
           </button>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-bojana-inside w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={() => handleSave(false)}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-800 text-xs font-mono font-bold transition cursor-pointer"
+              className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
             >
               Guardar solicitud
             </button>
@@ -532,17 +526,17 @@ export default function RequestClientActionModal({
               type="button"
               onClick={() => handleSave(true)}
               disabled={isSending || !titulo.trim()}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-stone-950 hover:bg-stone-850 disabled:opacity-50 text-white text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+              className="bojana-button bojana-button-primary w-full sm:w-auto px-5 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
             >
               {isSending ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Enviando vía Lark SMTP...</span>
+                  <div className="w-3.5 h-3.5 border border-white/30 border-t-white rounded-bojana-widget animate-spin" />
+                  <span>Preparando comunicación…</span>
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Guardar y enviar solicitud por email</span>
+                  <Send className="w-3.5 h-3.5 text-bojana-ink" />
+                  <span>Guardar y preparar email</span>
                 </>
               )}
             </button>

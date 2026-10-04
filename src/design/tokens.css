@@ -1,0 +1,36 @@
+/* Generado por npm run design:tokens desde docs/DESIGN_DECISIONS.json. */
+@theme {
+  --color-bojana-canvas: #FDFCFB;
+  --color-bojana-surface: oklch(98.5% 0.002 247.839);
+  --color-bojana-ink: oklch(26.8% 0.007 34.298);
+  --color-bojana-muted: #686864;
+  --color-bojana-line: oklch(97% 0.001 106.424);
+  --color-bojana-soft: oklch(97% 0.001 106.424);
+  --color-bojana-primary: oklch(70.7% 0.022 261.325);
+  --color-bojana-inverse: #fff;
+  --color-bojana-success: oklch(43.2% 0.095 166.913);
+  --color-bojana-waiting: oklch(96.2% 0.059 95.617);
+  --color-bojana-error: oklch(44.4% 0.177 26.899);
+  --color-bojana-discipline: oklch(26.8% 0.007 34.298);
+  --color-bojana-focus: color-mix(in srgb, oklch(13% 0.028 261.692) 10.0%, transparent);
+  --radius-bojana-editorial: 0.375rem;
+  --radius-bojana-widget: 0.5rem;
+  --radius-bojana-button: 0.5rem;
+  --radius-bojana-input: 0.375rem;
+  --radius-bojana-overlay: 0.375rem;
+  --radius-bojana-image: 0.5rem;
+  --radius-bojana-badge: 9999px;
+  --radius-bojana-control: var(--radius-bojana-input);
+  --font-sans: "Inter",Arial,system-ui,sans-serif;
+  --font-mono: "Inter",Arial,system-ui,sans-serif;
+  --font-serif: "Inter",Arial,system-ui,sans-serif;
+  --shadow-bojana-base: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-bojana-widget: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-bojana-overlay: 0 8px 24px #1111111a;
+  --spacing-bojana-block: 12px;
+  --spacing-bojana-inside: 8px;
+  --container-bojana-shell: 80rem;
+  --container-bojana-reading: 56rem;
+  --container-bojana-modal: 56rem;
+}
+:root { --bojana-gradient: linear-gradient(90deg, oklch(59.6% 0.145 163.225), oklch(60% 0.118 184.704), oklch(76.9% 0.188 70.08)); }

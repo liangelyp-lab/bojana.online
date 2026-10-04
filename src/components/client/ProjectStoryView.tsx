@@ -1,42 +1,45 @@
+import { AnnotatedMedia, MediaComparison } from '../ui/Media';
+import { taskStateLabel } from '../../design/status';
+import { Brand } from '../ui/DesignSystem';
 import { useClientDeliverables, ClientStorageAccess, ClientTaskFiles } from '../storage/ClientDeliverables';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getClientProjectSequence } from '../../services/projectStructure';
-import { 
-  ProjectData, 
-  AvancePost, 
-  DocumentoEntregable, 
-  GalleryRenderItem, 
-  PlanTour, 
+import {
+  ProjectData,
+  AvancePost,
+  DocumentoEntregable,
+  GalleryRenderItem,
+  PlanTour,
   DecisionItem,
   MaterialItem,
   ItemProgressStatus,
   OperationalDiscipline
 } from '../../types';
-import { 
-  calculateDisciplineProgress, 
-  calculateNeedProgress, 
+import {
+  calculateDisciplineProgress,
+  calculateNeedProgress,
   calculateProjectProgressFromDisciplines,
   generateEmptyOperationalDisciplines,
   getEffectiveProgress,
   getLifecycleLabel
 } from '../../services/storageService';
-import { 
-  Building2, 
-  Calendar, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  ArrowRight, 
-  Camera, 
-  FileText, 
-  Layers, 
-  Download, 
-  Eye, 
-  Check, 
-  X, 
-  ChevronLeft, 
-  ChevronRight, 
-  Share2, 
+import {
+  Building2,
+  Calendar,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  ArrowRight,
+  Camera,
+  FileText,
+  Layers,
+  Download,
+  Eye,
+  Check,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Share2,
   Sparkles,
   ChevronDown,
   MessageSquare,
@@ -69,6 +72,12 @@ export default function ProjectStoryView({
   // Lightbox for photos/renders
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxImage(null); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [lightboxImage]);
   // Full advances modal
   const [showAllAvancesModal, setShowAllAvancesModal] = useState(false);
 
@@ -173,49 +182,20 @@ export default function ProjectStoryView({
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] text-gray-900 font-sans selection:bg-amber-100 relative">
-      
+    <div className="min-h-screen bg-bojana-canvas text-bojana-ink font-sans selection:bg-bojana-waiting relative">
+
       {/* 1. TOP BAR (Admin Preview Mode or Client Status) */}
       {isAdminViewing ? (
-        <div className="bg-gray-950 text-white px-4 py-2.5 text-xs font-mono flex items-center justify-between sticky top-0 z-50 shadow-md">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
-            <span className="text-gray-300">
-              Project Story: <strong>Así experimenta el comitente la historia del proyecto</strong>
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {onBackToWorkspace && (
-              <button
-                type="button"
-                onClick={onBackToWorkspace}
-                className="px-3 py-1 bg-white hover:bg-gray-100 text-gray-950 rounded-lg font-bold flex items-center gap-1.5 transition cursor-pointer"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Volver al Workspace</span>
-              </button>
-            )}
-          </div>
-        </div>
+        <header className="bojana-client-header bg-bojana-surface border-b border-bojana-line flex items-center justify-between sticky top-0 z-50">
+          <div className="flex items-center gap-2"><Brand compact /><span className="text-xs">Vista del cliente</span></div>
+          {onBackToWorkspace && <button type="button" onClick={onBackToWorkspace} className="bojana-button bojana-button-secondary">Volver al workspace</button>}
+        </header>
       ) : (
-        <header className="bg-white/80 backdrop-blur-md border-b border-stone-200/80 px-4 sm:px-8 py-3 sticky top-0 z-40 flex items-center justify-between transition-all">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-sm bg-gray-950 text-white font-mono font-bold flex items-center justify-center text-xs tracking-tighter">
-              BE
-            </div>
-            <div>
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-gray-950">
-                Bojana Estudio
-              </span>
-              <span className="text-[10px] font-mono text-gray-400 block -mt-0.5">
-                Portal Privado de Arquitectura & Obra
-              </span>
-            </div>
-          </div>
+        <header className="bojana-client-header bg-bojana-surface/80 backdrop-blur-md border-b border-bojana-line/80 px-4 sm:px-8 py-3 sticky top-0 z-40 flex items-center justify-between transition-all">
+          <Brand />
 
           <div className="flex items-center gap-3">
-            <span className="text-[11px] font-mono text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 font-bold hidden sm:inline-block">
+            <span className="text-xs font-sans text-bojana-success bg-bojana-soft px-2.5 py-0.5 rounded-bojana-badge border border-bojana-success font-medium hidden sm:inline-block">
               {status}
             </span>
 
@@ -223,7 +203,7 @@ export default function ProjectStoryView({
               <button
                 type="button"
                 onClick={onLogout}
-                className="text-xs font-mono text-gray-500 hover:text-gray-950 px-2 py-1 rounded transition cursor-pointer"
+                className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink px-2 py-1 rounded-bojana-widget transition cursor-pointer"
               >
                 Salir
               </button>
@@ -233,33 +213,33 @@ export default function ProjectStoryView({
       )}
 
       {/* 2. FLOATING STORY INDEX (Quick access for client) */}
-      <nav className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-950/90 text-white backdrop-blur-md px-3 sm:px-4 py-2 rounded-full shadow-2xl z-40 border border-white/10 flex items-center gap-1 sm:gap-2 text-[11px] font-mono">
-        <a 
-          href="#intro" 
-          className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
+      <nav className="bojana-client-index fixed bottom-5 left-1/2 -translate-x-1/2 bg-bojana-ink/90 text-bojana-inverse backdrop-blur-md px-3 sm:px-4 py-2 rounded-bojana-widget shadow-bojana-widget z-40 border border-white/10 flex items-center gap-bojana-inside sm:gap-bojana-inside text-xs font-sans">
+        <a
+          href="#intro"
+          className="px-2.5 py-1 rounded-bojana-widget hover:bg-white/15 transition text-bojana-line hover:text-bojana-inverse"
         >
           Portada
         </a>
-        <span className="text-stone-600">&bull;</span>
-        <a 
-          href="#alcance" 
-          className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
+        <span className="text-bojana-muted">&bull;</span>
+        <a
+          href="#alcance"
+          className="px-2.5 py-1 rounded-bojana-widget hover:bg-white/15 transition text-bojana-line hover:text-bojana-inverse"
         >
           {isWelcomeMode ? 'Bienvenida & Alcance' : 'El Proyecto'}
         </a>
-        <span className="text-stone-600">&bull;</span>
-        <a 
-          href="#estado" 
-          className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
+        <span className="text-bojana-muted">&bull;</span>
+        <a
+          href="#estado"
+          className="px-2.5 py-1 rounded-bojana-widget hover:bg-white/15 transition text-bojana-line hover:text-bojana-inverse"
         >
           {isWelcomeMode ? 'Plan de trabajo' : 'En qué estamos'}
         </a>
         {avances.length > 0 && (
           <>
-            <span className="text-stone-600">&bull;</span>
-            <a 
-              href="#avances" 
-              className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
+            <span className="text-bojana-muted">&bull;</span>
+            <a
+              href="#avances"
+              className="px-2.5 py-1 rounded-bojana-widget hover:bg-white/15 transition text-bojana-line hover:text-bojana-inverse"
             >
               Avances
             </a>
@@ -267,10 +247,10 @@ export default function ProjectStoryView({
         )}
         {mainTour && (
           <>
-            <span className="text-stone-600 hidden sm:inline-block">&bull;</span>
-            <a 
-              href="#detalle" 
-              className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white hidden sm:inline-block"
+            <span className="text-bojana-muted hidden sm:inline-block">&bull;</span>
+            <a
+              href="#detalle"
+              className="px-2.5 py-1 rounded-bojana-widget hover:bg-white/15 transition text-bojana-line hover:text-bojana-inverse hidden sm:inline-block"
             >
               Plano interactivo
             </a>
@@ -278,10 +258,10 @@ export default function ProjectStoryView({
         )}
         {(documentos.length > 0 || docsBase.length > 0) && (
           <>
-            <span className="text-stone-600">&bull;</span>
-            <a 
-              href="#documentos" 
-              className="px-2.5 py-1 rounded-full hover:bg-white/15 transition text-gray-300 hover:text-white"
+            <span className="text-bojana-muted">&bull;</span>
+            <a
+              href="#documentos"
+              className="px-2.5 py-1 rounded-bojana-widget hover:bg-white/15 transition text-bojana-line hover:text-bojana-inverse"
             >
               Documentos
             </a>
@@ -289,12 +269,12 @@ export default function ProjectStoryView({
         )}
         {pendingDecisiones.length > 0 && (
           <>
-            <span className="text-stone-600">&bull;</span>
-            <a 
-              href="#decisiones" 
-              className="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold transition flex items-center gap-1"
+            <span className="text-bojana-muted">&bull;</span>
+            <a
+              href="#decisiones"
+              className="px-2.5 py-1 rounded-bojana-widget bg-bojana-waiting/20 text-bojana-ink border border-bojana-line/30 font-medium transition flex items-center gap-bojana-inside"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-bojana-badge bg-bojana-waiting animate-ping" />
               <span>Decisiones ({pendingDecisiones.length})</span>
             </a>
           </>
@@ -302,21 +282,21 @@ export default function ProjectStoryView({
       </nav>
 
       {/* 3. HERO / PORTADA EDITORIAL */}
-      <section id="intro" className="relative min-h-[80vh] flex flex-col justify-end p-6 sm:p-12 lg:p-16 border-b border-stone-200 overflow-hidden bg-stone-900 text-white">
+      <section id="intro" className="relative min-h-[80vh] flex flex-col justify-end p-6 sm:p-12 lg:p-16 border-b border-bojana-line overflow-hidden bg-bojana-ink text-bojana-inverse">
         {/* Background Image with architectural gradient */}
         <div className="absolute inset-0 z-0">
-          <img 
-            src={heroImage} 
+          <img
+            src={heroImage}
             alt={title}
-            className="w-full h-full object-cover opacity-60 scale-105 transition duration-1000"
+            className="bojana-media w-full h-full object-contain opacity-60 scale-105 transition duration-500"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-bojana-ink via-bojana-ink/60 to-transparent" />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-4xl space-y-4 animate-fade-in">
-          <div className="flex flex-wrap items-center gap-2 font-mono text-xs uppercase tracking-wider text-stone-300">
-            <span className="px-2 py-0.5 rounded bg-white/10 backdrop-blur-xs border border-white/15 text-stone-200 font-bold">
+        <div className="relative z-10 max-w-bojana-modal space-y-bojana-block animate-fade-in">
+          <div className="flex flex-wrap items-center gap-bojana-inside font-sans text-xs uppercase tracking-normal text-bojana-line">
+            <span className="px-2 py-0.5 rounded-bojana-badge bg-white/10 backdrop-blur-xs border border-white/15 text-bojana-line font-medium">
               {code}
             </span>
             <span>&bull;</span>
@@ -325,96 +305,96 @@ export default function ProjectStoryView({
             <span>{location}</span>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-light font-serif tracking-tight text-white leading-none">
+          <h1 className="bojana-heading-display text-4xl sm:text-6xl lg:text-7xl font-medium font-sans tracking-normal text-bojana-inverse leading-none">
             {title}
           </h1>
 
-          <p className="text-base sm:text-xl text-stone-300 font-light max-w-2xl leading-relaxed">
+          <p className="text-base sm:text-xl text-bojana-line font-medium max-w-2xl leading-relaxed">
             {subtitle}
           </p>
 
-          <div className="pt-4 flex flex-wrap items-center gap-4 text-xs font-mono text-stone-400">
-            <div className="flex items-center gap-1.5">
-              <span className={`w-2 h-2 rounded-full ${isWelcomeMode ? 'bg-amber-400' : 'bg-emerald-400'}`} />
-              <span className="text-white font-bold">{isWelcomeMode ? 'Preparado para iniciar' : status}</span>
+          <div className="pt-4 flex flex-wrap items-center gap-bojana-block text-xs font-sans text-bojana-muted">
+            <div className="flex items-center gap-bojana-inside">
+              <span className={`w-2 h-2 rounded-bojana-badge ${isWelcomeMode ? "bg-bojana-waiting" : "bg-bojana-success"}`} />
+              <span className="text-bojana-inverse font-medium">{isWelcomeMode ? 'Preparado para iniciar' : status}</span>
             </div>
             <span>&bull;</span>
-            <span>Progreso: <strong className="text-white">{realCalculatedProjectProgress}%</strong></span>
+            <span>Progreso: <strong className="text-bojana-inverse">{realCalculatedProjectProgress}%</strong></span>
             <span>&bull;</span>
-            <span>Última actualización: <strong className="text-stone-200">{lastUpdate}</strong></span>
+            <span>Última actualización: <strong className="text-bojana-line">{lastUpdate}</strong></span>
             <span>&bull;</span>
             <span>Bojana Estudio</span>
           </div>
         </div>
 
-        <div className="absolute bottom-4 right-6 sm:right-12 z-10 text-[10px] font-mono text-stone-500 uppercase tracking-widest hidden sm:block">
+        <div className="absolute bottom-4 right-6 sm:right-12 z-10 text-xs font-sans text-bojana-muted uppercase tracking-normal hidden sm:block">
           Scroll para explorar la historia &darr;
         </div>
       </section>
 
       {/* 4. EL PROYECTO (ALCANCE Y FICHA TÉCNICA) */}
-      <section id="alcance" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 sm:gap-12 items-start">
-          
-          <div className="md:col-span-4 space-y-2">
-            <span className="text-xs font-mono font-bold uppercase tracking-widest text-stone-400">
+      <section id="alcance" className="bojana-chapter bojana-reading border-b border-bojana-line">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-bojana-block sm:gap-bojana-block items-start">
+
+          <div className="md:col-span-4 space-y-bojana-inside">
+            <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
               01 &mdash; {isWelcomeMode ? 'Bienvenida & Alcance' : 'El Proyecto'}
             </span>
-            <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-900">
+            <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
               {isWelcomeMode ? 'Tu proyecto ya tiene su espacio' : 'Memoria descriptiva y alcance'}
             </h2>
             {isWelcomeMode && (
-              <p className="text-xs text-stone-500 font-sans pt-1">
+              <p className="text-xs text-bojana-muted font-sans pt-1">
                 Formalización de servicios acordados, base contractual y plazos.
               </p>
             )}
           </div>
 
-          <div className="md:col-span-8 space-y-6">
-            <p className="text-base sm:text-lg text-stone-700 leading-relaxed font-light">
+          <div className="md:col-span-8 space-y-bojana-block">
+            <p className="text-base sm:text-lg text-bojana-ink leading-relaxed font-medium">
               {info.descripcion || alcanceContratado || 'El estudio está preparando el alcance del proyecto.'}
             </p>
 
-            {contractualBase?.alcance && <div className="text-sm text-stone-700"><strong className="font-medium">Alcance contratado</strong><p className="mt-1">{contractualBase.alcance}</p></div>}
-            {contractualBase?.fueraDeAlcance && <div className="text-sm text-stone-700"><strong className="font-medium">Fuera del alcance</strong><p className="mt-1">{contractualBase.fueraDeAlcance}</p></div>}
+            {contractualBase?.alcance && <div className="text-sm text-bojana-ink"><strong className="font-medium">Alcance contratado</strong><p className="mt-1">{contractualBase.alcance}</p></div>}
+            {contractualBase?.fueraDeAlcance && <div className="text-sm text-bojana-ink"><strong className="font-medium">Fuera del alcance</strong><p className="mt-1">{contractualBase.fueraDeAlcance}</p></div>}
 
             {/* Ficha técnica editorial */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-stone-200 font-mono text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-bojana-block pt-4 border-t border-bojana-line font-sans text-xs">
               <div>
-                <span className="text-stone-400 uppercase tracking-wider block text-[10px]">Disciplinas</span>
-                <strong className="text-stone-900 block mt-0.5">{disciplines.join(' & ')}</strong>
+                <span className="text-bojana-muted uppercase tracking-normal block text-xs">Disciplinas</span>
+                <strong className="text-bojana-ink block mt-0.5">{disciplines.join(' & ')}</strong>
               </div>
               <div>
-                <span className="text-stone-400 uppercase tracking-wider block text-[10px]">Presupuesto</span>
-                <strong className="text-emerald-700 block mt-0.5">Aprobado ✓</strong>
+                <span className="text-bojana-muted uppercase tracking-normal block text-xs">Presupuesto</span>
+                <strong className="text-bojana-success block mt-0.5">Aprobado ✓</strong>
               </div>
               <div>
-                <span className="text-stone-400 uppercase tracking-wider block text-[10px]">Plazo acordado</span>
-                <strong className="text-stone-900 block mt-0.5">{plazoInicio} &mdash; {plazoFin}</strong>
+                <span className="text-bojana-muted uppercase tracking-normal block text-xs">Plazo acordado</span>
+                <strong className="text-bojana-ink block mt-0.5">{plazoInicio} &mdash; {plazoFin}</strong>
               </div>
               <div>
-                <span className="text-stone-400 uppercase tracking-wider block text-[10px]">Comitente</span>
-                <strong className="text-stone-900 block mt-0.5">{project.cliente?.nombre || 'Comitente'}</strong>
+                <span className="text-bojana-muted uppercase tracking-normal block text-xs">Comitente</span>
+                <strong className="text-bojana-ink block mt-0.5">{project.cliente?.nombre || 'Comitente'}</strong>
               </div>
             </div>
 
             {/* Initial Documents Card (Presupuesto, Planos base, etc.) */}
             {docsBase.length > 0 && (
-              <div className="pt-4 border-t border-stone-100 space-y-2.5">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-stone-500 font-bold block">
+              <div className="pt-4 border-t border-bojana-line space-y-bojana-inside">
+                <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium block">
                   Documentación inicial disponible
                 </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-inside">
                   {docsBase.map((db, idx) => (
-                    <div 
+                    <div
                       key={db.id || idx}
-                      className="bg-stone-50 border border-stone-200 rounded-xl p-3 flex items-center justify-between text-xs font-mono"
+                      className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 flex items-center justify-between text-xs font-sans"
                     >
-                      <div className="flex items-center gap-2 text-stone-800 truncate pr-2">
-                        <FileText className="w-4 h-4 text-stone-400 shrink-0" />
-                        {db.url ? <a href={db.url} target="_blank" rel="noopener noreferrer" className="font-semibold truncate underline underline-offset-4">{db.nombre}</a> : <span className="font-semibold truncate">{db.nombre}</span>}
+                      <div className="flex items-center gap-bojana-inside text-bojana-ink truncate pr-2">
+                        <FileText className="w-4 h-4 text-bojana-muted shrink-0" />
+                        {db.url ? <a href={db.url} target="_blank" rel="noopener noreferrer" className="font-medium truncate underline underline-offset-4">{db.nombre}</a> : <span className="font-medium truncate">{db.nombre}</span>}
                       </div>
-                      <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold shrink-0 border border-emerald-200">
+                      <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge font-medium shrink-0 border border-bojana-success">
                         {db.tipo === 'presupuesto' ? 'Presupuesto' : db.tipo.replace('_', ' ')}
                       </span>
                     </div>
@@ -428,67 +408,67 @@ export default function ProjectStoryView({
       </section>
 
       {/* 5. EN QUÉ ESTAMOS / ROADMAP (ESTADO ACTUAL & ETAPAS) */}
-      <section id="estado" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-        <div className="space-y-10">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div className="space-y-2">
-              <span className={`text-xs font-mono font-bold uppercase tracking-widest px-2.5 py-0.5 rounded border ${
-                isWelcomeMode 
-                  ? 'text-amber-800 bg-amber-50 border-amber-200' 
-                  : 'text-emerald-800 bg-emerald-50 border-emerald-200'
+      <section id="estado" className="bojana-chapter bojana-reading border-b border-bojana-line">
+        <div className="space-y-bojana-block">
+
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-bojana-block">
+            <div className="space-y-bojana-inside">
+              <span className={`text-xs font-sans font-medium uppercase tracking-normal px-2.5 py-0.5 rounded-bojana-badge border ${
+                isWelcomeMode
+                  ? "text-bojana-ink bg-bojana-waiting border-bojana-line"
+                  : "text-bojana-success bg-bojana-soft border-bojana-success"
               }`}>
                 02 &mdash; {isWelcomeMode ? 'Plan de trabajo' : 'En qué estamos'}
               </span>
-              <h2 className="text-3xl sm:text-4xl font-serif font-light text-stone-950">
+              <h2 className="bojana-heading-section text-3xl sm:text-4xl font-sans font-medium text-bojana-ink">
                 {isWelcomeMode ? 'Preparado para iniciar' : currentStage}
               </h2>
-              <p className="text-sm text-stone-600 max-w-2xl font-light">
-                {isWelcomeMode 
+              <p className="text-sm text-bojana-muted max-w-2xl font-medium">
+                {isWelcomeMode
                   ? 'El proyecto está formalizado y listo para comenzar. A medida que avancen las tareas, planos y renders, los verás reflejados aquí en tiempo real.'
                   : 'El avance refleja las tareas reales del alcance contratado.'}
               </p>
             </div>
 
             <div className="text-left sm:text-right shrink-0">
-              <span className="text-4xl sm:text-5xl font-mono font-bold text-stone-950">
+              <span className="text-4xl sm:text-5xl font-sans font-medium text-bojana-ink">
                 {realCalculatedProjectProgress}%
               </span>
-              <span className="text-xs font-mono text-stone-400 block">
+              <span className="text-xs font-sans text-bojana-muted block">
                 {isWelcomeMode ? 'Progreso inicial' : 'Progreso real calculado'}
               </span>
             </div>
           </div>
 
           {/* Sequential Pipeline Visual */}
-          <div className="bg-stone-50 border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6">
-            <div className="w-full bg-stone-200 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-stone-950 h-full transition-all duration-700 rounded-full"
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 space-y-bojana-block">
+            <div className="bojana-progress w-full">
+              <div
+                className="bg-bojana-ink h-full transition-all duration-500 rounded-bojana-widget"
                 style={{ width: `${realCalculatedProjectProgress}%` }}
               />
             </div>
 
-            {allStages.length === 0 && <p className="text-sm text-stone-600">El estudio publicará las necesidades y tareas del alcance cuando estén listas para compartir.</p>}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 text-xs font-mono">
+            {allStages.length === 0 && <p className="text-sm text-bojana-muted">El estudio publicará las necesidades y tareas del alcance cuando estén listas para compartir.</p>}
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-bojana-block text-xs font-sans">
               {allStages.map((stage, idx) => {
                 const isDone = stage.estado === 'Completado';
                 const isCurrent = stage.estado === 'En curso';
                 return (
-                  <div key={stage.id || idx} className="space-y-1">
-                    <div className="flex items-center gap-1.5">
+                  <div key={stage.id || idx} className="space-y-bojana-inside">
+                    <div className="flex items-center gap-bojana-inside">
                       {isDone ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        <CheckCircle2 className="w-4 h-4 text-bojana-success" />
                       ) : isCurrent ? (
-                        <span className="w-2.5 h-2.5 rounded-full bg-stone-950 animate-pulse" />
+                        <span className="w-2.5 h-2.5 rounded-bojana-badge bg-bojana-ink animate-pulse" />
                       ) : (
-                        <span className="w-2.5 h-2.5 rounded-full border border-stone-300" />
+                        <span className="w-2.5 h-2.5 rounded-bojana-badge border border-bojana-line" />
                       )}
-                      <span className={`font-bold ${isCurrent ? 'text-stone-950' : isDone ? 'text-emerald-900' : 'text-stone-500'}`}>
+                      <span className={`font-medium ${isCurrent ? "text-bojana-ink" : isDone ? "text-bojana-success" : "text-bojana-muted"}`}>
                         {stage.nombre}
                       </span>
                     </div>
-                    <span className="text-[10px] text-stone-400 block pl-4">
+                    <span className="text-xs text-bojana-muted block pl-4">
                       {isDone ? '✓ Completado' : isCurrent ? '● En curso' : '○ Planificada'}
                     </span>
                   </div>
@@ -498,23 +478,23 @@ export default function ProjectStoryView({
           </div>
 
           {/* PRÓXIMAMENTE / PRÓXIMO HITO */}
-          <div className="bg-gradient-to-r from-amber-500/10 via-stone-50 to-stone-50 border border-amber-500/30 rounded-2xl p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-amber-800 font-bold flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-amber-600" />
+          <div className="bojana-widget bg-gradient-to-r from-bojana-ink/10 via-bojana-line to-bojana-line border border-bojana-line/30 rounded-bojana-widget p-6 sm:p-7 flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-block">
+            <div className="space-y-bojana-inside">
+              <span className="text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium flex items-center gap-bojana-inside">
+                <Clock className="w-3.5 h-3.5 text-bojana-ink" />
                 <span>Próximamente</span>
               </span>
-              <h3 className="text-xl font-serif text-stone-950 font-bold">
+              <h3 className="bojana-heading-component text-xl font-sans text-bojana-ink font-medium">
                 {nextMilestone}
               </h3>
-              <p className="text-xs text-stone-600 font-sans">
+              <p className="text-xs text-bojana-muted font-sans">
                 {project.dna?.siguienteAccion?.descripcion || 'El estudio te acompaña en el siguiente paso del proyecto.'}
               </p>
             </div>
 
-            <div className="shrink-0 text-left sm:text-right font-mono">
-              <span className="text-xs text-stone-500 block">Fecha estimada</span>
-              <strong className="text-stone-900 text-sm">{plazoInicio}</strong>
+            <div className="shrink-0 text-left sm:text-right font-sans">
+              <span className="text-xs text-bojana-muted block">Fecha estimada</span>
+              <strong className="text-bojana-ink text-sm">{plazoInicio}</strong>
             </div>
           </div>
 
@@ -534,33 +514,36 @@ export default function ProjectStoryView({
         const clientNotes = disc.necesidades.flatMap(n => n.tareas).filter(t => t.notaCliente && t.visibleCliente);
 
         return (
-          <section key={disc.id} id={`disc-${disc.id.toLowerCase()}`} className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-            <div className="space-y-8">
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div className="space-y-1">
-                  <span className="text-xs font-mono font-bold uppercase tracking-widest text-stone-400">
+          <section key={disc.id} id={`disc-${disc.id.toLowerCase()}`} className="bojana-chapter bojana-reading border-b border-bojana-line">
+            <div className="space-y-bojana-block">
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-bojana-block">
+                <div className="space-y-bojana-inside">
+                  <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
                     {chapterNum} &mdash; Disciplina
                   </span>
-                  <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
+                  <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
                     {disc.id}
                   </h2>
                 </div>
 
                 <div className="text-left sm:text-right shrink-0">
-                  <span className="text-3xl sm:text-4xl font-mono font-bold text-stone-950">
+                  <span className="text-3xl sm:text-4xl font-sans font-medium text-bojana-ink">
                     {discProg}%
                   </span>
-                  <span className="text-xs font-mono text-stone-400 block">Avance de la disciplina</span>
+                  <span className="text-xs font-sans text-bojana-muted block">Avance de la disciplina</span>
                 </div>
               </div>
 
-              <div className="space-y-5">
-                {visibleNeeds.map(need => <div key={need.id} className="border-t border-stone-200 pt-4">
-                  <h3 className="text-lg text-stone-950">{need.nombre}</h3>
-                  <ul className="mt-3 space-y-2 text-sm text-stone-700">
-                    {need.tareas.filter(t => t.visibleCliente && t.estado !== 'Fuera de alcance').map(task => <li key={task.id} className="flex flex-wrap justify-between gap-2">
-                      <span>{task.titulo}{task.etapa && <span className="text-stone-500"> · {task.etapa}</span>}</span>
-                      <span className="text-stone-500">{task.estado === 'Pendiente' ? 'Próximamente' : task.estado === 'Esperando al cliente' ? 'Esperando tu respuesta' : task.estado}</span>
+              <div className="space-y-bojana-block">
+                {visibleNeeds.map(need => <div key={need.id} className="border-t border-bojana-line pt-4">
+                  <h3 className="bojana-heading-component text-lg text-bojana-ink">{need.nombre}</h3>
+                  <ul className="mt-3 space-y-bojana-inside text-sm text-bojana-ink">
+                    {need.tareas.filter(t => t.visibleCliente && t.estado !== 'Fuera de alcance').map(task => <li key={task.id} className="bojana-widget border border-bojana-line space-y-bojana-inside">
+                      <div className="flex flex-wrap justify-between gap-bojana-inside"><span>{task.titulo}{task.etapa && <span className="text-bojana-muted"> · {task.etapa}</span>}</span>
+                      <span className="text-bojana-muted">{taskStateLabel(task.estado, 'client')}</span></div>
+                      {task.notaCliente && <p className="text-sm text-bojana-muted">{task.notaCliente}</p>}
+                      <ClientTaskFiles files={storageAccess.files} discipline={disc.id} taskId={task.id} />
+                      {task.accionCliente?.activa && <section className="bg-bojana-waiting rounded-bojana-widget p-2 space-y-bojana-inside" aria-label="Acción requerida en esta tarea"><h4 className="bojana-heading-component text-base">{task.accionCliente.titulo}</h4><p>{task.accionCliente.mensaje}</p><p className="text-xs">{task.accionCliente.accionRequeridaTexto}{task.accionCliente.fechaLimite && ` · Fecha estimada: ${task.accionCliente.fechaLimite}`}</p><p className="text-xs">{task.accionCliente.bloquearSiguientesEtapas ? 'Necesitamos tu respuesta para continuar con el trabajo siguiente.' : 'El equipo puede continuar con otras tareas mientras espera tu respuesta.'}</p>{task.accionCliente.adjuntos?.filter(a=>a.url).map(a=><a key={a.id} href={a.url} className="underline block">{a.nombre}</a>)}{task.accionCliente.respuestaCliente && <p className="text-xs">Respuesta recibida · {task.accionCliente.respuestaCliente.fecha}{task.accionCliente.respuestaCliente.comentario && ` · ${task.accionCliente.respuestaCliente.comentario}`}</p>}</section>}
                     </li>)}
                   </ul>
                 </div>)}
@@ -568,28 +551,28 @@ export default function ProjectStoryView({
 
               {/* Client Notes from Studio Tasks */}
               {clientNotes.length > 0 && (
-                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 sm:p-6 space-y-2">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-stone-500 font-bold">
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 sm:p-6 space-y-bojana-inside">
+                  <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium">
                     Nota del equipo de Bojana Estudio
                   </span>
-                  <p className="text-sm sm:text-base text-stone-800 font-light italic leading-relaxed">
+                  <p className="text-sm sm:text-base text-bojana-ink font-medium italic leading-relaxed">
                     &ldquo;{clientNotes[0].notaCliente}&rdquo;
                   </p>
                 </div>
               )}
 
               {/* Grid: Lo que ya hicimos vs Lo que está en curso */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-bojana-block">
                 {/* Lo que ya hicimos */}
-                <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-emerald-800">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-3">
+                  <div className="flex items-center gap-bojana-inside text-xs font-sans font-medium uppercase tracking-normal text-bojana-success">
+                    <CheckCircle2 className="w-4 h-4 text-bojana-success" />
                     <span>Lo que ya hicimos ({completedTasks.length})</span>
                   </div>
-                  <ul className="space-y-1.5 text-xs text-stone-700 font-sans">
+                  <ul className="space-y-bojana-inside text-xs text-bojana-ink font-sans">
                     {completedTasks.slice(0, 6).map(t => (
-                      <li key={t.id} className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      <li key={t.id} className="flex items-center gap-bojana-inside">
+                        <span className="w-1.5 h-1.5 rounded-bojana-badge bg-bojana-success shrink-0" />
                         <span className="truncate">{t.titulo}</span>
                       </li>
                     ))}
@@ -597,40 +580,40 @@ export default function ProjectStoryView({
                 </div>
 
                 {/* Lo que está en curso */}
-                <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-amber-800">
-                    <Clock className="w-4 h-4 text-amber-600" />
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-3">
+                  <div className="flex items-center gap-bojana-inside text-xs font-sans font-medium uppercase tracking-normal text-bojana-ink">
+                    <Clock className="w-4 h-4 text-bojana-ink" />
                     <span>Lo que está en curso ({inProgressTasks.length})</span>
                   </div>
                   {inProgressTasks.length > 0 ? (
-                    <ul className="space-y-1.5 text-xs text-stone-700 font-sans">
+                    <ul className="space-y-bojana-inside text-xs text-bojana-ink font-sans">
                       {inProgressTasks.map(t => (
-                        <li key={t.id} className="flex items-center gap-2">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                        <li key={t.id} className="flex items-center gap-bojana-inside">
+                          <span className="w-1.5 h-1.5 rounded-bojana-badge bg-bojana-waiting animate-pulse shrink-0" />
                           <span className="truncate">{t.titulo}</span>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-xs text-stone-500">Todavía no hay tareas en curso.</p>
+                    <p className="text-xs text-bojana-muted">Todavía no hay tareas en curso.</p>
                   )}
                 </div>
               </div>
 
-              <ClientTaskFiles files={storageAccess.files} discipline={disc.id} />
+
 
               {/* Needs Breakdown */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                 {visibleNeeds.map(need => {
                   const np = calculateNeedProgress(need);
                   return (
-                    <div key={need.id} className="bg-stone-50 border border-stone-200 rounded-xl p-3 space-y-1.5">
-                      <div className="flex items-center justify-between text-xs font-mono">
-                        <span className="text-stone-700 font-medium truncate">{need.nombre}</span>
-                        <strong className="text-stone-900">{np}%</strong>
+                    <div key={need.id} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 space-y-bojana-inside">
+                      <div className="flex items-center justify-between text-xs font-sans">
+                        <span className="text-bojana-ink font-medium truncate">{need.nombre}</span>
+                        <strong className="text-bojana-ink">{np}%</strong>
                       </div>
-                      <div className="w-full bg-stone-200 h-1 rounded-full overflow-hidden">
-                        <div className="bg-stone-900 h-full rounded-full transition-all duration-500" style={{ width: `${np}%` }} />
+                      <div className="w-full bg-bojana-soft h-1 rounded-bojana-widget overflow-hidden">
+                        <div className="bg-bojana-ink h-full rounded-bojana-widget transition-all duration-500" style={{ width: `${np}%` }} />
                       </div>
                     </div>
                   );
@@ -643,24 +626,24 @@ export default function ProjectStoryView({
       })}
 
       {/* SÍNTESIS GENERAL CALCULADA DEL PROYECTO */}
-      <section className="py-12 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-        <div className="bg-stone-50 border border-stone-200 text-stone-900 rounded-3xl p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xs">
-          <div className="space-y-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-emerald-700 font-bold">
+      <section className="py-12 px-6 sm:px-12 lg:px-16 max-w-bojana-reading mx-auto border-b border-bojana-line">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line text-bojana-ink rounded-bojana-widget p-8 sm:p-10 flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-block shadow-bojana-widget">
+          <div className="space-y-bojana-inside">
+            <span className="text-xs font-sans uppercase tracking-normal text-bojana-success font-medium">
               Síntesis de Ejecución &bull; Bojana Estudio
             </span>
-            <h3 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
-              El proyecto está <span className="font-mono font-bold text-emerald-700">{realCalculatedProjectProgress}%</span> completo
+            <h3 className="bojana-heading-component text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
+              El proyecto está <span className="font-sans font-medium text-bojana-success">{realCalculatedProjectProgress}%</span> completo
             </h3>
-            <p className="text-xs sm:text-sm text-stone-600 font-light max-w-xl leading-relaxed">
+            <p className="text-xs sm:text-sm text-bojana-muted font-medium max-w-xl leading-relaxed">
               No porque alguien escribió ese número manualmente, sino como consecuencia directa de las tareas y etapas técnicas finalizadas en cada disciplina.
             </p>
           </div>
 
           <div className="shrink-0 flex items-center gap-3">
-            <div className="text-right font-mono">
-              <span className="text-stone-400 text-xs block">Disciplinas activas</span>
-              <span className="text-stone-800 text-sm font-bold">{operationalDisciplines.map(d => d.id).join(' · ')}</span>
+            <div className="text-right font-sans">
+              <span className="text-bojana-muted text-xs block">Disciplinas activas</span>
+              <span className="text-bojana-ink text-sm font-medium">{operationalDisciplines.map(d => d.id).join(' · ')}</span>
             </div>
           </div>
         </div>
@@ -668,15 +651,15 @@ export default function ProjectStoryView({
 
       {/* 6. ÚLTIMOS AVANCES (HISTORIA VIVA DE OBRA) */}
       {avances.length > 0 && (
-        <section id="avances" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-          <div className="space-y-8">
-            
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <section id="avances" className="bojana-chapter bojana-reading border-b border-bojana-line">
+          <div className="space-y-bojana-block">
+
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-bojana-block">
               <div>
-                <span className="text-xs font-mono font-bold uppercase tracking-widest text-stone-400">
+                <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
                   03 &mdash; Historia de obra
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-950 mt-1">
+                <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink mt-1">
                   Últimos avances
                 </h2>
               </div>
@@ -685,7 +668,7 @@ export default function ProjectStoryView({
                 <button
                   type="button"
                   onClick={() => setShowAllAvancesModal(true)}
-                  className="text-xs font-mono font-bold text-stone-900 hover:text-emerald-700 transition flex items-center gap-1.5 cursor-pointer"
+                  className="bojana-button bojana-button-text text-xs font-sans font-medium text-bojana-ink hover:text-bojana-success transition flex items-center gap-bojana-inside cursor-pointer"
                 >
                   <span>Ver todos los avances ({avances.length})</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -695,30 +678,30 @@ export default function ProjectStoryView({
 
             {/* Featured Post Card */}
             {latestAvance && (
-              <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-md transition">
-                <div className="p-6 sm:p-8 space-y-4">
-                  
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono font-bold text-stone-500 uppercase tracking-widest">
+              <div className="bg-bojana-surface border border-bojana-line rounded-bojana-widget overflow-hidden shadow-bojana-widget hover:shadow-bojana-widget transition">
+                <div className="p-6 sm:p-8 space-y-bojana-block">
+
+                  <div className="flex flex-wrap items-center justify-between gap-bojana-inside border-b border-bojana-line pb-4">
+                    <div className="flex items-center gap-bojana-inside">
+                      <span className="text-xs font-sans font-medium text-bojana-muted uppercase tracking-normal">
                         {latestAvance.fecha}
                       </span>
                       {latestAvance.categoria && (
-                        <span className="text-[10px] font-mono bg-stone-100 text-stone-700 px-2 py-0.5 rounded border border-stone-200">
+                        <span className="text-xs font-sans bg-bojana-soft text-bojana-ink px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
                           {latestAvance.categoria}
                         </span>
                       )}
                     </div>
-                    <span className="text-xs font-mono text-stone-400">
+                    <span className="text-xs font-sans text-bojana-muted">
                       Publicado por Bojana Estudio
                     </span>
                   </div>
 
-                  <h3 className="text-xl sm:text-2xl font-serif text-stone-900">
+                  <h3 className="bojana-heading-component text-xl sm:text-2xl font-sans text-bojana-ink">
                     {latestAvance.titulo}
                   </h3>
 
-                  <p className="text-sm sm:text-base text-stone-700 font-light leading-relaxed">
+                  <p className="text-sm sm:text-base text-bojana-ink font-medium leading-relaxed">
                     {latestAvance.texto}
                   </p>
 
@@ -727,23 +710,23 @@ export default function ProjectStoryView({
                     <div className="pt-2">
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {latestAvance.fotos.map((photo, pIdx) => (
-                          <div 
+                          <div
                             key={pIdx}
-                            onClick={() => setLightboxImage(photo)}
-                            className="group relative aspect-4/3 rounded-xl overflow-hidden bg-stone-100 cursor-pointer border border-stone-200"
+                            role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={() => setLightboxImage(photo)}
+                            className="group relative aspect-16/10 rounded-bojana-widget overflow-hidden bg-bojana-soft cursor-pointer border border-bojana-line"
                           >
-                            <img 
-                              src={photo} 
+                            <img
+                              src={photo}
                               alt={`${latestAvance.titulo} ${pIdx + 1}`}
-                              className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                              className="bojana-media w-full h-full object-contain group-hover:scale-105 transition duration-500"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center">
-                              <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition" />
+                              <Maximize2 className="w-5 h-5 text-bojana-inverse opacity-0 group-hover:opacity-100 transition" />
                             </div>
                           </div>
                         ))}
                       </div>
-                      <span className="text-[11px] font-mono text-stone-400 mt-2 block">
+                      <span className="text-xs font-sans text-bojana-muted mt-2 block">
                         {latestAvance.fotos.length} fotografías de inspección &bull; Clic para ampliar
                       </span>
                     </div>
@@ -759,34 +742,30 @@ export default function ProjectStoryView({
 
       {/* 7. EL PROYECTO EN DETALLE (TOUR INTERACTIVO SOBRE PLANO) */}
       {mainTour && (
-        <section id="detalle" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-          <div className="space-y-8">
-            
-            <div className="space-y-1">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-stone-400">
+        <section id="detalle" className="bojana-chapter bojana-reading border-b border-bojana-line">
+          <div className="space-y-bojana-block">
+
+            <div className="space-y-bojana-inside">
+              <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
                 04 &mdash; El proyecto en detalle
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
+              <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
                 {mainTour.titulo || 'Tour sobre plano interactivo'}
               </h2>
-              <p className="text-sm text-stone-600 font-light">
+              <p className="text-sm text-bojana-muted font-medium">
                 {(mainTour as any).descripcion || 'Hacé clic sobre los sectores numerados para explorar las perspectivas 3D en su emplazamiento.'}
               </p>
             </div>
 
-            <div className="bg-stone-900 border border-stone-800 rounded-2xl overflow-hidden shadow-xl text-white">
-              
+            <div className="bg-bojana-ink border border-bojana-line rounded-bojana-widget overflow-hidden shadow-bojana-widget text-bojana-inverse">
+
               {/* Tour Viewer */}
               <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[460px]">
-                
+
                 {/* Left: Floor Plan with Hotspots */}
-                <div className="lg:col-span-7 relative bg-stone-950 p-4 flex items-center justify-center border-b lg:border-b-0 lg:border-r border-stone-800">
-                  <div className="relative w-full max-w-[500px] aspect-4/3 rounded-lg overflow-hidden border border-stone-800 bg-stone-900">
-                    <img 
-                      src={mainTour.planoUrl} 
-                      alt="Planta arquitectónica"
-                      className="w-full h-full object-cover select-none"
-                    />
+                <div className="lg:col-span-7 relative bg-bojana-ink p-4 flex items-center justify-center border-b lg:border-b-0 lg:border-r border-bojana-line">
+                  <AnnotatedMedia src={mainTour.planoUrl} alt="Plano general de planta">
+
 
                     {/* Hotspot Pins */}
                     {tourPuntos.map((pin) => {
@@ -797,61 +776,61 @@ export default function ProjectStoryView({
                           type="button"
                           onClick={() => setSelectedHotspotPinId(pin.id)}
                           style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-                          className={`absolute -translate-x-1/2 -translate-y-1/2 p-1.5 rounded-full transition transform hover:scale-110 cursor-pointer shadow-lg ${
-                            isSelected 
-                              ? 'bg-amber-400 text-stone-950 ring-4 ring-amber-400/40 z-20 scale-110 font-bold' 
-                              : 'bg-stone-950/80 text-white border border-stone-700 hover:bg-stone-900 z-10'
+                          className={`bojana-icon-button absolute -translate-x-1/2 -translate-y-1/2 p-1.5 rounded-bojana-badge transition transform hover:scale-110 cursor-pointer shadow-bojana-widget ${
+                            isSelected
+                              ? "bg-bojana-waiting text-bojana-ink ring-4 ring-bojana-ink/40 z-20 scale-110 font-medium"
+                              : "bg-bojana-ink/80 text-bojana-inverse border border-bojana-line hover:bg-bojana-ink z-10"
                           }`}
                           title={pin.label}
                         >
-                          <span className="text-[10px] font-mono px-1 block font-bold leading-tight">
+                          <span className="text-xs font-sans px-1 block font-medium leading-tight">
                             {pin.label}
                           </span>
                         </button>
                       );
                     })}
-                  </div>
+                  </AnnotatedMedia>
                 </div>
 
                 {/* Right: Render Perspective */}
-                <div className="lg:col-span-5 p-6 flex flex-col justify-between space-y-4">
+                <div className="lg:col-span-5 p-6 flex flex-col justify-between space-y-bojana-block">
                   {activePin ? (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold">
+                    <div className="space-y-bojana-block">
+                      <div className="space-y-bojana-inside">
+                        <span className="text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium">
                           Sector Seleccionado
                         </span>
-                        <h4 className="text-xl font-serif text-white font-bold">
+                        <h4 className="bojana-heading-component text-xl font-sans text-bojana-inverse font-medium">
                           {activePin.label}
                         </h4>
-                        <p className="text-xs text-stone-300 font-light">
+                        <p className="text-xs text-bojana-line font-medium">
                           {activePin.descripcion || 'Perspectiva 3D desarrollada por Bojana Estudio.'}
                         </p>
                       </div>
 
-                      <div 
-                        onClick={() => setLightboxImage(activePin.renderUrl)}
-                        className="group relative aspect-16/10 rounded-xl overflow-hidden bg-stone-950 border border-stone-800 cursor-pointer"
+                      <div
+                        role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={() => setLightboxImage(activePin.renderUrl)}
+                        className="group relative aspect-16/10 rounded-bojana-widget overflow-hidden bg-bojana-ink border border-bojana-line cursor-pointer"
                       >
-                        <img 
-                          src={activePin.renderUrl} 
+                        <img
+                          src={activePin.renderUrl}
                           alt={activePin.label}
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          className="bojana-media w-full h-full object-contain group-hover:scale-105 transition duration-500"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center">
-                          <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition" />
+                          <Maximize2 className="w-5 h-5 text-bojana-inverse opacity-0 group-hover:opacity-100 transition" />
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="h-full flex items-center justify-center text-xs font-mono text-stone-500">
+                    <div className="h-full flex items-center justify-center text-xs font-sans text-bojana-muted">
                       Seleccioná un punto sobre el plano
                     </div>
                   )}
 
-                  <div className="border-t border-stone-800 pt-3 text-[11px] font-mono text-stone-400 flex items-center justify-between">
+                  <div className="border-t border-bojana-line pt-3 text-xs font-sans text-bojana-muted flex items-center justify-between">
                     <span>{tourPuntos.length} sectores relevados</span>
-                    <span className="text-amber-400">Clic en imagen para pantalla completa</span>
+                    <span className="text-bojana-ink">Clic en imagen para pantalla completa</span>
                   </div>
                 </div>
 
@@ -865,51 +844,51 @@ export default function ProjectStoryView({
 
       {/* 8. RENDERS & ESPACIOS (GALERÍA VISUAL) */}
       {gallery.length > 0 && (
-        <section id="renders" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-          <div className="space-y-8">
-            
-            <div className="space-y-1">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-stone-400">
+        <section id="renders" className="bojana-chapter bojana-reading border-b border-bojana-line">
+          <div className="space-y-bojana-block">
+
+            <div className="space-y-bojana-inside">
+              <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
                 05 &mdash; Visualizaciones
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
+              <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
                 Renders & Espacios
               </h2>
-              <p className="text-sm text-stone-600 font-light">
+              <p className="text-sm text-bojana-muted font-medium">
                 Perspectivas fotorrealistas de propuesta espacial y estudio de iluminación.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-bojana-block">
               {gallery.map((item) => {
                 const itemImg = item.imagenUrl || (item as any).url || '';
                 return (
-                  <div 
+                  <div
                     key={item.id}
-                    onClick={() => setLightboxImage(itemImg)}
-                    className="group bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-xs hover:shadow-lg transition cursor-pointer flex flex-col"
+                    role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={() => setLightboxImage(itemImg)}
+                    className="group bg-bojana-surface border border-bojana-line rounded-bojana-widget overflow-hidden shadow-bojana-widget hover:shadow-bojana-widget transition cursor-pointer flex flex-col"
                   >
-                    <div className="relative aspect-4/3 overflow-hidden bg-stone-100">
-                      <img 
-                        src={itemImg} 
+                    <div className="relative aspect-16/10 overflow-hidden bg-bojana-soft">
+                      <img
+                        src={itemImg}
                         alt={item.titulo}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        className="bojana-media w-full h-full object-contain group-hover:scale-105 transition duration-500"
                       />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center">
-                        <Maximize2 className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition" />
+                        <Maximize2 className="w-5 h-5 text-bojana-inverse opacity-0 group-hover:opacity-100 transition" />
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-1">
-                      <div className="flex items-center justify-between text-[10px] font-mono text-stone-400">
+                    <div className="p-4 space-y-bojana-inside">
+                      <div className="flex items-center justify-between text-xs font-sans text-bojana-muted">
                         <span>{item.categoria || 'Perspectiva'}</span>
-                        {(item as any).destacado && <span className="text-amber-600 font-bold">&bull; Destacado</span>}
+                        {(item as any).destacado && <span className="text-bojana-ink font-medium">&bull; Destacado</span>}
                       </div>
-                      <h4 className="text-sm font-bold text-stone-900 font-sans group-hover:text-emerald-700 transition">
+                      <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans group-hover:text-bojana-success transition">
                         {item.titulo}
                       </h4>
                       {item.descripcion && (
-                        <p className="text-xs text-stone-500 font-sans line-clamp-1">
+                        <p className="text-xs text-bojana-muted font-sans line-clamp-1">
                           {item.descripcion}
                         </p>
                       )}
@@ -925,48 +904,48 @@ export default function ProjectStoryView({
 
       {/* 9. DOCUMENTACIÓN & ENTREGABLES (BASE CONTRACTUAL + EJECUTIVOS) */}
       {(documentos.length > 0 || docsBase.length > 0) && (
-        <section id="documentos" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-          <div className="space-y-8">
-            
-            <div className="space-y-1">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-stone-400">
+        <section id="documentos" className="bojana-chapter bojana-reading border-b border-bojana-line">
+          <div className="space-y-bojana-block">
+
+            <div className="space-y-bojana-inside">
+              <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
                 06 &mdash; Documentación técnica
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
+              <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
                 Planos, Presupuesto & Entregables
               </h2>
-              <p className="text-sm text-stone-600 font-light">
+              <p className="text-sm text-bojana-muted font-medium">
                 Documentación base formalizada y entregables ejecutivos del proyecto.
               </p>
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-2xl divide-y divide-stone-100 shadow-xs overflow-hidden">
+            <div className="bg-bojana-surface border border-bojana-line rounded-bojana-widget divide-y divide-bojana-line shadow-bojana-widget overflow-hidden">
               {/* Documentos Base Contractuales */}
               {docsBase.map((db, idx) => (
-                <div 
+                <div
                   key={db.id || `db-${idx}`}
-                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-stone-50/50 hover:bg-stone-50 transition"
+                  className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-block bg-bojana-surface/50 hover:bg-bojana-surface transition"
                 >
-                  <div className="flex items-start gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200">
-                      <FileText className="w-5 h-5 text-amber-700" />
+                  <div className="flex items-start gap-bojana-inside">
+                    <div className="w-10 h-10 rounded-bojana-widget bg-bojana-waiting text-bojana-ink flex items-center justify-center shrink-0 border border-bojana-line">
+                      <FileText className="w-5 h-5 text-bojana-ink" />
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-[10px] font-mono uppercase bg-amber-100 text-amber-900 px-2 py-0.5 rounded font-bold">
+                    <div className="space-y-bojana-inside">
+                      <div className="flex flex-wrap items-center gap-bojana-inside">
+                        <span className="text-xs font-sans uppercase bg-bojana-waiting text-bojana-ink px-2 py-0.5 rounded-bojana-badge font-medium">
                           Documento Inicial
                         </span>
-                        <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200">
+                        <span className="text-xs font-sans text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge font-medium border border-bojana-success">
                           {db.tipo === 'presupuesto' ? 'Presupuesto formal' : db.tipo.replace('_', ' ')} &bull; Base
                         </span>
                       </div>
 
-                      <h4 className="text-base font-bold text-stone-900 font-sans">
+                      <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">
                         {db.nombre}
                       </h4>
 
-                      <div className="text-xs font-mono text-stone-400 flex items-center gap-3">
+                      <div className="text-xs font-sans text-bojana-muted flex items-center gap-3">
                         <span>Base contractual</span>
                         <span>&bull;</span>
                         <span>Fecha: {db.fecha || '2026'}</span>
@@ -975,7 +954,7 @@ export default function ProjectStoryView({
                   </div>
 
                   <div className="flex items-center gap-3 self-end sm:self-center">
-{db.url ? <a href={db.url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-md bg-stone-950 text-white text-xs flex items-center gap-1.5"><Download className="w-3.5 h-3.5" /><span>Abrir documento</span></a> : <span className="text-xs text-stone-500">Archivo pendiente</span>}
+{db.url ? <a href={db.url} target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-bojana-widget bg-bojana-ink text-bojana-inverse text-xs flex items-center gap-bojana-inside"><Download className="w-3.5 h-3.5" /><span>Abrir documento</span></a> : <span className="text-xs text-bojana-muted">Archivo pendiente</span>}
                   </div>
                 </div>
               ))}
@@ -984,30 +963,30 @@ export default function ProjectStoryView({
               {documentos.map((doc) => {
                 const currentRev = doc.revisiones?.find(r => r.esActual) || doc.revisiones?.[0];
                 return (
-                  <div 
+                  <div
                     key={doc.id}
-                    className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-stone-50/70 transition"
+                    className="p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-block hover:bg-bojana-surface/70 transition"
                   >
-                    <div className="flex items-start gap-3.5">
-                      <div className="w-10 h-10 rounded-xl bg-stone-100 text-stone-700 flex items-center justify-center shrink-0 border border-stone-200">
-                        <FileText className="w-5 h-5 text-stone-600" />
+                    <div className="flex items-start gap-bojana-inside">
+                      <div className="w-10 h-10 rounded-bojana-widget bg-bojana-soft text-bojana-ink flex items-center justify-center shrink-0 border border-bojana-line">
+                        <FileText className="w-5 h-5 text-bojana-muted" />
                       </div>
 
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-mono uppercase bg-stone-100 text-stone-700 px-2 py-0.5 rounded font-bold">
+                      <div className="space-y-bojana-inside">
+                        <div className="flex flex-wrap items-center gap-bojana-inside">
+                          <span className="text-xs font-sans uppercase bg-bojana-soft text-bojana-ink px-2 py-0.5 rounded-bojana-badge font-medium">
                             {doc.categoria}
                           </span>
-                          <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200">
+                          <span className="text-xs font-sans text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge font-medium border border-bojana-success">
                             {currentRev?.numeroRevision || 'Rev. 01'} &bull; Actual
                           </span>
                         </div>
 
-                        <h4 className="text-base font-bold text-stone-900 font-sans">
+                        <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">
                           {doc.titulo}
                         </h4>
 
-                        <div className="text-xs font-mono text-stone-400 flex items-center gap-3">
+                        <div className="text-xs font-sans text-bojana-muted flex items-center gap-3">
                           <span>Formato: {doc.formato}</span>
                           <span>&bull;</span>
                           <span>Fecha: {currentRev?.fecha || '2026'}</span>
@@ -1029,7 +1008,7 @@ export default function ProjectStoryView({
                           e.preventDefault();
                           onToast(`Iniciando descarga: ${doc.titulo} (${currentRev?.numeroRevision || 'Rev. Actual'})`);
                         }}
-                        className="px-4 py-2 rounded-xl bg-stone-950 hover:bg-stone-850 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                        className="px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                       >
                         <Download className="w-3.5 h-3.5" />
                         <span>Descargar PDF</span>
@@ -1046,76 +1025,76 @@ export default function ProjectStoryView({
 
       {/* 10. DECISIONES & REVISIONES (APROBACIONES DE DISEÑO / INGENIERÍA) */}
       {decisiones.length > 0 && (
-        <section id="decisiones" className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto border-b border-stone-200">
-          <div className="space-y-8">
-            
-            <div className="space-y-1">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+        <section id="decisiones" className="bojana-chapter bojana-reading border-b border-bojana-line">
+          <div className="space-y-bojana-block">
+
+            <div className="space-y-bojana-inside">
+              <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-ink bg-bojana-waiting px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
                 07 &mdash; Decisiones & Revisiones
               </span>
-              <h2 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
+              <h2 className="bojana-heading-section text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
                 Decisiones pendientes
               </h2>
-              <p className="text-sm text-stone-600 font-light">
+              <p className="text-sm text-bojana-muted font-medium">
                 Propuestas presentadas por Bojana Estudio que requieren convalidación del comitente.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-bojana-block">
               {decisiones.map((dec) => {
                 const isPending = dec.estado === 'Pendiente';
                 const isApproved = dec.estado === 'Aprobado';
                 return (
-                  <div 
+                  <div
                     key={dec.id}
-                    className={`bg-white border rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-5 transition ${
-                      isPending ? 'border-amber-300 ring-2 ring-amber-100' : 'border-stone-200'
+                    className={`bojana-widget bg-bojana-surface border rounded-bojana-widget p-6 shadow-bojana-widget flex flex-col justify-between space-y-bojana-block transition ${
+                      isPending ? "border-bojana-line ring-2 ring-bojana-ink" : "border-bojana-line"
                     }`}
                   >
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-stone-400">Creado {dec.fechaCreacion}</span>
-                        <span className={`px-2.5 py-0.5 rounded-full font-bold uppercase ${
-                          isApproved ? 'bg-emerald-100 text-emerald-800' :
-                          dec.estado === 'Requiere cambios' ? 'bg-rose-100 text-rose-800' :
-                          'bg-amber-100 text-amber-800 animate-pulse'
+                      <div className="flex items-center justify-between text-xs font-sans">
+                        <span className="text-bojana-muted">Creado {dec.fechaCreacion}</span>
+                        <span className={`px-2.5 py-0.5 rounded-bojana-badge font-medium uppercase ${
+                          isApproved ? "bg-bojana-soft text-bojana-success" :
+                          dec.estado === "Requiere cambios" ? "bg-bojana-soft text-bojana-error" :
+                          "bg-bojana-waiting text-bojana-ink animate-pulse"
                         }`}>
                           {dec.estado}
                         </span>
                       </div>
 
-                      <h4 className="text-lg font-serif text-stone-950 font-bold">
+                      <h4 className="bojana-heading-component text-lg font-sans text-bojana-ink font-medium">
                         {dec.titulo}
                       </h4>
 
-                      <p className="text-xs sm:text-sm text-stone-600 font-light leading-relaxed">
+                      <p className="text-xs sm:text-sm text-bojana-muted font-medium leading-relaxed">
                         {dec.descripcion}
                       </p>
 
                       {/* Options Preview */}
                       {dec.opciones && dec.opciones.length > 0 && (
-                        <div className="grid grid-cols-2 gap-2 pt-2">
+                        <div className="grid grid-cols-2 gap-bojana-inside pt-2">
                           {dec.opciones.map((opt) => (
-                            <div 
+                            <div
                               key={opt.id}
-                              className={`p-3 rounded-xl border text-xs font-mono space-y-1 ${
-                                dec.opcionAprobadaId === opt.id 
-                                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold' 
-                                  : 'bg-stone-50 border-stone-200 text-stone-700'
+                              className={`bojana-widget p-3 rounded-bojana-widget border text-xs font-sans space-y-bojana-inside ${
+                                dec.opcionAprobadaId === opt.id
+                                  ? "bg-bojana-soft border-bojana-success text-bojana-success font-medium"
+                                  : "bg-bojana-surface border-bojana-line text-bojana-ink"
                               }`}
                             >
-                              <span className="text-[10px] text-stone-400 block uppercase font-bold">{opt.letra}</span>
-                              <strong className="block text-stone-900">{opt.titulo}</strong>
-                              {opt.descripcion && <span className="text-[10px] text-stone-500 block">{opt.descripcion}</span>}
+                              <span className="text-xs text-bojana-muted block uppercase font-medium">{opt.letra}</span>
+                              <strong className="block text-bojana-ink">{opt.titulo}</strong>
+                              {opt.descripcion && <span className="text-xs text-bojana-muted block">{opt.descripcion}</span>}
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
 
-                    <div className="pt-2 border-t border-stone-100 flex items-center justify-between">
+                    <div className="pt-2 border-t border-bojana-line flex items-center justify-between">
                       {isApproved ? (
-                        <div className="flex items-center gap-1.5 text-xs font-mono text-emerald-700 font-bold">
+                        <div className="flex items-center gap-bojana-inside text-xs font-sans text-bojana-success font-medium">
                           <CheckCircle2 className="w-4 h-4" />
                           <span>Aprobado el {dec.fechaDecision || '02 OCT 2026'}</span>
                         </div>
@@ -1126,7 +1105,7 @@ export default function ProjectStoryView({
                             setActiveDecisionModal(dec);
                             setSelectedOptionId(dec.opciones?.[0]?.id || '');
                           }}
-                          className="w-full py-2.5 rounded-xl bg-stone-950 hover:bg-stone-850 text-white text-xs font-mono font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                          className="bojana-button bojana-button-primary w-full py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium transition flex items-center justify-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
                         >
                           <span>Revisar propuesta &rarr;</span>
                         </button>
@@ -1142,114 +1121,115 @@ export default function ProjectStoryView({
       )}
 
       {/* 11. FOOTER EDITORIAL / FIRMA BOJANA */}
-      <footer className="py-16 sm:py-24 px-6 sm:px-12 lg:px-16 max-w-5xl mx-auto text-stone-600 text-xs font-mono space-y-8">
-        <div className="border-t border-stone-200 pt-12 grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-          
-          <div className="md:col-span-6 space-y-2">
-            <span className="text-sm font-serif text-stone-950 font-bold block">
+      <footer className="bojana-chapter bojana-reading text-bojana-muted text-xs font-sans space-y-bojana-block">
+        <div className="border-t border-bojana-line pt-12 grid grid-cols-1 md:grid-cols-12 gap-bojana-block items-start">
+
+          <div className="md:col-span-6 space-y-bojana-inside">
+            <span className="text-sm font-sans text-bojana-ink font-medium block">
               Bojana Estudio
             </span>
-            <p className="text-stone-500 font-light max-w-sm">
+            <p className="text-bojana-muted font-medium max-w-sm">
               Dirección de obra, desarrollo arquitectónico y diseño de autor. Acompañamos cada etapa del proyecto con rigor técnico y sensibilidad material.
             </p>
-            <span className="text-[11px] text-stone-400 block pt-2">
+            <span className="text-xs text-bojana-muted block pt-2">
               Buenos Aires, Argentina &bull; www.bojanaestudio.com
             </span>
           </div>
 
-          <div className="md:col-span-3 space-y-1">
-            <span className="text-stone-400 uppercase tracking-widest text-[10px] block font-bold">
+          <div className="md:col-span-3 space-y-bojana-inside">
+            <span className="text-bojana-muted uppercase tracking-normal text-xs block font-medium">
               Equipo Asignado
             </span>
             {(project.equipo || []).map((m) => (
               <div key={m.id} className="pt-1">
-                <strong className="text-stone-900 block">{m.nombre}</strong>
-                <span className="text-stone-400 text-[10px] block">{m.rol}</span>
+                <strong className="text-bojana-ink block">{m.nombre}</strong>
+                <span className="text-bojana-muted text-xs block">{m.rol}</span>
               </div>
             ))}
           </div>
 
-          <div className="md:col-span-3 space-y-1">
-            <span className="text-stone-400 uppercase tracking-widest text-[10px] block font-bold">
+          <div className="md:col-span-3 space-y-bojana-inside">
+            <span className="text-bojana-muted uppercase tracking-normal text-xs block font-medium">
               Contacto Directo
             </span>
-            <span className="text-stone-700 block">contacto@bojanaestudio.com</span>
-            <span className="text-stone-700 block">+54 9 11 4589-2230</span>
-            <span className="text-stone-400 text-[10px] block pt-2">
+            <span className="text-bojana-ink block">contacto@bojanaestudio.com</span>
+            <span className="text-bojana-ink block">+54 9 11 4589-2230</span>
+            <span className="text-bojana-muted text-xs block pt-2">
               Código de proyecto: {code}
             </span>
           </div>
 
         </div>
 
-        <div className="border-t border-stone-100 pt-6 text-center text-stone-400 text-[10px]">
+        <div className="border-t border-bojana-line pt-6 text-center text-bojana-muted text-xs">
           &copy; {new Date().getFullYear()} Bojana Estudio &bull; Project Story privada generada para {project.cliente?.nombre || 'Comitente'}
         </div>
       </footer>
 
       {/* LIGHTBOX MODAL */}
       {lightboxImage && (
-        <div 
+        <div
           onClick={() => setLightboxImage(null)}
-          className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 sm:p-8 animate-fade-in cursor-zoom-out"
+          role="dialog" aria-modal="true" aria-label="Imagen del proyecto ampliada" className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 sm:p-8 animate-fade-in cursor-zoom-out"
         >
           <button
             type="button"
             onClick={() => setLightboxImage(null)}
-            className="absolute top-5 right-5 text-white/70 hover:text-white p-2 rounded-full bg-white/10 transition"
+            aria-label="Cerrar imagen ampliada" className="bojana-icon-button absolute top-5 right-5 text-white/70 hover:text-bojana-inverse p-2 rounded-bojana-widget bg-white/10 transition"
           >
             <X className="w-6 h-6" />
           </button>
-          <img 
-            src={lightboxImage} 
-            alt="Detalle en alta resolución"
-            className="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl animate-scale-up"
+          <img
+            src={lightboxImage}
+            alt={gallery.find(item => item.imagenUrl === lightboxImage)?.titulo || `Detalle de ${title}`}
+            className="bojana-media max-w-full max-h-[80vh] object-contain rounded-bojana-widget shadow-bojana-widget animate-scale-up"
           />
+          <p className="bojana-media-caption">{title} · {gallery.find(item => item.imagenUrl === lightboxImage)?.titulo || 'Imagen del proyecto'} · {lastUpdate}</p>
         </div>
       )}
 
       {/* DECISION REVIEW MODAL */}
       {activeDecisionModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white border border-stone-200 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden animate-scale-up flex flex-col">
-            
-            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+          <div className="bojana-modal bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full shadow-bojana-widget overflow-hidden animate-scale-up flex flex-col">
+
+            <div className="px-6 py-4 border-b border-bojana-line flex items-center justify-between bg-bojana-surface">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-amber-700 font-bold">
+                <span className="text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium">
                   Decisión de Proyecto
                 </span>
-                <h3 className="text-base font-serif font-bold text-stone-950">
+                <h3 className="bojana-heading-component text-base font-sans font-medium text-bojana-ink">
                   {activeDecisionModal.titulo}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveDecisionModal(null)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 transition"
+                className="bojana-icon-button p-1 rounded-bojana-widget text-bojana-muted hover:text-bojana-ink transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs font-sans">
-              <p className="text-stone-600 font-light leading-relaxed">
+            <div className="p-6 space-y-bojana-block text-xs font-sans">
+              <p className="text-bojana-muted font-medium leading-relaxed">
                 {activeDecisionModal.descripcion}
               </p>
 
               {/* Options selection */}
               {activeDecisionModal.opciones && activeDecisionModal.opciones.length > 0 && (
-                <div className="space-y-2">
-                  <label className="font-mono text-stone-500 font-bold block">
+                <div className="space-y-bojana-inside">
+                  <label className="font-sans text-bojana-muted font-medium block">
                     Seleccioná la opción de tu preferencia:
                   </label>
-                  <div className="space-y-2">
+                  <div className="space-y-bojana-inside">
                     {activeDecisionModal.opciones.map((opt) => (
                       <label
                         key={opt.id}
-                        className={`p-3 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
-                          selectedOptionId === opt.id 
-                            ? 'bg-emerald-50 border-emerald-400 ring-1 ring-emerald-300' 
-                            : 'bg-stone-50 border-stone-200 hover:bg-stone-100'
+                        className={`p-3 rounded-bojana-widget border flex items-start gap-3 cursor-pointer transition ${
+                          selectedOptionId === opt.id
+                            ? "bg-bojana-soft border-bojana-success ring-1 ring-bojana-success"
+                            : "bg-bojana-surface border-bojana-line hover:bg-bojana-soft"
                         }`}
                       >
                         <input
@@ -1258,14 +1238,14 @@ export default function ProjectStoryView({
                           value={opt.id}
                           checked={selectedOptionId === opt.id}
                           onChange={() => setSelectedOptionId(opt.id)}
-                          className="mt-0.5 text-emerald-600 focus:ring-emerald-500"
+                          className="mt-0.5 text-bojana-success focus:ring-bojana-success"
                         />
                         <div className="space-y-0.5 flex-1">
-                          <strong className="block text-stone-900 font-bold font-mono text-xs">
+                          <strong className="block text-bojana-ink font-medium font-sans text-xs">
                             {opt.letra}: {opt.titulo}
                           </strong>
                           {opt.descripcion && (
-                            <span className="text-stone-500 text-xs block">{opt.descripcion}</span>
+                            <span className="text-bojana-muted text-xs block">{opt.descripcion}</span>
                           )}
                         </div>
                       </label>
@@ -1274,9 +1254,10 @@ export default function ProjectStoryView({
                 </div>
               )}
 
+              <MediaComparison items={(activeDecisionModal.opciones || []).filter(opt => opt.imagenUrl).map(opt => ({ id: opt.id, title: `${opt.letra || ''} ${opt.titulo}`, src: opt.imagenUrl! }))} />
               {/* Client comment */}
-              <div className="space-y-1">
-                <label className="font-mono text-stone-500 font-bold block">
+              <div className="space-y-bojana-inside">
+                <label className="font-sans text-bojana-muted font-medium block">
                   Comentario u observación (opcional):
                 </label>
                 <textarea
@@ -1284,16 +1265,16 @@ export default function ProjectStoryView({
                   placeholder="Ej: Nos gusta la Opción A pero consultar si es posible en tono mate..."
                   value={clientComment}
                   onChange={(e) => setClientComment(e.target.value)}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-xs text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               {/* Actions */}
-              <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-3">
+              <div className="pt-3 border-t border-bojana-line flex items-center justify-between gap-3">
                 <button
                   type="button"
                   onClick={() => handleDecisionSubmit('Requiere cambios')}
-                  className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-mono font-bold transition cursor-pointer"
+                  className="bojana-button bojana-button-text px-3.5 py-2 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
                 >
                   Solicitar cambios
                 </button>
@@ -1301,7 +1282,7 @@ export default function ProjectStoryView({
                 <button
                   type="button"
                   onClick={() => handleDecisionSubmit('Aprobado')}
-                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-mono font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Aprobar propuesta</span>
@@ -1317,43 +1298,43 @@ export default function ProjectStoryView({
       {/* ALL AVANCES MODAL */}
       {showAllAvancesModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white border border-stone-200 rounded-2xl max-w-2xl w-full max-h-[85vh] shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+          <div className="bojana-modal bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full max-h-[85vh] shadow-bojana-widget overflow-hidden flex flex-col">
+            <div className="px-6 py-4 border-b border-bojana-line flex items-center justify-between bg-bojana-surface">
               <div>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-stone-400">
+                <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted">
                   Historial de Obra
                 </span>
-                <h3 className="text-base font-serif font-bold text-stone-950">
+                <h3 className="bojana-heading-component text-base font-sans font-medium text-bojana-ink">
                   Todos los avances ({avances.length})
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowAllAvancesModal(false)}
-                className="p-1 rounded-lg text-stone-400 hover:text-stone-700 transition"
+                className="bojana-icon-button p-1 rounded-bojana-widget text-bojana-muted hover:text-bojana-ink transition"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto divide-y divide-stone-100 space-y-6">
+            <div className="p-6 overflow-y-auto divide-y divide-bojana-line space-y-bojana-block">
               {avances.map((av) => (
                 <div key={av.id} className="pt-6 first:pt-0 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-mono text-stone-400">
-                    <span className="font-bold text-stone-900">{av.fecha}</span>
-                    {av.categoria && <span className="bg-stone-100 px-2 py-0.5 rounded text-stone-600">{av.categoria}</span>}
+                  <div className="flex items-center justify-between text-xs font-sans text-bojana-muted">
+                    <span className="font-medium text-bojana-ink">{av.fecha}</span>
+                    {av.categoria && <span className="bg-bojana-soft px-2 py-0.5 rounded-bojana-badge text-bojana-muted">{av.categoria}</span>}
                   </div>
-                  <h4 className="text-lg font-serif text-stone-900 font-bold">{av.titulo}</h4>
-                  <p className="text-xs text-stone-600 leading-relaxed font-light">{av.texto}</p>
+                  <h4 className="bojana-heading-component text-lg font-sans text-bojana-ink font-medium">{av.titulo}</h4>
+                  <p className="text-xs text-bojana-muted leading-relaxed font-medium">{av.texto}</p>
                   {av.fotos && av.fotos.length > 0 && (
-                    <div className="grid grid-cols-3 gap-2 pt-1">
+                    <div className="grid grid-cols-3 gap-bojana-inside pt-1">
                       {av.fotos.map((f, fIdx) => (
-                        <img 
+                        <img
                           key={fIdx}
                           src={f}
                           alt=""
-                          onClick={() => setLightboxImage(f)}
-                          className="aspect-4/3 object-cover rounded-lg cursor-pointer hover:opacity-90 transition border border-stone-200"
+                          role="button" tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }} onClick={() => setLightboxImage(f)}
+                          className="bojana-media aspect-16/10 object-contain rounded-bojana-widget cursor-pointer hover:opacity-90 transition border border-bojana-line"
                         />
                       ))}
                     </div>

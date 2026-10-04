@@ -59,13 +59,13 @@ export function getLifecycleLabel(status: ProjectLifecycleStatus): {
 } {
   switch (status) {
     case 'BORRADOR':
-      return { label: 'Borrador', color: 'text-stone-500', description: 'Proyecto creado, portal sin publicar' };
+      return { label: 'Borrador', color: "text-bojana-muted", description: 'Proyecto creado, portal sin publicar' };
     case 'LISTO_PARA_COMPARTIR':
-      return { label: 'Listo para compartir', color: 'text-amber-600', description: 'Portal configurado, invitación no enviada' };
+      return { label: 'Listo para compartir', color: "text-bojana-ink", description: 'Portal configurado, invitación no enviada' };
     case 'ACTIVO':
-      return { label: 'Activo', color: 'text-emerald-600', description: 'Portal activo y en ejecución' };
+      return { label: 'Activo', color: "text-bojana-success", description: 'Portal activo y en ejecución' };
     case 'COMPLETADO':
-      return { label: 'Completado', color: 'text-blue-600', description: 'Proyecto finalizado y archivado' };
+      return { label: 'Completado', color: "text-bojana-discipline", description: 'Proyecto finalizado y archivado' };
   }
 }
 

@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
-import { 
-  ProjectData, 
-  DocumentoEntregable, 
-  DocumentRevision 
+import {
+  ProjectData,
+  DocumentoEntregable,
+  DocumentRevision
 } from '../../types';
-import { 
-  FileText, 
-  Download, 
-  Clock, 
-  CheckCircle2, 
-  Plus, 
-  Trash2, 
-  History, 
-  ChevronDown, 
-  ChevronUp, 
-  Search, 
-  Filter, 
+import {
+  FileText,
+  Download,
+  Clock,
+  CheckCircle2,
+  Plus,
+  Trash2,
+  History,
+  ChevronDown,
+  ChevronUp,
+  Search,
+  Filter,
   ExternalLink,
   ShieldCheck,
   Tag,
@@ -153,22 +153,22 @@ export default function DocumentosModule({
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-8">
-      
+    <div className="space-y-bojana-block max-w-bojana-shell mx-auto pb-8">
+
       {/* 1. TOP HEADER & INTRO */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 shadow-bojana-widget flex flex-col md:flex-row md:items-center justify-between gap-bojana-block">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-amber-600 font-bold">
+          <div className="flex items-center gap-bojana-inside">
+            <span className="text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium">
               Módulo de Documentación
             </span>
-            <span className="text-[10px] font-mono text-gray-400">&bull;</span>
-            <span className="text-[10px] font-mono text-gray-500">Versionado Visible & Categorías</span>
+            <span className="text-xs font-sans text-bojana-muted">&bull;</span>
+            <span className="text-xs font-sans text-bojana-muted">Versionado Visible & Categorías</span>
           </div>
-          <h2 className="text-xl font-extrabold text-gray-950 font-sans tracking-tight mt-0.5">
+          <h2 className="bojana-heading-section text-xl font-medium text-bojana-ink font-sans tracking-normal mt-0.5">
             Planos, Memorias & Entregables Técnicos
           </h2>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-bojana-muted mt-1">
             Repositorio centralizado con trazabilidad de revisiones vigentes e historial de cambios sin archivos duplicados.
           </p>
         </div>
@@ -177,27 +177,27 @@ export default function DocumentosModule({
           <button
             type="button"
             onClick={() => setShowAddDocModal(true)}
-            className="px-4 py-2 rounded-xl bg-gray-950 hover:bg-gray-800 text-white text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer shadow-xs shrink-0"
+            className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0"
           >
-            <Plus className="w-4 h-4 text-amber-400" />
+            <Plus className="w-4 h-4 text-bojana-ink" />
             <span>+ Nuevo Documento</span>
           </button>
         )}
       </div>
 
       {/* 2. CATEGORIES FILTER & SEARCH BAR */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 sm:p-4 shadow-bojana-widget flex flex-col sm:flex-row items-center justify-between gap-3">
         {/* Category Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto scrollbar-none py-1">
+        <div className="flex items-center gap-bojana-inside overflow-x-auto w-full sm:w-auto scrollbar-none py-1">
           {categories.map((cat) => (
             <button
               key={cat}
               type="button"
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition whitespace-nowrap cursor-pointer ${
-                selectedCategory === cat 
-                  ? 'bg-gray-950 text-white shadow-xs' 
-                  : 'bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200'
+              className={`bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget text-xs font-sans font-medium transition whitespace-nowrap cursor-pointer ${
+                selectedCategory === cat
+                  ? "bg-bojana-ink text-bojana-inverse shadow-bojana-widget"
+                  : "bg-bojana-soft text-bojana-muted hover:text-bojana-ink hover:bg-bojana-soft"
               }`}
             >
               {cat === 'todos' ? 'Todos los Documentos' : cat}
@@ -207,24 +207,24 @@ export default function DocumentosModule({
 
         {/* Search Input */}
         <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-bojana-muted absolute left-3 top-2.5 pointer-events-none" />
           <input
             type="text"
             placeholder="Buscar por título o categoría..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-8 pr-3 py-1.5 text-xs text-gray-900 focus:bg-white focus:outline-hidden focus:border-gray-900"
+            className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget pl-8 pr-3 py-1.5 text-xs text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
           />
         </div>
       </div>
 
       {/* 3. DOCUMENTS LIST WITH VISIBLE VERSIONING */}
-      <div className="space-y-4">
+      <div className="space-y-bojana-block">
         {filteredDocs.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center space-y-3">
-            <FileText className="w-10 h-10 text-gray-300 mx-auto" />
-            <h4 className="text-sm font-bold text-gray-800">No se encontraron documentos</h4>
-            <p className="text-xs text-gray-500">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-12 text-center space-y-3">
+            <FileText className="w-10 h-10 text-bojana-line mx-auto" />
+            <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink">No se encontraron documentos</h4>
+            <p className="text-xs text-bojana-muted">
               No hay archivos bajo la categoría seleccionada o que coincidan con la búsqueda.
             </p>
           </div>
@@ -235,54 +235,54 @@ export default function DocumentosModule({
             const isExpanded = !!expandedDocIds[doc.id];
 
             return (
-              <div 
+              <div
                 key={doc.id}
-                className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden transition hover:border-gray-300"
+                className="bg-bojana-surface border border-bojana-line rounded-bojana-widget shadow-bojana-widget overflow-hidden transition hover:border-bojana-line"
               >
                 {/* Main Card View */}
-                <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-gray-100 text-gray-800 font-bold border border-gray-200">
+                <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-bojana-block">
+                  <div className="space-y-bojana-inside flex-1">
+                    <div className="flex flex-wrap items-center gap-bojana-inside">
+                      <span className="text-xs font-sans uppercase px-2 py-0.5 rounded-bojana-badge bg-bojana-soft text-bojana-ink font-medium border border-bojana-line">
                         {doc.categoria}
                       </span>
-                      <span className="text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 font-bold border border-amber-200">
+                      <span className="text-xs font-sans uppercase px-1.5 py-0.5 rounded-bojana-badge bg-bojana-waiting text-bojana-ink font-medium border border-bojana-line">
                         {doc.formato}
                       </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 font-bold border border-emerald-200 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span className="text-xs font-sans px-2 py-0.5 rounded-bojana-badge bg-bojana-soft text-bojana-success font-medium border border-bojana-success flex items-center gap-bojana-inside">
+                        <CheckCircle2 className="w-3 h-3 text-bojana-success" />
                         <span>{currentRev?.numeroRevision || 'Rev. Vigente'}</span>
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="text-base font-bold text-gray-950 font-sans">
+                      <h3 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">
                         {doc.titulo}
                       </h3>
                       {currentRev?.cambios && (
-                        <p className="text-xs text-gray-500 mt-0.5 leading-normal">
-                          <strong className="text-gray-700">Detalle de la versión:</strong> {currentRev.cambios}
+                        <p className="text-xs text-bojana-muted mt-0.5 leading-normal">
+                          <strong className="text-bojana-ink">Detalle de la versión:</strong> {currentRev.cambios}
                         </p>
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-gray-400 pt-1">
+                    <div className="flex flex-wrap items-center gap-bojana-block text-xs font-sans text-bojana-muted pt-1">
                       <span>Emitido: {currentRev?.fecha}</span>
                       {currentRev?.tamano && <span>Tamaño: {currentRev.tamano}</span>}
                       {currentRev?.aprobadoPor && <span>Aprobado por: {currentRev.aprobadoPor}</span>}
                       <span>&bull;</span>
-                      <span className="text-gray-600 font-semibold">{doc.revisiones.length} revisiones en historial</span>
+                      <span className="text-bojana-muted font-medium">{doc.revisiones.length} revisiones en historial</span>
                     </div>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 shrink-0 border-t lg:border-t-0 border-gray-100">
+                  <div className="flex flex-wrap items-center gap-bojana-inside pt-2 lg:pt-0 shrink-0 border-t lg:border-t-0 border-bojana-line">
                     <button
                       type="button"
                       onClick={() => onToast(`Descargando ${doc.titulo} (${currentRev?.numeroRevision})`)}
-                      className="px-3.5 py-2 rounded-xl bg-gray-950 hover:bg-gray-800 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                      className="bojana-button bojana-button-primary px-3.5 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                     >
-                      <Download className="w-3.5 h-3.5 text-amber-400" />
+                      <Download className="w-3.5 h-3.5 text-bojana-ink" />
                       <span>Descargar ({doc.formato})</span>
                     </button>
 
@@ -290,23 +290,23 @@ export default function DocumentosModule({
                       <button
                         type="button"
                         onClick={() => toggleExpandHistory(doc.id)}
-                        className="px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-mono font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                        className="bojana-button bojana-button-text px-3 py-2 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
                       >
-                        <History className="w-3.5 h-3.5 text-gray-500" />
+                        <History className="w-3.5 h-3.5 text-bojana-muted" />
                         <span>Historial ({previousRevs.length})</span>
                         {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                       </button>
                     )}
 
                     {isAdmin && (
-                      <div className="flex items-center gap-1 pl-2 border-l border-gray-200">
+                      <div className="flex items-center gap-bojana-inside pl-2 border-l border-bojana-line">
                         <button
                           type="button"
                           onClick={() => {
                             setShowAddRevisionModal(doc.id);
                             setRevisionNumber(`Revisión 0${doc.revisiones.length + 1}`);
                           }}
-                          className="px-2.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-xs font-mono font-bold flex items-center gap-1 transition"
+                          className="bojana-button bojana-button-secondary px-2.5 py-2 rounded-bojana-widget bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink border border-bojana-line text-xs font-sans font-medium flex items-center gap-bojana-inside transition"
                           title="Subir nueva revisión"
                         >
                           <UploadCloud className="w-3.5 h-3.5" />
@@ -315,7 +315,7 @@ export default function DocumentosModule({
                         <button
                           type="button"
                           onClick={() => handleDeleteDoc(doc.id)}
-                          className="p-2 rounded-xl text-gray-400 hover:text-rose-600 transition"
+                          className="bojana-icon-button p-2 rounded-bojana-widget text-bojana-muted hover:text-bojana-error transition"
                           title="Eliminar documento"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -327,28 +327,28 @@ export default function DocumentosModule({
 
                 {/* Expandable Historical Revisions List */}
                 {isExpanded && previousRevs.length > 0 && (
-                  <div className="bg-gray-50 border-t border-gray-200 p-4 sm:p-5 space-y-2.5 animate-fade-in">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 font-bold block">
+                  <div className="bg-bojana-surface border-t border-bojana-line p-4 sm:p-5 space-y-bojana-inside animate-fade-in">
+                    <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium block">
                       Versiones Anteriores (Histórico de Modificaciones)
                     </span>
-                    <div className="divide-y divide-gray-200 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="divide-y divide-bojana-line bg-bojana-surface rounded-bojana-widget border border-bojana-line overflow-hidden">
                       {previousRevs.map((rev) => (
                         <div key={rev.id} className="p-3.5 flex items-center justify-between gap-3 text-xs">
                           <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-gray-800">{rev.numeroRevision}</span>
-                              <span className="text-[10px] font-mono text-gray-400">&bull; {rev.fecha}</span>
-                              {rev.tamano && <span className="text-[10px] font-mono text-gray-400">&bull; {rev.tamano}</span>}
+                            <div className="flex items-center gap-bojana-inside">
+                              <span className="font-sans font-medium text-bojana-ink">{rev.numeroRevision}</span>
+                              <span className="text-xs font-sans text-bojana-muted">&bull; {rev.fecha}</span>
+                              {rev.tamano && <span className="text-xs font-sans text-bojana-muted">&bull; {rev.tamano}</span>}
                             </div>
                             {rev.cambios && (
-                              <p className="text-[11px] text-gray-500 font-sans">{rev.cambios}</p>
+                              <p className="text-xs text-bojana-muted font-sans">{rev.cambios}</p>
                             )}
                           </div>
 
                           <button
                             type="button"
                             onClick={() => onToast(`Descargando versión histórica: ${rev.numeroRevision}`)}
-                            className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-mono text-[11px] font-bold flex items-center gap-1 transition"
+                            className="bojana-button bojana-button-text px-2.5 py-1 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink font-sans text-xs font-medium flex items-center gap-bojana-inside transition"
                           >
                             <Download className="w-3 h-3" />
                             <span>Descargar</span>
@@ -367,36 +367,36 @@ export default function DocumentosModule({
       {/* 4. MODAL: AGREGAR NUEVO DOCUMENTO (ADMIN) */}
       {showAddDocModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-gray-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-sm font-bold text-gray-950 font-sans">
+          <div className="bojana-modal bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full p-6 shadow-bojana-widget space-y-bojana-block animate-scale-up">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
+              <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                 Registrar Nuevo Documento o Plano
               </h3>
-              <button onClick={() => setShowAddDocModal(false)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => setShowAddDocModal(false)} className="bojana-button bojana-button-text text-bojana-muted hover:text-bojana-ink">
                 &times;
               </button>
             </div>
 
-            <form onSubmit={handleAddDoc} className="space-y-4 text-xs">
+            <form onSubmit={handleAddDoc} className="space-y-bojana-block text-xs">
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Título del Documento</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Título del Documento</label>
                 <input
                   type="text"
                   required
                   placeholder="ej: Planta General de Arquitectura"
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-hidden focus:border-gray-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Categoría</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Categoría</label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value as any)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   >
                     <option value="Planos">Planos</option>
                     <option value="Documentación técnica">Documentación técnica</option>
@@ -406,59 +406,59 @@ export default function DocumentosModule({
                 </div>
 
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Formato</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Formato</label>
                   <input
                     type="text"
                     value={newFormat}
                     onChange={(e) => setNewFormat(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Identificador de Versión</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Identificador de Versión</label>
                   <input
                     type="text"
                     value={newRevNumber}
                     onChange={(e) => setNewRevNumber(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Tamaño Estimado</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Tamaño Estimado</label>
                   <input
                     type="text"
                     value={newRevSize}
                     onChange={(e) => setNewRevSize(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Notas de la Revisión</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Notas de la Revisión</label>
                 <textarea
                   rows={2}
                   placeholder="Detalle de modificaciones o alcance de esta entrega..."
                   value={newRevChanges}
                   onChange={(e) => setNewRevChanges(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
                 <button
                   type="button"
                   onClick={() => setShowAddDocModal(false)}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 font-mono"
+                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget border border-bojana-line text-bojana-ink font-sans"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-gray-950 text-white font-mono font-bold"
+                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans font-medium"
                 >
                   Registrar Documento
                 </button>
@@ -471,55 +471,55 @@ export default function DocumentosModule({
       {/* 5. MODAL: SUBIR NUEVA REVISIÓN (ADMIN) */}
       {showAddRevisionModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-gray-200 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-sm font-bold text-gray-950 font-sans">
+          <div className="bojana-modal bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full p-6 shadow-bojana-widget space-y-bojana-block animate-scale-up">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
+              <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                 Subir Nueva Revisión Técnica
               </h3>
-              <button onClick={() => setShowAddRevisionModal(null)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => setShowAddRevisionModal(null)} className="bojana-button bojana-button-text text-bojana-muted hover:text-bojana-ink">
                 &times;
               </button>
             </div>
 
-            <form onSubmit={handleAddRevision} className="space-y-4 text-xs">
+            <form onSubmit={handleAddRevision} className="space-y-bojana-block text-xs">
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Número de Revisión</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Número de Revisión</label>
                 <input
                   type="text"
                   required
                   placeholder="ej: Revisión 04"
                   value={revisionNumber}
                   onChange={(e) => setRevisionNumber(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 font-mono"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink font-sans"
                 />
-                <span className="text-[10px] text-gray-400 block mt-1">
+                <span className="text-xs text-bojana-muted block mt-1">
                   Se marcará automáticamente como la versión "Actual" vigente.
                 </span>
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Notas de los Cambios</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Notas de los Cambios</label>
                 <textarea
                   rows={3}
                   required
                   placeholder="ej: Ajuste de cotas perimetrales y reubicación de conductos..."
                   value={revisionChanges}
                   onChange={(e) => setNewRevChanges(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
                 <button
                   type="button"
                   onClick={() => setShowAddRevisionModal(null)}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 font-mono"
+                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget border border-bojana-line text-bojana-ink font-sans"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-gray-950 text-white font-mono font-bold"
+                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans font-medium"
                 >
                   Publicar Revisión
                 </button>

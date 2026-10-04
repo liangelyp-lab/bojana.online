@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { 
-  ProjectData, 
-  DisciplinaType, 
-  TeamMember, 
-  PortalModuleId, 
+import {
+  ProjectData,
+  DisciplinaType,
+  TeamMember,
+  PortalModuleId,
   PortalModuleConfig,
   EstadoGeneralProyecto
 } from '../types';
 import { SYSTEM_MODULES, getRecommendedModulesForDisciplines } from '../services/storageService';
-import { 
-  Building2, 
-  Check, 
-  ArrowRight, 
-  ArrowLeft, 
-  Plus, 
-  Trash2, 
+import {
+  Building2,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Plus,
+  Trash2,
   X,
   Sliders,
   CheckCircle2,
@@ -91,7 +91,7 @@ export default function CreateProjectWizard({
   const [linkSinProteccion, setLinkSinProteccion] = useState(true);
 
   // STEP 5: MÓDULOS DEL PORTAL (Initialized with recommendations from disciplines)
-  const [modulos, setModulos] = useState<PortalModuleConfig[]>(() => 
+  const [modulos, setModulos] = useState<PortalModuleConfig[]>(() =>
     getRecommendedModulesForDisciplines(['Arquitectura', 'Construcción'])
   );
 
@@ -308,7 +308,7 @@ export default function CreateProjectWizard({
         }
       ],
       ultimaModificacion: new Date().toISOString(),
-      
+
       // Backward compatibility fields
       brief: {
         nombre: nombre.trim() || 'Nuevo Proyecto',
@@ -334,36 +334,36 @@ export default function CreateProjectWizard({
 
   const getModuleIcon = (id: PortalModuleId) => {
     switch (id) {
-      case 'resumen': return <Building2 className="w-4 h-4 text-emerald-600" />;
-      case 'progreso': return <Clock className="w-4 h-4 text-emerald-600" />;
+      case 'resumen': return <Building2 className="w-4 h-4 text-bojana-success" />;
+      case 'progreso': return <Clock className="w-4 h-4 text-bojana-success" />;
       case 'avances': return <Camera className="w-4 h-4 text-sky-600" />;
-      case 'documentos': return <FileText className="w-4 h-4 text-amber-600" />;
-      case 'visualizaciones': return <Layers className="w-4 h-4 text-indigo-600" />;
-      case 'decisiones': return <CheckSquare className="w-4 h-4 text-rose-600" />;
-      case 'materiales': return <Palette className="w-4 h-4 text-teal-600" />;
+      case 'documentos': return <FileText className="w-4 h-4 text-bojana-ink" />;
+      case 'visualizaciones': return <Layers className="w-4 h-4 text-bojana-discipline" />;
+      case 'decisiones': return <CheckSquare className="w-4 h-4 text-bojana-error" />;
+      case 'materiales': return <Palette className="w-4 h-4 text-bojana-success" />;
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 z-50 animate-fade-in">
-      <div className="bg-white border border-gray-200 rounded-2xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-scale-up">
-        
+      <div className="bojana-modal bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full max-h-[92vh] flex flex-col shadow-bojana-widget overflow-hidden animate-scale-up">
+
         {/* HEADER */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50/80">
+        <div className="px-6 py-4 border-b border-bojana-line flex items-center justify-between bg-bojana-surface/80">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gray-950 text-white flex items-center justify-center font-mono font-bold text-xs">
+            <div className="w-8 h-8 rounded-bojana-widget bg-bojana-ink text-bojana-inverse flex items-center justify-center font-sans font-medium text-xs">
               BE
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-gray-950 font-sans tracking-tight">
+              <div className="flex items-center gap-bojana-inside">
+                <h3 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans tracking-normal">
                   Nuevo Proyecto & Portal de Cliente
                 </h3>
-                <span className="text-[10px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded font-bold">
+                <span className="text-xs font-sans text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge font-medium">
                   Asistente Guiado
                 </span>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-bojana-muted">
                 Paso {currentStep} de {totalSteps}: {
                   currentStep === 1 ? 'Información General' :
                   currentStep === 2 ? 'Disciplinas del Proyecto' :
@@ -378,86 +378,86 @@ export default function CreateProjectWizard({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition"
+            className="bojana-icon-button p-1.5 rounded-bojana-widget text-bojana-muted hover:text-bojana-ink hover:bg-bojana-soft transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* STEP PROGRESS BAR */}
-        <div className="w-full bg-gray-100 h-1">
-          <div 
-            className="bg-emerald-600 h-full transition-all duration-300"
+        <div className="w-full bg-bojana-soft h-1">
+          <div
+            className="bg-bojana-success h-full transition-all duration-500"
             style={{ width: `${(currentStep / totalSteps) * 100}%` }}
           />
         </div>
 
         {/* STEP BODY */}
         <div className="p-6 overflow-y-auto flex-1 text-xs font-sans">
-          
+
           {/* STEP 1: INFORMACIÓN GENERAL */}
           {currentStep === 1 && (
-            <div className="space-y-4 animate-fade-in max-w-xl mx-auto">
-              <div className="text-center space-y-1 mb-5">
-                <h4 className="text-base font-bold text-gray-950 font-sans">Información General de la Obra</h4>
-                <p className="text-xs text-gray-500">
+            <div className="space-y-bojana-block animate-fade-in max-w-xl mx-auto">
+              <div className="text-center space-y-bojana-inside mb-5">
+                <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">Información General de la Obra</h4>
+                <p className="text-xs text-bojana-muted">
                   Defina el nombre e identidad que verá el cliente al ingresar a su portal.
                 </p>
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Nombre del Proyecto *</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Nombre del Proyecto *</label>
                 <input
                   type="text"
                   required
                   placeholder="ej: Los Alisos"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 font-bold focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink font-medium focus:bg-bojana-surface"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Subtítulo / Tipo de Intervención</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Subtítulo / Tipo de Intervención</label>
                 <input
                   type="text"
                   placeholder="ej: Remodelación integral de áreas comunes"
                   value={subtitulo}
                   onChange={(e) => setSubtitulo(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Ubicación</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Ubicación</label>
                   <input
                     type="text"
                     placeholder="ej: Nordelta, Tigre"
                     value={ubicacion}
                     onChange={(e) => setUbicacion(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Superficie</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Superficie</label>
                   <input
                     type="text"
                     placeholder="ej: 540 m²"
                     value={superficie}
                     onChange={(e) => setSuperficie(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface font-sans"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Estado General</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Estado General</label>
                   <select
                     value={estadoGeneral}
                     onChange={(e) => setEstadoGeneral(e.target.value as EstadoGeneralProyecto)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   >
                     <option value="En Planificación">En Planificación</option>
                     <option value="En Ejecución">En Ejecución</option>
@@ -467,25 +467,25 @@ export default function CreateProjectWizard({
                   </select>
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Etapa Actual</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Etapa Actual</label>
                   <input
                     type="text"
                     placeholder="ej: Documentación ejecutiva"
                     value={etapaActual}
                     onChange={(e) => setEtapaActual(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Próximo Hito de Obra</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Próximo Hito de Obra</label>
                 <input
                   type="text"
                   placeholder="ej: Inicio de obra · 18 octubre"
                   value={proximoHito}
                   onChange={(e) => setProximoHito(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
             </div>
@@ -493,10 +493,10 @@ export default function CreateProjectWizard({
 
           {/* STEP 2: DISCIPLINAS */}
           {currentStep === 2 && (
-            <div className="space-y-4 animate-fade-in max-w-xl mx-auto">
-              <div className="text-center space-y-1 mb-5">
-                <h4 className="text-base font-bold text-gray-950 font-sans">Disciplinas del Proyecto</h4>
-                <p className="text-xs text-gray-500">
+            <div className="space-y-bojana-block animate-fade-in max-w-xl mx-auto">
+              <div className="text-center space-y-bojana-inside mb-5">
+                <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">Disciplinas del Proyecto</h4>
+                <p className="text-xs text-bojana-muted">
                   Seleccione las disciplinas involucradas. El sistema sugerirá automáticamente los módulos recomendados.
                 </p>
               </div>
@@ -509,23 +509,23 @@ export default function CreateProjectWizard({
                     <div
                       key={d}
                       onClick={() => toggleDiscipline(d)}
-                      className={`p-4 rounded-xl border-2 transition cursor-pointer flex items-center justify-between ${
-                        isChecked 
-                          ? 'border-gray-950 bg-gray-50/80 shadow-xs' 
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      className={`bojana-widget p-4 rounded-bojana-widget border transition cursor-pointer flex items-center justify-between ${
+                        isChecked
+                          ? "border-bojana-line bg-bojana-surface/80 shadow-bojana-widget"
+                          : "border-bojana-line hover:border-bojana-line bg-bojana-surface"
                       }`}
                     >
                       <div>
-                        <h5 className="font-bold text-gray-950">{d}</h5>
-                        <span className="text-[10px] text-gray-500 block mt-0.5 font-mono">
+                        <h5 className="bojana-heading-component font-medium text-bojana-ink">{d}</h5>
+                        <span className="text-xs text-bojana-muted block mt-0.5 font-sans">
                           {d === 'Arquitectura' && 'Resumen, Progreso, Planos, Renders, Decisiones'}
                           {d === 'Ingeniería' && 'Resumen, Documentación, Revisiones'}
                           {d === 'Construcción' && 'Resumen, Progreso, Avances fotográficos'}
                           {d === 'Diseño' && 'Visualizaciones, Materiales & Propuestas'}
                         </span>
                       </div>
-                      <div className={`w-5 h-5 rounded-md border flex items-center justify-center ${
-                        isChecked ? 'bg-gray-950 text-white border-gray-950' : 'border-gray-300'
+                      <div className={`w-5 h-5 rounded-bojana-widget border flex items-center justify-center ${
+                        isChecked ? "bg-bojana-ink text-bojana-inverse border-bojana-line" : "border-bojana-line"
                       }`}>
                         {isChecked && <Check className="w-3.5 h-3.5" />}
                       </div>
@@ -534,9 +534,9 @@ export default function CreateProjectWizard({
                 })}
               </div>
 
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 text-xs flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4 text-emerald-700 shrink-0" />
-                <span className="text-emerald-950">
+              <div className="bojana-widget bg-bojana-soft border border-bojana-success rounded-bojana-widget p-3.5 text-xs flex items-center gap-bojana-inside">
+                <Sparkles className="w-4 h-4 text-bojana-success shrink-0" />
+                <span className="text-bojana-success">
                   Disciplinas activas: <strong>{disciplinas.join(', ') || 'Ninguna'}</strong>. Los módulos del portal se han pre-configurado de acuerdo a esta matriz.
                 </span>
               </div>
@@ -545,27 +545,27 @@ export default function CreateProjectWizard({
 
           {/* STEP 3: EQUIPO BOJANA ESTUDIO */}
           {currentStep === 3 && (
-            <div className="space-y-4 animate-fade-in max-w-xl mx-auto">
-              <div className="text-center space-y-1 mb-5">
-                <h4 className="text-base font-bold text-gray-950 font-sans">Equipo de Bojana Estudio</h4>
-                <p className="text-xs text-gray-500">
+            <div className="space-y-bojana-block animate-fade-in max-w-xl mx-auto">
+              <div className="text-center space-y-bojana-inside mb-5">
+                <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">Equipo de Bojana Estudio</h4>
+                <p className="text-xs text-bojana-muted">
                   Profesionales del estudio asignados como responsables técnicos en el portal.
                 </p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-bojana-inside">
                 {equipo.map((m) => (
-                  <div key={m.id} className="bg-gray-50 border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div key={m.id} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 flex items-center justify-between gap-3">
                     <div>
-                      <strong className="text-gray-900 block font-bold">{m.nombre}</strong>
-                      <span className="text-[11px] text-gray-500 font-mono">{m.rol}</span>
-                      {m.email && <span className="text-[11px] text-gray-400 font-mono block">{m.email}</span>}
+                      <strong className="text-bojana-ink block font-medium">{m.nombre}</strong>
+                      <span className="text-xs text-bojana-muted font-sans">{m.rol}</span>
+                      {m.email && <span className="text-xs text-bojana-muted font-sans block">{m.email}</span>}
                     </div>
                     {equipo.length > 1 && (
                       <button
                         type="button"
                         onClick={() => setEquipo(prev => prev.filter(x => x.id !== m.id))}
-                        className="text-gray-400 hover:text-rose-600 p-1"
+                        className="bojana-icon-button text-bojana-muted hover:text-bojana-error p-1"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -575,36 +575,36 @@ export default function CreateProjectWizard({
               </div>
 
               {/* Add form */}
-              <div className="bg-white border border-gray-200 rounded-xl p-3.5 space-y-2">
-                <span className="text-xs font-mono font-bold uppercase text-gray-600 block">+ Agregar Integrante</span>
-                <div className="grid grid-cols-3 gap-2">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3.5 space-y-bojana-inside">
+                <span className="text-xs font-sans font-medium uppercase text-bojana-muted block">+ Agregar Integrante</span>
+                <div className="grid grid-cols-3 gap-bojana-inside">
                   <input
                     type="text"
                     placeholder="Nombre..."
                     value={newMemberName}
                     onChange={(e) => setNewMemberName(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs"
+                    className="bojana-field bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                   />
                   <input
                     type="text"
                     placeholder="Rol..."
                     value={newMemberRol}
                     onChange={(e) => setNewMemberRol(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs"
+                    className="bojana-field bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                   />
                   <input
                     type="email"
                     placeholder="Email..."
                     value={newMemberEmail}
                     onChange={(e) => setNewMemberEmail(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs"
+                    className="bojana-field bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                   />
                 </div>
                 <div className="flex justify-end">
                   <button
                     type="button"
                     onClick={handleAddMember}
-                    className="px-3 py-1 bg-gray-950 text-white rounded-lg text-xs font-mono font-bold"
+                    className="bojana-button bojana-button-primary px-3 py-1 bg-bojana-ink text-bojana-inverse rounded-bojana-widget text-xs font-sans font-medium"
                   >
                     Agregar
                   </button>
@@ -615,94 +615,94 @@ export default function CreateProjectWizard({
 
           {/* STEP 4: CLIENTE Y ACCESOS */}
           {currentStep === 4 && (
-            <div className="space-y-4 animate-fade-in max-w-xl mx-auto">
-              <div className="text-center space-y-1 mb-5">
-                <h4 className="text-base font-bold text-gray-950 font-sans">Cliente & Credenciales de Acceso</h4>
-                <p className="text-xs text-gray-500">
+            <div className="space-y-bojana-block animate-fade-in max-w-xl mx-auto">
+              <div className="text-center space-y-bojana-inside mb-5">
+                <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">Cliente & Credenciales de Acceso</h4>
+                <p className="text-xs text-bojana-muted">
                   Configure los datos del comitente y la modalidad de acceso a su portal.
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Nombre del Cliente *</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Nombre del Cliente *</label>
                   <input
                     type="text"
                     required
                     placeholder="ej: Comisión Los Alisos"
                     value={clienteNombre}
                     onChange={(e) => handleClientNameChange(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Empresa / Razón Social</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Empresa / Razón Social</label>
                   <input
                     type="text"
                     placeholder="ej: Barrio Los Alisos S.A."
                     value={clienteEmpresa}
                     onChange={(e) => setClienteEmpresa(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Email del Cliente</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Email del Cliente</label>
                   <input
                     type="email"
                     placeholder="cliente@ejemplo.com"
                     value={clienteEmail}
                     onChange={(e) => setClienteEmail(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface font-sans"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Teléfono (WhatsApp)</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Teléfono (WhatsApp)</label>
                   <input
                     type="text"
                     placeholder="+54 9 11..."
                     value={clienteTelefono}
                     onChange={(e) => setClienteTelefono(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface font-sans"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Usuario Asignado</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Usuario Asignado</label>
                   <input
                     type="text"
                     value={clienteUsuario}
                     onChange={(e) => setClienteUsuario(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Contraseña</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Contraseña</label>
                   <input
                     type="text"
                     value={clientePassword}
                     onChange={(e) => setClientePassword(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink font-sans"
                   />
                 </div>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 flex items-center justify-between">
                 <div>
-                  <h5 className="font-bold text-gray-950">Acceso Directo Sin Clave (Recomendado)</h5>
-                  <p className="text-[11px] text-gray-500 mt-0.5">
+                  <h5 className="bojana-heading-component font-medium text-bojana-ink">Acceso Directo Sin Clave (Recomendado)</h5>
+                  <p className="text-xs text-bojana-muted mt-0.5">
                     Genera un link dedicado para que el cliente acceda con 1 toque sin ingresar usuario ni password.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setLinkSinProteccion(!linkSinProteccion)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition ${
-                    linkSinProteccion ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-700'
+                  className={`bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget text-xs font-sans font-medium transition ${
+                    linkSinProteccion ? "bg-bojana-success text-bojana-inverse" : "bg-bojana-soft text-bojana-ink"
                   }`}
                 >
                   {linkSinProteccion ? 'Habilitado' : 'Deshabilitado'}
@@ -713,44 +713,44 @@ export default function CreateProjectWizard({
 
           {/* STEP 5: MÓDULOS ACTIVOS DEL PORTAL */}
           {currentStep === 5 && (
-            <div className="space-y-4 animate-fade-in max-w-xl mx-auto">
-              <div className="text-center space-y-1 mb-5">
-                <h4 className="text-base font-bold text-gray-950 font-sans">Módulos del Portal</h4>
-                <p className="text-xs text-gray-500">
+            <div className="space-y-bojana-block animate-fade-in max-w-xl mx-auto">
+              <div className="text-center space-y-bojana-inside mb-5">
+                <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">Módulos del Portal</h4>
+                <p className="text-xs text-bojana-muted">
                   El Resumen es obligatorio. Puede activar cualquier módulo adicional para este cliente.
                 </p>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-bojana-inside">
                 {modulos.map((mod) => (
                   <div
                     key={mod.id}
                     onClick={() => toggleModule(mod.id)}
-                    className={`p-3.5 rounded-xl border transition flex items-center justify-between gap-3 ${
-                      mod.habilitado 
-                        ? 'bg-white border-gray-300 shadow-2xs' 
-                        : 'bg-gray-50 border-gray-200 opacity-60'
-                    } ${mod.esObligatorio ? 'cursor-default' : 'cursor-pointer hover:border-gray-400'}`}
+                    className={`bojana-widget p-3.5 rounded-bojana-widget border transition flex items-center justify-between gap-3 ${
+                      mod.habilitado
+                        ? "bg-bojana-surface border-bojana-line shadow-bojana-widget"
+                        : "bg-bojana-surface border-bojana-line opacity-60"
+                    }  ${mod.esObligatorio ? "cursor-default" : "cursor-pointer hover:border-bojana-line"}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-150 flex items-center justify-center shrink-0">
+                      <div className="w-8 h-8 rounded-bojana-widget bg-bojana-surface border border-bojana-line flex items-center justify-center shrink-0">
                         {getModuleIcon(mod.id)}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <strong className="text-xs font-bold text-gray-950">{mod.titulo}</strong>
+                        <div className="flex items-center gap-bojana-inside">
+                          <strong className="text-xs font-medium text-bojana-ink">{mod.titulo}</strong>
                           {mod.esObligatorio && (
-                            <span className="text-[9px] font-mono text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded font-bold">
+                            <span className="text-xs font-sans text-bojana-success bg-bojana-soft px-1.5 py-0.2 rounded-bojana-badge font-medium">
                               Obligatorio
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-gray-500 mt-0.5">{mod.descripcion}</p>
+                        <p className="text-xs text-bojana-muted mt-0.5">{mod.descripcion}</p>
                       </div>
                     </div>
 
-                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
-                      mod.habilitado ? 'bg-emerald-600 text-white border-emerald-600' : 'border-gray-300 bg-white'
+                    <div className={`w-5 h-5 rounded-bojana-widget border flex items-center justify-center shrink-0 ${
+                      mod.habilitado ? "bg-bojana-success text-bojana-inverse border-bojana-success" : "border-bojana-line bg-bojana-surface"
                     }`}>
                       {mod.habilitado && <Check className="w-3.5 h-3.5" />}
                     </div>
@@ -762,45 +762,45 @@ export default function CreateProjectWizard({
 
           {/* STEP 6: REVISIÓN & LANZAMIENTO */}
           {currentStep === 6 && (
-            <div className="space-y-5 animate-fade-in max-w-xl mx-auto text-xs">
-              <div className="text-center space-y-1 mb-5">
-                <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-2 border border-emerald-100">
+            <div className="space-y-bojana-block animate-fade-in max-w-xl mx-auto text-xs">
+              <div className="text-center space-y-bojana-inside mb-5">
+                <div className="w-12 h-12 rounded-bojana-widget bg-bojana-soft text-bojana-success flex items-center justify-center mx-auto mb-2 border border-bojana-success">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h4 className="text-base font-bold text-gray-950 font-sans">
+                <h4 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">
                   ¡Todo listo para crear el Portal!
                 </h4>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-bojana-muted">
                   Revise el resumen final de la configuración antes del lanzamiento.
                 </p>
               </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3">
-                <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-                  <span className="font-mono text-gray-500 uppercase">Proyecto:</span>
-                  <strong className="text-gray-950 font-bold text-sm">{nombre || 'Nuevo Proyecto'}</strong>
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-bojana-line">
+                  <span className="font-sans text-bojana-muted uppercase">Proyecto:</span>
+                  <strong className="text-bojana-ink font-medium text-sm">{nombre || 'Nuevo Proyecto'}</strong>
                 </div>
 
-                <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-                  <span className="font-mono text-gray-500 uppercase">Disciplinas:</span>
-                  <span className="text-gray-800 font-semibold">{disciplinas.join(', ')}</span>
+                <div className="flex items-center justify-between pb-2 border-b border-bojana-line">
+                  <span className="font-sans text-bojana-muted uppercase">Disciplinas:</span>
+                  <span className="text-bojana-ink font-medium">{disciplinas.join(', ')}</span>
                 </div>
 
-                <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-                  <span className="font-mono text-gray-500 uppercase">Cliente / Comitente:</span>
-                  <span className="text-gray-800 font-semibold">{clienteNombre || 'Comitente'} ({clienteEmpresa || '-'})</span>
+                <div className="flex items-center justify-between pb-2 border-b border-bojana-line">
+                  <span className="font-sans text-bojana-muted uppercase">Cliente / Comitente:</span>
+                  <span className="text-bojana-ink font-medium">{clienteNombre || 'Comitente'} ({clienteEmpresa || '-'})</span>
                 </div>
 
-                <div className="flex items-center justify-between pb-2 border-b border-gray-200">
-                  <span className="font-mono text-gray-500 uppercase">Módulos Activos:</span>
-                  <span className="text-emerald-700 font-mono font-bold">
+                <div className="flex items-center justify-between pb-2 border-b border-bojana-line">
+                  <span className="font-sans text-bojana-muted uppercase">Módulos Activos:</span>
+                  <span className="text-bojana-success font-sans font-medium">
                     {modulos.filter(m => m.habilitado).length} de {modulos.length} módulos habilitados
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-gray-500 uppercase">Acceso Directo:</span>
-                  <span className="text-emerald-700 font-mono font-bold">
+                  <span className="font-sans text-bojana-muted uppercase">Acceso Directo:</span>
+                  <span className="text-bojana-success font-sans font-medium">
                     {linkSinProteccion ? 'Enlace Dedicado WhatsApp Activado' : 'Solo Usuario y Clave'}
                   </span>
                 </div>
@@ -811,12 +811,12 @@ export default function CreateProjectWizard({
         </div>
 
         {/* MODAL FOOTER */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between bg-gray-50/80">
+        <div className="px-6 py-4 border-t border-bojana-line flex items-center justify-between bg-bojana-surface/80">
           {currentStep > 1 ? (
             <button
               type="button"
               onClick={() => setCurrentStep(prev => prev - 1)}
-              className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 text-xs font-mono font-bold flex items-center gap-1.5 hover:bg-gray-100 transition"
+              className="bojana-button bojana-button-secondary px-4 py-2 rounded-bojana-widget border border-bojana-line text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside hover:bg-bojana-soft transition"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Anterior</span>
@@ -829,7 +829,7 @@ export default function CreateProjectWizard({
             <button
               type="button"
               onClick={() => setCurrentStep(prev => prev + 1)}
-              className="px-5 py-2 rounded-xl bg-gray-950 hover:bg-gray-800 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition shadow-xs"
+              className="bojana-button bojana-button-primary px-5 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition shadow-bojana-widget"
             >
               <span>Siguiente</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -838,7 +838,7 @@ export default function CreateProjectWizard({
             <button
               type="button"
               onClick={handleFinish}
-              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-mono font-bold flex items-center gap-2 transition shadow-md"
+              className="bojana-button bojana-button-primary px-6 py-2.5 rounded-bojana-widget bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition shadow-bojana-widget"
             >
               <Check className="w-4 h-4" />
               <span>Crear & Lanzar Portal</span>

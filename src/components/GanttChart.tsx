@@ -8,7 +8,7 @@ interface GanttChartProps {
 }
 
 export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
-  
+
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>('T-03'); // Default to concrete structures
   const [editProgress, setEditProgress] = useState<number>(76);
   const [editStatus, setEditStatus] = useState<Task['estado']>('En Riesgo');
@@ -35,65 +35,65 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
 
   const mapStatusColor = (status: Task['estado']) => {
     switch (status) {
-      case 'Completado': return 'bg-gray-400';
-      case 'En Fecha': return 'bg-gray-900';
-      case 'En Riesgo': return 'bg-amber-500';
-      case 'Demorado': return 'bg-rose-500';
-      default: return 'bg-gray-350';
+      case 'Completado': return "bg-bojana-soft";
+      case 'En Fecha': return "bg-bojana-ink";
+      case 'En Riesgo': return "bg-bojana-waiting";
+      case 'Demorado': return "bg-bojana-error";
+      default: return "bg-bojana-soft";
     }
   };
 
   const mapStatusBorder = (status: Task['estado']) => {
     switch (status) {
-      case 'Completado': return 'border-gray-400';
-      case 'En Fecha': return 'border-gray-900';
-      case 'En Riesgo': return 'border-amber-400';
-      case 'Demorado': return 'border-rose-405';
-      default: return 'border-gray-200';
+      case 'Completado': return "border-bojana-line";
+      case 'En Fecha': return "border-bojana-line";
+      case 'En Riesgo': return "border-bojana-line";
+      case 'Demorado': return "border-bojana-error";
+      default: return "border-bojana-line";
     }
   };
 
   return (
-    <div id="gantt-chart-interface" className="space-y-6">
-      
+    <div id="gantt-chart-interface" className="space-y-bojana-block">
+
       {/* HEADER SUMMARY */}
-      <div className="bg-white border border-gray-205 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 flex flex-col md:flex-row md:items-center justify-between gap-bojana-block shadow-bojana-widget">
         <div>
-          <h4 className="text-sm font-bold text-gray-950">Cronograma General de Obra (Plazo: 16 Meses)</h4>
-          <p className="text-xs text-gray-500 mt-1">
+          <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink">Cronograma General de Obra (Plazo: 16 Meses)</h4>
+          <p className="text-xs text-bojana-muted mt-1">
             Visualización e interacción del diagrama Gantt y desvíos del proyecto.
           </p>
         </div>
-        <div className="flex items-center gap-4 text-xs font-mono text-gray-500">
-          <div className="flex items-center gap-1.5">
-            <span className="w-4 h-2 bg-gray-100 border border-gray-300 rounded-sm inline-block" />
+        <div className="flex items-center gap-bojana-block text-xs font-sans text-bojana-muted">
+          <div className="flex items-center gap-bojana-inside">
+            <span className="w-4 h-2 bg-bojana-soft border border-bojana-line rounded-bojana-badge inline-block" />
             <span>Período Planificado</span>
           </div>
-          <div className="flex items-center gap-1.5 flex-nowrap font-bold">
-            <span className="w-4 h-2 bg-gray-900 rounded-sm inline-block" />
+          <div className="flex items-center gap-bojana-inside flex-nowrap font-medium">
+            <span className="w-4 h-2 bg-bojana-ink rounded-bojana-badge inline-block" />
             <span>Avance Físico Efectivo</span>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-bojana-block">
+
         {/* INTERACTIVE GANTT TIMELINE GRID (8 COLS) */}
-        <div id="gantt-main-grid-card" className="bg-white border border-gray-200 rounded-xl p-5 lg:col-span-8 overflow-x-auto shadow-xs">
-          <div className="min-w-[640px] space-y-4">
-            
+        <div id="gantt-main-grid-card" className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 lg:col-span-8 overflow-x-auto shadow-bojana-widget">
+          <div className="min-w-[640px] space-y-bojana-block">
+
             {/* MONTH HEADER */}
-            <div className="grid grid-cols-12 text-center text-[10px] font-mono text-gray-400 uppercase tracking-widest pb-3 border-b border-gray-250">
-              <div className="col-span-4 text-left font-sans font-bold text-gray-700">Rubros de Obra</div>
+            <div className="grid grid-cols-12 text-center text-xs font-sans text-bojana-muted uppercase tracking-normal pb-3 border-b border-bojana-line">
+              <div className="col-span-4 text-left font-sans font-medium text-bojana-ink">Rubros de Obra</div>
               <div className="col-span-8 grid grid-cols-16 gap-0.5">
                 {Array.from({ length: 16 }).map((_, i) => (
-                  <div key={i} className="py-1 hover:bg-gray-100 rounded transition-colors text-gray-500 font-bold">{i + 1}</div>
+                  <div key={i} className="py-1 hover:bg-bojana-soft rounded-bojana-widget transition-colors text-bojana-muted font-medium">{i + 1}</div>
                 ))}
               </div>
             </div>
 
             {/* TASK ROWS */}
-            <div className="space-y-4">
+            <div className="space-y-bojana-block">
               {tasks.map((task) => {
                 const totalDuration = task.finMes - task.inicioMes + 1;
                 const starPercent = ((task.inicioMes - 1) / 16) * 100;
@@ -102,39 +102,39 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
                 const isSelected = selectedTaskId === task.id;
 
                 return (
-                  <div 
-                    key={task.id} 
+                  <div
+                    key={task.id}
                     onClick={() => handleSelectTask(task)}
-                    className={`grid grid-cols-12 items-center py-2 px-1.5 rounded-lg border transition-all cursor-pointer select-none ${
-                      isSelected 
-                        ? 'bg-gray-50 border-gray-350 shadow-xs' 
-                        : 'border-transparent hover:bg-gray-50/50 hover:border-gray-200'
+                    className={`grid grid-cols-12 items-center py-2 px-1.5 rounded-bojana-widget border transition-all cursor-pointer select-none ${
+                      isSelected
+                        ? "bg-bojana-surface border-bojana-line shadow-bojana-widget"
+                        : "border-transparent hover:bg-bojana-surface/50 hover:border-bojana-line"
                     }`}
                   >
                     {/* Rubro info */}
                     <div className="col-span-4 pr-3">
-                      <span className="text-[10px] text-gray-400 font-mono block uppercase">{task.id}</span>
-                      <span className="text-xs font-bold text-gray-900 block truncate leading-tight mt-0.5">
+                      <span className="text-xs text-bojana-muted font-sans block uppercase">{task.id}</span>
+                      <span className="text-xs font-medium text-bojana-ink block truncate leading-tight mt-0.5">
                         {task.rubro}
                       </span>
-                      <span className="text-[10px] text-gray-500 font-mono">
+                      <span className="text-xs text-bojana-muted font-sans">
                         Meses {task.inicioMes}-{task.finMes} ({task.responsable.split(' ')[0]})
                       </span>
                     </div>
 
                     {/* Timeline bar representation */}
-                    <div className="col-span-8 relative h-8 flex items-center justify-start bg-gray-50 rounded border border-gray-200 overflow-hidden">
-                      
+                    <div className="col-span-8 relative h-8 flex items-center justify-start bg-bojana-surface rounded-bojana-widget border border-bojana-line overflow-hidden">
+
                       {/* Grid markers guide lines */}
                       <div className="absolute inset-0 grid grid-cols-16 pointer-events-none">
                         {Array.from({ length: 16 }).map((_, i) => (
-                          <div key={i} className="border-r border-gray-200/50 h-full" />
+                          <div key={i} className="border-r border-bojana-line/50 h-full" />
                         ))}
                       </div>
 
                       {/* Block of Planned Period */}
-                      <div 
-                        className="absolute h-4 bg-gray-200/80 border border-gray-300 rounded-sm"
+                      <div
+                        className="absolute h-4 bg-bojana-soft/80 border border-bojana-line rounded-bojana-widget"
                         style={{
                           left: `${starPercent}%`,
                           width: `${durationPercent}%`
@@ -142,8 +142,8 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
                       />
 
                       {/* Overlap block of Real progress */}
-                      <div 
-                        className={`absolute h-2.5 rounded-xs transition-all duration-300 ${mapStatusColor(task.estado)}`}
+                      <div
+                        className={`absolute h-2.5 rounded-bojana-widget transition-all duration-500 ${mapStatusColor(task.estado)}`}
                         style={{
                           left: `${starPercent}%`,
                           width: `${durationPercent * (task.avanceReal / 100)}%`
@@ -151,8 +151,8 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
                       />
 
                       {/* Progress label centered inside */}
-                      <div 
-                        className="absolute text-[9px] font-mono font-bold text-gray-800"
+                      <div
+                        className="absolute text-xs font-sans font-medium text-bojana-ink"
                         style={{
                           left: `${starPercent + (durationPercent / 2) - 3}%`
                         }}
@@ -168,41 +168,41 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
         </div>
 
         {/* OPERATIVE DETAIL & DATA INPUT PANEL (4 COLS) */}
-        <div id="gantt-operator-panel" className="bg-white border border-gray-200 rounded-xl p-5 lg:col-span-4 flex flex-col justify-between shadow-xs">
+        <div id="gantt-operator-panel" className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 lg:col-span-4 flex flex-col justify-between shadow-bojana-widget">
           <div>
-            <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4">
-              <Edit3 className="w-4 h-4 text-gray-500" />
-              <h5 className="text-xs font-bold text-gray-900 uppercase tracking-wider font-mono">Operatividad del Pliego</h5>
+            <div className="flex items-center gap-bojana-inside border-b border-bojana-line pb-3 mb-4">
+              <Edit3 className="w-4 h-4 text-bojana-muted" />
+              <h5 className="bojana-heading-component text-xs font-medium text-bojana-ink uppercase tracking-normal font-sans">Operatividad del Pliego</h5>
             </div>
 
             {selectedTask ? (
-              <div className="space-y-4">
+              <div className="space-y-bojana-block">
                 <div>
-                  <span className="text-[10px] text-gray-400 font-mono uppercase block">Rubro Seleccionado</span>
-                  <h6 className="text-[13px] font-extrabold text-gray-950 font-sans tracking-tight mt-1">
+                  <span className="text-xs text-bojana-muted font-sans uppercase block">Rubro Seleccionado</span>
+                  <h6 className="bojana-heading-component text-[13px] font-medium text-bojana-ink font-sans tracking-normal mt-1">
                     ({selectedTask.id}) {selectedTask.rubro}
                   </h6>
-                  <p className="text-[11px] text-gray-600 font-sans mt-1">
+                  <p className="text-xs text-bojana-muted font-sans mt-1">
                     <strong>Responsable:</strong> {selectedTask.responsable}
                   </p>
                 </div>
 
-                <div className="space-y-1 bg-gray-50 p-3 rounded-lg border border-gray-200">
-                  <div className="flex justify-between items-center text-[10px] font-mono text-gray-500">
+                <div className="bojana-widget space-y-bojana-inside bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line">
+                  <div className="flex justify-between items-center text-xs font-sans text-bojana-muted">
                     <span>Avance Previsto de Pliego:</span>
-                    <strong className="text-gray-900">{selectedTask.avancePrevisto}%</strong>
+                    <strong className="text-bojana-ink">{selectedTask.avancePrevisto}%</strong>
                   </div>
-                  <div className="flex justify-between items-center text-[10px] font-mono text-gray-500">
+                  <div className="flex justify-between items-center text-xs font-sans text-bojana-muted">
                     <span>Franja Temporal:</span>
-                    <strong className="text-gray-900">Mes {selectedTask.inicioMes} al Mes {selectedTask.finMes}</strong>
+                    <strong className="text-bojana-ink">Mes {selectedTask.inicioMes} al Mes {selectedTask.finMes}</strong>
                   </div>
                 </div>
 
                 {/* Input 1: Slider representation for Real Progress */}
-                <div className="space-y-2 mt-4">
+                <div className="space-y-bojana-inside mt-4">
                   <div className="flex justify-between items-center text-xs">
-                    <span className="text-gray-700 font-bold">Avance Real Efectivo:</span>
-                    <span className="font-mono text-gray-900 font-bold bg-gray-105 px-2 py-0.5 rounded text-xs border border-gray-205">
+                    <span className="text-bojana-ink font-medium">Avance Real Efectivo:</span>
+                    <span className="font-sans text-bojana-ink font-medium bg-bojana-soft px-2 py-0.5 rounded-bojana-badge text-xs border border-bojana-line">
                       {editProgress}%
                     </span>
                   </div>
@@ -212,9 +212,9 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
                     max="100"
                     value={editProgress}
                     onChange={(e) => setEditProgress(parseInt(e.target.value))}
-                    className="w-full accent-gray-900 h-1 bg-gray-100 rounded-lg cursor-pointer"
+                    className="w-full accent-gray-900 h-1 bg-bojana-soft rounded-bojana-widget cursor-pointer"
                   />
-                  <div className="flex justify-between text-[9px] font-mono text-gray-400">
+                  <div className="flex justify-between text-xs font-sans text-bojana-muted">
                     <span>0% (Inicio)</span>
                     <span>50%</span>
                     <span>100% (Listo)</span>
@@ -222,17 +222,17 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
                 </div>
 
                 {/* Input 2: Status selector */}
-                <div className="space-y-1.5 mt-2">
-                  <span className="text-xs text-gray-700 font-bold block">Estado del Rubro:</span>
-                  <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="space-y-bojana-inside mt-2">
+                  <span className="text-xs text-bojana-ink font-medium block">Estado del Rubro:</span>
+                  <div className="grid grid-cols-2 gap-bojana-inside text-xs font-sans">
                     {(['En Fecha', 'En Riesgo', 'Demorado', 'Completado'] as Task['estado'][]).map((st) => (
                       <button
                         key={st}
                         onClick={() => setEditStatus(st)}
-                        className={`py-1.5 px-2 rounded-md border text-center transition-all text-[11px] cursor-pointer ${
+                        className={`bojana-button bojana-button-primary py-1.5 px-2 rounded-bojana-widget border text-center transition-all text-xs cursor-pointer ${
                           editStatus === st
-                            ? 'bg-gray-900 text-white border-gray-900 font-bold shadow-2xs'
-                            : 'bg-gray-50 text-gray-500 border-gray-200 hover:text-gray-800 hover:bg-gray-100'
+                            ? "bg-bojana-ink text-bojana-inverse border-bojana-line font-medium shadow-bojana-widget"
+                            : "bg-bojana-surface text-bojana-muted border-bojana-line hover:text-bojana-ink hover:bg-bojana-soft"
                         }`}
                       >
                         {st}
@@ -243,8 +243,8 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
 
                 {/* Alert warning trigger for Demorados */}
                 {editProgress < selectedTask.avancePrevisto && editStatus === 'En Fecha' && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-700 flex gap-2 leading-relaxed shadow-2xs">
-                    <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                  <div className="bojana-widget p-3 bg-bojana-waiting border border-bojana-line rounded-bojana-widget text-xs text-bojana-ink flex gap-bojana-inside leading-relaxed shadow-bojana-widget">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-bojana-ink" />
                     <span>
                       El avance real ({editProgress}%) registra un desvío negativo frente al progreso planificado ({selectedTask.avancePrevisto}%). Considere fijar el estado del rubro en <strong>"En Riesgo"</strong> para emitir alertas o de suministro correspondientes.
                     </span>
@@ -252,7 +252,7 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
                 )}
               </div>
             ) : (
-              <div className="text-center py-10 text-gray-400 text-xs font-sans">
+              <div className="text-center py-10 text-bojana-muted text-xs font-sans">
                 Seleccione un rubro de obra en la grilla para auditar y operar.
               </div>
             )}
@@ -261,9 +261,9 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
           {selectedTask && (
             <button
               onClick={handleSaveProgress}
-              className="w-full mt-4 py-2 text-center text-xs font-bold font-sans rounded-md bg-gray-900 hover:bg-gray-800 text-white transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none"
+              className="bojana-button bojana-button-primary w-full mt-4 py-2 text-center text-xs font-medium font-sans rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse transition-all flex items-center justify-center gap-bojana-inside cursor-pointer select-none"
             >
-              <CheckSquare className="w-4 h-4 text-white" />
+              <CheckSquare className="w-4 h-4 text-bojana-inverse" />
               Guardar Avances de Obra
             </button>
           )}
@@ -271,19 +271,19 @@ export default function GanttChart({ tasks, onUpdateTask }: GanttChartProps) {
       </div>
 
       {/* RISKS ANALYSIS FOR THE LATEST ACTIVE STATUS */}
-      <div id="risk-analysis-accordion" className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
-        <h5 className="text-xs font-mono uppercase tracking-wider text-gray-500 border-b border-gray-200 pb-3 mb-3">
+      <div id="risk-analysis-accordion" className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 shadow-bojana-widget">
+        <h5 className="bojana-heading-component text-xs font-sans uppercase tracking-normal text-bojana-muted border-b border-bojana-line pb-3 mb-3">
           Análisis de Alerta Temprana en Ruta Crítica (Fase H° A° y Curtain Wall)
         </h5>
-        <div className="space-y-3.5 text-xs text-gray-600 leading-relaxed font-sans">
+        <div className="space-y-bojana-inside text-xs text-bojana-muted leading-relaxed font-sans">
           <p>
             Al mes 8 de obra, la <strong>Estructura de Hormigón Armado</strong> representa el hito medular que direcciona el cronograma. Con un 76% real frente a un 85% previsto, la obra presenta un desinterés provocado por temporales lacustres. De mantenerse este ritmo sin la mitigación autorizada vía OS-012, el inicio de carpinterías (Mes 10) se desplazará de manera acumulada, alterando el cierre húmedo invernal.
           </p>
-          <div className="bg-gray-50 p-3 rounded-lg border border-gray-205 text-gray-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="bojana-widget bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line text-bojana-ink flex flex-col sm:flex-row justify-between items-start sm:items-center gap-bojana-inside">
             <span>
               <strong>Acción Crítica Inmediata:</strong> Autorizar doble turno para hormigonado de vigas de peralte perimetral y compactación húmeda.
             </span>
-            <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded font-mono font-bold uppercase truncate shrink-0">
+            <span className="text-xs text-bojana-ink bg-bojana-waiting border border-bojana-line px-2.5 py-1 rounded-bojana-badge font-sans font-medium uppercase truncate shrink-0">
               Protocolo de Emergencia Activo
             </span>
           </div>

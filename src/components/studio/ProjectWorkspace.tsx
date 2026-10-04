@@ -1,10 +1,10 @@
 import { publishStorageProject } from '../../services/driveStorageService';
 import React, { useState } from 'react';
-import { 
-  ProjectData, 
-  PortalModuleId, 
-  PortalModuleConfig, 
-  DisciplinaType, 
+import {
+  ProjectData,
+  PortalModuleId,
+  PortalModuleConfig,
+  DisciplinaType,
   TeamMember,
   ClientContactPerson,
   MaterialItem,
@@ -16,9 +16,9 @@ import {
   DecisionItem,
   DNAWorkflowStep
 } from '../../types';
-import { 
+import {
   publishAndActivateProject,
-  SYSTEM_MODULES, 
+  SYSTEM_MODULES,
   getRecommendedModulesForDisciplines,
   generateWorkflowFromDNA,
   getProjectNextAction,
@@ -38,27 +38,27 @@ import MaterialesModule from '../modules/MaterialesModule';
 // Core Operational Execution Engine
 import OperationalExecutionPanel from './OperationalExecutionPanel';
 
-import { 
-  ChevronLeft, 
+import {
+  ChevronLeft,
   ChevronRight,
-  Eye, 
-  CheckCircle2, 
-  AlertCircle, 
-  FileText, 
-  Camera, 
-  Clock, 
-  Layers, 
-  CheckSquare, 
-  Palette, 
-  Building2, 
-  Sliders, 
-  Users, 
-  KeyRound, 
-  Plus, 
-  Trash2, 
-  Copy, 
-  Check, 
-  Send, 
+  Eye,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  Camera,
+  Clock,
+  Layers,
+  CheckSquare,
+  Palette,
+  Building2,
+  Sliders,
+  Users,
+  KeyRound,
+  Plus,
+  Trash2,
+  Copy,
+  Check,
+  Send,
   ArrowRight,
   GripVertical,
   Globe,
@@ -121,7 +121,7 @@ export default function ProjectWorkspace({
 
   // Calculate configuration percentage
   const completedStepsCount = dnaSteps.filter(s => s.completado).length;
-  const configurationPercentage = Math.round((completedStepsCount / dnaSteps.length) * 100) || 68;
+  const configurationPercentage = dnaSteps.length ? Math.round((completedStepsCount / dnaSteps.length) * 100) : 0;
 
   // Active step metadata
   const currentStepIndex = dnaSteps.findIndex(s => s.id === activeStepId);
@@ -131,7 +131,7 @@ export default function ProjectWorkspace({
   // Advance to next step (Guardar y Continuar)
   const handleSaveAndContinue = () => {
     // Mark current step as completed in DNA
-    const updatedSteps = dnaSteps.map(s => 
+    const updatedSteps = dnaSteps.map(s =>
       s.id === activeStepId ? { ...s, completado: true } : s
     );
 
@@ -187,19 +187,19 @@ export default function ProjectWorkspace({
     switch (activeStepId) {
       case 'info':
         return (
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 animate-fade-in shadow-xs">
-            <div className="border-b border-stone-100 pb-4">
-              <h3 className="text-lg font-bold text-stone-950 font-sans">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 space-y-bojana-block animate-fade-in shadow-bojana-widget">
+            <div className="border-b border-bojana-line pb-4">
+              <h3 className="bojana-heading-component text-lg font-medium text-bojana-ink font-sans">
                 Información general del proyecto
               </h3>
-              <p className="text-xs text-stone-500 font-sans mt-0.5">
+              <p className="text-xs text-bojana-muted font-sans mt-0.5">
                 Datos identificatorios, metros cuadrados, ubicación y profesionales a cargo.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block text-xs font-sans">
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1">Nombre</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Nombre</label>
                 <input
                   type="text"
                   value={project.info?.nombre || ''}
@@ -207,12 +207,12 @@ export default function ProjectWorkspace({
                     ...project,
                     info: { ...project.info, nombre: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 font-bold focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink font-medium focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1">Subtítulo / Alcance</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Subtítulo / Alcance</label>
                 <input
                   type="text"
                   value={project.info?.subtitulo || ''}
@@ -220,12 +220,12 @@ export default function ProjectWorkspace({
                     ...project,
                     info: { ...project.info, subtitulo: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1">Ubicación</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Ubicación</label>
                 <input
                   type="text"
                   value={project.info?.ubicacion || ''}
@@ -233,12 +233,12 @@ export default function ProjectWorkspace({
                     ...project,
                     info: { ...project.info, ubicacion: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1">Superficie</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Superficie</label>
                 <input
                   type="text"
                   value={project.info?.superficie || ''}
@@ -246,12 +246,12 @@ export default function ProjectWorkspace({
                     ...project,
                     info: { ...project.info, superficie: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="font-mono text-stone-600 font-bold block mb-1">Memoria descriptiva</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Memoria descriptiva</label>
                 <textarea
                   rows={3}
                   value={project.info?.descripcion || ''}
@@ -259,7 +259,7 @@ export default function ProjectWorkspace({
                     ...project,
                     info: { ...project.info, descripcion: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
             </div>
@@ -268,13 +268,13 @@ export default function ProjectWorkspace({
 
       case 'etapas':
         return (
-          <div className="space-y-4 animate-fade-in">
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-bojana-block animate-fade-in">
+            <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-stone-950 font-sans">
+                <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                   Etapas del proyecto
                 </h3>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   La secuencia surge de las necesidades y tareas configuradas para el cliente.
                 </p>
               </div>
@@ -290,17 +290,17 @@ export default function ProjectWorkspace({
 
       case 'cronograma':
         return (
-          <div className="space-y-4 animate-fade-in">
-            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-bojana-block animate-fade-in">
+            <div className="bojana-widget bg-bojana-waiting/10 border border-bojana-line/30 rounded-bojana-widget p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-amber-800 font-bold">
-                  <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <div className="flex items-center gap-bojana-inside text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium">
+                  <Clock className="w-3.5 h-3.5 text-bojana-ink" />
                   <span>Configuración de Cronograma e Hitos</span>
                 </div>
-                <h3 className="text-sm font-bold text-stone-950 font-sans mt-0.5">
+                <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans mt-0.5">
                   Fechas principales y seguimiento temporal
                 </h3>
-                <p className="text-xs text-stone-600 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   Agregá los plazos y fechas clave para que el cliente pueda seguir la evolución mes a mes.
                 </p>
               </div>
@@ -317,13 +317,13 @@ export default function ProjectWorkspace({
 
       case 'documentos':
         return (
-          <div className="space-y-4 animate-fade-in">
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-bojana-block animate-fade-in">
+            <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-stone-950 font-sans">
+                <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                   Documentación inicial y entregables
                 </h3>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   Carga centralizada de planos, memorias y PDFs con versionado visible (Rev. 01, Rev. 02, etc.).
                 </p>
               </div>
@@ -340,13 +340,13 @@ export default function ProjectWorkspace({
 
       case 'visualizaciones':
         return (
-          <div className="space-y-4 animate-fade-in">
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-bojana-block animate-fade-in">
+            <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-stone-950 font-sans">
+                <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                   Visualizaciones: Galería de Renders & Tour sobre plano
                 </h3>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   Carga de imágenes 3D y configuración de pines/hotspots sobre la planta del proyecto.
                 </p>
               </div>
@@ -363,13 +363,13 @@ export default function ProjectWorkspace({
 
       case 'avances':
         return (
-          <div className="space-y-4 animate-fade-in">
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-bojana-block animate-fade-in">
+            <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-stone-950 font-sans">
+                <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                   Avances de obra y registro fotográfico
                 </h3>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   Publicación cronológica de novedades con galería fotográfica para el cliente.
                 </p>
               </div>
@@ -386,13 +386,13 @@ export default function ProjectWorkspace({
 
       case 'decisiones':
         return (
-          <div className="space-y-4 animate-fade-in">
-            <div className="bg-stone-50 border border-stone-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between">
+          <div className="space-y-bojana-block animate-fade-in">
+            <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 sm:p-5 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-stone-950 font-sans">
+                <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                   Decisiones de diseño & Revisiones técnicas
                 </h3>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   Alternativas presentadas al cliente para su convalidación o solicitud de cambios.
                 </p>
               </div>
@@ -409,19 +409,19 @@ export default function ProjectWorkspace({
 
       case 'accesos':
         return (
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 animate-fade-in shadow-xs">
-            <div className="border-b border-stone-100 pb-4">
-              <h3 className="text-lg font-bold text-stone-950 font-sans">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 space-y-bojana-block animate-fade-in shadow-bojana-widget">
+            <div className="border-b border-bojana-line pb-4">
+              <h3 className="bojana-heading-component text-lg font-medium text-bojana-ink font-sans">
                 Cliente y acceso al portal
               </h3>
-              <p className="text-xs text-stone-500 font-sans mt-0.5">
+              <p className="text-xs text-bojana-muted font-sans mt-0.5">
                 Configurá el acceso privado para {clientName} y generá el enlace directo.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block text-xs font-sans">
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1">Nombre comitente</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Nombre comitente</label>
                 <input
                   type="text"
                   value={project.cliente?.nombre || ''}
@@ -429,12 +429,12 @@ export default function ProjectWorkspace({
                     ...project,
                     cliente: { ...project.cliente, nombre: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 font-bold focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink font-medium focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-stone-600 font-bold block mb-1">Email principal</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Email principal</label>
                 <input
                   type="email"
                   value={project.cliente?.email || ''}
@@ -442,29 +442,29 @@ export default function ProjectWorkspace({
                     ...project,
                     cliente: { ...project.cliente, email: e.target.value }
                   })}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2.5 text-stone-900 focus:bg-white focus:outline-hidden focus:border-stone-900"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                 />
               </div>
 
-              <div className="sm:col-span-2 space-y-2">
-                <label className="font-mono text-stone-600 font-bold block">Enlace directo sin contraseña (tokenizado)</label>
-                <div className="flex items-center gap-2">
+              <div className="sm:col-span-2 space-y-bojana-inside">
+                <label className="font-sans text-bojana-muted font-medium block">Enlace directo sin contraseña (tokenizado)</label>
+                <div className="flex items-center gap-bojana-inside">
                   <input
                     type="text"
                     readOnly
                     value={dedicatedUrl}
-                    className="w-full bg-stone-100 border border-stone-200 rounded-lg p-2.5 text-xs text-stone-700 font-mono"
+                    className="bojana-field w-full bg-bojana-soft border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink font-sans"
                   />
                   <button
                     type="button"
                     onClick={handleCopyLink}
-                    className="px-4 py-2.5 rounded-lg bg-stone-950 hover:bg-stone-850 text-white text-xs font-mono font-bold shrink-0 transition flex items-center gap-1.5 cursor-pointer"
+                    className="bojana-button bojana-button-primary px-4 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium shrink-0 transition flex items-center gap-bojana-inside cursor-pointer"
                   >
                     <Copy className="w-3.5 h-3.5" />
                     <span>Copiar</span>
                   </button>
                 </div>
-                <p className="text-[11px] text-stone-500 font-mono">
+                <p className="text-xs text-bojana-muted font-sans">
                   Permite al cliente ingresar directamente a su Project Story privada desde cualquier dispositivo.
                 </p>
               </div>
@@ -474,24 +474,24 @@ export default function ProjectWorkspace({
 
       case 'publicar':
         return (
-          <div className="bg-white border border-stone-200 rounded-2xl p-6 sm:p-8 space-y-6 animate-fade-in shadow-xs text-center max-w-2xl mx-auto">
-            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 mx-auto flex items-center justify-center border border-emerald-200">
-              <Sparkles className="w-6 h-6 text-emerald-600" />
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 space-y-bojana-block animate-fade-in shadow-bojana-widget text-center max-w-2xl mx-auto">
+            <div className="w-12 h-12 rounded-bojana-widget bg-bojana-soft text-bojana-success mx-auto flex items-center justify-center border border-bojana-success">
+              <Sparkles className="w-6 h-6 text-bojana-success" />
             </div>
 
-            <div className="space-y-1">
-              <h3 className="text-xl font-serif text-stone-950 font-bold">
+            <div className="space-y-bojana-inside">
+              <h3 className="bojana-heading-component text-xl font-sans text-bojana-ink font-medium">
                 Revisar experiencia & Publicar
               </h3>
-              <p className="text-xs text-stone-600 font-sans max-w-md mx-auto">
+              <p className="text-xs text-bojana-muted font-sans max-w-md mx-auto">
                 El contenido cargado alimenta automáticamente la narrativa viva (Project Story) de {title}.
               </p>
             </div>
 
-            <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 text-xs font-mono text-stone-700 space-y-2 text-left">
+            <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 text-xs font-sans text-bojana-ink space-y-bojana-inside text-left">
               <div className="flex items-center justify-between">
                 <span>Estado de publicación:</span>
-                <strong className={isPublished ? 'text-emerald-700' : 'text-amber-700'}>
+                <strong className={isPublished ? "text-bojana-success" : "text-bojana-ink"}>
                   {isPublished ? '● Portal Publicado' : '○ Modo Borrador'}
                 </strong>
               </div>
@@ -509,9 +509,9 @@ export default function ProjectWorkspace({
               <button
                 type="button"
                 onClick={onViewClientPortal}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-900 text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+                className="bojana-button bojana-button-secondary w-full sm:w-auto px-5 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer"
               >
-                <Eye className="w-4 h-4 text-stone-700" />
+                <Eye className="w-4 h-4 text-bojana-ink" />
                 <span>Ver Project Story como cliente</span>
               </button>
 
@@ -519,8 +519,8 @@ export default function ProjectWorkspace({
                 type="button"
                 onClick={handleTogglePublish}
                 disabled={isPublishing}
-                className={`w-full sm:w-auto px-6 py-2.5 rounded-xl text-white text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md ${
-                  isPublished ? 'bg-stone-950 hover:bg-stone-850' : 'bg-emerald-700 hover:bg-emerald-800'
+                className={`bojana-button bojana-button-primary w-full sm:w-auto px-6 py-2.5 rounded-bojana-widget text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget ${
+                  isPublished ? "bg-bojana-ink hover:bg-bojana-ink" : "bg-bojana-success hover:bg-bojana-success"
                 }`}
               >
                 <span>{isPublishing ? 'Publicando…' : isPublished ? 'Re-publicar con cambios' : 'Publicar portal ahora'}</span>
@@ -541,9 +541,9 @@ export default function ProjectWorkspace({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 py-2 animate-fade-in">
+    <div className="max-w-bojana-shell mx-auto space-y-bojana-block py-2 animate-fade-in">
       {activeWorkspaceView === 'operacion' ? (
-        <div className="space-y-4">
+        <div className="space-y-bojana-block">
           <OperationalExecutionPanel
             project={project}
             onUpdateProject={onUpdateProject}
@@ -555,9 +555,9 @@ export default function ProjectWorkspace({
             <button
               type="button"
               onClick={() => setActiveWorkspaceView('workflow')}
-              className="text-xs font-mono text-stone-500 hover:text-stone-900 transition flex items-center gap-1.5"
+              className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink transition flex items-center gap-bojana-inside"
             >
-              <Sparkles className="w-3.5 h-3.5 text-stone-400" />
+              <Sparkles className="w-3.5 h-3.5 text-bojana-muted" />
               <span>Configuración detallada de módulos del portal &rarr;</span>
             </button>
           </div>
@@ -565,35 +565,35 @@ export default function ProjectWorkspace({
       ) : (
         <>
           {/* 1. TOP HEADER WITH BREADCRUMB & PRIMARY ACTIONS */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 pb-4">
-            <div className="space-y-1">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-block border-b border-bojana-line pb-4">
+            <div className="space-y-bojana-inside">
               <button
                 type="button"
                 onClick={onBackToProjects}
-                className="text-xs font-mono text-stone-500 hover:text-stone-950 flex items-center gap-1.5 font-bold transition cursor-pointer"
+                className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink flex items-center gap-bojana-inside font-medium transition cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>&larr; Proyectos</span>
               </button>
 
-              <div className="flex flex-wrap items-center gap-2.5 pt-0.5">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-stone-950 font-sans tracking-tight">
+              <div className="flex flex-wrap items-center gap-bojana-inside pt-0.5">
+                <h1 className="bojana-heading-page text-2xl sm:text-3xl font-medium text-bojana-ink font-sans tracking-normal">
                   {title}
                 </h1>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-stone-100 text-stone-700 font-bold border border-stone-200">
+                <span className="text-xs font-sans uppercase px-2 py-0.5 rounded-bojana-badge bg-bojana-soft text-bojana-ink font-medium border border-bojana-line">
                   {disciplines}
                 </span>
-                <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1.5 ${
-                  isPublished 
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
-                    : 'bg-amber-50 text-amber-800 border border-amber-200'
+                <span className={`text-xs font-sans uppercase px-2.5 py-0.5 rounded-bojana-badge font-medium flex items-center gap-bojana-inside ${
+                  isPublished
+                    ? "bg-bojana-soft text-bojana-success border border-bojana-success"
+                    : "bg-bojana-waiting text-bojana-ink border border-bojana-line"
                 }`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${isPublished ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-bojana-badge ${isPublished ? "bg-bojana-success" : "bg-bojana-waiting"}`} />
                   <span>{isPublished ? 'Portal publicado' : 'Borrador'}</span>
                 </span>
               </div>
-              <p className="text-xs text-stone-500 font-sans">
-                {subtitle} &bull; Cliente: <strong className="text-stone-800">{clientName}</strong> &bull; Código: {code}
+              <p className="text-xs text-bojana-muted font-sans">
+                {subtitle} &bull; Cliente: <strong className="text-bojana-ink">{clientName}</strong> &bull; Código: {code}
               </p>
             </div>
 
@@ -601,50 +601,50 @@ export default function ProjectWorkspace({
               <button
                 type="button"
                 onClick={() => setActiveWorkspaceView('operacion')}
-                className="px-4 py-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-800 text-xs font-mono font-bold flex items-center gap-1.5 transition"
+                className="bojana-button bojana-button-secondary px-4 py-2 rounded-bojana-widget border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition"
               >
-                <Zap className="w-3.5 h-3.5 text-amber-600" />
+                <Zap className="w-3.5 h-3.5 text-bojana-ink" />
                 <span>Volver al Workspace vivo</span>
               </button>
               <button
                 type="button"
                 onClick={onViewClientPortal}
-                className="px-4 py-2 rounded-xl bg-stone-950 hover:bg-stone-850 text-white text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer shadow-sm"
+                className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
               >
-                <Eye className="w-4 h-4 text-amber-400" />
+                <Eye className="w-4 h-4 text-bojana-ink" />
                 <span>Ver como cliente</span>
               </button>
             </div>
           </div>
 
           {/* PROGRESS OF DNA BAR & DYNAMIC NEXT STEP (SIGUIENTE PASO) */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-5 shadow-xs space-y-4">
-        
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 shadow-bojana-widget space-y-bojana-block">
+
         {/* Progress Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-mono font-bold text-stone-900">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-inside border-b border-bojana-line pb-3">
+          <div className="flex items-center gap-bojana-inside">
+            <div className="w-2.5 h-2.5 rounded-bojana-widget bg-bojana-success animate-pulse" />
+            <span className="text-xs font-sans font-medium text-bojana-ink">
               {title} &bull; {isPublished ? 'Portal publicado' : 'Borrador'} &bull; {configurationPercentage}% configurado
             </span>
           </div>
 
-          <span className="text-xs font-mono text-stone-400">
+          <span className="text-xs font-sans text-bojana-muted">
             {completedStepsCount} de {dnaSteps.length} pasos completados
           </span>
         </div>
 
         {/* Highlighted Next Action Card (Siguiente Paso) */}
-        <div className="bg-gradient-to-r from-stone-900 via-stone-950 to-stone-900 text-white rounded-xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold flex items-center gap-1.5">
+        <div className="bojana-widget bg-gradient-to-r from-bojana-ink via-bojana-ink to-bojana-ink text-bojana-inverse rounded-bojana-widget p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-bojana-block shadow-bojana-widget">
+          <div className="space-y-bojana-inside">
+            <span className="text-xs font-sans uppercase tracking-normal text-bojana-ink font-medium flex items-center gap-bojana-inside">
               <Zap className="w-3.5 h-3.5" />
               <span>Siguiente paso recomendado</span>
             </span>
-            <h3 className="text-lg font-serif font-bold text-white">
+            <h3 className="bojana-heading-component text-lg font-sans font-medium text-bojana-inverse">
               {nextAction.titulo}
             </h3>
-            <p className="text-xs text-stone-300 font-light max-w-xl">
+            <p className="text-xs text-bojana-line font-medium max-w-xl">
               {nextAction.descripcion}
             </p>
           </div>
@@ -655,7 +655,7 @@ export default function ProjectWorkspace({
               if (nextAction.targetStepId === 'operacion') setActiveWorkspaceView('operacion');
               else { setActiveStepId(nextAction.targetStepId); setActiveWorkspaceView('workflow'); }
             }}
-            className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-mono font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer shadow-md shrink-0 self-start md:self-auto"
+            className="bojana-button bojana-button-text px-5 py-2.5 rounded-bojana-widget bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink font-sans font-medium text-xs flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0 self-start md:self-auto"
           >
             <span>{nextAction.ctaTexto} &rarr;</span>
           </button>
@@ -664,21 +664,21 @@ export default function ProjectWorkspace({
       </div>
 
       {/* 3. CONTINUOUS WORKSPACE: LEFT ADN TIMELINE + RIGHT IN-PLACE EDITOR */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-bojana-block items-start">
+
         {/* Left: DNA Checklist / Timeline */}
-        <div className="lg:col-span-4 bg-white border border-stone-200 rounded-2xl p-5 shadow-xs space-y-4 lg:sticky lg:top-4">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-            <span className="text-xs font-mono uppercase tracking-wider font-bold text-stone-700">
+        <div className="bojana-widget lg:col-span-4 bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 shadow-bojana-widget space-y-bojana-block lg:sticky lg:top-4">
+          <div className="flex items-center justify-between border-b border-bojana-line pb-3">
+            <span className="text-xs font-sans uppercase tracking-normal font-medium text-bojana-ink">
               ADN del Proyecto
             </span>
-            <span className="text-[10px] font-mono text-stone-400">
+            <span className="text-xs font-sans text-bojana-muted">
               Workflow lógico
             </span>
           </div>
 
           {/* Stepper items */}
-          <div className="space-y-1">
+          <div className="space-y-bojana-inside">
             {dnaSteps.map((step, idx) => {
               const isActive = activeStepId === step.id;
               const isDone = step.completado;
@@ -688,35 +688,35 @@ export default function ProjectWorkspace({
                   key={step.id}
                   type="button"
                   onClick={() => setActiveStepId(step.id)}
-                  className={`w-full text-left p-3 rounded-xl transition flex items-center justify-between gap-3 cursor-pointer text-xs ${
-                    isActive 
-                      ? 'bg-stone-950 text-white font-bold shadow-xs' 
-                      : 'text-stone-700 hover:bg-stone-50'
+                  className={`bojana-button bojana-button-primary w-full text-left p-3 rounded-bojana-widget transition flex items-center justify-between gap-3 cursor-pointer text-xs ${
+                    isActive
+                      ? "bg-bojana-ink text-bojana-inverse font-medium shadow-bojana-widget"
+                      : "text-bojana-ink hover:bg-bojana-surface"
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="font-mono text-[11px] shrink-0">
+                  <div className="flex items-center gap-bojana-inside min-w-0">
+                    <span className="font-sans text-xs shrink-0">
                       {isDone ? (
-                        <span className={isActive ? 'text-emerald-300 font-bold' : 'text-emerald-600 font-bold'}>✓</span>
+                        <span className={isActive ? "text-bojana-success font-medium" : "text-bojana-success font-medium"}>✓</span>
                       ) : isActive ? (
-                        <span className="text-amber-400 font-bold">→</span>
+                        <span className="text-bojana-ink font-medium">→</span>
                       ) : (
-                        <span className="text-stone-400 font-light">○</span>
+                        <span className="text-bojana-muted font-medium">○</span>
                       )}
                     </span>
                     <div className="min-w-0">
-                      <span className={`block truncate ${isActive ? 'text-white' : 'text-stone-900'}`}>
+                      <span className={`block truncate ${isActive ? "text-bojana-inverse" : "text-bojana-ink"}`}>
                         {step.titulo}
                       </span>
                       {step.subtitulo && (
-                        <span className={`text-[10px] block truncate font-light ${isActive ? 'text-stone-300' : 'text-stone-400'}`}>
+                        <span className={`text-xs block truncate font-medium ${isActive ? "text-bojana-line" : "text-bojana-muted"}`}>
                           {step.subtitulo}
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-mono opacity-50 shrink-0">
+                  <span className="text-xs font-sans opacity-50 shrink-0">
                     {idx + 1}
                   </span>
                 </button>
@@ -724,7 +724,7 @@ export default function ProjectWorkspace({
             })}
           </div>
 
-          <div className="border-t border-stone-100 pt-3 text-[11px] font-mono text-stone-500 space-y-1">
+          <div className="border-t border-bojana-line pt-3 text-xs font-sans text-bojana-muted space-y-bojana-inside">
             <p className="leading-tight">
               Completá cada punto en orden para asegurar la experiencia del comitente.
             </p>
@@ -732,26 +732,26 @@ export default function ProjectWorkspace({
         </div>
 
         {/* Right: In-Place Step Editor */}
-        <div className="lg:col-span-8 space-y-6">
-          
+        <div className="lg:col-span-8 space-y-bojana-block">
+
           {/* Active Step Header */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-4 sm:p-5 shadow-xs flex items-center justify-between">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 sm:p-5 shadow-bojana-widget flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="w-6 h-6 rounded-full bg-stone-950 text-white font-mono text-xs flex items-center justify-center font-bold">
+              <span className="w-6 h-6 rounded-bojana-badge bg-bojana-ink text-bojana-inverse font-sans text-xs flex items-center justify-center font-medium">
                 {currentStepIndex + 1}
               </span>
               <div>
-                <h2 className="text-base font-bold text-stone-950 font-sans">
+                <h2 className="bojana-heading-section text-base font-medium text-bojana-ink font-sans">
                   {currentStep.titulo}
                 </h2>
-                <p className="text-xs text-stone-500 font-sans">
+                <p className="text-xs text-bojana-muted font-sans">
                   {currentStep.descripcion}
                 </p>
               </div>
             </div>
 
             {currentStep.completado && (
-              <span className="text-xs font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold flex items-center gap-1">
+              <span className="text-xs font-sans text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium flex items-center gap-bojana-inside">
                 <Check className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Completado</span>
               </span>
@@ -764,15 +764,15 @@ export default function ProjectWorkspace({
           </div>
 
           {/* Continuous Action Bar: Guardar y Continuar */}
-          <div className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="text-xs font-sans text-stone-600">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 shadow-bojana-widget flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="text-xs font-sans text-bojana-muted">
               {nextStep ? (
                 <span>
-                  Siguiente punto del ADN: <strong className="text-stone-950 font-semibold">{nextStep.titulo}</strong>
+                  Siguiente punto del ADN: <strong className="text-bojana-ink font-medium">{nextStep.titulo}</strong>
                 </span>
               ) : (
                 <span>
-                  Último punto del workflow: <strong className="text-stone-950 font-semibold">Portal listo para publicar</strong>
+                  Último punto del workflow: <strong className="text-bojana-ink font-medium">Portal listo para publicar</strong>
                 </span>
               )}
             </div>
@@ -780,7 +780,7 @@ export default function ProjectWorkspace({
             <button
               type="button"
               onClick={handleSaveAndContinue}
-              className="px-5 py-2.5 rounded-xl bg-stone-950 hover:bg-stone-850 text-white text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md self-end sm:self-auto"
+              className="bojana-button bojana-button-primary px-5 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget self-end sm:self-auto"
             >
               <span>{nextStep ? 'Guardar y continuar →' : 'Completar y publicar ✓'}</span>
             </button>

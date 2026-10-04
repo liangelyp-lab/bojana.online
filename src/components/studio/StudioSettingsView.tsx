@@ -1,13 +1,14 @@
+import { Brand } from '../ui/DesignSystem';
 import DriveConnectionSettings from '../storage/DriveConnectionSettings';
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Users, 
-  Mail, 
-  Phone, 
-  Globe, 
-  ShieldCheck, 
-  Save, 
+import {
+  Building2,
+  Users,
+  Mail,
+  Phone,
+  Globe,
+  ShieldCheck,
+  Save,
   Sparkles,
   RotateCcw
 } from 'lucide-react';
@@ -33,78 +34,76 @@ export default function StudioSettingsView({
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 py-2 animate-fade-in text-xs font-sans">
-      
+    <div className="max-w-3xl mx-auto space-y-bojana-block py-2 animate-fade-in text-xs font-sans">
+
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-gray-950 font-sans tracking-tight">
+        <h1 className="bojana-heading-page text-2xl font-medium text-bojana-ink font-sans tracking-normal">
           Configuración del Estudio
         </h1>
-        <p className="text-xs text-gray-500 mt-0.5">
+        <p className="text-xs text-bojana-muted mt-0.5">
           Datos generales de Bojana Estudio aplicados por defecto a los nuevos portales.
         </p>
       </div>
 
-      <form onSubmit={handleSave} className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs space-y-5">
-        
-        <div className="flex items-center gap-4 border-b border-gray-100 pb-5">
-          <div className="w-14 h-14 rounded-2xl bg-gray-950 text-white flex items-center justify-center font-mono font-bold text-lg shadow-sm">
-            BE
-          </div>
+      <form onSubmit={handleSave} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 shadow-bojana-widget space-y-bojana-block">
+
+        <div className="flex items-center gap-bojana-block border-b border-bojana-line pb-5">
+          <Brand compact />
           <div>
-            <h3 className="text-base font-bold text-gray-950 font-sans">{studioName}</h3>
-            <span className="text-[11px] font-mono text-gray-500">Arquitectura, Construcción, Ingeniería & Diseño</span>
+            <h3 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">{studioName}</h3>
+            <span className="text-xs font-sans text-bojana-muted">Arquitectura, Construcción, Ingeniería & Diseño</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block">
           <div>
-            <label className="font-mono text-gray-500 font-bold block mb-1">Nombre del Estudio</label>
+            <label className="font-sans text-bojana-muted font-medium block mb-1">Nombre del Estudio</label>
             <input
               type="text"
               value={studioName}
               onChange={(e) => setStudioName(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 font-bold focus:bg-white"
+              className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink font-medium focus:bg-bojana-surface"
             />
           </div>
 
           <div>
-            <label className="font-mono text-gray-500 font-bold block mb-1">Email de Contacto Oficial</label>
+            <label className="font-sans text-bojana-muted font-medium block mb-1">Email de Contacto Oficial</label>
             <input
               type="email"
               value={studioEmail}
               onChange={(e) => setStudioEmail(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 font-mono focus:bg-white"
+              className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink font-sans focus:bg-bojana-surface"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block">
           <div>
-            <label className="font-mono text-gray-500 font-bold block mb-1">Teléfono Principal</label>
+            <label className="font-sans text-bojana-muted font-medium block mb-1">Teléfono Principal</label>
             <input
               type="text"
               value={studioPhone}
               onChange={(e) => setStudioPhone(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 font-mono focus:bg-white"
+              className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink font-sans focus:bg-bojana-surface"
             />
           </div>
 
           <div>
-            <label className="font-mono text-gray-500 font-bold block mb-1">Sede / Ciudad</label>
+            <label className="font-sans text-bojana-muted font-medium block mb-1">Sede / Ciudad</label>
             <input
               type="text"
               value={studioCity}
               onChange={(e) => setStudioCity(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white"
+              className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink focus:bg-bojana-surface"
             />
           </div>
         </div>
 
-        <div className="flex justify-end pt-3 border-t border-gray-100">
+        <div className="flex justify-end pt-3 border-t border-bojana-line">
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-gray-950 hover:bg-gray-850 text-white font-mono font-bold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse font-sans font-medium text-xs flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
           >
             <Save className="w-3.5 h-3.5" />
             <span>Guardar Cambios</span>
@@ -116,10 +115,10 @@ export default function StudioSettingsView({
       <DriveConnectionSettings />
 
       {/* Demo Reset Card */}
-      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-5 flex items-center justify-between gap-4">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 flex items-center justify-between gap-bojana-block">
         <div>
-          <h4 className="font-bold text-gray-950 text-xs">Restablecer Datos de Demostración</h4>
-          <p className="text-[11px] text-gray-500 mt-0.5">
+          <h4 className="bojana-heading-component font-medium text-bojana-ink text-xs">Restablecer Datos de Demostración</h4>
+          <p className="text-xs text-bojana-muted mt-0.5">
             Restaura el proyecto inicial (Los Alisos) con sus datos de prueba.
           </p>
         </div>
@@ -131,9 +130,9 @@ export default function StudioSettingsView({
               onResetDefaults();
             }
           }}
-          className="px-3.5 py-1.5 rounded-xl border border-gray-300 hover:bg-white text-gray-700 text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
+          className="bojana-button bojana-button-secondary px-3.5 py-1.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
+          <RotateCcw className="w-3.5 h-3.5 text-bojana-muted" />
           <span>Restablecer</span>
         </button>
       </div>

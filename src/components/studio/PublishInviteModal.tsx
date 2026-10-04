@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
-import { 
-  ProjectData, 
-  ProjectInvitationLog 
+import {
+  ProjectData,
+  ProjectInvitationLog
 } from '../../types';
-import { 
-  getEffectiveProgress, 
-  getLifecycleLabel 
+import {
+  getEffectiveProgress,
+  getLifecycleLabel
 } from '../../services/storageService';
-import { 
-  X, 
-  Mail, 
-  Eye, 
-  Copy, 
-  Check, 
-  Sparkles, 
-  Clock, 
-  ShieldCheck, 
-  ExternalLink, 
-  FileText, 
-  Calendar, 
-  Layers, 
-  CheckCircle2, 
+import {
+  X,
+  Mail,
+  Eye,
+  Copy,
+  Check,
+  Sparkles,
+  Clock,
+  ShieldCheck,
+  ExternalLink,
+  FileText,
+  Calendar,
+  Layers,
+  CheckCircle2,
   Building2,
   ChevronRight,
   Info
@@ -89,35 +89,35 @@ export default function PublishInviteModal({
   const invitationHistory: ProjectInvitationLog[] = project.historialInvitaciones || [];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-stone-950/60 backdrop-blur-xs animate-fade-in font-sans">
-      <div 
-        className="bg-white border border-stone-200 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-bojana-ink/60 backdrop-blur-xs animate-fade-in font-sans">
+      <div
+        className="bg-bojana-surface border border-bojana-line rounded-bojana-widget w-full max-w-bojana-modal max-h-[92vh] flex flex-col shadow-bojana-widget overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 1. MODAL HEADER */}
-        <div className="p-6 border-b border-stone-100 flex items-start justify-between gap-4 bg-stone-50/50">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold border ${
-                isAlreadyActive 
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-                  : 'bg-amber-50 text-amber-800 border-amber-200'
+        <div className="p-6 border-b border-bojana-line flex items-start justify-between gap-bojana-block bg-bojana-surface/50">
+          <div className="space-y-bojana-inside">
+            <div className="flex items-center gap-bojana-inside flex-wrap">
+              <span className={`text-xs font-sans uppercase px-2.5 py-0.5 rounded-bojana-badge font-medium border ${
+                isAlreadyActive
+                  ? "bg-bojana-soft text-bojana-success border-bojana-success"
+                  : "bg-bojana-waiting text-bojana-ink border-bojana-line"
               }`}>
                 {isAlreadyActive ? '● Portal Activo' : '○ Listo para compartir'}
               </span>
-              <span className="text-[10px] font-mono text-stone-500 bg-white px-2 py-0.5 rounded-full border border-stone-200">
+              <span className="text-xs font-sans text-bojana-muted bg-bojana-surface px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
                 Progreso: {effectiveProg}%
               </span>
-              <span className="text-xs font-mono text-stone-400">
+              <span className="text-xs font-sans text-bojana-muted">
                 {project.info?.codigo || 'BA-024'}
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-serif font-bold text-stone-950">
+            <h2 className="bojana-heading-section text-xl sm:text-2xl font-sans font-medium text-bojana-ink">
               {isAlreadyActive ? 'Comunicación y acceso al portal' : 'Publicar cambios del portal'}
             </h2>
-            <p className="text-xs text-stone-500">
-              {isAlreadyActive 
+            <p className="text-xs text-bojana-muted">
+              {isAlreadyActive
                 ? 'El portal ya está activo y visible para el cliente. Podés enviar un email o copiar el enlace como acciones manuales.'
                 : 'Revisá qué verá el cliente. Al publicar, el portal se actualiza; enviar email o copiar enlace queda como paso posterior e independiente.'}
             </p>
@@ -126,21 +126,21 @@ export default function PublishInviteModal({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition cursor-pointer"
+            className="bojana-icon-button p-2 text-bojana-muted hover:text-bojana-ink hover:bg-bojana-soft rounded-bojana-widget transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* 2. TABS SELECTOR */}
-        <div className="px-6 pt-3 border-b border-stone-100 flex items-center gap-2 overflow-x-auto text-xs font-mono">
+        <div className="px-6 pt-3 border-b border-bojana-line flex items-center gap-bojana-inside overflow-x-auto text-xs font-sans">
           <button
             type="button"
             onClick={() => setActiveTab('email')}
-            className={`px-3.5 py-2.5 border-b-2 font-bold flex items-center gap-2 transition cursor-pointer shrink-0 ${
-              activeTab === 'email'
-                ? 'border-stone-950 text-stone-950'
-                : 'border-transparent text-stone-500 hover:text-stone-800'
+            className={`bojana-button bojana-button-secondary px-3.5 py-2.5 border-b-2 font-medium flex items-center gap-bojana-inside transition cursor-pointer shrink-0 ${
+              activeTab === "email"
+                ? "border-bojana-line text-bojana-ink"
+                : "border-transparent text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             <Mail className="w-3.5 h-3.5" />
@@ -150,10 +150,10 @@ export default function PublishInviteModal({
           <button
             type="button"
             onClick={() => setActiveTab('portal_preview')}
-            className={`px-3.5 py-2.5 border-b-2 font-bold flex items-center gap-2 transition cursor-pointer shrink-0 ${
-              activeTab === 'portal_preview'
-                ? 'border-stone-950 text-stone-950'
-                : 'border-transparent text-stone-500 hover:text-stone-800'
+            className={`bojana-button bojana-button-secondary px-3.5 py-2.5 border-b-2 font-medium flex items-center gap-bojana-inside transition cursor-pointer shrink-0 ${
+              activeTab === "portal_preview"
+                ? "border-bojana-line text-bojana-ink"
+                : "border-transparent text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
@@ -163,10 +163,10 @@ export default function PublishInviteModal({
           <button
             type="button"
             onClick={() => setActiveTab('historial')}
-            className={`px-3.5 py-2.5 border-b-2 font-bold flex items-center gap-2 transition cursor-pointer shrink-0 ${
-              activeTab === 'historial'
-                ? 'border-stone-950 text-stone-950'
-                : 'border-transparent text-stone-500 hover:text-stone-800'
+            className={`bojana-button bojana-button-secondary px-3.5 py-2.5 border-b-2 font-medium flex items-center gap-bojana-inside transition cursor-pointer shrink-0 ${
+              activeTab === "historial"
+                ? "border-bojana-line text-bojana-ink"
+                : "border-transparent text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -175,32 +175,32 @@ export default function PublishInviteModal({
         </div>
 
         {/* 3. TAB CONTENT (SCROLLABLE) */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-stone-50/30">
-          
+        <div className="flex-1 overflow-y-auto p-6 space-y-bojana-block bg-bojana-surface/30">
+
           {/* TAB 1: EMAIL PREVIEW */}
           {activeTab === 'email' && (
-            <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 text-xs text-stone-600 leading-relaxed">
+            <div className="space-y-bojana-block max-w-2xl mx-auto animate-fade-in">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 text-xs text-bojana-muted leading-relaxed">
                 Esta comunicación no publica cambios. El email solo avisa que el portal tiene una actualización; la fuente de decisión y consulta sigue siendo el portal.
               </div>
 
               {/* Email Parameters Row */}
-              <div className="bg-white border border-stone-200 rounded-2xl p-4 text-xs font-mono space-y-3 shadow-xs">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
-                  <div className="flex items-center gap-2 text-stone-600">
-                    <span className="font-bold text-stone-400">De:</span>
-                    <strong className="text-stone-900 font-sans">Bojana Estudio</strong>
-                    <span className="text-stone-500">&lt;proyectos@bojana.com.ar&gt;</span>
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 text-xs font-sans space-y-3 shadow-bojana-widget">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-inside pb-3 border-b border-bojana-line">
+                  <div className="flex items-center gap-bojana-inside text-bojana-muted">
+                    <span className="font-medium text-bojana-muted">De:</span>
+                    <strong className="text-bojana-ink font-sans">Bojana Estudio</strong>
+                    <span className="text-bojana-muted">&lt;proyectos@bojana.com.ar&gt;</span>
                   </div>
-                  <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-bold flex items-center gap-1 self-start sm:self-auto">
-                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                  <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium flex items-center gap-bojana-inside self-start sm:self-auto">
+                    <ShieldCheck className="w-3 h-3 text-bojana-success" />
                     <span>Lark Suite SMTP Empresarial</span>
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">
+                    <label className="text-xs uppercase font-medium text-bojana-muted block mb-1">
                       Nombre del comitente
                     </label>
                     <input
@@ -208,12 +208,12 @@ export default function PublishInviteModal({
                       value={recipientName}
                       onChange={(e) => setRecipientName(e.target.value)}
                       placeholder="ej: Consorcio Los Alisos"
-                      className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-900 font-sans focus:bg-white focus:outline-hidden focus:border-stone-900"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-bojana-ink font-sans focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-stone-400 block mb-1">
+                    <label className="text-xs uppercase font-medium text-bojana-muted block mb-1">
                       Email de destino (Lark / Outlook / Gmail)
                     </label>
                     <input
@@ -221,72 +221,72 @@ export default function PublishInviteModal({
                       value={recipientEmail}
                       onChange={(e) => setRecipientEmail(e.target.value)}
                       placeholder="ej: cliente@email.com"
-                      className="w-full bg-stone-50 border border-stone-200 rounded-lg p-2 text-stone-900 font-sans focus:bg-white focus:outline-hidden focus:border-stone-900"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-bojana-ink font-sans focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                     />
                   </div>
                 </div>
 
-                <div className="pt-1 text-stone-600">
-                  <span className="font-bold text-stone-400">Asunto:</span>{' '}
-                  <span className="font-sans font-semibold text-stone-900">
+                <div className="pt-1 text-bojana-muted">
+                  <span className="font-medium text-bojana-muted">Asunto:</span>{' '}
+                  <span className="font-sans font-medium text-bojana-ink">
                     Tu proyecto {title} ya está disponible
                   </span>
                 </div>
               </div>
 
               {/* Styled Email Body Card */}
-              <div className="bg-white border border-stone-200 rounded-3xl p-8 sm:p-10 shadow-sm space-y-6 text-stone-900">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-8 sm:p-10 shadow-bojana-widget space-y-bojana-block text-bojana-ink">
                 {/* Brand Header */}
-                <div className="border-b border-stone-100 pb-5 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-mono font-bold tracking-widest text-stone-950 uppercase">
+                <div className="border-b border-bojana-line pb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-bojana-inside">
+                    <span className="text-sm font-sans font-medium tracking-normal text-bojana-ink uppercase">
                       BOJANA ESTUDIO
                     </span>
-                    <span className="text-stone-300">|</span>
-                    <span className="text-xs font-mono text-stone-400">Portal de Proyectos</span>
+                    <span className="text-bojana-line">|</span>
+                    <span className="text-xs font-sans text-bojana-muted">Portal de Proyectos</span>
                   </div>
-                  <span className="text-[10px] font-mono text-stone-400 uppercase">
+                  <span className="text-xs font-sans text-bojana-muted uppercase">
                     {project.info?.codigo || 'BA-024'}
                   </span>
                 </div>
 
                 {/* Main Message */}
-                <div className="space-y-2">
-                  <span className="text-xs font-mono uppercase tracking-widest text-emerald-700 font-bold">
+                <div className="space-y-bojana-inside">
+                  <span className="text-xs font-sans uppercase tracking-normal text-bojana-success font-medium">
                     Bienvenido
                   </span>
-                  <h3 className="text-2xl sm:text-3xl font-serif font-light text-stone-950">
+                  <h3 className="bojana-heading-component text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
                     Tu proyecto ya tiene su espacio.
                   </h3>
-                  <p className="text-sm text-stone-600 font-sans leading-relaxed pt-1">
-                    Estimado/a <strong className="text-stone-900">{recipientName || 'Comitente'}</strong>: formalizamos el inicio de tu proyecto en el sistema. Desde este espacio vas a poder acompañar el desarrollo, consultar sus etapas, documentación y avances en tiempo real.
+                  <p className="text-sm text-bojana-muted font-sans leading-relaxed pt-1">
+                    Estimado/a <strong className="text-bojana-ink">{recipientName || 'Comitente'}</strong>: formalizamos el inicio de tu proyecto en el sistema. Desde este espacio vas a poder acompañar el desarrollo, consultar sus etapas, documentación y avances en tiempo real.
                   </p>
                 </div>
 
                 {/* Project Snapshot Box inside Email */}
-                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 space-y-3">
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-base font-serif font-bold text-stone-950">
+                      <h4 className="bojana-heading-component text-base font-sans font-medium text-bojana-ink">
                         {title}
                       </h4>
-                      <p className="text-xs font-mono text-stone-500">
+                      <p className="text-xs font-sans text-bojana-muted">
                         {subtitle}
                       </p>
                     </div>
-                    <span className="text-[10px] font-mono bg-white px-2.5 py-1 rounded-lg border border-stone-200 text-stone-700 font-bold">
+                    <span className="text-xs font-sans bg-bojana-surface px-2.5 py-1 rounded-bojana-badge border border-bojana-line text-bojana-ink font-medium">
                       0% inicial
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 text-xs font-mono pt-1 text-stone-600 border-t border-stone-200/60">
+                  <div className="grid grid-cols-2 gap-bojana-inside text-xs font-sans pt-1 text-bojana-muted border-t border-bojana-line/60">
                     <div>
-                      <span className="text-[10px] text-stone-400 block uppercase">Disciplinas</span>
-                      <strong className="text-stone-800">{disciplines}</strong>
+                      <span className="text-xs text-bojana-muted block uppercase">Disciplinas</span>
+                      <strong className="text-bojana-ink">{disciplines}</strong>
                     </div>
                     <div>
-                      <span className="text-[10px] text-stone-400 block uppercase">Plazo acordado</span>
-                      <strong className="text-stone-800">{plazoInicio} &mdash; {plazoFin}</strong>
+                      <span className="text-xs text-bojana-muted block uppercase">Plazo acordado</span>
+                      <strong className="text-bojana-ink">{plazoInicio} &mdash; {plazoFin}</strong>
                     </div>
                   </div>
                 </div>
@@ -297,22 +297,22 @@ export default function PublishInviteModal({
                     href={dedicatedUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-stone-950 hover:bg-stone-850 text-white font-mono text-xs font-bold transition shadow-md"
+                    className="inline-flex items-center justify-center gap-bojana-inside px-8 py-3.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium transition shadow-bojana-widget"
                   >
                     <span>Acceder al proyecto</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-amber-400" />
+                    <ExternalLink className="w-3.5 h-3.5 text-bojana-ink" />
                   </a>
-                  <p className="text-[11px] font-mono text-stone-400 mt-2">
+                  <p className="text-xs font-sans text-bojana-muted mt-2">
                     Enlace de acceso directo y seguro (no requiere recordar contraseñas).
                   </p>
                 </div>
 
                 {/* Email Footer Note */}
-                <div className="border-t border-stone-100 pt-5 text-[11px] font-sans text-stone-500 space-y-1">
+                <div className="border-t border-bojana-line pt-5 text-xs font-sans text-bojana-muted space-y-bojana-inside">
                   <p>
                     Si tenés alguna consulta podés responder directamente a este correo.
                   </p>
-                  <p className="font-mono text-[10px] text-stone-400">
+                  <p className="font-sans text-xs text-bojana-muted">
                     Bojana Estudio &bull; Buenos Aires &bull; proyectos@bojana.com.ar
                   </p>
                 </div>
@@ -323,7 +323,7 @@ export default function PublishInviteModal({
                   type="button"
                   onClick={handleSendEmail}
                   disabled={!isAlreadyActive || !recipientEmail.trim()}
-                  className="px-4 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 disabled:opacity-50 disabled:cursor-not-allowed text-stone-800 text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer"
+                  className="bojana-button bojana-button-secondary px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft disabled:opacity-50 disabled:cursor-not-allowed text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>Enviar email manualmente</span>
@@ -334,86 +334,86 @@ export default function PublishInviteModal({
 
           {/* TAB 2: PORTAL WELCOME MODE PREVIEW (0%) */}
           {activeTab === 'portal_preview' && (
-            <div className="space-y-6 max-w-3xl mx-auto animate-fade-in font-sans">
-              
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center gap-3 text-xs text-amber-900 font-mono">
-                <Info className="w-4 h-4 text-amber-600 shrink-0" />
+            <div className="space-y-bojana-block max-w-3xl mx-auto animate-fade-in font-sans">
+
+              <div className="bojana-widget bg-bojana-waiting border border-bojana-line rounded-bojana-widget p-4 flex items-center gap-3 text-xs text-bojana-ink font-sans">
+                <Info className="w-4 h-4 text-bojana-ink shrink-0" />
                 <span>
                   <strong>Previsualización comitente al 0%:</strong> Esto es exactamente lo que ve el cliente al abrir su enlace por primera vez. Muestra la base contractual y el roadmap de etapas antes de comenzar los avances de obra.
                 </span>
               </div>
 
               {/* Framed Preview Box */}
-              <div className="bg-white border-2 border-stone-300 rounded-3xl p-6 sm:p-8 shadow-sm space-y-8">
-                
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 shadow-bojana-widget space-y-bojana-block">
+
                 {/* Simulated Header */}
-                <div className="border-b border-stone-100 pb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs tracking-wider uppercase text-stone-900">
+                <div className="border-b border-bojana-line pb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-bojana-inside">
+                    <span className="font-sans font-medium text-xs tracking-normal uppercase text-bojana-ink">
                       BOJANA ESTUDIO
                     </span>
-                    <span className="text-stone-300">&bull;</span>
-                    <span className="font-mono text-xs text-stone-500">Portal de Proyecto</span>
+                    <span className="text-bojana-line">&bull;</span>
+                    <span className="font-sans text-xs text-bojana-muted">Portal de Proyecto</span>
                   </div>
-                  <span className="text-[10px] font-mono bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-bold">
+                  <span className="text-xs font-sans bg-bojana-soft text-bojana-success border border-bojana-success px-2 py-0.5 rounded-bojana-badge font-medium">
                     Preparado para iniciar
                   </span>
                 </div>
 
                 {/* Project Title Block */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 font-mono text-xs text-stone-400">
+                <div className="space-y-bojana-inside">
+                  <div className="flex items-center gap-bojana-inside font-sans text-xs text-bojana-muted">
                     <span>{disciplines}</span>
                     <span>&bull;</span>
                     <span>{project.info?.ubicacion || 'Nordelta, Tigre'}</span>
                   </div>
-                  <h3 className="text-3xl sm:text-4xl font-serif font-light text-stone-950 uppercase tracking-tight">
+                  <h3 className="bojana-heading-component text-3xl sm:text-4xl font-sans font-medium text-bojana-ink uppercase tracking-normal">
                     {title}
                   </h3>
-                  <p className="text-sm text-stone-600 font-light">
+                  <p className="text-sm text-bojana-muted font-medium">
                     {subtitle}
                   </p>
                 </div>
 
                 {/* Progress 0% Indicator */}
-                <div className="bg-stone-50 border border-stone-200 rounded-2xl p-5 space-y-3">
-                  <div className="flex items-center justify-between font-mono text-xs">
-                    <span className="font-bold text-stone-800">Estado del proyecto</span>
-                    <span className="font-bold text-stone-950 bg-white px-2 py-0.5 rounded border border-stone-200">
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-3">
+                  <div className="flex items-center justify-between font-sans text-xs">
+                    <span className="font-medium text-bojana-ink">Estado del proyecto</span>
+                    <span className="font-medium text-bojana-ink bg-bojana-surface px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
                       0% avance de ejecución
                     </span>
                   </div>
-                  <div className="w-full bg-stone-200 h-2 rounded-full overflow-hidden">
-                    <div className="bg-stone-950 h-full w-[2%]" />
+                  <div className="w-full bg-bojana-soft h-2 rounded-bojana-widget overflow-hidden">
+                    <div className="bg-bojana-ink h-full w-[2%]" />
                   </div>
-                  <p className="text-[11px] font-mono text-stone-500">
+                  <p className="text-xs font-sans text-bojana-muted">
                     Base formalizada. El progreso comenzará a reflejarse en tiempo real con las tareas de cada etapa.
                   </p>
                 </div>
 
                 {/* Contractual Snapshot */}
                 <div className="space-y-3">
-                  <span className="text-xs font-mono uppercase tracking-widest text-stone-400 font-bold block">
+                  <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium block">
                     Base Contractual & Alcance
                   </span>
-                  <div className="bg-white border border-stone-200 rounded-2xl p-5 space-y-4">
+                  <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-bojana-block">
                     <div>
-                      <span className="text-[11px] font-mono text-stone-400 uppercase block mb-1">
+                      <span className="text-xs font-sans text-bojana-muted uppercase block mb-1">
                         Alcance de servicios incluidos
                       </span>
-                      <p className="text-xs text-stone-800 font-light leading-relaxed">
+                      <p className="text-xs text-bojana-ink font-medium leading-relaxed">
                         {alcance}
                       </p>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-stone-100 text-xs font-mono">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block pt-3 border-t border-bojana-line text-xs font-sans">
                       <div>
-                        <span className="text-[10px] text-stone-400 uppercase block">Plazo acordado</span>
-                        <strong className="text-stone-900">{plazoInicio} &mdash; {plazoFin}</strong>
+                        <span className="text-xs text-bojana-muted uppercase block">Plazo acordado</span>
+                        <strong className="text-bojana-ink">{plazoInicio} &mdash; {plazoFin}</strong>
                       </div>
                       <div>
-                        <span className="text-[10px] text-stone-400 uppercase block">Presupuesto</span>
-                        <span className="text-emerald-700 font-bold">Aprobado y formalizado ✓</span>
+                        <span className="text-xs text-bojana-muted uppercase block">Presupuesto</span>
+                        <span className="text-bojana-success font-medium">Aprobado y formalizado ✓</span>
                       </div>
                     </div>
                   </div>
@@ -421,7 +421,7 @@ export default function PublishInviteModal({
 
                 {/* Stages Roadmap (Planned) */}
                 <div className="space-y-3">
-                  <span className="text-xs font-mono uppercase tracking-widest text-stone-400 font-bold block">
+                  <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium block">
                     Etapas acordadas
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -432,14 +432,14 @@ export default function PublishInviteModal({
                       { num: '04', nombre: 'Ejecución de obra', desc: 'Hitos, avances y control de calidad' },
                       { num: '05', nombre: 'Cierre y entrega', desc: 'Conformidad final y manual de uso' },
                     ].map((et, i) => (
-                      <div key={i} className="bg-stone-50 border border-stone-200 rounded-xl p-3.5 space-y-1">
-                        <span className="font-mono text-[10px] text-stone-400 font-bold">
+                      <div key={i} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3.5 space-y-bojana-inside">
+                        <span className="font-sans text-xs text-bojana-muted font-medium">
                           Etapa {et.num}
                         </span>
-                        <h5 className="text-xs font-bold text-stone-900 font-sans">
+                        <h5 className="bojana-heading-component text-xs font-medium text-bojana-ink font-sans">
                           {et.nombre}
                         </h5>
-                        <p className="text-[11px] text-stone-500 font-sans leading-tight">
+                        <p className="text-xs text-bojana-muted font-sans leading-tight">
                           {et.desc}
                         </p>
                       </div>
@@ -450,20 +450,20 @@ export default function PublishInviteModal({
                 {/* Initial Documents Available */}
                 {docsBase.length > 0 && (
                   <div className="space-y-3">
-                    <span className="text-xs font-mono uppercase tracking-widest text-stone-400 font-bold block">
+                    <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium block">
                       Documentación técnica inicial disponible
                     </span>
-                    <div className="space-y-2">
+                    <div className="space-y-bojana-inside">
                       {docsBase.map((doc, idx) => (
-                        <div key={doc.id || idx} className="bg-white border border-stone-200 rounded-xl p-3 flex items-center justify-between text-xs font-mono">
-                          <div className="flex items-center gap-2 text-stone-800">
-                            <FileText className="w-4 h-4 text-stone-400 shrink-0" />
-                            <span className="font-semibold">{doc.nombre}</span>
-                            <span className="text-[10px] text-stone-400 uppercase bg-stone-100 px-2 py-0.5 rounded">
+                        <div key={doc.id || idx} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 flex items-center justify-between text-xs font-sans">
+                          <div className="flex items-center gap-bojana-inside text-bojana-ink">
+                            <FileText className="w-4 h-4 text-bojana-muted shrink-0" />
+                            <span className="font-medium">{doc.nombre}</span>
+                            <span className="text-xs text-bojana-muted uppercase bg-bojana-soft px-2 py-0.5 rounded-bojana-badge">
                               {doc.tipo.replace('_', ' ')}
                             </span>
                           </div>
-                          <span className="text-[11px] text-emerald-700 font-bold">
+                          <span className="text-xs text-bojana-success font-medium">
                             Disponible ✓
                           </span>
                         </div>
@@ -478,61 +478,61 @@ export default function PublishInviteModal({
 
           {/* TAB 3: INVITATION LOG HISTORY */}
           {activeTab === 'historial' && (
-            <div className="space-y-4 max-w-2xl mx-auto animate-fade-in font-sans">
-              <div className="space-y-1 pb-2">
-                <h3 className="text-base font-bold text-stone-950">
+            <div className="space-y-bojana-block max-w-2xl mx-auto animate-fade-in font-sans">
+              <div className="space-y-bojana-inside pb-2">
+                <h3 className="bojana-heading-component text-base font-medium text-bojana-ink">
                   Registro de envíos y accesos al portal
                 </h3>
-                <p className="text-xs text-stone-500">
+                <p className="text-xs text-bojana-muted">
                   Trazabilidad de invitaciones enviadas desde el buzón de Bojana Estudio.
                 </p>
               </div>
 
               {invitationHistory.length === 0 ? (
-                <div className="bg-white border border-stone-200 rounded-2xl p-8 text-center space-y-2 shadow-xs">
-                  <Mail className="w-8 h-8 text-stone-300 mx-auto" />
-                  <p className="text-xs font-bold text-stone-700">
+                <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-8 text-center space-y-bojana-inside shadow-bojana-widget">
+                  <Mail className="w-8 h-8 text-bojana-line mx-auto" />
+                  <p className="text-xs font-medium text-bojana-ink">
                     Aún no se enviaron invitaciones para este proyecto.
                   </p>
-                  <p className="text-[11px] text-stone-500">
+                  <p className="text-xs text-bojana-muted">
                     Publicá el portal primero. Luego podés enviar un email o copiar el enlace como comunicación independiente.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {invitationHistory.map((item) => (
-                    <div 
-                      key={item.id} 
-                      className="bg-white border border-stone-200 rounded-2xl p-4 shadow-xs space-y-3 font-mono text-xs"
+                    <div
+                      key={item.id}
+                      className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 shadow-bojana-widget space-y-3 font-sans text-xs"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-stone-950">
+                        <span className="font-medium text-bojana-ink">
                           {item.fecha}
                         </span>
-                        <span className={`text-[10px] uppercase px-2 py-0.5 rounded font-bold ${
-                          item.estado === 'abierto'
-                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                            : 'bg-blue-50 text-blue-800 border border-blue-200'
+                        <span className={`text-xs uppercase px-2 py-0.5 rounded-bojana-badge font-medium ${
+                          item.estado === "abierto"
+                            ? "bg-bojana-soft text-bojana-success border border-bojana-success"
+                            : "bg-bojana-soft text-bojana-discipline border border-bojana-line"
                         }`}>
                           {item.estado === 'abierto' ? 'Abierto por el cliente ✓' : 'Entregado ✓'}
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-stone-600 bg-stone-50 p-3 rounded-xl border border-stone-200/60">
+                      <div className="bojana-widget grid grid-cols-1 sm:grid-cols-2 gap-bojana-inside text-xs text-bojana-muted bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line/60">
                         <div>
-                          <span className="text-[10px] text-stone-400 block uppercase">Destinatario</span>
-                          <strong className="text-stone-900 font-sans">{item.destinatario}</strong>
-                          <span className="text-stone-500 block">{item.email}</span>
+                          <span className="text-xs text-bojana-muted block uppercase">Destinatario</span>
+                          <strong className="text-bojana-ink font-sans">{item.destinatario}</strong>
+                          <span className="text-bojana-muted block">{item.email}</span>
                         </div>
                         <div>
-                          <span className="text-[10px] text-stone-400 block uppercase">Canal de envío</span>
-                          <strong className="text-stone-800">Lark Suite SMTP</strong>
-                          <span className="text-stone-500 block">{item.enviadoPor}</span>
+                          <span className="text-xs text-bojana-muted block uppercase">Canal de envío</span>
+                          <strong className="text-bojana-ink">Lark Suite SMTP</strong>
+                          <span className="text-bojana-muted block">{item.enviadoPor}</span>
                         </div>
                       </div>
 
                       {item.fechaAcceso && (
-                        <div className="text-[11px] text-emerald-700 flex items-center gap-1.5 pt-1">
+                        <div className="text-xs text-bojana-success flex items-center gap-bojana-inside pt-1">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Acceso confirmado el <strong>{item.fechaAcceso}</strong></span>
                         </div>
@@ -547,23 +547,23 @@ export default function PublishInviteModal({
         </div>
 
         {/* 4. MODAL FOOTER */}
-        <div className="p-5 border-t border-stone-200 bg-stone-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Quick Copy Direct Link */}
           <button
             type="button"
             onClick={handleCopyLink}
-            className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-stone-300 hover:bg-stone-100 text-stone-800 text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+            className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copiedLink ? '¡Enlace copiado!' : 'Copiar acceso directo'}</span>
           </button>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-bojana-inside w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-stone-600 hover:text-stone-900 text-xs font-mono font-bold transition cursor-pointer"
+              className="bojana-button bojana-button-text px-4 py-2.5 rounded-bojana-widget text-bojana-muted hover:text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
             >
               Cancelar
             </button>
@@ -572,11 +572,11 @@ export default function PublishInviteModal({
               type="button"
               onClick={handlePublish}
               disabled={isPublishing}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-stone-950 hover:bg-stone-850 disabled:opacity-50 text-white text-xs font-mono font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-md"
+              className="bojana-button bojana-button-primary w-full sm:w-auto px-6 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
             >
               {isPublishing ? (
                 <>
-                  <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-3.5 h-3.5 border border-white/30 border-t-white rounded-bojana-widget animate-spin" />
                   <span>Publicando...</span>
                 </>
               ) : (
@@ -589,14 +589,14 @@ export default function PublishInviteModal({
           </div>
         </div>
 
-        {publishError && <p role="alert" className="px-6 py-3 text-sm text-red-800">{publishError}</p>}
+        {publishError && <p role="alert" className="px-6 py-3 text-sm text-bojana-error">{publishError}</p>}
 
         {/* Publishing Overlay Step Message */}
         {isPublishing && (
-          <div className="absolute inset-0 bg-stone-950/70 backdrop-blur-xs z-50 flex flex-col items-center justify-center p-6 text-center text-white space-y-3 animate-fade-in font-mono">
-            <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-            <span className="text-sm font-bold">Publicando cambios del portal</span>
-            <span className="text-xs text-stone-400">La comunicación por email queda disponible como acción posterior.</span>
+          <div className="absolute inset-0 bg-bojana-ink/70 backdrop-blur-xs z-50 flex flex-col items-center justify-center p-6 text-center text-bojana-inverse space-y-3 animate-fade-in font-sans">
+            <div className="w-10 h-10 border-3 border-white/30 border-t-white rounded-bojana-widget animate-spin" />
+            <span className="text-sm font-medium">Publicando cambios del portal</span>
+            <span className="text-xs text-bojana-muted">La comunicación por email queda disponible como acción posterior.</span>
           </div>
         )}
 

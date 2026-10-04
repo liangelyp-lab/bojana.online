@@ -44,20 +44,20 @@ export default function GuidedTour({ onComplete, isOpen }: GuidedTourProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-950/30 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div 
+    <div className="fixed inset-0 bg-bojana-ink/30 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div
         id="guided-tour-container"
-        className="bg-white border border-gray-205 rounded-xl max-w-md w-full shadow-2xl p-6"
+        className="bojana-modal bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full shadow-bojana-widget p-6"
       >
         <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2 text-gray-500">
-            <HelpCircle className="w-5 h-5 text-gray-500" />
-            <span className="text-xs uppercase tracking-widest font-semibold font-mono">Guía de Plataforma</span>
+          <div className="flex items-center gap-bojana-inside text-bojana-muted">
+            <HelpCircle className="w-5 h-5 text-bojana-muted" />
+            <span className="text-xs uppercase tracking-normal font-medium font-sans">Guía de Plataforma</span>
           </div>
-          <button 
+          <button
             onClick={onComplete}
             aria-label="Cerrar guía"
-            className="text-gray-400 hover:text-gray-700 transition-colors p-1 rounded-md hover:bg-gray-100 cursor-pointer"
+            className="bojana-icon-button text-bojana-muted hover:text-bojana-ink transition-colors p-1 rounded-bojana-widget hover:bg-bojana-soft cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -65,60 +65,60 @@ export default function GuidedTour({ onComplete, isOpen }: GuidedTourProps) {
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-md font-bold text-gray-900 font-sans tracking-tight">
+            <h3 className="bojana-heading-component text-md font-medium text-bojana-ink font-sans tracking-normal">
               {steps[step - 1].title}
             </h3>
-            <span className="text-xs text-gray-400 font-mono">
+            <span className="text-xs text-bojana-muted font-sans">
               Paso {step} de {steps.length}
             </span>
           </div>
 
-          <p className="text-gray-600 text-xs leading-relaxed font-sans">
+          <p className="text-bojana-muted text-xs leading-relaxed font-sans">
             {steps[step - 1].description}
           </p>
 
-          <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4">
-            <span className="text-[10px] font-mono text-gray-400 block mb-1 uppercase tracking-wider">Sección Relacionada:</span>
-            <span className="text-xs text-gray-850 font-bold font-sans">• {steps[step - 1].target}</span>
+          <div className="bojana-widget bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line mt-4">
+            <span className="text-xs font-sans text-bojana-muted block mb-1 uppercase tracking-normal">Sección Relacionada:</span>
+            <span className="text-xs text-bojana-ink font-medium font-sans">• {steps[step - 1].target}</span>
           </div>
         </div>
 
         {/* Progress Dots */}
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-          <div className="flex gap-1.5">
+        <div className="flex items-center justify-between mt-6 pt-4 border-t border-bojana-line">
+          <div className="flex gap-bojana-inside">
             {steps.map((_, idx) => (
-              <div 
-                key={idx} 
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  idx + 1 === step ? 'w-6 bg-gray-900' : 'w-2 bg-gray-200'
+              <div
+                key={idx}
+                className={`h-1.5 rounded-bojana-badge transition-all duration-500 ${
+                  idx + 1 === step ? "w-6 bg-bojana-ink" : "w-2 bg-bojana-soft"
                 }`}
               />
             ))}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-bojana-inside">
             {step > 1 && (
-              <button 
+              <button
                 onClick={handlePrev}
-                className="px-3 py-1.5 text-xs text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-250 rounded-md transition-all flex items-center gap-1.5 cursor-pointer"
+                className="bojana-button bojana-button-text px-3 py-1.5 text-xs text-bojana-muted hover:text-bojana-ink bg-bojana-soft hover:bg-bojana-soft rounded-bojana-widget transition-all flex items-center gap-bojana-inside cursor-pointer"
               >
-                <ArrowLeft className="w-3.5 h-3.5 text-gray-600" />
+                <ArrowLeft className="w-3.5 h-3.5 text-bojana-muted" />
                 Atrás
               </button>
             )}
-            <button 
+            <button
               onClick={handleNext}
-              className="px-4 py-1.5 text-xs font-bold text-white bg-gray-900 hover:bg-gray-800 rounded-md transition-all flex items-center gap-1.5 cursor-pointer"
+              className="bojana-button bojana-button-primary px-4 py-1.5 text-xs font-medium text-bojana-inverse bg-bojana-ink hover:bg-bojana-ink rounded-bojana-widget transition-all flex items-center gap-bojana-inside cursor-pointer"
             >
               {step === steps.length ? (
                 <>
                   Listo
-                  <Check className="w-3.5 h-3.5 text-white" />
+                  <Check className="w-3.5 h-3.5 text-bojana-inverse" />
                 </>
               ) : (
                 <>
                   Siguiente
-                  <ArrowRight className="w-3.5 h-3.5 text-white" />
+                  <ArrowRight className="w-3.5 h-3.5 text-bojana-inverse" />
                 </>
               )}
             </button>

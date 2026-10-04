@@ -1,0 +1,2634 @@
+{
+  "schema": "bojana-design-review-v1",
+  "repository": "liangelyp-lab/bojana.online",
+  "commit": "df1f2ba15b865fd1c2cb97fba6afa64189982025",
+  "reviewDate": "2026-10-03",
+  "exportedAt": "2026-10-03T18:44:38.049Z",
+  "completed": 119,
+  "total": 119,
+  "choices": {
+    "color-canvas": {
+      "optionId": "3",
+      "label": "bg-[#FDFCFB]",
+      "value": "#FDFCFB",
+      "kind": "actual",
+      "token": "color.canvas"
+    },
+    "color-surface": {
+      "optionId": "2",
+      "label": "bg-gray-50",
+      "value": "oklch(98.5% 0.002 247.839)",
+      "kind": "actual",
+      "token": "color.surface"
+    },
+    "color-ink": {
+      "optionId": "2",
+      "label": "text-stone-800",
+      "value": "oklch(26.8% 0.007 34.298)",
+      "kind": "actual",
+      "token": "color.ink"
+    },
+    "color-muted": {
+      "optionId": "0",
+      "label": "text-bojana-muted",
+      "value": "#686864",
+      "kind": "actual",
+      "token": "color.muted"
+    },
+    "color-line": {
+      "optionId": "4",
+      "label": "border-stone-100",
+      "value": "oklch(97% 0.001 106.424)",
+      "kind": "actual",
+      "token": "color.line"
+    },
+    "color-soft": {
+      "optionId": "3",
+      "label": "bg-stone-100",
+      "value": "oklch(97% 0.001 106.424)",
+      "kind": "actual",
+      "token": "color.soft"
+    },
+    "color-primary": {
+      "optionId": "custom",
+      "label": "70.7% 0.022 261.325",
+      "value": "70.7% 0.022 261.325",
+      "kind": "propio",
+      "custom": true,
+      "token": "color.primary"
+    },
+    "color-inverse": {
+      "optionId": "0",
+      "label": "text-white",
+      "value": "#fff",
+      "kind": "actual",
+      "token": "color.inverse"
+    },
+    "color-success": {
+      "optionId": "6",
+      "label": "bg-emerald-800",
+      "value": "oklch(43.2% 0.095 166.913)",
+      "kind": "actual",
+      "token": "color.success"
+    },
+    "color-waiting": {
+      "optionId": "0",
+      "label": "bg-amber-100",
+      "value": "oklch(96.2% 0.059 95.617)",
+      "kind": "actual",
+      "token": "color.waiting"
+    },
+    "color-error": {
+      "optionId": "6",
+      "label": "text-red-800",
+      "value": "oklch(44.4% 0.177 26.899)",
+      "kind": "actual",
+      "token": "color.error"
+    },
+    "color-discipline": {
+      "optionId": "5",
+      "label": "bg-stone-800",
+      "value": "oklch(26.8% 0.007 34.298)",
+      "kind": "actual",
+      "token": "color.discipline"
+    },
+    "color-focus": {
+      "optionId": "1",
+      "label": "ring-gray-950/10",
+      "value": "color-mix(in srgb, oklch(13% 0.028 261.692) 10.0%, transparent)",
+      "kind": "actual",
+      "token": "color.focus"
+    },
+    "color-gradient": {
+      "optionId": "0",
+      "label": "Progreso · esmeralda → teal → ámbar",
+      "value": "linear-gradient(90deg, oklch(59.6% 0.145 163.225), oklch(60% 0.118 184.704), oklch(76.9% 0.188 70.08))",
+      "kind": "actual",
+      "token": "color.gradient"
+    },
+    "font-ui": {
+      "optionId": "0",
+      "label": "Inter · sans y mono actuales",
+      "value": "\"Inter\",Arial,system-ui,sans-serif",
+      "kind": "actual",
+      "token": "type.family.ui"
+    },
+    "font-titles": {
+      "optionId": "0",
+      "label": "font-sans",
+      "value": "\"Inter\",Arial,system-ui,sans-serif",
+      "kind": "actual",
+      "token": "type.family.heading"
+    },
+    "type-display": {
+      "optionId": "2",
+      "label": "text-6xl",
+      "value": "3.75rem",
+      "kind": "actual",
+      "token": "type.display"
+    },
+    "type-page": {
+      "optionId": "0",
+      "label": "text-2xl",
+      "value": "1.5rem",
+      "kind": "actual",
+      "token": "type.page"
+    },
+    "type-section": {
+      "optionId": "0",
+      "label": "text-2xl",
+      "value": "1.5rem",
+      "kind": "actual",
+      "token": "type.section"
+    },
+    "type-component": {
+      "optionId": "0",
+      "label": "text-base",
+      "value": "1rem",
+      "kind": "actual",
+      "token": "type.component"
+    },
+    "type-body": {
+      "optionId": "1",
+      "label": "text-sm",
+      "value": "0.875rem",
+      "kind": "actual",
+      "token": "type.body"
+    },
+    "type-ui": {
+      "optionId": "0",
+      "label": "text-sm",
+      "value": "0.875rem",
+      "kind": "actual",
+      "token": "type.ui"
+    },
+    "type-meta": {
+      "optionId": "3",
+      "label": "text-xs",
+      "value": "0.75rem",
+      "kind": "actual",
+      "token": "type.meta"
+    },
+    "type-weight": {
+      "optionId": "3",
+      "label": "font-medium",
+      "value": "500",
+      "kind": "actual",
+      "token": "type.weight"
+    },
+    "type-tracking": {
+      "optionId": "5",
+      "label": "ADN · normal",
+      "value": "0",
+      "kind": "adn",
+      "token": "type.tracking"
+    },
+    "type-leading": {
+      "optionId": "5",
+      "label": "ADN · cuerpo 24px",
+      "value": "24px",
+      "kind": "adn",
+      "token": "type.leading"
+    },
+    "type-case": {
+      "optionId": "0",
+      "label": "Actual · MAYÚSCULAS",
+      "value": "uppercase",
+      "kind": "actual",
+      "token": "type.case"
+    },
+    "mobile-type-display": {
+      "optionId": "0",
+      "label": "36px · utilidad existente",
+      "value": "36px",
+      "kind": "actual",
+      "token": "type.mobile.display"
+    },
+    "mobile-type-page": {
+      "optionId": "0",
+      "label": "24px · utilidad existente",
+      "value": "24px",
+      "kind": "actual",
+      "token": "type.mobile.page"
+    },
+    "mobile-type-section": {
+      "optionId": "0",
+      "label": "24px · utilidad existente",
+      "value": "24px",
+      "kind": "actual",
+      "token": "type.mobile.section"
+    },
+    "mobile-type-body": {
+      "optionId": "1",
+      "label": "14px · utilidad existente",
+      "value": "14px",
+      "kind": "actual",
+      "token": "type.mobile.body"
+    },
+    "mobile-type-ui": {
+      "optionId": "3",
+      "label": "14px · utilidad existente",
+      "value": "14px",
+      "kind": "actual",
+      "token": "type.mobile.ui"
+    },
+    "radius-editorial": {
+      "optionId": "5",
+      "label": "rounded-md",
+      "value": "0.375rem",
+      "kind": "actual",
+      "token": "radius.editorial"
+    },
+    "radius-widget": {
+      "optionId": "4",
+      "label": "rounded-lg",
+      "value": "0.5rem",
+      "kind": "actual",
+      "token": "radius.widget"
+    },
+    "radius-button": {
+      "optionId": "5",
+      "label": "rounded-lg",
+      "value": "0.5rem",
+      "kind": "actual",
+      "token": "radius.button"
+    },
+    "radius-input": {
+      "optionId": "4",
+      "label": "rounded-md",
+      "value": "0.375rem",
+      "kind": "actual",
+      "token": "radius.input"
+    },
+    "radius-overlay": {
+      "optionId": "5",
+      "label": "rounded-md",
+      "value": "0.375rem",
+      "kind": "actual",
+      "token": "radius.overlay"
+    },
+    "radius-image": {
+      "optionId": "4",
+      "label": "rounded-lg",
+      "value": "0.5rem",
+      "kind": "actual",
+      "token": "radius.image"
+    },
+    "radius-badge": {
+      "optionId": "4",
+      "label": "rounded-full",
+      "value": "9999px",
+      "kind": "actual",
+      "token": "radius.badge"
+    },
+    "shadow-base": {
+      "optionId": "0",
+      "label": "shadow-lg",
+      "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+      "kind": "actual",
+      "token": "shadow.base"
+    },
+    "shadow-widget": {
+      "optionId": "1",
+      "label": "shadow-md",
+      "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+      "kind": "actual",
+      "token": "shadow.widget"
+    },
+    "shadow-overlay": {
+      "optionId": "5",
+      "label": "ADN · suave solo en overlay",
+      "value": "0 8px 24px #1111111a",
+      "kind": "adn",
+      "token": "shadow.overlay"
+    },
+    "border-width": {
+      "optionId": "0",
+      "label": "Actual · 1px",
+      "value": "1px",
+      "kind": "actual",
+      "token": "border.width"
+    },
+    "icon-size": {
+      "optionId": "2",
+      "label": "16px",
+      "value": "16px",
+      "kind": "actual",
+      "token": "icon.size"
+    },
+    "icon-stroke": {
+      "optionId": "1",
+      "label": "ADN · 1.5px",
+      "value": "1.5",
+      "kind": "adn",
+      "token": "icon.stroke"
+    },
+    "button-padding-vertical": {
+      "optionId": "0",
+      "label": "py-1",
+      "value": "4px",
+      "kind": "actual",
+      "token": "button.padding.vertical"
+    },
+    "button-padding-horizontal": {
+      "optionId": "5",
+      "label": "px-5",
+      "value": "20px",
+      "kind": "actual",
+      "token": "button.padding.horizontal"
+    },
+    "button-height": {
+      "optionId": "0",
+      "label": "Actual · altura por contenido",
+      "value": "auto",
+      "kind": "actual",
+      "token": "button.height"
+    },
+    "button-primary-pattern": {
+      "optionId": "0",
+      "label": "Nav · negro, 12px bold, icono",
+      "value": "nav",
+      "kind": "actual",
+      "token": "button.primary.pattern"
+    },
+    "button-secondary": {
+      "optionId": "1",
+      "label": "Actual · borde + radio 8px",
+      "value": "8px",
+      "kind": "actual",
+      "token": "button.secondary"
+    },
+    "button-text": {
+      "optionId": "1",
+      "label": "Actual · texto + radio 8px",
+      "value": "8px",
+      "kind": "actual",
+      "token": "button.text"
+    },
+    "button-destructive": {
+      "optionId": "0",
+      "label": "Actual · rojo y borde",
+      "value": "red",
+      "kind": "actual",
+      "token": "button.destructive"
+    },
+    "button-icon": {
+      "optionId": "1",
+      "label": "ADN · sin icono decorativo",
+      "value": "label-only",
+      "kind": "adn",
+      "token": "button.icon"
+    },
+    "button-disabled": {
+      "optionId": "0",
+      "label": "Actual · opacity 50%",
+      "value": "0.5",
+      "kind": "actual",
+      "token": "button.disabled"
+    },
+    "button-loading": {
+      "optionId": "0",
+      "label": "Actual · spinner + texto",
+      "value": "spinner",
+      "kind": "actual",
+      "token": "button.loading"
+    },
+    "button-width": {
+      "optionId": "0",
+      "label": "Actual · contenido / auto",
+      "value": "auto",
+      "kind": "actual",
+      "token": "button.width"
+    },
+    "field-padding-x": {
+      "optionId": "3",
+      "label": "px-4",
+      "value": "16px",
+      "kind": "actual",
+      "token": "field.padding.x"
+    },
+    "field-padding-y": {
+      "optionId": "0",
+      "label": "py-1.5",
+      "value": "6px",
+      "kind": "actual",
+      "token": "field.padding.y"
+    },
+    "field-text": {
+      "optionId": "2",
+      "label": "text-xs",
+      "value": "0.75rem",
+      "kind": "actual",
+      "token": "field.text"
+    },
+    "field-height": {
+      "optionId": "0",
+      "label": "Actual · intrínseca",
+      "value": "auto",
+      "kind": "actual",
+      "token": "field.height"
+    },
+    "field-label": {
+      "optionId": "0",
+      "label": "Actual · 10px uppercase bold",
+      "value": "tiny",
+      "kind": "actual",
+      "token": "field.label"
+    },
+    "field-focus": {
+      "optionId": "1",
+      "label": "Actual · borde negro",
+      "value": "border",
+      "kind": "actual",
+      "token": "field.focus"
+    },
+    "field-placeholder": {
+      "optionId": "0",
+      "label": "Login · ejemplo dentro del campo",
+      "value": "example",
+      "kind": "actual",
+      "token": "field.placeholder"
+    },
+    "field-error": {
+      "optionId": "1",
+      "label": "ADN · mensaje junto al campo",
+      "value": "inline",
+      "kind": "adn",
+      "token": "field.error"
+    },
+    "field-textarea": {
+      "optionId": "0",
+      "label": "Creación · textarea nativa, rows 3",
+      "value": "native",
+      "kind": "actual",
+      "token": "field.textarea"
+    },
+    "field-select": {
+      "optionId": "0",
+      "label": "Actual · select nativo",
+      "value": "native",
+      "kind": "actual",
+      "token": "field.select"
+    },
+    "field-date": {
+      "optionId": "1",
+      "label": "ADN · aclarar estimada / confirmada",
+      "value": "explained",
+      "kind": "adn",
+      "token": "field.date"
+    },
+    "field-upload": {
+      "optionId": "0",
+      "label": "Actual · acción seleccionar / subir",
+      "value": "actions",
+      "kind": "actual",
+      "token": "field.upload"
+    },
+    "field-visibility": {
+      "optionId": "0",
+      "label": "Actual · icono / estado en tarea",
+      "value": "task",
+      "kind": "actual",
+      "token": "field.visibility"
+    },
+    "field-selection": {
+      "optionId": "0",
+      "label": "Actual · presets y necesidades propias por disciplina",
+      "value": "cards",
+      "kind": "actual",
+      "token": "field.selection"
+    },
+    "widget-padding-dashboard": {
+      "optionId": "1",
+      "label": "p-2",
+      "value": "8px",
+      "kind": "actual",
+      "token": "space.widget.dashboard"
+    },
+    "widget-padding-execution": {
+      "optionId": "0",
+      "label": "p-2",
+      "value": "8px",
+      "kind": "actual",
+      "token": "space.widget.execution"
+    },
+    "widget-padding-client": {
+      "optionId": "0",
+      "label": "p-2",
+      "value": "8px",
+      "kind": "actual",
+      "token": "space.widget.client"
+    },
+    "widget-padding-modal": {
+      "optionId": "0",
+      "label": "p-2",
+      "value": "8px",
+      "kind": "actual",
+      "token": "space.widget.modal"
+    },
+    "widget-padding-file": {
+      "optionId": "2",
+      "label": "p-2.5",
+      "value": "10px",
+      "kind": "actual",
+      "token": "space.widget.file"
+    },
+    "space-between": {
+      "optionId": "0",
+      "label": "space-y-3",
+      "value": "12px",
+      "kind": "actual",
+      "token": "space.between"
+    },
+    "space-inside": {
+      "optionId": "2",
+      "label": "gap-2",
+      "value": "8px",
+      "kind": "actual",
+      "token": "space.inside"
+    },
+    "space-chapters": {
+      "optionId": "1",
+      "label": "py-16",
+      "value": "64px",
+      "kind": "actual",
+      "token": "space.chapters"
+    },
+    "widget-height": {
+      "optionId": "0",
+      "label": "Actual · altura natural",
+      "value": "auto",
+      "kind": "actual",
+      "token": "widget.height"
+    },
+    "widget-container": {
+      "optionId": "0",
+      "label": "Actual · tarjetas anidadas",
+      "value": "cards",
+      "kind": "actual",
+      "token": "widget.container"
+    },
+    "widget-progress": {
+      "optionId": "0",
+      "label": "Cliente · barra negra, radio full, 6px",
+      "value": "client",
+      "kind": "actual",
+      "token": "widget.progress"
+    },
+    "widget-zero": {
+      "optionId": "0",
+      "label": "Actual cliente · ancho real desde 0%",
+      "value": "zero",
+      "kind": "actual",
+      "token": "widget.zero"
+    },
+    "widget-stage": {
+      "optionId": "0",
+      "label": "Actual · secuencia derivada del alcance",
+      "value": "pipeline",
+      "kind": "actual",
+      "token": "widget.stage"
+    },
+    "widget-task": {
+      "optionId": "0",
+      "label": "Actual · p-1.5 text-xs radio 8px",
+      "value": "compact",
+      "kind": "actual",
+      "token": "widget.task"
+    },
+    "widget-now": {
+      "optionId": "1",
+      "label": "Cliente · ámbar + piedra",
+      "value": "warm",
+      "kind": "actual",
+      "token": "widget.now"
+    },
+    "widget-story": {
+      "optionId": "1",
+      "label": "ADN · fecha + título + contexto + media",
+      "value": "entry",
+      "kind": "adn",
+      "token": "widget.story"
+    },
+    "widget-deliverable": {
+      "optionId": "2",
+      "label": "ADN · archivo en su tarea",
+      "value": "context",
+      "kind": "adn",
+      "token": "widget.deliverable"
+    },
+    "widget-action": {
+      "optionId": "1",
+      "label": "ADN · solicitud en tarea + consecuencia",
+      "value": "context",
+      "kind": "adn",
+      "token": "widget.action"
+    },
+    "widget-comment": {
+      "optionId": "0",
+      "label": "Actual · hilo dentro de avance",
+      "value": "thread",
+      "kind": "actual",
+      "token": "widget.comment"
+    },
+    "widget-empty": {
+      "optionId": "1",
+      "label": "ADN · explicar y una acción",
+      "value": "single",
+      "kind": "adn",
+      "token": "widget.empty"
+    },
+    "layout-shell": {
+      "optionId": "3",
+      "label": "max-w-7xl",
+      "value": "80rem",
+      "kind": "actual",
+      "token": "layout.shell"
+    },
+    "layout-reading": {
+      "optionId": "2",
+      "label": "max-w-4xl",
+      "value": "56rem",
+      "kind": "actual",
+      "token": "layout.reading"
+    },
+    "layout-modal": {
+      "optionId": "2",
+      "label": "max-w-4xl",
+      "value": "56rem",
+      "kind": "actual",
+      "token": "layout.modal"
+    },
+    "layout-mobile": {
+      "optionId": "1",
+      "label": "px-4",
+      "value": "16px",
+      "kind": "actual",
+      "token": "layout.mobile"
+    },
+    "layout-desktop": {
+      "optionId": "0",
+      "label": "px-16",
+      "value": "64px",
+      "kind": "actual",
+      "token": "layout.desktop"
+    },
+    "layout-header": {
+      "optionId": "0",
+      "label": "h-12",
+      "value": "48px",
+      "kind": "actual",
+      "token": "layout.header"
+    },
+    "layout-workspace": {
+      "optionId": "1",
+      "label": "ADN · índice 240 / lienzo mín 640 / inspector 320",
+      "value": "three",
+      "kind": "adn",
+      "token": "layout.workspace"
+    },
+    "layout-client-index": {
+      "optionId": "0",
+      "label": "Actual · barra flotante abajo",
+      "value": "floating",
+      "kind": "actual",
+      "token": "layout.client.index"
+    },
+    "layout-header-style": {
+      "optionId": "2",
+      "label": "ADN · compacto, sin barra fija adicional",
+      "value": "compact",
+      "kind": "adn",
+      "token": "layout.header.style"
+    },
+    "layout-brand": {
+      "optionId": "2",
+      "label": "Marca única a definir",
+      "value": "unified",
+      "kind": "propuesta",
+      "token": "layout.brand"
+    },
+    "layout-grid": {
+      "optionId": "1",
+      "label": "ADN · 12 / 8 / 4 columnas",
+      "value": "canonical",
+      "kind": "adn",
+      "token": "layout.grid"
+    },
+    "layout-drawer": {
+      "optionId": "1",
+      "label": "ADN · drawers y lienzo completo",
+      "value": "drawers",
+      "kind": "adn",
+      "token": "layout.drawer"
+    },
+    "layout-creation": {
+      "optionId": "1",
+      "label": "ADN · secciones + índice + resumen",
+      "value": "sections",
+      "kind": "adn",
+      "token": "layout.creation"
+    },
+    "media-aspect": {
+      "optionId": "0",
+      "label": "aspect-16/10",
+      "value": "aspect-16/10",
+      "kind": "actual",
+      "token": "media.aspect"
+    },
+    "media-crop": {
+      "optionId": "2",
+      "label": "ADN · no recortar información técnica",
+      "value": "contain",
+      "kind": "adn",
+      "token": "media.crop"
+    },
+    "media-zoom": {
+      "optionId": "1",
+      "label": "ADN · ampliar y conservar contexto",
+      "value": "context",
+      "kind": "adn",
+      "token": "media.zoom"
+    },
+    "media-caption": {
+      "optionId": "1",
+      "label": "ADN · pie + versión + acción ampliar",
+      "value": "caption",
+      "kind": "adn",
+      "token": "media.caption"
+    },
+    "media-comparison": {
+      "optionId": "1",
+      "label": "ADN · labels iguales y zoom sincronizado si aplica",
+      "value": "sync",
+      "kind": "adn",
+      "token": "media.comparison"
+    },
+    "motion-micro": {
+      "optionId": "2",
+      "label": "duration-500",
+      "value": "500ms",
+      "kind": "actual",
+      "token": "motion.micro"
+    },
+    "motion-expand": {
+      "optionId": "2",
+      "label": "duration-500",
+      "value": "500ms",
+      "kind": "actual",
+      "token": "motion.expand"
+    },
+    "motion-context": {
+      "optionId": "2",
+      "label": "duration-500",
+      "value": "500ms",
+      "kind": "actual",
+      "token": "motion.context"
+    },
+    "motion-progress": {
+      "optionId": "2",
+      "label": "duration-500",
+      "value": "500ms",
+      "kind": "actual",
+      "token": "motion.progress"
+    },
+    "state-loop": {
+      "optionId": "0",
+      "label": "Actual · pulse / ping / bounce",
+      "value": "loop",
+      "kind": "actual",
+      "token": "state.loop"
+    },
+    "state-reduced": {
+      "optionId": "1",
+      "label": "ADN · respetar prefers-reduced-motion",
+      "value": "reduce",
+      "kind": "adn",
+      "token": "state.reduced"
+    },
+    "state-toast": {
+      "optionId": "1",
+      "label": "ADN · solo acciones reversibles, error en contexto",
+      "value": "context",
+      "kind": "adn",
+      "token": "state.toast"
+    },
+    "state-loading": {
+      "optionId": "1",
+      "label": "ADN · skeleton de la estructura real",
+      "value": "skeleton",
+      "kind": "adn",
+      "token": "state.loading"
+    },
+    "state-save": {
+      "optionId": "1",
+      "label": "ADN · indicador discreto y confirmación breve",
+      "value": "inline",
+      "kind": "adn",
+      "token": "state.save"
+    },
+    "state-canonical": {
+      "optionId": "1",
+      "label": "ADN · No iniciada / En curso / En revisión / Esperando al cliente / Pausada / Completada / Fuera de alcance",
+      "value": "canonical",
+      "kind": "adn",
+      "token": "state.canonical"
+    },
+    "state-publish": {
+      "optionId": "1",
+      "label": "ADN · revisar / publicar / comunicar manualmente",
+      "value": "separate",
+      "kind": "adn",
+      "token": "state.publish"
+    }
+  },
+  "notes": {},
+  "decisions": [
+    {
+      "id": "color-canvas",
+      "group": "Colores",
+      "title": "Fondo general",
+      "token": "color.canvas",
+      "selection": {
+        "optionId": "3",
+        "label": "bg-[#FDFCFB]",
+        "value": "#FDFCFB",
+        "kind": "actual",
+        "token": "color.canvas"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-surface",
+      "group": "Colores",
+      "title": "Superficies e inputs",
+      "token": "color.surface",
+      "selection": {
+        "optionId": "2",
+        "label": "bg-gray-50",
+        "value": "oklch(98.5% 0.002 247.839)",
+        "kind": "actual",
+        "token": "color.surface"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-ink",
+      "group": "Colores",
+      "title": "Texto principal",
+      "token": "color.ink",
+      "selection": {
+        "optionId": "2",
+        "label": "text-stone-800",
+        "value": "oklch(26.8% 0.007 34.298)",
+        "kind": "actual",
+        "token": "color.ink"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-muted",
+      "group": "Colores",
+      "title": "Texto secundario",
+      "token": "color.muted",
+      "selection": {
+        "optionId": "0",
+        "label": "text-bojana-muted",
+        "value": "#686864",
+        "kind": "actual",
+        "token": "color.muted"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-line",
+      "group": "Colores",
+      "title": "Bordes y divisores",
+      "token": "color.line",
+      "selection": {
+        "optionId": "4",
+        "label": "border-stone-100",
+        "value": "oklch(97% 0.001 106.424)",
+        "kind": "actual",
+        "token": "color.line"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-soft",
+      "group": "Colores",
+      "title": "Hover y selección neutra",
+      "token": "color.soft",
+      "selection": {
+        "optionId": "3",
+        "label": "bg-stone-100",
+        "value": "oklch(97% 0.001 106.424)",
+        "kind": "actual",
+        "token": "color.soft"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-primary",
+      "group": "Colores",
+      "title": "Fondo de acción primaria",
+      "token": "color.primary",
+      "selection": {
+        "optionId": "custom",
+        "label": "70.7% 0.022 261.325",
+        "value": "70.7% 0.022 261.325",
+        "kind": "propio",
+        "custom": true,
+        "token": "color.primary"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-inverse",
+      "group": "Colores",
+      "title": "Texto invertido",
+      "token": "color.inverse",
+      "selection": {
+        "optionId": "0",
+        "label": "text-white",
+        "value": "#fff",
+        "kind": "actual",
+        "token": "color.inverse"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-success",
+      "group": "Colores",
+      "title": "Completado y éxito",
+      "token": "color.success",
+      "selection": {
+        "optionId": "6",
+        "label": "bg-emerald-800",
+        "value": "oklch(43.2% 0.095 166.913)",
+        "kind": "actual",
+        "token": "color.success"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-waiting",
+      "group": "Colores",
+      "title": "Esperando al cliente",
+      "token": "color.waiting",
+      "selection": {
+        "optionId": "0",
+        "label": "bg-amber-100",
+        "value": "oklch(96.2% 0.059 95.617)",
+        "kind": "actual",
+        "token": "color.waiting"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-error",
+      "group": "Colores",
+      "title": "Errores y acciones destructivas",
+      "token": "color.error",
+      "selection": {
+        "optionId": "6",
+        "label": "text-red-800",
+        "value": "oklch(44.4% 0.177 26.899)",
+        "kind": "actual",
+        "token": "color.error"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-discipline",
+      "group": "Colores",
+      "title": "Identificación de disciplinas",
+      "token": "color.discipline",
+      "selection": {
+        "optionId": "5",
+        "label": "bg-stone-800",
+        "value": "oklch(26.8% 0.007 34.298)",
+        "kind": "actual",
+        "token": "color.discipline"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-focus",
+      "group": "Colores",
+      "title": "Color de foco",
+      "token": "color.focus",
+      "selection": {
+        "optionId": "1",
+        "label": "ring-gray-950/10",
+        "value": "color-mix(in srgb, oklch(13% 0.028 261.692) 10.0%, transparent)",
+        "kind": "actual",
+        "token": "color.focus"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "color-gradient",
+      "group": "Colores",
+      "title": "Degradados",
+      "token": "color.gradient",
+      "selection": {
+        "optionId": "0",
+        "label": "Progreso · esmeralda → teal → ámbar",
+        "value": "linear-gradient(90deg, oklch(59.6% 0.145 163.225), oklch(60% 0.118 184.704), oklch(76.9% 0.188 70.08))",
+        "kind": "actual",
+        "token": "color.gradient"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "font-ui",
+      "group": "Tipografía",
+      "title": "Familia de interfaz",
+      "token": "type.family.ui",
+      "selection": {
+        "optionId": "0",
+        "label": "Inter · sans y mono actuales",
+        "value": "\"Inter\",Arial,system-ui,sans-serif",
+        "kind": "actual",
+        "token": "type.family.ui"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "font-titles",
+      "group": "Tipografía",
+      "title": "Familia de títulos",
+      "token": "type.family.heading",
+      "selection": {
+        "optionId": "0",
+        "label": "font-sans",
+        "value": "\"Inter\",Arial,system-ui,sans-serif",
+        "kind": "actual",
+        "token": "type.family.heading"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-display",
+      "group": "Tipografía",
+      "title": "Título de portada",
+      "token": "type.display",
+      "selection": {
+        "optionId": "2",
+        "label": "text-6xl",
+        "value": "3.75rem",
+        "kind": "actual",
+        "token": "type.display"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-page",
+      "group": "Tipografía",
+      "title": "Título de página",
+      "token": "type.page",
+      "selection": {
+        "optionId": "0",
+        "label": "text-2xl",
+        "value": "1.5rem",
+        "kind": "actual",
+        "token": "type.page"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-section",
+      "group": "Tipografía",
+      "title": "Título de sección",
+      "token": "type.section",
+      "selection": {
+        "optionId": "0",
+        "label": "text-2xl",
+        "value": "1.5rem",
+        "kind": "actual",
+        "token": "type.section"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-component",
+      "group": "Tipografía",
+      "title": "Título de componente",
+      "token": "type.component",
+      "selection": {
+        "optionId": "0",
+        "label": "text-base",
+        "value": "1rem",
+        "kind": "actual",
+        "token": "type.component"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-body",
+      "group": "Tipografía",
+      "title": "Texto de lectura",
+      "token": "type.body",
+      "selection": {
+        "optionId": "1",
+        "label": "text-sm",
+        "value": "0.875rem",
+        "kind": "actual",
+        "token": "type.body"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-ui",
+      "group": "Tipografía",
+      "title": "Texto de controles",
+      "token": "type.ui",
+      "selection": {
+        "optionId": "0",
+        "label": "text-sm",
+        "value": "0.875rem",
+        "kind": "actual",
+        "token": "type.ui"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-meta",
+      "group": "Tipografía",
+      "title": "Metadatos y etiquetas",
+      "token": "type.meta",
+      "selection": {
+        "optionId": "3",
+        "label": "text-xs",
+        "value": "0.75rem",
+        "kind": "actual",
+        "token": "type.meta"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-weight",
+      "group": "Tipografía",
+      "title": "Peso tipográfico",
+      "token": "type.weight",
+      "selection": {
+        "optionId": "3",
+        "label": "font-medium",
+        "value": "500",
+        "kind": "actual",
+        "token": "type.weight"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-tracking",
+      "group": "Tipografía",
+      "title": "Espaciado entre letras",
+      "token": "type.tracking",
+      "selection": {
+        "optionId": "5",
+        "label": "ADN · normal",
+        "value": "0",
+        "kind": "adn",
+        "token": "type.tracking"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-leading",
+      "group": "Tipografía",
+      "title": "Interlineado",
+      "token": "type.leading",
+      "selection": {
+        "optionId": "5",
+        "label": "ADN · cuerpo 24px",
+        "value": "24px",
+        "kind": "adn",
+        "token": "type.leading"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "type-case",
+      "group": "Tipografía",
+      "title": "Mayúsculas en etiquetas",
+      "token": "type.case",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · MAYÚSCULAS",
+        "value": "uppercase",
+        "kind": "actual",
+        "token": "type.case"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "mobile-type-display",
+      "group": "Tipografía",
+      "title": "Mobile · Portada",
+      "token": "type.mobile.display",
+      "selection": {
+        "optionId": "0",
+        "label": "36px · utilidad existente",
+        "value": "36px",
+        "kind": "actual",
+        "token": "type.mobile.display"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "mobile-type-page",
+      "group": "Tipografía",
+      "title": "Mobile · Página",
+      "token": "type.mobile.page",
+      "selection": {
+        "optionId": "0",
+        "label": "24px · utilidad existente",
+        "value": "24px",
+        "kind": "actual",
+        "token": "type.mobile.page"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "mobile-type-section",
+      "group": "Tipografía",
+      "title": "Mobile · Sección",
+      "token": "type.mobile.section",
+      "selection": {
+        "optionId": "0",
+        "label": "24px · utilidad existente",
+        "value": "24px",
+        "kind": "actual",
+        "token": "type.mobile.section"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "mobile-type-body",
+      "group": "Tipografía",
+      "title": "Mobile · Cuerpo",
+      "token": "type.mobile.body",
+      "selection": {
+        "optionId": "1",
+        "label": "14px · utilidad existente",
+        "value": "14px",
+        "kind": "actual",
+        "token": "type.mobile.body"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "mobile-type-ui",
+      "group": "Tipografía",
+      "title": "Mobile · Interfaz",
+      "token": "type.mobile.ui",
+      "selection": {
+        "optionId": "3",
+        "label": "14px · utilidad existente",
+        "value": "14px",
+        "kind": "actual",
+        "token": "type.mobile.ui"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-editorial",
+      "group": "Forma y elevación",
+      "title": "Radio de bloques editoriales",
+      "token": "radius.editorial",
+      "selection": {
+        "optionId": "5",
+        "label": "rounded-md",
+        "value": "0.375rem",
+        "kind": "actual",
+        "token": "radius.editorial"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-widget",
+      "group": "Forma y elevación",
+      "title": "Radio de widgets y tarjetas",
+      "token": "radius.widget",
+      "selection": {
+        "optionId": "4",
+        "label": "rounded-lg",
+        "value": "0.5rem",
+        "kind": "actual",
+        "token": "radius.widget"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-button",
+      "group": "Forma y elevación",
+      "title": "Radio de botones",
+      "token": "radius.button",
+      "selection": {
+        "optionId": "5",
+        "label": "rounded-lg",
+        "value": "0.5rem",
+        "kind": "actual",
+        "token": "radius.button"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-input",
+      "group": "Forma y elevación",
+      "title": "Radio de campos",
+      "token": "radius.input",
+      "selection": {
+        "optionId": "4",
+        "label": "rounded-md",
+        "value": "0.375rem",
+        "kind": "actual",
+        "token": "radius.input"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-overlay",
+      "group": "Forma y elevación",
+      "title": "Radio de modales",
+      "token": "radius.overlay",
+      "selection": {
+        "optionId": "5",
+        "label": "rounded-md",
+        "value": "0.375rem",
+        "kind": "actual",
+        "token": "radius.overlay"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-image",
+      "group": "Forma y elevación",
+      "title": "Radio de imágenes",
+      "token": "radius.image",
+      "selection": {
+        "optionId": "4",
+        "label": "rounded-lg",
+        "value": "0.5rem",
+        "kind": "actual",
+        "token": "radius.image"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "radius-badge",
+      "group": "Forma y elevación",
+      "title": "Radio de estados y etiquetas",
+      "token": "radius.badge",
+      "selection": {
+        "optionId": "4",
+        "label": "rounded-full",
+        "value": "9999px",
+        "kind": "actual",
+        "token": "radius.badge"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "shadow-base",
+      "group": "Forma y elevación",
+      "title": "Sombra de superficies base",
+      "token": "shadow.base",
+      "selection": {
+        "optionId": "0",
+        "label": "shadow-lg",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "kind": "actual",
+        "token": "shadow.base"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "shadow-widget",
+      "group": "Forma y elevación",
+      "title": "Sombra de tarjetas",
+      "token": "shadow.widget",
+      "selection": {
+        "optionId": "1",
+        "label": "shadow-md",
+        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        "kind": "actual",
+        "token": "shadow.widget"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "shadow-overlay",
+      "group": "Forma y elevación",
+      "title": "Sombra de overlays",
+      "token": "shadow.overlay",
+      "selection": {
+        "optionId": "5",
+        "label": "ADN · suave solo en overlay",
+        "value": "0 8px 24px #1111111a",
+        "kind": "adn",
+        "token": "shadow.overlay"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "border-width",
+      "group": "Forma y elevación",
+      "title": "Grosor de borde",
+      "token": "border.width",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · 1px",
+        "value": "1px",
+        "kind": "actual",
+        "token": "border.width"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "icon-size",
+      "group": "Forma y elevación",
+      "title": "Tamaño de iconos",
+      "token": "icon.size",
+      "selection": {
+        "optionId": "2",
+        "label": "16px",
+        "value": "16px",
+        "kind": "actual",
+        "token": "icon.size"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "icon-stroke",
+      "group": "Forma y elevación",
+      "title": "Trazo de iconos",
+      "token": "icon.stroke",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · 1.5px",
+        "value": "1.5",
+        "kind": "adn",
+        "token": "icon.stroke"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-padding-vertical",
+      "group": "Botones",
+      "title": "Padding vertical de botones",
+      "token": "button.padding.vertical",
+      "selection": {
+        "optionId": "0",
+        "label": "py-1",
+        "value": "4px",
+        "kind": "actual",
+        "token": "button.padding.vertical"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-padding-horizontal",
+      "group": "Botones",
+      "title": "Padding horizontal de botones",
+      "token": "button.padding.horizontal",
+      "selection": {
+        "optionId": "5",
+        "label": "px-5",
+        "value": "20px",
+        "kind": "actual",
+        "token": "button.padding.horizontal"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-height",
+      "group": "Botones",
+      "title": "Altura y área de interacción",
+      "token": "button.height",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · altura por contenido",
+        "value": "auto",
+        "kind": "actual",
+        "token": "button.height"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-primary-pattern",
+      "group": "Botones",
+      "title": "Composición de botón primario",
+      "token": "button.primary.pattern",
+      "selection": {
+        "optionId": "0",
+        "label": "Nav · negro, 12px bold, icono",
+        "value": "nav",
+        "kind": "actual",
+        "token": "button.primary.pattern"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-secondary",
+      "group": "Botones",
+      "title": "Botón secundario",
+      "token": "button.secondary",
+      "selection": {
+        "optionId": "1",
+        "label": "Actual · borde + radio 8px",
+        "value": "8px",
+        "kind": "actual",
+        "token": "button.secondary"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-text",
+      "group": "Botones",
+      "title": "Acción de texto",
+      "token": "button.text",
+      "selection": {
+        "optionId": "1",
+        "label": "Actual · texto + radio 8px",
+        "value": "8px",
+        "kind": "actual",
+        "token": "button.text"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-destructive",
+      "group": "Botones",
+      "title": "Acción destructiva",
+      "token": "button.destructive",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · rojo y borde",
+        "value": "red",
+        "kind": "actual",
+        "token": "button.destructive"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-icon",
+      "group": "Botones",
+      "title": "Icono en acción primaria",
+      "token": "button.icon",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · sin icono decorativo",
+        "value": "label-only",
+        "kind": "adn",
+        "token": "button.icon"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-disabled",
+      "group": "Botones",
+      "title": "Control deshabilitado",
+      "token": "button.disabled",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · opacity 50%",
+        "value": "0.5",
+        "kind": "actual",
+        "token": "button.disabled"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-loading",
+      "group": "Botones",
+      "title": "Control guardando",
+      "token": "button.loading",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · spinner + texto",
+        "value": "spinner",
+        "kind": "actual",
+        "token": "button.loading"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "button-width",
+      "group": "Botones",
+      "title": "Ancho de acciones",
+      "token": "button.width",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · contenido / auto",
+        "value": "auto",
+        "kind": "actual",
+        "token": "button.width"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-padding-x",
+      "group": "Campos y formularios",
+      "title": "Padding horizontal de campos",
+      "token": "field.padding.x",
+      "selection": {
+        "optionId": "3",
+        "label": "px-4",
+        "value": "16px",
+        "kind": "actual",
+        "token": "field.padding.x"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-padding-y",
+      "group": "Campos y formularios",
+      "title": "Padding vertical de campos",
+      "token": "field.padding.y",
+      "selection": {
+        "optionId": "0",
+        "label": "py-1.5",
+        "value": "6px",
+        "kind": "actual",
+        "token": "field.padding.y"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-text",
+      "group": "Campos y formularios",
+      "title": "Texto de campos",
+      "token": "field.text",
+      "selection": {
+        "optionId": "2",
+        "label": "text-xs",
+        "value": "0.75rem",
+        "kind": "actual",
+        "token": "field.text"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-height",
+      "group": "Campos y formularios",
+      "title": "Altura mínima del campo",
+      "token": "field.height",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · intrínseca",
+        "value": "auto",
+        "kind": "actual",
+        "token": "field.height"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-label",
+      "group": "Campos y formularios",
+      "title": "Labels visibles",
+      "token": "field.label",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · 10px uppercase bold",
+        "value": "tiny",
+        "kind": "actual",
+        "token": "field.label"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-focus",
+      "group": "Campos y formularios",
+      "title": "Estado de foco",
+      "token": "field.focus",
+      "selection": {
+        "optionId": "1",
+        "label": "Actual · borde negro",
+        "value": "border",
+        "kind": "actual",
+        "token": "field.focus"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-placeholder",
+      "group": "Campos y formularios",
+      "title": "Placeholder",
+      "token": "field.placeholder",
+      "selection": {
+        "optionId": "0",
+        "label": "Login · ejemplo dentro del campo",
+        "value": "example",
+        "kind": "actual",
+        "token": "field.placeholder"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-error",
+      "group": "Campos y formularios",
+      "title": "Error de validación",
+      "token": "field.error",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · mensaje junto al campo",
+        "value": "inline",
+        "kind": "adn",
+        "token": "field.error"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-textarea",
+      "group": "Campos y formularios",
+      "title": "Área de texto",
+      "token": "field.textarea",
+      "selection": {
+        "optionId": "0",
+        "label": "Creación · textarea nativa, rows 3",
+        "value": "native",
+        "kind": "actual",
+        "token": "field.textarea"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-select",
+      "group": "Campos y formularios",
+      "title": "Select y búsqueda",
+      "token": "field.select",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · select nativo",
+        "value": "native",
+        "kind": "actual",
+        "token": "field.select"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-date",
+      "group": "Campos y formularios",
+      "title": "Fecha estimada o confirmada",
+      "token": "field.date",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · aclarar estimada / confirmada",
+        "value": "explained",
+        "kind": "adn",
+        "token": "field.date"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-upload",
+      "group": "Campos y formularios",
+      "title": "Uploader",
+      "token": "field.upload",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · acción seleccionar / subir",
+        "value": "actions",
+        "kind": "actual",
+        "token": "field.upload"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-visibility",
+      "group": "Campos y formularios",
+      "title": "Visibilidad",
+      "token": "field.visibility",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · icono / estado en tarea",
+        "value": "task",
+        "kind": "actual",
+        "token": "field.visibility"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "field-selection",
+      "group": "Campos y formularios",
+      "title": "Selección de necesidad",
+      "token": "field.selection",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · presets y necesidades propias por disciplina",
+        "value": "cards",
+        "kind": "actual",
+        "token": "field.selection"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-padding-dashboard",
+      "group": "Widgets y contenido",
+      "title": "Padding de widget del estudio",
+      "token": "space.widget.dashboard",
+      "selection": {
+        "optionId": "1",
+        "label": "p-2",
+        "value": "8px",
+        "kind": "actual",
+        "token": "space.widget.dashboard"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-padding-execution",
+      "group": "Widgets y contenido",
+      "title": "Padding de bloque operativo",
+      "token": "space.widget.execution",
+      "selection": {
+        "optionId": "0",
+        "label": "p-2",
+        "value": "8px",
+        "kind": "actual",
+        "token": "space.widget.execution"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-padding-client",
+      "group": "Widgets y contenido",
+      "title": "Padding de bloque del cliente",
+      "token": "space.widget.client",
+      "selection": {
+        "optionId": "0",
+        "label": "p-2",
+        "value": "8px",
+        "kind": "actual",
+        "token": "space.widget.client"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-padding-modal",
+      "group": "Widgets y contenido",
+      "title": "Padding de modal",
+      "token": "space.widget.modal",
+      "selection": {
+        "optionId": "0",
+        "label": "p-2",
+        "value": "8px",
+        "kind": "actual",
+        "token": "space.widget.modal"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-padding-file",
+      "group": "Widgets y contenido",
+      "title": "Padding de entregable",
+      "token": "space.widget.file",
+      "selection": {
+        "optionId": "2",
+        "label": "p-2.5",
+        "value": "10px",
+        "kind": "actual",
+        "token": "space.widget.file"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "space-between",
+      "group": "Widgets y contenido",
+      "title": "Espacio entre bloques",
+      "token": "space.between",
+      "selection": {
+        "optionId": "0",
+        "label": "space-y-3",
+        "value": "12px",
+        "kind": "actual",
+        "token": "space.between"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "space-inside",
+      "group": "Widgets y contenido",
+      "title": "Espacio dentro de grupos",
+      "token": "space.inside",
+      "selection": {
+        "optionId": "2",
+        "label": "gap-2",
+        "value": "8px",
+        "kind": "actual",
+        "token": "space.inside"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "space-chapters",
+      "group": "Widgets y contenido",
+      "title": "Espacio entre capítulos",
+      "token": "space.chapters",
+      "selection": {
+        "optionId": "1",
+        "label": "py-16",
+        "value": "64px",
+        "kind": "actual",
+        "token": "space.chapters"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-height",
+      "group": "Widgets y contenido",
+      "title": "Altura de widgets",
+      "token": "widget.height",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · altura natural",
+        "value": "auto",
+        "kind": "actual",
+        "token": "widget.height"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-container",
+      "group": "Widgets y contenido",
+      "title": "Composición de contenido",
+      "token": "widget.container",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · tarjetas anidadas",
+        "value": "cards",
+        "kind": "actual",
+        "token": "widget.container"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-progress",
+      "group": "Widgets y contenido",
+      "title": "Resumen de avance",
+      "token": "widget.progress",
+      "selection": {
+        "optionId": "0",
+        "label": "Cliente · barra negra, radio full, 6px",
+        "value": "client",
+        "kind": "actual",
+        "token": "widget.progress"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-zero",
+      "group": "Widgets y contenido",
+      "title": "Representación de 0%",
+      "token": "widget.zero",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual cliente · ancho real desde 0%",
+        "value": "zero",
+        "kind": "actual",
+        "token": "widget.zero"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-stage",
+      "group": "Widgets y contenido",
+      "title": "Separador de etapas",
+      "token": "widget.stage",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · secuencia derivada del alcance",
+        "value": "pipeline",
+        "kind": "actual",
+        "token": "widget.stage"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-task",
+      "group": "Widgets y contenido",
+      "title": "Fila de tarea",
+      "token": "widget.task",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · p-1.5 text-xs radio 8px",
+        "value": "compact",
+        "kind": "actual",
+        "token": "widget.task"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-now",
+      "group": "Widgets y contenido",
+      "title": "Bloque Ahora / siguiente acción",
+      "token": "widget.now",
+      "selection": {
+        "optionId": "1",
+        "label": "Cliente · ámbar + piedra",
+        "value": "warm",
+        "kind": "actual",
+        "token": "widget.now"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-story",
+      "group": "Widgets y contenido",
+      "title": "Entrada de historia",
+      "token": "widget.story",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · fecha + título + contexto + media",
+        "value": "entry",
+        "kind": "adn",
+        "token": "widget.story"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-deliverable",
+      "group": "Widgets y contenido",
+      "title": "Entregable",
+      "token": "widget.deliverable",
+      "selection": {
+        "optionId": "2",
+        "label": "ADN · archivo en su tarea",
+        "value": "context",
+        "kind": "adn",
+        "token": "widget.deliverable"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-action",
+      "group": "Widgets y contenido",
+      "title": "Acción requerida del cliente",
+      "token": "widget.action",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · solicitud en tarea + consecuencia",
+        "value": "context",
+        "kind": "adn",
+        "token": "widget.action"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-comment",
+      "group": "Widgets y contenido",
+      "title": "Comentario",
+      "token": "widget.comment",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · hilo dentro de avance",
+        "value": "thread",
+        "kind": "actual",
+        "token": "widget.comment"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "widget-empty",
+      "group": "Widgets y contenido",
+      "title": "Estado vacío",
+      "token": "widget.empty",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · explicar y una acción",
+        "value": "single",
+        "kind": "adn",
+        "token": "widget.empty"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-shell",
+      "group": "Layout y navegación",
+      "title": "Ancho máximo del portal",
+      "token": "layout.shell",
+      "selection": {
+        "optionId": "3",
+        "label": "max-w-7xl",
+        "value": "80rem",
+        "kind": "actual",
+        "token": "layout.shell"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-reading",
+      "group": "Layout y navegación",
+      "title": "Ancho de lectura",
+      "token": "layout.reading",
+      "selection": {
+        "optionId": "2",
+        "label": "max-w-4xl",
+        "value": "56rem",
+        "kind": "actual",
+        "token": "layout.reading"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-modal",
+      "group": "Layout y navegación",
+      "title": "Ancho de modal",
+      "token": "layout.modal",
+      "selection": {
+        "optionId": "2",
+        "label": "max-w-4xl",
+        "value": "56rem",
+        "kind": "actual",
+        "token": "layout.modal"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-mobile",
+      "group": "Layout y navegación",
+      "title": "Márgenes mobile",
+      "token": "layout.mobile",
+      "selection": {
+        "optionId": "1",
+        "label": "px-4",
+        "value": "16px",
+        "kind": "actual",
+        "token": "layout.mobile"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-desktop",
+      "group": "Layout y navegación",
+      "title": "Márgenes desktop",
+      "token": "layout.desktop",
+      "selection": {
+        "optionId": "0",
+        "label": "px-16",
+        "value": "64px",
+        "kind": "actual",
+        "token": "layout.desktop"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-header",
+      "group": "Layout y navegación",
+      "title": "Altura de cabecera",
+      "token": "layout.header",
+      "selection": {
+        "optionId": "0",
+        "label": "h-12",
+        "value": "48px",
+        "kind": "actual",
+        "token": "layout.header"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-workspace",
+      "group": "Layout y navegación",
+      "title": "Columnas del workspace",
+      "token": "layout.workspace",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · índice 240 / lienzo mín 640 / inspector 320",
+        "value": "three",
+        "kind": "adn",
+        "token": "layout.workspace"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-client-index",
+      "group": "Layout y navegación",
+      "title": "Índice de historia del cliente",
+      "token": "layout.client.index",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · barra flotante abajo",
+        "value": "floating",
+        "kind": "actual",
+        "token": "layout.client.index"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-header-style",
+      "group": "Layout y navegación",
+      "title": "Aspecto de header",
+      "token": "layout.header.style",
+      "selection": {
+        "optionId": "2",
+        "label": "ADN · compacto, sin barra fija adicional",
+        "value": "compact",
+        "kind": "adn",
+        "token": "layout.header.style"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-brand",
+      "group": "Layout y navegación",
+      "title": "Marca en cabecera",
+      "token": "layout.brand",
+      "selection": {
+        "optionId": "2",
+        "label": "Marca única a definir",
+        "value": "unified",
+        "kind": "propuesta",
+        "token": "layout.brand"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-grid",
+      "group": "Layout y navegación",
+      "title": "Grilla responsive",
+      "token": "layout.grid",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · 12 / 8 / 4 columnas",
+        "value": "canonical",
+        "kind": "adn",
+        "token": "layout.grid"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-drawer",
+      "group": "Layout y navegación",
+      "title": "Índice e inspector en mobile",
+      "token": "layout.drawer",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · drawers y lienzo completo",
+        "value": "drawers",
+        "kind": "adn",
+        "token": "layout.drawer"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "layout-creation",
+      "group": "Layout y navegación",
+      "title": "Presentación de Crear proyecto",
+      "token": "layout.creation",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · secciones + índice + resumen",
+        "value": "sections",
+        "kind": "adn",
+        "token": "layout.creation"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "media-aspect",
+      "group": "Imágenes y archivos",
+      "title": "Proporción de media",
+      "token": "media.aspect",
+      "selection": {
+        "optionId": "0",
+        "label": "aspect-16/10",
+        "value": "aspect-16/10",
+        "kind": "actual",
+        "token": "media.aspect"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "media-crop",
+      "group": "Imágenes y archivos",
+      "title": "Ajuste de imagen",
+      "token": "media.crop",
+      "selection": {
+        "optionId": "2",
+        "label": "ADN · no recortar información técnica",
+        "value": "contain",
+        "kind": "adn",
+        "token": "media.crop"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "media-zoom",
+      "group": "Imágenes y archivos",
+      "title": "Ampliación de entregables",
+      "token": "media.zoom",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · ampliar y conservar contexto",
+        "value": "context",
+        "kind": "adn",
+        "token": "media.zoom"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "media-caption",
+      "group": "Imágenes y archivos",
+      "title": "Pie y versión de imagen",
+      "token": "media.caption",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · pie + versión + acción ampliar",
+        "value": "caption",
+        "kind": "adn",
+        "token": "media.caption"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "media-comparison",
+      "group": "Imágenes y archivos",
+      "title": "Alternativas comparables",
+      "token": "media.comparison",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · labels iguales y zoom sincronizado si aplica",
+        "value": "sync",
+        "kind": "adn",
+        "token": "media.comparison"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "motion-micro",
+      "group": "Movimiento y estados",
+      "title": "Duración de microestados",
+      "token": "motion.micro",
+      "selection": {
+        "optionId": "2",
+        "label": "duration-500",
+        "value": "500ms",
+        "kind": "actual",
+        "token": "motion.micro"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "motion-expand",
+      "group": "Movimiento y estados",
+      "title": "Expansión de detalles",
+      "token": "motion.expand",
+      "selection": {
+        "optionId": "2",
+        "label": "duration-500",
+        "value": "500ms",
+        "kind": "actual",
+        "token": "motion.expand"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "motion-context",
+      "group": "Movimiento y estados",
+      "title": "Cambio de contexto",
+      "token": "motion.context",
+      "selection": {
+        "optionId": "2",
+        "label": "duration-500",
+        "value": "500ms",
+        "kind": "actual",
+        "token": "motion.context"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "motion-progress",
+      "group": "Movimiento y estados",
+      "title": "Animación del progreso",
+      "token": "motion.progress",
+      "selection": {
+        "optionId": "2",
+        "label": "duration-500",
+        "value": "500ms",
+        "kind": "actual",
+        "token": "motion.progress"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-loop",
+      "group": "Movimiento y estados",
+      "title": "Animación repetida",
+      "token": "state.loop",
+      "selection": {
+        "optionId": "0",
+        "label": "Actual · pulse / ping / bounce",
+        "value": "loop",
+        "kind": "actual",
+        "token": "state.loop"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-reduced",
+      "group": "Movimiento y estados",
+      "title": "Movimiento reducido",
+      "token": "state.reduced",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · respetar prefers-reduced-motion",
+        "value": "reduce",
+        "kind": "adn",
+        "token": "state.reduced"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-toast",
+      "group": "Movimiento y estados",
+      "title": "Confirmación toast",
+      "token": "state.toast",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · solo acciones reversibles, error en contexto",
+        "value": "context",
+        "kind": "adn",
+        "token": "state.toast"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-loading",
+      "group": "Movimiento y estados",
+      "title": "Carga de contenido",
+      "token": "state.loading",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · skeleton de la estructura real",
+        "value": "skeleton",
+        "kind": "adn",
+        "token": "state.loading"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-save",
+      "group": "Movimiento y estados",
+      "title": "Estado de guardado",
+      "token": "state.save",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · indicador discreto y confirmación breve",
+        "value": "inline",
+        "kind": "adn",
+        "token": "state.save"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-canonical",
+      "group": "Movimiento y estados",
+      "title": "Lenguaje de estados",
+      "token": "state.canonical",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · No iniciada / En curso / En revisión / Esperando al cliente / Pausada / Completada / Fuera de alcance",
+        "value": "canonical",
+        "kind": "adn",
+        "token": "state.canonical"
+      },
+      "note": "",
+      "pending": false
+    },
+    {
+      "id": "state-publish",
+      "group": "Movimiento y estados",
+      "title": "Publicación y aviso",
+      "token": "state.publish",
+      "selection": {
+        "optionId": "1",
+        "label": "ADN · revisar / publicar / comunicar manualmente",
+        "value": "separate",
+        "kind": "adn",
+        "token": "state.publish"
+      },
+      "note": "",
+      "pending": false
+    }
+  ]
+}

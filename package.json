@@ -12,7 +12,9 @@
     "api": "node --watch server/index.mjs",
     "start": "node server/index.mjs",
     "test:storage": "node --test server/tests/*.test.mjs",
-    "test:project": "node --import tsx --test tests/*.test.ts tests/*.test.tsx"
+    "test:project": "node --import tsx --test tests/*.test.ts tests/*.test.tsx",
+    "design:tokens": "node scripts/design-tokens.mjs",
+    "design:check": "node scripts/design-tokens.mjs --check"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

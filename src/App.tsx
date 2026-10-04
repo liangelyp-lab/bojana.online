@@ -15,15 +15,15 @@ import NewProjectModal from './components/studio/NewProjectModal';
 // Client Portal Container
 import ClientPortalContainer from './components/client/ClientPortalContainer';
 
-import { 
-  getAllProjects, 
-  saveProjectData, 
+import {
+  getAllProjects,
+  saveProjectData,
   deleteProject,
-  resetProjectDataToDefault 
+  resetProjectDataToDefault
 } from './services/storageService';
-import { 
-  UserRole, 
-  ProjectData 
+import {
+  UserRole,
+  ProjectData
 } from './types';
 import { BellRing } from 'lucide-react';
 
@@ -194,8 +194,8 @@ export default function App() {
         />
 
         {toastMessage && (
-          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-            <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="bojana-widget fixed bottom-4 right-4 bg-bojana-ink border border-bojana-line text-bojana-inverse rounded-bojana-widget p-3.5 shadow-bojana-widget z-50 text-xs font-sans animate-fade-in flex items-center gap-bojana-inside">
+            <BellRing className="w-4 h-4 text-bojana-ink shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -206,7 +206,7 @@ export default function App() {
   // 3. ADMIN WORKSPACE (A SPECIFIC PROJECT SELECTED)
   if (selectedProjectId && currentProject) {
     return (
-      <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans flex flex-col">
+      <div className="min-h-screen bg-bojana-canvas text-bojana-ink font-sans flex flex-col">
         {/* Studio Workspace Nav Bar */}
         <StudioNav
           activeTab="proyectos"
@@ -219,7 +219,7 @@ export default function App() {
           onLogout={handleLogout}
         />
 
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 bojana-app-main">
           <ProjectWorkspace
             project={currentProject}
             onBackToProjects={() => {
@@ -237,8 +237,8 @@ export default function App() {
 
         {/* Global Toast */}
         {toastMessage && (
-          <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-            <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="bojana-widget fixed bottom-4 right-4 bg-bojana-ink border border-bojana-line text-bojana-inverse rounded-bojana-widget p-3.5 shadow-bojana-widget z-50 text-xs font-sans animate-fade-in flex items-center gap-bojana-inside">
+            <BellRing className="w-4 h-4 text-bojana-ink shrink-0" />
             <span>{toastMessage}</span>
           </div>
         )}
@@ -255,7 +255,7 @@ export default function App() {
 
   // 4. ADMIN MAIN SECTIONS (DASHBOARD | PROYECTOS | CLIENTES | CONFIGURACIÓN)
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-gray-900 font-sans flex flex-col">
+    <div className="min-h-screen bg-bojana-canvas text-bojana-ink font-sans flex flex-col">
       <StudioNav
         activeTab={studioNavTab}
         onTabChange={(tab) => setStudioNavTab(tab)}
@@ -263,7 +263,7 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+      <main className="flex-1 bojana-app-main">
         {studioNavTab === 'dashboard' && (
           <StudioDashboard
             projects={projects}
@@ -311,8 +311,8 @@ export default function App() {
 
       {/* Global Toast */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 bg-gray-950 border border-gray-800 text-white rounded-xl p-3.5 shadow-2xl z-50 text-xs font-mono animate-fade-in flex items-center gap-2.5">
-          <BellRing className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="bojana-widget fixed bottom-4 right-4 bg-bojana-ink border border-bojana-line text-bojana-inverse rounded-bojana-widget p-3.5 shadow-bojana-widget z-50 text-xs font-sans animate-fade-in flex items-center gap-bojana-inside">
+          <BellRing className="w-4 h-4 text-bojana-ink shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}

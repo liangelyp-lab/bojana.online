@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Alert, Task, DailyLog } from '../types';
-import { 
-  TrendingUp, 
-  Users, 
-  Clock, 
-  CheckCircle, 
-  Activity, 
-  MapPin, 
+import {
+  TrendingUp,
+  Users,
+  Clock,
+  CheckCircle,
+  Activity,
+  MapPin,
   Calendar,
   Layers,
   ChevronRight,
@@ -28,19 +28,19 @@ interface ExecutiveDashboardProps {
   certificaciones?: any[];
 }
 
-export default function ExecutiveDashboard({ 
-  alerts, 
-  tasks, 
-  logs, 
-  onMitigateAlert, 
+export default function ExecutiveDashboard({
+  alerts,
+  tasks,
+  logs,
+  onMitigateAlert,
   onNavigateToTab,
   dashboardStats,
   certificaciones
 }: ExecutiveDashboardProps) {
-  
+
   // Project real metrics
   const avanceFisico = dashboardStats?.avance_fisico ?? (
-    tasks.length > 0 
+    tasks.length > 0
       ? Math.round(tasks.reduce((sum, t) => sum + (t.avanceReal || 0), 0) / tasks.length)
       : 0
   );
@@ -65,7 +65,7 @@ export default function ExecutiveDashboard({
     const tNorm = monthNum / totalMonths;
     // Sigmoid-like theoretical curve
     const previsto = Math.min(100, Math.round(100 / (1 + Math.exp(-6 * (tNorm - 0.5)))));
-    
+
     // Real progress if month is passed or current
     const isPastOrCurrent = monthNum <= Math.max(1, Math.round(totalMonths * (avanceFisico / 100)));
     const real = isPastOrCurrent ? Math.min(avanceFisico, Math.round(previsto * 0.95)) : null;
@@ -101,75 +101,75 @@ export default function ExecutiveDashboard({
   };
 
   return (
-    <div id="executive-dashboard-container" className="space-y-4 font-sans text-xs">
-      
+    <div id="executive-dashboard-container" className="space-y-bojana-block font-sans text-xs">
+
       {/* 1. TOP EXECUTIVE KPI CARDS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        
+
         {/* Avance Físico Actual */}
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3.5 shadow-bojana-widget flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold">Avance Físico Certificado</span>
-            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium">Avance Físico Certificado</span>
+            <TrendingUp className="w-3.5 h-3.5 text-bojana-success" />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-mono font-bold text-gray-950">{avanceFisico}%</span>
-            <span className="text-[10px] text-gray-500 font-mono">ponderado</span>
+          <div className="mt-2 flex items-baseline gap-bojana-inside">
+            <span className="text-2xl font-sans font-medium text-bojana-ink">{avanceFisico}%</span>
+            <span className="text-xs text-bojana-muted font-sans">ponderado</span>
           </div>
-          <div className="mt-2 w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-            <div 
-              className="bg-emerald-600 h-full rounded-full transition-all duration-500" 
+          <div className="mt-2 w-full bg-bojana-soft h-1.5 rounded-bojana-widget overflow-hidden">
+            <div
+              className="bg-bojana-success h-full rounded-bojana-widget transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(0, avanceFisico))}%` }}
             />
           </div>
         </div>
 
         {/* Estado y Hito Clave */}
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3.5 shadow-bojana-widget flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold">Estado Contractual</span>
-            <Activity className="w-3.5 h-3.5 text-gray-700" />
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium">Estado Contractual</span>
+            <Activity className="w-3.5 h-3.5 text-bojana-ink" />
           </div>
           <div className="mt-2">
-            <span className="text-sm font-bold text-gray-950 block">{estadoGeneral}</span>
-            <span className="text-[10px] text-gray-500 font-mono mt-0.5 block truncate">Hito: {proximoHito}</span>
+            <span className="text-sm font-medium text-bojana-ink block">{estadoGeneral}</span>
+            <span className="text-xs text-bojana-muted font-sans mt-0.5 block truncate">Hito: {proximoHito}</span>
           </div>
-          <div className="mt-2 text-[9px] font-mono text-gray-400">
+          <div className="mt-2 text-xs font-sans text-bojana-muted">
             Reporte: {fechaReporte}
           </div>
         </div>
 
         {/* Balance de Servicios */}
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3.5 shadow-bojana-widget flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold">Servicios Asociados</span>
-            <Layers className="w-3.5 h-3.5 text-gray-700" />
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium">Servicios Asociados</span>
+            <Layers className="w-3.5 h-3.5 text-bojana-ink" />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-mono font-bold text-gray-950">{tasks.length}</span>
-            <span className="text-[10px] text-gray-500 font-mono">activos</span>
+          <div className="mt-2 flex items-baseline gap-bojana-inside">
+            <span className="text-2xl font-sans font-medium text-bojana-ink">{tasks.length}</span>
+            <span className="text-xs text-bojana-muted font-sans">activos</span>
           </div>
-          <div className="mt-2 flex items-center gap-1.5 text-[9.5px] font-mono text-gray-600">
-            <span className="text-emerald-700 font-bold">{completedServices} 100%</span>
+          <div className="mt-2 flex items-center gap-bojana-inside text-[9.5px] font-sans text-bojana-muted">
+            <span className="text-bojana-success font-medium">{completedServices} 100%</span>
             <span>&bull;</span>
-            <span className="text-amber-700 font-bold">{inProgressServices} en curso</span>
+            <span className="text-bojana-ink font-medium">{inProgressServices} en curso</span>
             <span>&bull;</span>
-            <span className="text-gray-400">{pendingServices} pend.</span>
+            <span className="text-bojana-muted">{pendingServices} pend.</span>
           </div>
         </div>
 
         {/* Bitácora / Fiscalización Técnica */}
-        <div className="bg-white border border-gray-200 rounded-xl p-3.5 shadow-2xs flex flex-col justify-between">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3.5 shadow-bojana-widget flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold">Fiscalización Técnica</span>
-            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium">Fiscalización Técnica</span>
+            <CheckCircle className="w-3.5 h-3.5 text-bojana-success" />
           </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-mono font-bold text-gray-950">{logs.length}</span>
-            <span className="text-[10px] text-gray-500 font-mono">partes emitidos</span>
+          <div className="mt-2 flex items-baseline gap-bojana-inside">
+            <span className="text-2xl font-sans font-medium text-bojana-ink">{logs.length}</span>
+            <span className="text-xs text-bojana-muted font-sans">partes emitidos</span>
           </div>
-          <div className="mt-2 text-[9.5px] font-mono text-emerald-700 flex items-center gap-1">
-            <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+          <div className="mt-2 text-[9.5px] font-sans text-bojana-success flex items-center gap-bojana-inside">
+            <Check className="w-3 h-3 text-bojana-success shrink-0" />
             <span>Firma D.O. Registrada</span>
           </div>
         </div>
@@ -177,32 +177,32 @@ export default function ExecutiveDashboard({
       </div>
 
       {/* 2. MAIN BENTO GRID: CURVA S & ESTADO DE SERVICIOS */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-bojana-block">
+
         {/* LEFT COLUMN (7 COLS): CURVA S DEL PROYECTO */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 lg:col-span-7 flex flex-col justify-between shadow-2xs">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 lg:col-span-7 flex flex-col justify-between shadow-bojana-widget">
           <div>
-            <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-3">
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-gray-900" />
-                <h4 className="text-xs font-bold text-gray-950 uppercase font-mono tracking-tight">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-2 mb-3">
+              <div className="flex items-center gap-bojana-inside">
+                <TrendingUp className="w-4 h-4 text-bojana-ink" />
+                <h4 className="bojana-heading-component text-xs font-medium text-bojana-ink uppercase font-sans tracking-normal">
                   Curva de Avance Contractual (Previsto vs. Real)
                 </h4>
               </div>
-              <div className="flex items-center gap-3 text-[10px] font-mono">
-                <span className="flex items-center gap-1 text-gray-400">
-                  <span className="w-2.5 h-0.5 bg-gray-400 inline-block"></span> Previsto
+              <div className="flex items-center gap-3 text-xs font-sans">
+                <span className="flex items-center gap-bojana-inside text-bojana-muted">
+                  <span className="w-2.5 h-0.5 bg-bojana-soft inline-block"></span> Previsto
                 </span>
-                <span className="flex items-center gap-1 text-emerald-700 font-bold">
-                  <span className="w-2.5 h-0.5 bg-emerald-600 inline-block"></span> Real Certificado
+                <span className="flex items-center gap-bojana-inside text-bojana-success font-medium">
+                  <span className="w-2.5 h-0.5 bg-bojana-success inline-block"></span> Real Certificado
                 </span>
               </div>
             </div>
 
             {/* SVG Chart */}
             <div className="relative w-full h-[120px] flex items-center justify-center">
-              <svg 
-                viewBox={`0 0 ${width} ${height}`} 
+              <svg
+                viewBox={`0 0 ${width} ${height}`}
                 className="w-full h-full overflow-visible"
               >
                 {/* Horizontal grid lines */}
@@ -249,19 +249,19 @@ export default function ExecutiveDashboard({
             </div>
 
             {/* X-axis months */}
-            <div className="flex justify-between px-6 pt-1 text-[8.5px] font-mono text-gray-400">
+            <div className="flex justify-between px-6 pt-1 text-[8.5px] font-sans text-bojana-muted">
               {sCurveData.filter((_, i) => i === 0 || i === Math.floor(sCurveData.length / 2) || i === sCurveData.length - 1).map((d) => (
                 <span key={d.mes}>{d.mes}</span>
               ))}
             </div>
           </div>
 
-          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+          <div className="pt-3 border-t border-bojana-line flex items-center justify-between text-xs text-bojana-muted">
             <span>Dirección de Obra: fiscalización periódica conforme a pliego</span>
             <button
               type="button"
               onClick={() => onNavigateToTab('Cronograma')}
-              className="text-emerald-700 hover:text-emerald-800 font-bold font-mono flex items-center gap-1 cursor-pointer"
+              className="bojana-button bojana-button-text text-bojana-success hover:text-bojana-success font-medium font-sans flex items-center gap-bojana-inside cursor-pointer"
             >
               <span>Ver Cronograma Completo</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -270,44 +270,44 @@ export default function ExecutiveDashboard({
         </div>
 
         {/* RIGHT COLUMN (5 COLS): RESUMEN DE SERVICIOS ASOCIADOS */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 lg:col-span-5 flex flex-col justify-between shadow-2xs">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 lg:col-span-5 flex flex-col justify-between shadow-bojana-widget">
           <div>
-            <div className="flex items-center justify-between border-b border-gray-200 pb-2 mb-3">
-              <div className="flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-gray-900" />
-                <h4 className="text-xs font-bold text-gray-950 uppercase font-mono tracking-tight">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-2 mb-3">
+              <div className="flex items-center gap-bojana-inside">
+                <Layers className="w-4 h-4 text-bojana-ink" />
+                <h4 className="bojana-heading-component text-xs font-medium text-bojana-ink uppercase font-sans tracking-normal">
                   Servicios Asociados
                 </h4>
               </div>
-              <span className="text-[10px] font-mono text-gray-400">
+              <span className="text-xs font-sans text-bojana-muted">
                 Ponderación Equitativa
               </span>
             </div>
 
             {/* Services List (Empty State or List) */}
             {tasks.length === 0 ? (
-              <div className="py-8 text-center space-y-2 text-gray-400">
+              <div className="py-8 text-center space-y-bojana-inside text-bojana-muted">
                 <FolderOpen className="w-8 h-8 mx-auto opacity-50" />
                 <p className="text-xs">No hay servicios asociados asignados a este proyecto.</p>
               </div>
             ) : (
-              <div className="space-y-2.5 max-h-[175px] overflow-y-auto pr-1">
+              <div className="space-y-bojana-inside max-h-[175px] overflow-y-auto pr-1">
                 {tasks.slice(0, 5).map(task => (
-                  <div key={task.id} className="p-2 rounded-lg bg-gray-50 border border-gray-200/80">
+                  <div key={task.id} className="p-2 rounded-bojana-widget bg-bojana-surface border border-bojana-line/80">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-gray-900 truncate max-w-[200px]" title={task.rubro}>
+                      <span className="font-medium text-bojana-ink truncate max-w-[200px]" title={task.rubro}>
                         {task.rubro}
                       </span>
-                      <span className={`font-mono text-[10px] font-bold ${
-                        task.avanceReal === 100 ? 'text-emerald-700' : 'text-gray-700'
+                      <span className={`font-sans text-xs font-medium ${
+                        task.avanceReal === 100 ? "text-bojana-success" : "text-bojana-ink"
                       }`}>
                         {task.avanceReal}%
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden">
+                    <div className="w-full bg-bojana-soft h-1 rounded-bojana-widget overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          task.avanceReal === 100 ? 'bg-emerald-600' : 'bg-gray-800'
+                        className={`h-full rounded-bojana-badge transition-all duration-500 ${
+                          task.avanceReal === 100 ? "bg-bojana-success" : "bg-bojana-ink"
                         }`}
                         style={{ width: `${Math.min(100, Math.max(0, task.avanceReal))}%` }}
                       />
@@ -316,7 +316,7 @@ export default function ExecutiveDashboard({
                 ))}
 
                 {tasks.length > 5 && (
-                  <div className="text-[10px] font-mono text-gray-400 text-center pt-0.5">
+                  <div className="text-xs font-sans text-bojana-muted text-center pt-0.5">
                     + {tasks.length - 5} servicios adicionales en Cronograma
                   </div>
                 )}
@@ -324,12 +324,12 @@ export default function ExecutiveDashboard({
             )}
           </div>
 
-          <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
+          <div className="pt-3 border-t border-bojana-line flex items-center justify-between text-xs text-bojana-muted">
             <span>Cálculo: (Suma de avances) / {tasks.length || 1}</span>
             <button
               type="button"
               onClick={() => onNavigateToTab('Cronograma')}
-              className="text-emerald-700 hover:text-emerald-800 font-bold font-mono flex items-center gap-1 cursor-pointer"
+              className="bojana-button bojana-button-text text-bojana-success hover:text-bojana-success font-medium font-sans flex items-center gap-bojana-inside cursor-pointer"
             >
               <span>Gestionar Avances</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -340,21 +340,21 @@ export default function ExecutiveDashboard({
       </div>
 
       {/* 3. RECENT ACTIVITY & BITÁCORA FEED */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-bojana-block">
+
         {/* Bitácora Feed (8 cols) */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 lg:col-span-8 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-            <div className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-gray-900" />
-              <h4 className="text-xs font-bold text-gray-950 uppercase font-mono tracking-tight">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 lg:col-span-8 shadow-bojana-widget space-y-3">
+          <div className="flex items-center justify-between border-b border-bojana-line pb-2">
+            <div className="flex items-center gap-bojana-inside">
+              <Calendar className="w-4 h-4 text-bojana-ink" />
+              <h4 className="bojana-heading-component text-xs font-medium text-bojana-ink uppercase font-sans tracking-normal">
                 Últimos Partes de Bitácora de Obra
               </h4>
             </div>
             <button
               type="button"
               onClick={() => onNavigateToTab('Bitácora')}
-              className="text-emerald-700 hover:text-emerald-800 text-xs font-bold font-mono flex items-center gap-1 cursor-pointer"
+              className="bojana-button bojana-button-text text-bojana-success hover:text-bojana-success text-xs font-medium font-sans flex items-center gap-bojana-inside cursor-pointer"
             >
               <span>Ver Bitácora</span>
               <ChevronRight className="w-3.5 h-3.5" />
@@ -362,31 +362,31 @@ export default function ExecutiveDashboard({
           </div>
 
           {logs.length === 0 ? (
-            <div className="p-6 text-center space-y-2 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              <FolderOpen className="w-7 h-7 mx-auto opacity-50 text-gray-400" />
-              <p className="text-xs text-gray-600 font-medium">Aún no se han emitido partes en la bitácora de esta obra.</p>
-              <p className="text-[11px] text-gray-400">
+            <div className="bojana-widget p-6 text-center space-y-bojana-inside text-bojana-muted bg-bojana-surface rounded-bojana-widget border border-dashed border-bojana-line">
+              <FolderOpen className="w-7 h-7 mx-auto opacity-50 text-bojana-muted" />
+              <p className="text-xs text-bojana-muted font-medium">Aún no se han emitido partes en la bitácora de esta obra.</p>
+              <p className="text-xs text-bojana-muted">
                 La Dirección de Obra registrará aquí las inspecciones de campo, ensayos y novedades técnicas.
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-bojana-inside">
               {logs.slice(0, 3).map(log => (
-                <div key={log.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div key={log.id} className="bojana-widget p-3 bg-bojana-surface rounded-bojana-widget border border-bojana-line flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-inside">
                   <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-mono font-bold bg-white border border-gray-200 px-1.5 py-0.2 rounded text-gray-700">
+                    <div className="flex items-center gap-bojana-inside">
+                      <span className="text-xs font-sans font-medium bg-bojana-surface border border-bojana-line px-1.5 py-0.2 rounded-bojana-badge text-bojana-ink">
                         {log.id}
                       </span>
-                      <strong className="text-xs text-gray-950">{log.fecha}</strong>
-                      <span className="text-[10px] text-gray-400 font-mono">Clima: {log.clima} ({log.temperatura})</span>
+                      <strong className="text-xs text-bojana-ink">{log.fecha}</strong>
+                      <span className="text-xs text-bojana-muted font-sans">Clima: {log.clima} ({log.temperatura})</span>
                     </div>
-                    <p className="text-[11px] text-gray-600 line-clamp-1">
+                    <p className="text-xs text-bojana-muted line-clamp-1">
                       {log.novedades || 'Jornada técnica de fiscalización en campo sin incidentes.'}
                     </p>
                   </div>
-                  <span className="text-[10px] font-mono text-emerald-700 font-bold flex items-center gap-1 shrink-0">
-                    <CheckCircle className="w-3 h-3 text-emerald-600" />
+                  <span className="text-xs font-sans text-bojana-success font-medium flex items-center gap-bojana-inside shrink-0">
+                    <CheckCircle className="w-3 h-3 text-bojana-success" />
                     <span>Conforme D.O.</span>
                   </span>
                 </div>
@@ -396,37 +396,37 @@ export default function ExecutiveDashboard({
         </div>
 
         {/* Technical Alerts / Technical Communications (4 cols) */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 lg:col-span-4 shadow-2xs space-y-3 flex flex-col justify-between">
+        <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 lg:col-span-4 shadow-bojana-widget space-y-3 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-              <div className="flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-gray-800" />
-                <h4 className="text-xs font-bold text-gray-950 uppercase font-mono tracking-tight">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-2">
+              <div className="flex items-center gap-bojana-inside">
+                <AlertTriangle className="w-4 h-4 text-bojana-ink" />
+                <h4 className="bojana-heading-component text-xs font-medium text-bojana-ink uppercase font-sans tracking-normal">
                   Alertas Técnicas
                 </h4>
               </div>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 bg-gray-100 rounded text-gray-700 font-bold">
+              <span className="text-xs font-sans px-1.5 py-0.2 bg-bojana-soft rounded-bojana-badge text-bojana-ink font-medium">
                 {activeAlerts.length} activas
               </span>
             </div>
 
             {activeAlerts.length === 0 ? (
-              <div className="py-6 text-center space-y-1 text-gray-400">
-                <CheckCircle className="w-6 h-6 text-emerald-500 mx-auto" />
-                <p className="text-xs font-medium text-gray-700">Sin interferencias críticas</p>
-                <p className="text-[10px] text-gray-400">La obra avanza de acuerdo a las especificaciones técnicas.</p>
+              <div className="py-6 text-center space-y-bojana-inside text-bojana-muted">
+                <CheckCircle className="w-6 h-6 text-bojana-success mx-auto" />
+                <p className="text-xs font-medium text-bojana-ink">Sin interferencias críticas</p>
+                <p className="text-xs text-bojana-muted">La obra avanza de acuerdo a las especificaciones técnicas.</p>
               </div>
             ) : (
-              <div className="space-y-2 mt-2">
+              <div className="space-y-bojana-inside mt-2">
                 {activeAlerts.map(alert => (
-                  <div key={alert.id} className="p-2.5 bg-amber-50/60 border border-amber-200 rounded-lg text-xs space-y-1">
+                  <div key={alert.id} className="p-2.5 bg-bojana-waiting/60 border border-bojana-line rounded-bojana-widget text-xs space-y-bojana-inside">
                     <div className="flex items-center justify-between">
-                      <strong className="text-amber-950 text-[11px] font-bold">{alert.titulo}</strong>
-                      <span className="text-[9px] font-mono bg-amber-100 text-amber-800 px-1 rounded font-bold">
+                      <strong className="text-bojana-ink text-xs font-medium">{alert.titulo}</strong>
+                      <span className="text-xs font-sans bg-bojana-waiting text-bojana-ink px-1 rounded-bojana-badge font-medium">
                         {alert.gravedad}
                       </span>
                     </div>
-                    <p className="text-[10px] text-gray-600 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-bojana-muted line-clamp-2 leading-relaxed">
                       {alert.descripcion}
                     </p>
                   </div>
@@ -435,7 +435,7 @@ export default function ExecutiveDashboard({
             )}
           </div>
 
-          <div className="pt-2 border-t border-gray-100 text-[10px] font-mono text-gray-400 text-center">
+          <div className="pt-2 border-t border-bojana-line text-xs font-sans text-bojana-muted text-center">
             Monitoreo continuo por Bojana Estudio
           </div>
         </div>

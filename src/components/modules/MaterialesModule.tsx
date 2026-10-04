@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
-import { 
-  ProjectData, 
-  MaterialItem, 
-  MaterialAlternative, 
-  DecisionItem 
+import {
+  ProjectData,
+  MaterialItem,
+  MaterialAlternative,
+  DecisionItem
 } from '../../types';
-import { 
-  Palette, 
-  CheckSquare, 
-  Plus, 
-  Trash2, 
-  Check, 
-  ArrowRight, 
-  ExternalLink, 
-  Sparkles, 
-  CheckCircle2, 
+import {
+  Palette,
+  CheckSquare,
+  Plus,
+  Trash2,
+  Check,
+  ArrowRight,
+  ExternalLink,
+  Sparkles,
+  CheckCircle2,
   Layers,
   Tag,
   Building
@@ -113,22 +113,22 @@ export default function MaterialesModule({
   };
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-8">
-      
+    <div className="space-y-bojana-block max-w-bojana-shell mx-auto pb-8">
+
       {/* 1. TOP HEADER */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 shadow-bojana-widget flex flex-col md:flex-row md:items-center justify-between gap-bojana-block">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-teal-600 font-bold">
+          <div className="flex items-center gap-bojana-inside">
+            <span className="text-xs font-sans uppercase tracking-normal text-bojana-success font-medium">
               Módulo de Materiales & Propuestas
             </span>
-            <span className="text-[10px] font-mono text-gray-400">&bull;</span>
-            <span className="text-[10px] font-mono text-gray-500">Fichas Técnicas & Muestras</span>
+            <span className="text-xs font-sans text-bojana-muted">&bull;</span>
+            <span className="text-xs font-sans text-bojana-muted">Fichas Técnicas & Muestras</span>
           </div>
-          <h2 className="text-xl font-extrabold text-gray-950 font-sans tracking-tight mt-0.5">
+          <h2 className="bojana-heading-section text-xl font-medium text-bojana-ink font-sans tracking-normal mt-0.5">
             Especificación de Acabados & Muestrario
           </h2>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-bojana-muted mt-1">
             Fichas técnicas de materiales con proveedores, medidas y alternativas. Solicite la aprobación del cliente en un solo clic.
           </p>
         </div>
@@ -137,21 +137,21 @@ export default function MaterialesModule({
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2 rounded-xl bg-gray-950 hover:bg-gray-800 text-white text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer shadow-xs shrink-0"
+            className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0"
           >
-            <Plus className="w-4 h-4 text-teal-400" />
+            <Plus className="w-4 h-4 text-bojana-success" />
             <span>+ Especificar Material</span>
           </button>
         )}
       </div>
 
       {/* 2. MATERIALS CATALOG GRID */}
-      <div className="space-y-6">
+      <div className="space-y-bojana-block">
         {materiales.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center space-y-3">
-            <Palette className="w-10 h-10 text-gray-300 mx-auto" />
-            <h4 className="text-sm font-bold text-gray-800">Aún no hay materiales especificados</h4>
-            <p className="text-xs text-gray-500 max-w-md mx-auto">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-12 text-center space-y-3">
+            <Palette className="w-10 h-10 text-bojana-line mx-auto" />
+            <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink">Aún no hay materiales especificados</h4>
+            <p className="text-xs text-bojana-muted max-w-md mx-auto">
               Bojana Estudio registrará aquí las muestras de porcelanatos, maderas, revestimientos y equipamiento con sus alternativas.
             </p>
           </div>
@@ -163,31 +163,31 @@ export default function MaterialesModule({
             );
 
             return (
-              <div 
+              <div
                 key={mat.id}
-                className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden transition hover:border-gray-300 flex flex-col lg:flex-row"
+                className="bg-bojana-surface border border-bojana-line rounded-bojana-widget shadow-bojana-widget overflow-hidden transition hover:border-bojana-line flex flex-col lg:flex-row"
               >
                 {/* Left: High-res Material Photo */}
-                <div className="lg:w-72 aspect-4/3 lg:aspect-auto bg-gray-100 relative shrink-0 overflow-hidden border-b lg:border-b-0 lg:border-r border-gray-200">
-                  <img 
-                    src={mat.imagenUrl || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'} 
+                <div className="lg:w-72 aspect-16/10 lg:aspect-16/10 bg-bojana-soft relative shrink-0 overflow-hidden border-b lg:border-b-0 lg:border-r border-bojana-line">
+                  <img
+                    src={mat.imagenUrl || 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=800&q=80'}
                     alt={mat.nombre}
-                    className="w-full h-full object-cover"
+                    className="bojana-media w-full h-full object-contain"
                   />
-                  <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-xs text-white text-[10px] font-mono px-2 py-0.5 rounded font-bold">
+                  <span className="absolute top-3 left-3 bg-black/70 backdrop-blur-xs text-bojana-inverse text-xs font-sans px-2 py-0.5 rounded-bojana-badge font-medium">
                     {mat.proveedor}
                   </span>
                 </div>
 
                 {/* Right: Technical Details & Alternatives */}
-                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-bojana-block">
                   <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-bojana-inside">
                       <div>
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded font-bold">
+                        <span className="text-xs font-sans uppercase tracking-normal text-bojana-success bg-bojana-soft border border-bojana-success px-2 py-0.5 rounded-bojana-badge font-medium">
                           {mat.especificacion}
                         </span>
-                        <h3 className="text-lg font-bold text-gray-950 font-sans tracking-tight mt-1">
+                        <h3 className="bojana-heading-component text-lg font-medium text-bojana-ink font-sans tracking-normal mt-1">
                           {mat.nombre}
                         </h3>
                       </div>
@@ -196,7 +196,7 @@ export default function MaterialesModule({
                         <button
                           type="button"
                           onClick={() => handleDeleteMaterial(mat.id)}
-                          className="p-1 rounded text-gray-400 hover:text-rose-600 transition self-end sm:self-auto"
+                          className="bojana-icon-button p-1 rounded-bojana-widget text-bojana-muted hover:text-bojana-error transition self-end sm:self-auto"
                           title="Eliminar material"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -205,50 +205,50 @@ export default function MaterialesModule({
                     </div>
 
                     {/* Technical Specs 4-Columns */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                      <div className="bg-gray-50 border border-gray-150 rounded-lg p-2.5">
-                        <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Proveedor</span>
-                        <span className="text-xs font-semibold text-gray-900 truncate block mt-0.5">{mat.proveedor}</span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-bojana-inside pt-1">
+                      <div className="bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5">
+                        <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Proveedor</span>
+                        <span className="text-xs font-medium text-bojana-ink truncate block mt-0.5">{mat.proveedor}</span>
                       </div>
-                      <div className="bg-gray-50 border border-gray-150 rounded-lg p-2.5">
-                        <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Marca</span>
-                        <span className="text-xs font-semibold text-gray-900 truncate block mt-0.5">{mat.marca}</span>
+                      <div className="bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5">
+                        <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Marca</span>
+                        <span className="text-xs font-medium text-bojana-ink truncate block mt-0.5">{mat.marca}</span>
                       </div>
-                      <div className="bg-gray-50 border border-gray-150 rounded-lg p-2.5">
-                        <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Modelo</span>
-                        <span className="text-xs font-semibold text-gray-900 truncate block mt-0.5">{mat.modelo}</span>
+                      <div className="bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5">
+                        <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Modelo</span>
+                        <span className="text-xs font-medium text-bojana-ink truncate block mt-0.5">{mat.modelo}</span>
                       </div>
-                      <div className="bg-gray-50 border border-gray-150 rounded-lg p-2.5">
-                        <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Medidas</span>
-                        <span className="text-xs font-mono font-bold text-gray-900 truncate block mt-0.5">{mat.medidas}</span>
+                      <div className="bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5">
+                        <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Medidas</span>
+                        <span className="text-xs font-sans font-medium text-bojana-ink truncate block mt-0.5">{mat.medidas}</span>
                       </div>
                     </div>
 
                     {mat.notas && (
-                      <p className="text-xs text-gray-600 leading-relaxed font-sans bg-gray-50/60 p-2.5 rounded-lg border border-gray-150">
-                        <strong className="text-gray-800">Notas de aplicación:</strong> {mat.notas}
+                      <p className="text-xs text-bojana-muted leading-relaxed font-sans bg-bojana-surface/60 p-2.5 rounded-bojana-widget border border-bojana-line">
+                        <strong className="text-bojana-ink">Notas de aplicación:</strong> {mat.notas}
                       </p>
                     )}
 
                     {/* Alternatives Strip */}
                     {mat.alternativas && mat.alternativas.length > 0 && (
-                      <div className="space-y-1.5 pt-1">
-                        <span className="text-[10px] font-mono uppercase text-gray-400 font-bold block">
+                      <div className="space-y-bojana-inside pt-1">
+                        <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">
                           Alternativas Propuestas ({mat.alternativas.length})
                         </span>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-bojana-inside">
                           {mat.alternativas.map((alt) => (
-                            <div 
+                            <div
                               key={alt.id}
-                              className="bg-white border border-gray-200 rounded-lg p-2.5 text-xs space-y-0.5 hover:border-gray-300 transition"
+                              className="bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs space-y-0.5 hover:border-bojana-line transition"
                             >
-                              <div className="flex items-center gap-1.5">
-                                <span className="w-4 h-4 rounded bg-gray-900 text-white font-mono text-[10px] font-bold flex items-center justify-center">
+                              <div className="flex items-center gap-bojana-inside">
+                                <span className="w-4 h-4 rounded-bojana-badge bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium flex items-center justify-center">
                                   {alt.numero}
                                 </span>
-                                <strong className="text-gray-900 font-semibold truncate">{alt.titulo}</strong>
+                                <strong className="text-bojana-ink font-medium truncate">{alt.titulo}</strong>
                               </div>
-                              <p className="text-[11px] text-gray-500 truncate">{alt.especificacion}</p>
+                              <p className="text-xs text-bojana-muted truncate">{alt.especificacion}</p>
                             </div>
                           ))}
                         </div>
@@ -257,12 +257,12 @@ export default function MaterialesModule({
                   </div>
 
                   {/* BOTTOM ACTION BAR: DISPARAR "SOLICITAR APROBACIÓN" */}
-                  <div className="border-t border-gray-100 pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="text-xs font-mono text-gray-500">
+                  <div className="border-t border-bojana-line pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="text-xs font-sans text-bojana-muted">
                       {linkedDecision ? (
-                        <div className="flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span className="text-gray-700">
+                        <div className="flex items-center gap-bojana-inside">
+                          <CheckCircle2 className="w-4 h-4 text-bojana-success" />
+                          <span className="text-bojana-ink">
                             Decisión vinculada: <strong>{linkedDecision.estado}</strong>
                           </span>
                         </div>
@@ -271,12 +271,12 @@ export default function MaterialesModule({
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-bojana-inside">
                       {linkedDecision ? (
                         <button
                           type="button"
                           onClick={onNavigateToDecisiones}
-                          className="px-3 py-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer"
+                          className="bojana-button bojana-button-text px-3 py-1.5 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
                         >
                           <span>Ver en Decisiones &rarr;</span>
                         </button>
@@ -284,9 +284,9 @@ export default function MaterialesModule({
                         <button
                           type="button"
                           onClick={() => onRequestApprovalForMaterial(mat)}
-                          className="px-4 py-2 rounded-xl bg-gray-950 hover:bg-teal-700 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+                          className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-success text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                         >
-                          <CheckSquare className="w-3.5 h-3.5 text-teal-400" />
+                          <CheckSquare className="w-3.5 h-3.5 text-bojana-success" />
                           <span>Solicitar Aprobación al Cliente</span>
                         </button>
                       )}
@@ -303,144 +303,144 @@ export default function MaterialesModule({
       {/* 3. MODAL: ESPECIFICAR NUEVO MATERIAL (ADMIN) */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-gray-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-sm font-bold text-gray-950 font-sans">
+          <div className="bojana-modal bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full p-6 shadow-bojana-widget space-y-bojana-block animate-scale-up">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
+              <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                 Especificar Ficha de Material / Propuesta
               </h3>
-              <button onClick={() => setShowAddModal(false)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => setShowAddModal(false)} className="bojana-button bojana-button-text text-bojana-muted hover:text-bojana-ink">
                 &times;
               </button>
             </div>
 
-            <form onSubmit={handleCreateMaterial} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateMaterial} className="space-y-bojana-block text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Nombre del Material</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Nombre del Material</label>
                   <input
                     type="text"
                     required
                     placeholder="ej: Piso SUM"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Especificación Base</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Especificación Base</label>
                   <input
                     type="text"
                     required
                     placeholder="ej: Porcelanato símil piedra"
                     value={newSpec}
                     onChange={(e) => setNewSpec(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Proveedor</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Proveedor</label>
                   <input
                     type="text"
                     placeholder="ej: Ilva"
                     value={newProvider}
                     onChange={(e) => setNewProvider(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Marca</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Marca</label>
                   <input
                     type="text"
                     placeholder="ej: Ilva Porcellanato"
                     value={newBrand}
                     onChange={(e) => setNewBrand(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Modelo</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Modelo</label>
                   <input
                     type="text"
                     placeholder="ej: Tribeca Grey"
                     value={newModel}
                     onChange={(e) => setNewModel(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                   />
                 </div>
                 <div>
-                  <label className="font-mono text-gray-500 font-bold block mb-1">Medidas</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Medidas</label>
                   <input
                     type="text"
                     placeholder="ej: 60x120 cm"
                     value={newMeasures}
                     onChange={(e) => setNewMeasures(e.target.value)}
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white font-mono"
+                    className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface font-sans"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">URL de Imagen de Muestra</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">URL de Imagen de Muestra</label>
                 <input
                   type="text"
                   placeholder="https://images.unsplash.com/..."
                   value={newImageUrl}
                   onChange={(e) => setNewImageUrl(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white font-mono"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface font-sans"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Notas Técnicas</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Notas Técnicas</label>
                 <textarea
                   rows={2}
                   placeholder="Antideslizante R9, tránsito intenso para áreas comunes..."
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
 
               {/* Alternatives inputs */}
-              <div className="space-y-2 border-t border-gray-100 pt-3">
-                <span className="text-[10px] font-mono uppercase text-gray-400 font-bold block">
+              <div className="space-y-bojana-inside border-t border-bojana-line pt-3">
+                <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">
                   Alternativas (Opcional)
                 </span>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-bojana-inside">
                   <input
                     type="text"
                     placeholder="Alt 01 (ej: Tribeca Grey 60x120)"
                     value={alt1Title}
                     onChange={(e) => setAlt1Title(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs"
+                    className="bojana-field bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                   />
                   <input
                     type="text"
                     placeholder="Alt 02 (ej: San Pietro 80x80)"
                     value={alt2Title}
                     onChange={(e) => setAlt2Title(e.target.value)}
-                    className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs"
+                    className="bojana-field bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 font-mono"
+                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget border border-bojana-line text-bojana-ink font-sans"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-gray-950 text-white font-mono font-bold"
+                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans font-medium"
                 >
                   Guardar Material
                 </button>

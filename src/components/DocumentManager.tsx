@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Document } from '../types';
-import { 
-  FileText, 
-  Search, 
-  PlusCircle, 
-  CheckCircle, 
-  Clock, 
-  FileCheck2, 
-  ArrowRightLeft, 
+import {
+  FileText,
+  Search,
+  PlusCircle,
+  CheckCircle,
+  Clock,
+  FileCheck2,
+  ArrowRightLeft,
   ExternalLink,
   Printer,
   FileSignature
@@ -18,15 +18,15 @@ interface DocumentManagerProps {
   onUpdateDocument: (updatedDoc: Document) => void;
 }
 
-export default function DocumentManager({ 
-  documents, 
-  onUpdateDocument 
+export default function DocumentManager({
+  documents,
+  onUpdateDocument
 }: DocumentManagerProps) {
-  
+
   const [activeSubTab, setActiveSubTab] = useState<'O.S.' | 'N.P.'>('O.S.');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'TODOS' | 'Emitida' | 'Respondida' | 'Cerrada'>('TODOS');
-  
+
   // Selected Doc for reading/answering
   const [selectedDocId, setSelectedDocId] = useState<string>('OS-012'); // default
   const [showPrintMode, setShowPrintMode] = useState(false);
@@ -68,46 +68,46 @@ export default function DocumentManager({
   // Filtered lists
   const filteredDocs = documents.filter(doc => {
     const matchesTab = doc.tipo === activeSubTab;
-    const matchesSearch = doc.asunto.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          doc.correlativo.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const matchesSearch = doc.asunto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          doc.correlativo.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           doc.descripcion.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'TODOS' || doc.estado === statusFilter;
-    
+
     return matchesTab && matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: Document['estado']) => {
     switch (status) {
-      case 'Borrador': return 'bg-gray-100 text-gray-500 border-gray-200';
-      case 'Emitida': return 'bg-rose-50 text-rose-700 border-rose-150';
-      case 'Respondida': return 'bg-amber-50 text-amber-700 border-amber-150';
-      case 'Cerrada': return 'bg-emerald-50 text-emerald-700 border-emerald-150';
-      default: return 'bg-gray-50 text-gray-750 border-gray-200';
+      case 'Borrador': return "bg-bojana-soft text-bojana-muted border-bojana-line";
+      case 'Emitida': return "bg-bojana-soft text-bojana-error border-bojana-error";
+      case 'Respondida': return "bg-bojana-waiting text-bojana-ink border-bojana-line";
+      case 'Cerrada': return "bg-bojana-soft text-bojana-success border-bojana-success";
+      default: return "bg-bojana-surface text-bojana-ink border-bojana-line";
     }
   };
 
   return (
-    <div id="document-manager-main" className="space-y-6">
-      
+    <div id="document-manager-main" className="space-y-bojana-block">
+
       {/* SECTION TABS FOR DOCUMENT TYPE */}
-      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 border-b border-gray-205 pb-3">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg self-start border border-gray-200">
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-bojana-block border-b border-bojana-line pb-3">
+        <div className="flex gap-bojana-inside bg-bojana-soft p-1 rounded-bojana-widget self-start border border-bojana-line">
           <button
             onClick={() => { setActiveSubTab('O.S.'); setStatusFilter('TODOS'); }}
-            className={`py-1.5 px-3.5 rounded-md text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
-              activeSubTab === 'O.S.'
-                ? 'bg-white text-gray-900 shadow-2xs'
-                : 'text-gray-550 hover:text-gray-800'
+            className={`bojana-button bojana-button-text py-1.5 px-3.5 rounded-bojana-widget text-xs font-sans font-medium uppercase transition-all cursor-pointer ${
+              activeSubTab === "O.S."
+                ? "bg-bojana-surface text-bojana-ink shadow-bojana-widget"
+                : "text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             Órdenes de Servicio (O.S.)
           </button>
           <button
             onClick={() => { setActiveSubTab('N.P.'); setStatusFilter('TODOS'); }}
-            className={`py-1.5 px-3.5 rounded-md text-xs font-mono font-bold uppercase transition-all cursor-pointer ${
-              activeSubTab === 'N.P.'
-                ? 'bg-white text-gray-900 shadow-2xs'
-                : 'text-gray-550 hover:text-gray-800'
+            className={`bojana-button bojana-button-text py-1.5 px-3.5 rounded-bojana-widget text-xs font-sans font-medium uppercase transition-all cursor-pointer ${
+              activeSubTab === "N.P."
+                ? "bg-bojana-surface text-bojana-ink shadow-bojana-widget"
+                : "text-bojana-muted hover:text-bojana-ink"
             }`}
           >
             Notas de Pedido (N.P.)
@@ -116,34 +116,34 @@ export default function DocumentManager({
       </div>
 
       {/* MANAGER DESKTOP LAYOUT WITH TWO RELEVANT COLUMN PANELS */}
-      <div id="documents-grid-layout" className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+      <div id="documents-grid-layout" className="grid grid-cols-1 lg:grid-cols-12 gap-bojana-block">
+
         {/* LEFT COLUMN: DOCUMENT LIST & FILTERS (5 COLS) */}
-        <div id="documents-left-list" className="bg-white border border-gray-200 rounded-xl p-4 lg:col-span-5 space-y-4 shadow-xs">
-          
+        <div id="documents-left-list" className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 lg:col-span-5 space-y-bojana-block shadow-bojana-widget">
+
           {/* SEARCH & FILTERS INGREDIENTS */}
-          <div className="space-y-2.5">
+          <div className="space-y-bojana-inside">
             <div className="relative">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5" />
+              <Search className="w-4 h-4 text-bojana-muted absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder={`Buscar ${activeSubTab}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-md py-1.5 pl-9 pr-3 text-xs text-gray-900 focus:outline-hidden focus:border-gray-400 focus:bg-white font-sans"
+                className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget py-1.5 pl-9 pr-3 text-xs text-bojana-ink focus:outline-hidden focus:border-bojana-line focus:bg-bojana-surface font-sans"
               />
             </div>
 
             {/* Status filters buttons list */}
-            <div className="flex gap-1 overflow-x-auto text-[10px] uppercase font-mono tracking-wider scrollbar-none">
+            <div className="flex gap-bojana-inside overflow-x-auto text-xs uppercase font-sans tracking-normal scrollbar-none">
               {(['TODOS', 'Emitida', 'Respondida', 'Cerrada'] as const).map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setStatusFilter(filter)}
-                  className={`px-2 py-1 rounded border whitespace-nowrap transition-all cursor-pointer ${
+                  className={`bojana-button bojana-button-primary px-2 py-1 rounded-bojana-widget border whitespace-nowrap transition-all cursor-pointer ${
                     statusFilter === filter
-                      ? 'bg-gray-800 text-white border-gray-900 font-bold'
-                      : 'bg-gray-50 text-gray-500 border-gray-200 hover:text-gray-855'
+                      ? "bg-bojana-ink text-bojana-inverse border-bojana-line font-medium"
+                      : "bg-bojana-surface text-bojana-muted border-bojana-line hover:text-bojana-ink"
                   }`}
                 >
                   {filter}
@@ -153,9 +153,9 @@ export default function DocumentManager({
           </div>
 
           {/* SELECTION TIMELINE LIST */}
-          <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
+          <div className="space-y-bojana-inside max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
             {filteredDocs.length === 0 ? (
-              <div className="text-center py-10 text-gray-400 text-xs font-sans">
+              <div className="text-center py-10 text-bojana-muted text-xs font-sans">
                 No se encontraron {activeSubTab} coincidentes.
               </div>
             ) : (
@@ -165,20 +165,20 @@ export default function DocumentManager({
                   <div
                     key={doc.id}
                     onClick={() => { setSelectedDocId(doc.id); setShowPrintMode(false); }}
-                    className={`p-3 rounded-lg border cursor-pointer transition select-none ${
+                    className={`bojana-widget p-3 rounded-bojana-widget border cursor-pointer transition select-none ${
                       isSelected
-                        ? 'bg-gray-50 border-gray-400 shadow-2xs'
-                        : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                        ? "bg-bojana-surface border-bojana-line shadow-bojana-widget"
+                        : "bg-bojana-surface border-bojana-line hover:bg-bojana-surface hover:border-bojana-line"
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-1 pb-1">
-                      <span className="font-mono text-xs font-bold text-gray-900">{doc.correlativo}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-mono tracking-wider uppercase font-semibold border ${getStatusBadge(doc.estado)}`}>
+                    <div className="flex justify-between items-start gap-bojana-inside pb-1">
+                      <span className="font-sans text-xs font-medium text-bojana-ink">{doc.correlativo}</span>
+                      <span className={`px-1.5 py-0.5 rounded-bojana-badge text-xs font-sans tracking-normal uppercase font-medium border ${getStatusBadge(doc.estado)}`}>
                         {doc.estado}
                       </span>
                     </div>
-                    <h6 className="text-[11px] font-bold text-gray-805 line-clamp-1">{doc.asunto}</h6>
-                    <div className="flex justify-between text-[9px] font-mono text-gray-400 mt-2">
+                    <h6 className="bojana-heading-component text-xs font-medium text-bojana-ink line-clamp-1">{doc.asunto}</h6>
+                    <div className="flex justify-between text-xs font-sans text-bojana-muted mt-2">
                       <span>Pliego: {activeSubTab === 'O.S.' ? 'D.O. Benítez' : 'Contratistas'}</span>
                       <span>{doc.fechaEmision}</span>
                     </div>
@@ -190,25 +190,25 @@ export default function DocumentManager({
         </div>
 
         {/* RIGHT COLUMN: DETAIL VIEW, DIGITAL ACTIONS & PRINT Dossier (7 COLS) */}
-        <div id="documents-right-detail" className="bg-white border border-gray-200 rounded-xl p-5 lg:col-span-7 flex flex-col justify-between min-h-[460px] shadow-xs">
-          
+        <div id="documents-right-detail" className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 lg:col-span-7 flex flex-col justify-between min-h-[460px] shadow-bojana-widget">
+
           {selectedDoc ? (
-            <div className="space-y-5">
-              
+            <div className="space-y-bojana-block">
+
               {/* DETAILS TOP HEADER BAR */}
-              <div className="flex items-center justify-between border-b border-gray-200 pb-2 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-gray-500" />
-                  <span className="font-mono text-xs font-bold text-gray-900">{selectedDoc.correlativo}</span>
-                  <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono border ${getStatusBadge(selectedDoc.estado)}`}>
+              <div className="flex items-center justify-between border-b border-bojana-line pb-2 flex-wrap gap-bojana-inside">
+                <div className="flex items-center gap-bojana-inside">
+                  <FileText className="w-4 h-4 text-bojana-muted" />
+                  <span className="font-sans text-xs font-medium text-bojana-ink">{selectedDoc.correlativo}</span>
+                  <span className={`px-1.5 py-0.5 rounded-bojana-badge text-xs font-sans border ${getStatusBadge(selectedDoc.estado)}`}>
                     {selectedDoc.estado}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 text-xs">
+                <div className="flex items-center gap-bojana-inside text-xs">
                   <button
                     onClick={() => setShowPrintMode(!showPrintMode)}
-                    className="p-1 px-2 hover:bg-gray-100 rounded border border-gray-200 font-mono text-[10px] text-gray-500 hover:text-gray-800 flex items-center gap-1 cursor-pointer"
+                    className="bojana-button bojana-button-secondary p-1 px-2 hover:bg-bojana-soft rounded-bojana-widget border border-bojana-line font-sans text-xs text-bojana-muted hover:text-bojana-ink flex items-center gap-bojana-inside cursor-pointer"
                   >
                     <Printer className="w-3 h-3" />
                     {showPrintMode ? 'Cerrar Impreso' : 'Dossier Imprimible'}
@@ -218,116 +218,116 @@ export default function DocumentManager({
 
               {/* IF IN PRINT DOSSIER MODE (Highly professional inspection visual mock) */}
               {showPrintMode ? (
-                <div 
-                  id="print-ready-dossier" 
-                  className="bg-gray-50 border border-gray-250 rounded-md p-6 text-gray-900 font-sans space-y-4 shadow-xs"
+                <div
+                  id="print-ready-dossier"
+                  className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 text-bojana-ink font-sans space-y-bojana-block shadow-bojana-widget"
                 >
-                  <div className="border-b-2 border-gray-300 pb-2 text-center">
-                    <h5 className="text-[10px] font-mono font-bold tracking-widest text-gray-400 uppercase">COPIA DE EXPEDIENTE LEGAL - OBRA VIRAZÓN</h5>
-                    <h3 className="text-sm font-bold text-gray-800 font-mono uppercase tracking-wide mt-1">LIBRO OFICIAL DE INSPECCIÓN Y COMUNICACIONES</h3>
+                  <div className="border-b-2 border-bojana-line pb-2 text-center">
+                    <h5 className="bojana-heading-component text-xs font-sans font-medium tracking-normal text-bojana-muted uppercase">COPIA DE EXPEDIENTE LEGAL - OBRA VIRAZÓN</h5>
+                    <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans uppercase tracking-normal mt-1">LIBRO OFICIAL DE INSPECCIÓN Y COMUNICACIONES</h3>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-[10px] font-mono border-b border-gray-200 pb-3">
+                  <div className="grid grid-cols-2 gap-bojana-block text-xs font-sans border-b border-bojana-line pb-3">
                     <div>
-                      <span className="text-gray-400 block">PROYECTO:</span>
-                      <strong className="text-gray-800">CLUB HOUSE VIRAZÓN NORDELTA</strong>
+                      <span className="text-bojana-muted block">PROYECTO:</span>
+                      <strong className="text-bojana-ink">CLUB HOUSE VIRAZÓN NORDELTA</strong>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">N° DOCUMENTO:</span>
-                      <strong className="text-gray-800">{selectedDoc.correlativo}</strong>
+                      <span className="text-bojana-muted block">N° DOCUMENTO:</span>
+                      <strong className="text-bojana-ink">{selectedDoc.correlativo}</strong>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">FECHA EMISIÓN:</span>
-                      <strong className="text-gray-800">{selectedDoc.fechaEmision}</strong>
+                      <span className="text-bojana-muted block">FECHA EMISIÓN:</span>
+                      <strong className="text-bojana-ink">{selectedDoc.fechaEmision}</strong>
                     </div>
                     <div>
-                      <span className="text-gray-400 block">ESTADO LEGAL:</span>
-                      <strong className="text-gray-800 uppercase">[ {selectedDoc.estado} ]</strong>
+                      <span className="text-bojana-muted block">ESTADO LEGAL:</span>
+                      <strong className="text-bojana-ink uppercase">[ {selectedDoc.estado} ]</strong>
                     </div>
                   </div>
 
-                  <div className="text-[11px] leading-relaxed">
-                    <span className="text-gray-400 font-mono text-[9px] block">CUESTIÓN PLANTEADA:</span>
-                    <h4 className="font-bold text-gray-850 text-xs mb-1.5">{selectedDoc.asunto}</h4>
-                    <p className="text-gray-700 block whitespace-pre-wrap font-serif italic p-3 bg-white rounded border border-gray-200">
+                  <div className="text-xs leading-relaxed">
+                    <span className="text-bojana-muted font-sans text-xs block">CUESTIÓN PLANTEADA:</span>
+                    <h4 className="bojana-heading-component font-medium text-bojana-ink text-xs mb-1.5">{selectedDoc.asunto}</h4>
+                    <p className="text-bojana-ink block whitespace-pre-wrap font-sans italic p-3 bg-bojana-surface rounded-bojana-widget border border-bojana-line">
                       "{selectedDoc.descripcion}"
                     </p>
                   </div>
 
                   <div>
-                    <span className="text-gray-400 font-mono text-[9px] block">EMISIÓN / EMITIDO POR:</span>
-                    <p className="text-[11px] font-semibold text-gray-800 font-mono">{selectedDoc.emisor}</p>
+                    <span className="text-bojana-muted font-sans text-xs block">EMISIÓN / EMITIDO POR:</span>
+                    <p className="text-xs font-medium text-bojana-ink font-sans">{selectedDoc.emisor}</p>
                   </div>
 
                   {/* ANSWER RECORD BLOCK IN PRINT */}
                   {selectedDoc.respuesta ? (
-                    <div className="border-t border-dashed border-gray-300 pt-3 space-y-2 mt-4 text-[11px] leading-relaxed">
-                      <span className="text-gray-400 font-mono text-[9px] block">CONTESTACIÓN Y DETALLES DEL HECHO:</span>
-                      <p className="text-gray-700 bg-white p-3 rounded border border-gray-200 font-serif whitespace-pre-wrap">
+                    <div className="border-t border-dashed border-bojana-line pt-3 space-y-bojana-inside mt-4 text-xs leading-relaxed">
+                      <span className="text-bojana-muted font-sans text-xs block">CONTESTACIÓN Y DETALLES DEL HECHO:</span>
+                      <p className="text-bojana-ink bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line font-sans whitespace-pre-wrap">
                         "{selectedDoc.respuesta}"
                       </p>
-                      
-                      <div className="flex justify-between items-center pt-2 text-[10px] font-mono text-gray-500">
+
+                      <div className="flex justify-between items-center pt-2 text-xs font-sans text-bojana-muted">
                         <span>FIRMADO DIGITAL CONTRACTUAL:</span>
-                        <strong className="text-gray-900 underline bg-gray-200 px-1.5 py-0.5 rounded">
+                        <strong className="text-bojana-ink underline bg-bojana-soft px-1.5 py-0.5 rounded-bojana-widget">
                           {selectedDoc.firmaVisual} - {selectedDoc.fechaFirma}
                         </strong>
                       </div>
                     </div>
                   ) : (
-                    <div className="border-t border-dashed border-gray-300 pt-4 mt-4 text-center text-[10px] text-gray-400 font-mono italic">
+                    <div className="border-t border-dashed border-bojana-line pt-4 mt-4 text-center text-xs text-bojana-muted font-sans italic">
                       --- PENDIENTE DE RESOLUCIÓN & FIRMA RECEPTOR ---
                     </div>
                   )}
 
-                  <div className="border-t-2 border-gray-300 pt-3 text-[9px] text-gray-400 font-mono block text-center uppercase tracking-wide">
+                  <div className="border-t-2 border-bojana-line pt-3 text-xs text-bojana-muted font-sans block text-center uppercase tracking-normal">
                     CONFORME A PLIEGOS TÉCNICOS VIRAZÓN. NO PERMITE ENMIENDAS FÍSICAS AL MARGEN.
                   </div>
                 </div>
               ) : (
                 /* IF IN TRADITIONAL APP FORMAT WRAP */
-                <div className="space-y-4 text-xs">
-                  
+                <div className="space-y-bojana-block text-xs">
+
                   {/* METADATA SUMMARY HEADER PANEL */}
-                  <div className="bg-gray-50 p-3.5 rounded-lg border border-gray-200 grid grid-cols-2 gap-3 leading-relaxed">
+                  <div className="bojana-widget bg-bojana-surface p-3.5 rounded-bojana-widget border border-bojana-line grid grid-cols-2 gap-3 leading-relaxed">
                     <div>
-                      <span className="text-[9px] font-mono text-gray-400 block uppercase">Emisor Autor</span>
-                      <span className="font-semibold text-gray-800 block">{selectedDoc.emisor}</span>
+                      <span className="text-xs font-sans text-bojana-muted block uppercase">Emisor Autor</span>
+                      <span className="font-medium text-bojana-ink block">{selectedDoc.emisor}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-mono text-gray-400 block uppercase">Sujeto Destinatario</span>
-                      <span className="font-semibold text-gray-800 block">{selectedDoc.receptor}</span>
+                      <span className="text-xs font-sans text-bojana-muted block uppercase">Sujeto Destinatario</span>
+                      <span className="font-medium text-bojana-ink block">{selectedDoc.receptor}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-mono text-gray-400 block uppercase">Fecha Emisión</span>
-                      <span className="font-mono text-gray-750 font-semibold">{selectedDoc.fechaEmision}</span>
+                      <span className="text-xs font-sans text-bojana-muted block uppercase">Fecha Emisión</span>
+                      <span className="font-sans text-bojana-ink font-medium">{selectedDoc.fechaEmision}</span>
                     </div>
                     <div>
-                      <span className="text-[9px] font-mono text-gray-400 block uppercase">Plazo Máximo Gestión</span>
-                      <span className="font-mono text-rose-700 font-semibold">{selectedDoc.fechaLimiteRespuesta || 'No aplica'}</span>
+                      <span className="text-xs font-sans text-bojana-muted block uppercase">Plazo Máximo Gestión</span>
+                      <span className="font-sans text-bojana-error font-medium">{selectedDoc.fechaLimiteRespuesta || 'No aplica'}</span>
                     </div>
                   </div>
 
                   {/* DOCUMENT DETAILED TEXT */}
-                  <div className="space-y-1.5">
-                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block">Asunto & Cuestión Técnica</span>
-                    <h5 className="text-sm font-bold text-gray-950 font-sans tracking-tight">{selectedDoc.asunto}</h5>
-                    <p className="text-gray-700 font-sans leading-relaxed text-[12px] bg-gray-50 p-3 rounded-lg border border-gray-200 whitespace-pre-wrap">
+                  <div className="space-y-bojana-inside">
+                    <span className="text-xs font-sans text-bojana-muted uppercase tracking-normal block">Asunto & Cuestión Técnica</span>
+                    <h5 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans tracking-normal">{selectedDoc.asunto}</h5>
+                    <p className="text-bojana-ink font-sans leading-relaxed text-[12px] bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line whitespace-pre-wrap">
                       {selectedDoc.descripcion}
                     </p>
                   </div>
 
                   {/* RESPONSE PRESENTATION BLOCK */}
                   {selectedDoc.respuesta ? (
-                    <div className="space-y-1.5 border-t border-gray-200 pt-4">
-                      <span className="text-[10px] font-mono text-amber-600 uppercase tracking-widest block">Contestación de Expediente</span>
-                      <p className="text-gray-700 font-sans leading-relaxed text-[12px] bg-gray-50 p-3 rounded-lg border border-gray-200 whitespace-pre-wrap">
+                    <div className="space-y-bojana-inside border-t border-bojana-line pt-4">
+                      <span className="text-xs font-sans text-bojana-ink uppercase tracking-normal block">Contestación de Expediente</span>
+                      <p className="text-bojana-ink font-sans leading-relaxed text-[12px] bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line whitespace-pre-wrap">
                         {selectedDoc.respuesta}
                       </p>
-                      
-                      <div className="flex justify-between items-center text-[10px] font-mono text-gray-405 pt-1">
+
+                      <div className="flex justify-between items-center text-xs font-sans text-bojana-muted pt-1">
                         <span>Firma del Remitente:</span>
-                        <span className="text-gray-800 font-bold bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                        <span className="text-bojana-ink font-medium bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
                           👤 {selectedDoc.firmaVisual} ({selectedDoc.fechaFirma})
                         </span>
                       </div>
@@ -335,39 +335,39 @@ export default function DocumentManager({
                   ) : (
                     /* RESPONSE FILLABLE FORM */
                     selectedDoc.estado === 'Emitida' && (
-                      <form onSubmit={handleAnswerSubmit} className="space-y-3.5 border-t border-gray-200 pt-4">
-                        <div className="flex items-center gap-1 text-[10px] font-mono text-amber-600 uppercase tracking-wider">
+                      <form onSubmit={handleAnswerSubmit} className="space-y-bojana-inside border-t border-bojana-line pt-4">
+                        <div className="flex items-center gap-bojana-inside text-xs font-sans text-bojana-ink uppercase tracking-normal">
                           <FileSignature className="w-4 h-4" />
                           <span>Asignar Respuesta Oficial Con Tracto Legal</span>
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-bojana-inside">
                           <textarea
                             rows={3}
                             value={answerText}
                             onChange={(e) => setAnswerText(e.target.value)}
-                            className="w-full bg-gray-55 border border-gray-200 rounded p-2 text-gray-900 text-xs focus:outline-hidden focus:border-gray-400 focus:bg-white leading-relaxed font-sans"
+                            className="bojana-field w-full bg-bojana-soft border border-bojana-line rounded-bojana-widget p-2 text-bojana-ink text-xs focus:outline-hidden focus:border-bojana-line focus:bg-bojana-surface leading-relaxed font-sans"
                             placeholder="Ingrese las cláusulas de corrección de la anomalía, el detalle técnico de planos referenciados, aditivos aplicados..."
                             required
                           />
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                          <div className="space-y-1">
+                          <div className="space-y-bojana-inside">
                             <input
                               type="text"
                               value={signatureName}
                               onChange={(e) => setSignatureName(e.target.value)}
-                              className="w-full bg-gray-55 border border-gray-200 rounded p-1.5 text-xs text-gray-900 font-mono text-center focus:outline-hidden focus:border-gray-400 focus:bg-white"
+                              className="bojana-field w-full bg-bojana-soft border border-bojana-line rounded-bojana-widget p-1.5 text-xs text-bojana-ink font-sans text-center focus:outline-hidden focus:border-bojana-line focus:bg-bojana-surface"
                               placeholder="Firma Electrónica Corriente"
                               required
                             />
-                            <span className="text-[9px] font-mono text-gray-400 text-center block">Identidad civil habilitada</span>
+                            <span className="text-xs font-sans text-bojana-muted text-center block">Identidad civil habilitada</span>
                           </div>
 
                           <button
                             type="submit"
-                            className="w-full py-1.5 font-bold font-sans rounded bg-gray-900 hover:bg-gray-800 text-white transition-all font-mono cursor-pointer select-none"
+                            className="bojana-button bojana-button-primary w-full py-1.5 font-medium font-sans rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse transition-all font-sans cursor-pointer select-none"
                           >
                             Firmar electrónicamente
                           </button>
@@ -378,13 +378,13 @@ export default function DocumentManager({
 
                   {/* BOTTOM ADMIN ACTIONS (such as close document) */}
                   {selectedDoc.estado === 'Respondida' && activeSubTab === 'O.S.' && (
-                    <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 text-[11px]">
-                      <span className="text-gray-550">
+                    <div className="bojana-widget p-3 bg-bojana-surface rounded-bojana-widget border border-bojana-line flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mt-4 text-xs">
+                      <span className="text-bojana-muted">
                         Inspección Dirección de Obra debe validar la solución presentada y proceder al <strong>Cierre de Actuaciones</strong> de obra.
                       </span>
                       <button
                         onClick={handleCloseDocument}
-                        className="py-1 px-3 bg-emerald-600 hover:bg-emerald-500 rounded text-white font-bold tracking-wide font-sans shrink-0 uppercase tracking-wider cursor-pointer"
+                        className="bojana-button bojana-button-primary py-1 px-3 bg-bojana-success hover:bg-bojana-success rounded-bojana-widget text-bojana-inverse font-medium tracking-normal font-sans shrink-0 uppercase tracking-normal cursor-pointer"
                       >
                         Autorizar Cierre
                       </button>
@@ -394,12 +394,12 @@ export default function DocumentManager({
               )}
             </div>
           ) : (
-            <div className="text-center py-20 text-gray-400 text-xs font-sans">
+            <div className="text-center py-20 text-bojana-muted text-xs font-sans">
               Seleccione un documento del panel izquierdo para auditar e imprimir.
             </div>
           )}
-          
-          <div className="text-[10px] font-mono text-gray-400 border-t border-gray-200 pt-2.5 mt-3 text-center">
+
+          <div className="text-xs font-sans text-bojana-muted border-t border-bojana-line pt-2.5 mt-3 text-center">
             Plataforma Oficial de Seguimiento Técnico • Bojana Estudio
           </div>
         </div>

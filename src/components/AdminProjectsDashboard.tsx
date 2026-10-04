@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { ProjectData } from '../types';
 import CreateProjectWizard from './CreateProjectWizard';
-import { 
-  Building2, 
-  Plus, 
-  Eye, 
-  Sliders, 
-  Copy, 
-  Check, 
-  MapPin, 
-  Trash2, 
-  LogOut, 
-  Search, 
-  Filter, 
+import {
+  Building2,
+  Plus,
+  Eye,
+  Sliders,
+  Copy,
+  Check,
+  MapPin,
+  Trash2,
+  LogOut,
+  Search,
+  Filter,
   ArrowRight,
   ShieldCheck,
   Calendar,
@@ -51,7 +51,7 @@ export default function AdminProjectsDashboard({
     const pUbicacion = p.info?.ubicacion || p.brief?.ubicacion || '';
     const pTipo = p.disciplinas?.join(' & ') || p.tipoProyecto || '';
 
-    const matchesSearch = 
+    const matchesSearch =
       pNombre.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.cliente?.nombre || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (p.cliente?.empresa || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -64,7 +64,7 @@ export default function AdminProjectsDashboard({
 
   // Global KPIs
   const totalProjects = projects.length;
-  const avgProgress = totalProjects > 0 
+  const avgProgress = totalProjects > 0
     ? Math.round(projects.reduce((acc, p) => acc + (p.plazo?.avanceFisicoPonderado || 50), 0) / totalProjects)
     : 0;
   const openPortals = projects.filter(p => p.cliente?.linkSinProteccion).length;
@@ -86,17 +86,17 @@ export default function AdminProjectsDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F4F6] text-gray-900 font-sans flex flex-col">
-      
+    <div className="min-h-screen bg-bojana-canvas text-bojana-ink font-sans flex flex-col">
+
       {/* 1. TOP HEADER */}
-      <header className="h-12 bg-white border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-        <div className="flex items-center gap-2.5">
-          <div className="w-6 h-6 bg-gray-950 rounded flex items-center justify-center">
-            <div className="w-3 h-3 border-2 border-white"></div>
+      <header className="h-12 bg-bojana-surface border-b border-bojana-line px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-bojana-widget">
+        <div className="flex items-center gap-bojana-inside">
+          <div className="w-6 h-6 bg-bojana-ink rounded-bojana-widget flex items-center justify-center">
+            <div className="w-3 h-3 border border-white"></div>
           </div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-sm font-extrabold text-gray-955 tracking-tight font-sans">Bojana Estudio</h1>
-            <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 bg-gray-950 text-white font-bold rounded">
+          <div className="flex items-center gap-bojana-inside">
+            <h1 className="bojana-heading-page text-sm font-medium text-bojana-ink tracking-normal font-sans">Bojana Estudio</h1>
+            <span className="text-xs uppercase font-sans px-1.5 py-0.5 bg-bojana-ink text-bojana-inverse font-medium rounded-bojana-badge">
               Panel de Proyectos del Estudio
             </span>
           </div>
@@ -106,7 +106,7 @@ export default function AdminProjectsDashboard({
           <button
             type="button"
             onClick={() => setShowWizard(true)}
-            className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold font-mono flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+            className="bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-medium font-sans flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>+ Nuevo Cliente (Recorrido Guiado)</span>
@@ -115,7 +115,7 @@ export default function AdminProjectsDashboard({
           <button
             type="button"
             onClick={onLogout}
-            className="p-1 rounded text-gray-400 hover:text-gray-900 transition cursor-pointer"
+            className="bojana-icon-button p-1 rounded-bojana-widget text-bojana-muted hover:text-bojana-ink transition cursor-pointer"
             title="Cerrar sesión de Administrador"
           >
             <LogOut className="w-4 h-4" />
@@ -124,55 +124,55 @@ export default function AdminProjectsDashboard({
       </header>
 
       {/* 2. MAIN CONTAINER */}
-      <main className="max-w-6xl mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-6 flex-1">
-        
+      <main className="max-w-bojana-shell mx-auto w-full p-4 sm:p-6 lg:p-8 space-y-bojana-block flex-1">
+
         {/* EXECUTIVE KPI SUMMARY CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Total Proyectos</span>
-            <span className="text-2xl font-mono font-bold text-gray-950 mt-0.5 block">{totalProjects}</span>
-            <span className="text-[10px] text-gray-500 font-mono">En cartera activa</span>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-bojana-block">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 shadow-bojana-widget">
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Total Proyectos</span>
+            <span className="text-2xl font-sans font-medium text-bojana-ink mt-0.5 block">{totalProjects}</span>
+            <span className="text-xs text-bojana-muted font-sans">En cartera activa</span>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Avance Promedio</span>
-            <span className="text-2xl font-mono font-bold text-emerald-700 mt-0.5 block">{avgProgress}%</span>
-            <span className="text-[10px] text-gray-500 font-mono">Físico certificado</span>
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 shadow-bojana-widget">
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Avance Promedio</span>
+            <span className="text-2xl font-sans font-medium text-bojana-success mt-0.5 block">{avgProgress}%</span>
+            <span className="text-xs text-bojana-muted font-sans">Físico certificado</span>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Links Directos Activos</span>
-            <span className="text-2xl font-mono font-bold text-gray-900 mt-0.5 block">{openPortals}</span>
-            <span className="text-[10px] text-emerald-700 font-mono">Sin clave requerida</span>
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 shadow-bojana-widget">
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Links Directos Activos</span>
+            <span className="text-2xl font-sans font-medium text-bojana-ink mt-0.5 block">{openPortals}</span>
+            <span className="text-xs text-bojana-success font-sans">Sin clave requerida</span>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
-            <span className="text-[9px] font-mono uppercase text-gray-400 font-bold block">Dirección Técnica</span>
-            <span className="text-sm font-bold text-gray-950 mt-1 block truncate">Bojana Estudio</span>
-            <span className="text-[10px] text-gray-400 font-mono">Arquitectura & Obras</span>
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 shadow-bojana-widget">
+            <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">Dirección Técnica</span>
+            <span className="text-sm font-medium text-bojana-ink mt-1 block truncate">Bojana Estudio</span>
+            <span className="text-xs text-bojana-muted font-sans">Arquitectura & Obras</span>
           </div>
         </div>
 
         {/* SEARCH & FILTERS BAR */}
         {totalProjects > 0 && (
-          <div className="bg-white border border-gray-200 rounded-xl p-3 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 shadow-bojana-widget flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative flex-1 w-full">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-2.5 pointer-events-none" />
+              <Search className="w-4 h-4 text-bojana-muted absolute left-3 top-2.5 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Buscar proyecto por nombre, cliente, empresa o ubicación..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-hidden focus:border-gray-900"
+                className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget pl-9 pr-3 py-1.5 text-xs text-bojana-ink placeholder-gray-400 focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Filter className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <div className="flex items-center gap-bojana-inside w-full sm:w-auto">
+              <Filter className="w-3.5 h-3.5 text-bojana-muted shrink-0" />
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1.5 text-xs text-gray-700 font-mono w-full sm:w-auto"
+                className="bojana-field bg-bojana-surface border border-bojana-line rounded-bojana-widget px-2.5 py-1.5 text-xs text-bojana-ink font-sans w-full sm:w-auto"
               >
                 <option value="todos">Todos los Tipos</option>
                 <option value="Dirección de obra">Dirección de obra</option>
@@ -186,9 +186,9 @@ export default function AdminProjectsDashboard({
         )}
 
         {/* PROJECTS PORTFOLIO LIST */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs font-mono text-gray-400">
-            <span className="uppercase font-bold tracking-wider">
+        <div className="space-y-bojana-block">
+          <div className="flex items-center justify-between text-xs font-sans text-bojana-muted">
+            <span className="uppercase font-medium tracking-normal">
               Portafolio de Obras y Portales ({filteredProjects.length})
             </span>
             {totalProjects > 0 && <span>Haga clic en un proyecto para ingresar a su portal</span>}
@@ -196,15 +196,15 @@ export default function AdminProjectsDashboard({
 
           {/* EMPTY STATE IF NO PROJECTS REGISTERED YET */}
           {totalProjects === 0 && (
-            <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-10 sm:p-14 text-center space-y-4 shadow-xs">
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto border border-emerald-100">
+            <div className="bojana-widget bg-bojana-surface border border-dashed border-bojana-line rounded-bojana-widget p-10 sm:p-14 text-center space-y-bojana-block shadow-bojana-widget">
+              <div className="w-12 h-12 rounded-bojana-widget bg-bojana-soft text-bojana-success flex items-center justify-center mx-auto border border-bojana-success">
                 <FolderPlus className="w-6 h-6" />
               </div>
-              <div className="max-w-md mx-auto space-y-1">
-                <h3 className="text-base font-bold text-gray-950 font-sans">
+              <div className="max-w-md mx-auto space-y-bojana-inside">
+                <h3 className="bojana-heading-component text-base font-medium text-bojana-ink font-sans">
                   Bienvenido al Portal de Bojana Estudio
                 </h3>
-                <p className="text-xs text-gray-500 font-sans leading-relaxed">
+                <p className="text-xs text-bojana-muted font-sans leading-relaxed">
                   Aún no has configurado ningún portal de obra. Comienza dando de alta a tu primer cliente a través del asistente guiado paso a paso.
                 </p>
               </div>
@@ -212,7 +212,7 @@ export default function AdminProjectsDashboard({
                 <button
                   type="button"
                   onClick={() => setShowWizard(true)}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold font-mono transition cursor-pointer shadow-md inline-flex items-center gap-2"
+                  className="bojana-button bojana-button-primary px-5 py-2.5 rounded-bojana-widget bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-medium font-sans transition cursor-pointer shadow-bojana-widget inline-flex items-center gap-bojana-inside"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Configurar Primer Cliente (Recorrido Guiado)</span>
@@ -222,106 +222,106 @@ export default function AdminProjectsDashboard({
           )}
 
           {/* PROJECT CARDS */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-bojana-block">
             {filteredProjects.map((p) => {
               const isCopied = copiedId === p.id;
               return (
                 <div
                   key={p.id}
-                  className="bg-white border border-gray-200 rounded-xl p-5 shadow-xs hover:border-gray-300 hover:shadow-md transition flex flex-col md:flex-row md:items-center justify-between gap-5"
+                  className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 shadow-bojana-widget hover:border-bojana-line hover:shadow-bojana-widget transition flex flex-col md:flex-row md:items-center justify-between gap-bojana-block"
                 >
                   {/* Left Info */}
-                  <div className="space-y-2 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-gray-100 text-gray-800 font-bold border border-gray-200">
+                  <div className="space-y-bojana-inside flex-1">
+                    <div className="flex flex-wrap items-center gap-bojana-inside">
+                      <span className="text-xs font-sans uppercase px-2 py-0.5 rounded-bojana-badge bg-bojana-soft text-bojana-ink font-medium border border-bojana-line">
                         {p.disciplinas?.join(' & ') || p.tipoProyecto || 'Arquitectura'}
                       </span>
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 font-bold border border-emerald-200">
+                      <span className="text-xs font-sans uppercase px-2 py-0.5 rounded-bojana-badge bg-bojana-soft text-bojana-success font-medium border border-bojana-success">
                         {p.info?.estadoGeneral || p.brief?.estadoGeneral || 'En Ejecución'}
                       </span>
                       {(p.info?.ubicacion || p.brief?.ubicacion) && (
-                        <span className="text-[11px] text-gray-400 font-mono flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs text-bojana-muted font-sans flex items-center gap-bojana-inside">
+                          <MapPin className="w-3 h-3 text-bojana-muted" />
                           {p.info?.ubicacion || p.brief?.ubicacion}
                         </span>
                       )}
                     </div>
 
                     <div>
-                      <h3 
+                      <h3
                         onClick={() => onSelectProject(p.id)}
-                        className="text-base font-bold text-gray-950 hover:text-emerald-700 transition cursor-pointer inline-flex items-center gap-1.5"
+                        className="bojana-heading-component text-base font-medium text-bojana-ink hover:text-bojana-success transition cursor-pointer inline-flex items-center gap-bojana-inside"
                       >
                         <span>{p.info?.nombre || p.brief?.nombre}</span>
                         <ArrowRight className="w-4 h-4 opacity-40 hover:opacity-100" />
                       </h3>
-                      <p className="text-xs text-gray-500 font-sans mt-0.5">
-                        {p.info?.subtitulo || p.brief?.subtitulo} &bull; Cliente: <strong className="text-gray-800">{p.cliente?.nombre}</strong> {p.cliente?.empresa ? `• ${p.cliente.empresa}` : ''}
+                      <p className="text-xs text-bojana-muted font-sans mt-0.5">
+                        {p.info?.subtitulo || p.brief?.subtitulo} &bull; Cliente: <strong className="text-bojana-ink">{p.cliente?.nombre}</strong> {p.cliente?.empresa ? `• ${p.cliente.empresa}` : ''}
                       </p>
                     </div>
 
                     {/* Progress Bar & Month */}
                     <div className="max-w-md pt-1">
-                      <div className="flex items-center justify-between text-[11px] font-mono mb-1">
-                        <span className="text-gray-500">
+                      <div className="flex items-center justify-between text-xs font-sans mb-1">
+                        <span className="text-bojana-muted">
                           {p.info?.etapaActual || 'Documentación ejecutiva'} &bull; {p.info?.proximoHito || 'Próximo hito en curso'}
                         </span>
-                        <span className="font-bold text-gray-900">{p.modulos?.filter(m => m.habilitado).length || 6} Módulos Activos</span>
+                        <span className="font-medium text-bojana-ink">{p.modulos?.filter(m => m.habilitado).length || 6} Módulos Activos</span>
                       </div>
-                      <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden border border-gray-200">
+                      <div className="w-full bg-bojana-soft rounded-bojana-widget h-2 overflow-hidden border border-bojana-line">
                         <div
-                          className="bg-emerald-600 h-full rounded-full transition-all duration-500"
-                          style={{ width: `${p.plazo?.avanceFisicoPonderado || 65}%` }}
+                          className="bg-bojana-success h-full rounded-bojana-widget transition-all duration-500"
+                          style={{ width: `${p.plazo?.avanceFisicoPonderado ?? 0}%` }}
                         />
                       </div>
                     </div>
                   </div>
 
                   {/* Right Actions & Access */}
-                  <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-end lg:items-center gap-2.5 shrink-0 border-t md:border-t-0 md:border-l border-gray-100 pt-3 md:pt-0 md:pl-5">
-                    
-                    <div className="text-left sm:text-right md:text-left lg:text-right text-[10px] font-mono text-gray-400">
+                  <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center md:items-end lg:items-center gap-bojana-inside shrink-0 border-t md:border-t-0 md:border-l border-bojana-line pt-3 md:pt-0 md:pl-5">
+
+                    <div className="text-left sm:text-right md:text-left lg:text-right text-xs font-sans text-bojana-muted">
                       <span className="block">Acceso Comitente:</span>
-                      <span className="font-bold text-gray-700">Usuario: {p.cliente.usuario || 'cliente'}</span>
+                      <span className="font-medium text-bojana-ink">Usuario: {p.cliente.usuario || 'cliente'}</span>
                       {p.cliente.linkSinProteccion && (
-                        <span className="text-emerald-700 block font-bold">Link directo activo</span>
+                        <span className="text-bojana-success block font-medium">Link directo activo</span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                    <div className="flex items-center gap-bojana-inside w-full sm:w-auto">
                       <button
                         type="button"
                         onClick={() => handleCopyClientLink(p)}
-                        className="p-2 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-mono transition cursor-pointer flex items-center gap-1"
+                        className="bojana-button bojana-button-secondary p-2 rounded-bojana-widget bg-bojana-surface hover:bg-bojana-soft border border-bojana-line text-bojana-ink text-xs font-sans transition cursor-pointer flex items-center gap-bojana-inside"
                         title="Copiar enlace de acceso del cliente"
                       >
-                        {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                        {isCopied ? <Check className="w-3.5 h-3.5 text-bojana-success" /> : <Copy className="w-3.5 h-3.5" />}
                         <span className="hidden lg:inline">{isCopied ? 'Copiado!' : 'Link'}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => onConfigureProject(p.id)}
-                        className="px-2.5 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-800 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                        className="bojana-button bojana-button-secondary px-2.5 py-2 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft border border-bojana-line text-bojana-ink text-xs font-medium transition cursor-pointer flex items-center gap-bojana-inside"
                         title="Configurar Parámetros del Proyecto"
                       >
-                        <Sliders className="w-3.5 h-3.5 text-gray-600" />
+                        <Sliders className="w-3.5 h-3.5 text-bojana-muted" />
                         <span>Configurar</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => onSelectProject(p.id)}
-                        className="px-3.5 py-2 rounded-lg bg-gray-950 hover:bg-gray-800 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                        className="bojana-button bojana-button-primary px-3.5 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-medium transition cursor-pointer flex items-center gap-bojana-inside shadow-bojana-widget"
                       >
-                        <Eye className="w-3.5 h-3.5 text-emerald-400" />
+                        <Eye className="w-3.5 h-3.5 text-bojana-success" />
                         <span>Abrir Portal de Obra</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => onDeleteProject(p.id)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                        className="bojana-icon-button p-2 rounded-bojana-widget text-bojana-muted hover:text-bojana-error hover:bg-bojana-soft transition cursor-pointer"
                         title="Eliminar proyecto"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -334,7 +334,7 @@ export default function AdminProjectsDashboard({
             })}
 
             {totalProjects > 0 && filteredProjects.length === 0 && (
-              <div className="bg-white border border-gray-200 rounded-xl p-12 text-center text-xs font-mono text-gray-400">
+              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-12 text-center text-xs font-sans text-bojana-muted">
                 No se encontraron proyectos con los criterios de búsqueda especificados.
               </div>
             )}
@@ -351,7 +351,7 @@ export default function AdminProjectsDashboard({
       />
 
       {/* FOOTER */}
-      <footer className="border-t border-gray-200 bg-white py-3 px-4 text-center text-xs font-mono text-gray-400">
+      <footer className="border-t border-bojana-line bg-bojana-surface py-3 px-4 text-center text-xs font-sans text-bojana-muted">
         Bojana Estudio &bull; Panel de Dirección y Gerenciamiento de Obras
       </footer>
 

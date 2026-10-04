@@ -1,23 +1,24 @@
+import { MediaComparison } from '../ui/Media';
 import React, { useState } from 'react';
-import { 
-  ProjectData, 
-  DecisionItem, 
-  DecisionStatus, 
-  DecisionOption, 
-  DecisionComment 
+import {
+  ProjectData,
+  DecisionItem,
+  DecisionStatus,
+  DecisionOption,
+  DecisionComment
 } from '../../types';
-import { 
-  CheckSquare, 
-  Clock, 
-  CheckCircle2, 
-  AlertCircle, 
-  MessageSquare, 
-  Plus, 
-  Trash2, 
-  Send, 
-  ArrowRight, 
-  Check, 
-  X, 
+import {
+  CheckSquare,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  MessageSquare,
+  Plus,
+  Trash2,
+  Send,
+  ArrowRight,
+  Check,
+  X,
   FileText,
   CornerDownRight,
   ShieldCheck,
@@ -40,7 +41,7 @@ export default function DecisionesModule({
 }: DecisionesModuleProps) {
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  
+
   // Comment input per decision
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
 
@@ -63,12 +64,12 @@ export default function DecisionesModule({
   const getStatusBadge = (status: DecisionStatus) => {
     switch (status) {
       case 'Aprobado':
-        return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+        return "bg-bojana-soft text-bojana-success border-bojana-success";
       case 'Requiere cambios':
-        return 'bg-amber-50 text-amber-800 border-amber-300';
+        return "bg-bojana-waiting text-bojana-ink border-bojana-line";
       case 'Pendiente':
       default:
-        return 'bg-rose-50 text-rose-800 border-rose-300';
+        return "bg-bojana-soft text-bojana-error border-bojana-error";
     }
   };
 
@@ -242,22 +243,22 @@ export default function DecisionesModule({
   };
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-8">
-      
+    <div className="space-y-bojana-block max-w-bojana-reading mx-auto pb-8">
+
       {/* 1. TOP HEADER */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 shadow-bojana-widget flex flex-col md:flex-row md:items-center justify-between gap-bojana-block">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-rose-600 font-bold">
+          <div className="flex items-center gap-bojana-inside">
+            <span className="text-xs font-sans uppercase tracking-normal text-bojana-error font-medium">
               Módulo de Decisiones & Revisiones
             </span>
-            <span className="text-[10px] font-mono text-gray-400">&bull;</span>
-            <span className="text-[10px] font-mono text-gray-500">Convalidación & Registro</span>
+            <span className="text-xs font-sans text-bojana-muted">&bull;</span>
+            <span className="text-xs font-sans text-bojana-muted">Convalidación & Registro</span>
           </div>
-          <h2 className="text-xl font-extrabold text-gray-950 font-sans tracking-tight mt-0.5">
+          <h2 className="bojana-heading-section text-xl font-medium text-bojana-ink font-sans tracking-normal mt-0.5">
             Aprobación de Opciones & Revisiones Técnicas
           </h2>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-bojana-muted mt-1">
             Espacio interactivo para que el cliente convalide alternativas de terminaciones y revise planos de ingeniería.
           </p>
         </div>
@@ -266,26 +267,26 @@ export default function DecisionesModule({
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 rounded-xl bg-gray-950 hover:bg-gray-800 text-white text-xs font-mono font-bold flex items-center gap-2 transition cursor-pointer shadow-xs shrink-0"
+            className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0"
           >
-            <Plus className="w-4 h-4 text-rose-400" />
+            <Plus className="w-4 h-4 text-bojana-error" />
             <span>+ Nueva Solicitud</span>
           </button>
         )}
       </div>
 
       {/* 2. FILTER TABS */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-3 shadow-xs flex items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+      <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-3 shadow-bojana-widget flex items-center justify-between gap-3">
+        <div className="flex items-center gap-bojana-inside overflow-x-auto">
           {['todos', 'Pendiente', 'Aprobado', 'Requiere cambios'].map((st) => (
             <button
               key={st}
               type="button"
               onClick={() => setFilterStatus(st)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition cursor-pointer ${
-                filterStatus === st 
-                  ? 'bg-gray-950 text-white shadow-xs' 
-                  : 'bg-gray-100 text-gray-600 hover:text-gray-900'
+              className={`bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget text-xs font-sans font-medium transition cursor-pointer ${
+                filterStatus === st
+                  ? "bg-bojana-ink text-bojana-inverse shadow-bojana-widget"
+                  : "bg-bojana-soft text-bojana-muted hover:text-bojana-ink"
               }`}
             >
               {st === 'todos' ? 'Todas las Decisiones' : st}
@@ -293,18 +294,18 @@ export default function DecisionesModule({
           ))}
         </div>
 
-        <span className="text-[11px] font-mono text-gray-400">
+        <span className="text-xs font-sans text-bojana-muted">
           {filteredDecisiones.length} solicitudes registradas
         </span>
       </div>
 
       {/* 3. DECISIONS FEED */}
-      <div className="space-y-6">
+      <div className="space-y-bojana-block">
         {filteredDecisiones.length === 0 ? (
-          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center space-y-3">
-            <CheckSquare className="w-10 h-10 text-gray-300 mx-auto" />
-            <h4 className="text-sm font-bold text-gray-800">No hay decisiones en este estado</h4>
-            <p className="text-xs text-gray-500">
+          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-12 text-center space-y-3">
+            <CheckSquare className="w-10 h-10 text-bojana-line mx-auto" />
+            <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink">No hay decisiones en este estado</h4>
+            <p className="text-xs text-bojana-muted">
               Todas las consultas han sido procesadas o no hay solicitudes pendientes.
             </p>
           </div>
@@ -315,29 +316,29 @@ export default function DecisionesModule({
             const isPending = item.estado === 'Pendiente';
 
             return (
-              <div 
+              <div
                 key={item.id}
-                className="bg-white border border-gray-200 rounded-2xl shadow-xs overflow-hidden transition hover:border-gray-300"
+                className="bg-bojana-surface border border-bojana-line rounded-bojana-widget shadow-bojana-widget overflow-hidden transition hover:border-bojana-line"
               >
                 {/* Decision Header */}
-                <div className="p-5 sm:p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full font-bold border ${getStatusBadge(item.estado)}`}>
+                <div className="p-5 sm:p-6 border-b border-bojana-line flex flex-col sm:flex-row sm:items-start justify-between gap-bojana-block">
+                  <div className="space-y-bojana-inside">
+                    <div className="flex flex-wrap items-center gap-bojana-inside">
+                      <span className={`text-xs font-sans uppercase px-2.5 py-0.5 rounded-bojana-badge font-medium border ${getStatusBadge(item.estado)}`}>
                         {item.estado}
                       </span>
-                      <span className="text-[10px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                      <span className="text-xs font-sans text-bojana-muted bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
                         {item.tipo === 'decision_diseno' ? 'Decisión de Diseño' : 'Revisión Técnica de Ingeniería'}
                       </span>
-                      <span className="text-[11px] font-mono text-gray-400">
+                      <span className="text-xs font-sans text-bojana-muted">
                         Creada el {item.fechaCreacion}
                       </span>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-bold text-gray-950 font-sans tracking-tight pt-1">
+                    <h3 className="bojana-heading-component text-base sm:text-lg font-medium text-bojana-ink font-sans tracking-normal pt-1">
                       {item.titulo}
                     </h3>
-                    <p className="text-xs text-gray-600 leading-relaxed font-sans">
+                    <p className="text-xs text-bojana-muted leading-relaxed font-sans">
                       {item.descripcion}
                     </p>
                   </div>
@@ -346,7 +347,7 @@ export default function DecisionesModule({
                     <button
                       type="button"
                       onClick={() => handleDeleteDecision(item.id)}
-                      className="p-1.5 rounded text-gray-400 hover:text-rose-600 transition self-end sm:self-start"
+                      className="bojana-icon-button p-1.5 rounded-bojana-widget text-bojana-muted hover:text-bojana-error transition self-end sm:self-start"
                       title="Eliminar ítem"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -356,19 +357,19 @@ export default function DecisionesModule({
 
                 {/* Stamped Approval Notice if already decided */}
                 {isApproved && (
-                  <div className="bg-emerald-50/80 border-b border-emerald-100 px-6 py-3 flex items-center justify-between gap-4 text-xs font-mono text-emerald-900">
-                    <div className="flex items-center gap-2 font-bold">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <div className="bg-bojana-soft/80 border-b border-bojana-success px-6 py-3 flex items-center justify-between gap-bojana-block text-xs font-sans text-bojana-success">
+                    <div className="flex items-center gap-bojana-inside font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-bojana-success shrink-0" />
                       <span>
                         Aprobado por el comitente &bull; {item.fechaDecision || 'Convalidado'}
                       </span>
                       {item.opcionAprobadaId && item.opciones && (
-                        <span className="text-emerald-800 font-sans font-semibold">
+                        <span className="text-bojana-success font-sans font-medium">
                           ({item.opciones.find(o => o.id === item.opcionAprobadaId)?.letra}: {item.opciones.find(o => o.id === item.opcionAprobadaId)?.titulo})
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] uppercase font-bold bg-emerald-200/80 text-emerald-900 px-2 py-0.5 rounded">
+                    <span className="text-xs uppercase font-medium bg-bojana-soft/80 text-bojana-success px-2 py-0.5 rounded-bojana-badge">
                       Registro Oficial
                     </span>
                   </div>
@@ -376,60 +377,61 @@ export default function DecisionesModule({
 
                 {/* CASE A: DESIGN DECISION WITH PROPOSED OPTIONS (Opción A vs Opción B) */}
                 {item.opciones && item.opciones.length > 0 && (
-                  <div className="p-5 sm:p-6 bg-gray-50/60 border-b border-gray-100 space-y-4">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-gray-400 font-bold block">
+                  <div className="p-5 sm:p-6 bg-bojana-surface/60 border-b border-bojana-line space-y-bojana-block">
+                    <span className="text-xs font-sans uppercase tracking-normal text-bojana-muted font-medium block">
                       Alternativas Propuestas por Bojana Estudio
                     </span>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <MediaComparison items={item.opciones.filter(opt => opt.imagenUrl).map(opt => ({ id: opt.id, title: `${opt.letra || ''} ${opt.titulo}`, src: opt.imagenUrl! }))} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-bojana-block">
                       {item.opciones.map((opt) => {
                         const isThisOptApproved = item.opcionAprobadaId === opt.id;
 
                         return (
                           <div
                             key={opt.id}
-                            className={`rounded-xl border p-4 transition flex flex-col justify-between space-y-3 ${
+                            className={`bojana-widget rounded-bojana-widget border p-4 transition flex flex-col justify-between space-y-3 ${
                               isThisOptApproved
-                                ? 'bg-emerald-50/80 border-emerald-400 ring-2 ring-emerald-300 shadow-xs'
-                                : 'bg-white border-gray-200 hover:border-gray-300'
+                                ? "bg-bojana-soft/80 border-bojana-success ring-2 ring-bojana-success shadow-bojana-widget"
+                                : "bg-bojana-surface border-bojana-line hover:border-bojana-line"
                             }`}
                           >
-                            <div className="space-y-2">
-                              {opt.imagenUrl && (
-                                <div className="aspect-16/9 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
-                                  <img 
-                                    src={opt.imagenUrl} 
+                            <div className="space-y-bojana-inside">
+                              {opt.imagenUrl && item.opciones.filter(o => o.imagenUrl).length < 2 && (
+                                <div className="aspect-16/10 rounded-bojana-widget overflow-hidden bg-bojana-soft border border-bojana-line">
+                                  <img
+                                    src={opt.imagenUrl}
                                     alt={opt.titulo}
-                                    className="w-full h-full object-cover"
+                                    className="bojana-media w-full h-full object-contain"
                                   />
                                 </div>
                               )}
 
                               <div>
                                 <div className="flex items-center justify-between">
-                                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
+                                  <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-ink bg-bojana-soft px-2 py-0.5 rounded-bojana-badge">
                                     {opt.letra}
                                   </span>
                                   {isThisOptApproved && (
-                                    <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                      <Check className="w-3 h-3 text-emerald-700" />
+                                    <span className="text-xs font-sans font-medium text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge flex items-center gap-bojana-inside">
+                                      <Check className="w-3 h-3 text-bojana-success" />
                                       <span>Opción Seleccionada</span>
                                     </span>
                                   )}
                                 </div>
 
-                                <h4 className="text-sm font-bold text-gray-950 mt-1">{opt.titulo}</h4>
+                                <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink mt-1">{opt.titulo}</h4>
                                 {opt.descripcion && (
-                                  <p className="text-xs text-gray-600 mt-1 leading-normal">
+                                  <p className="text-xs text-bojana-muted mt-1 leading-normal">
                                     {opt.descripcion}
                                   </p>
                                 )}
                               </div>
                             </div>
 
-                            <div className="border-t border-gray-100 pt-3 flex items-center justify-between text-xs">
+                            <div className="border-t border-bojana-line pt-3 flex items-center justify-between text-xs">
                               {opt.costoEstimado && (
-                                <span className="text-[11px] font-mono text-gray-400">
+                                <span className="text-xs font-sans text-bojana-muted">
                                   {opt.costoEstimado}
                                 </span>
                               )}
@@ -439,7 +441,7 @@ export default function DecisionesModule({
                                 <button
                                   type="button"
                                   onClick={() => handleApproveOption(item.id, opt.id, `${opt.letra}: ${opt.titulo}`)}
-                                  className="px-3 py-1.5 rounded-lg bg-gray-950 hover:bg-emerald-700 text-white font-mono text-xs font-bold transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                                  className="bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-success text-bojana-inverse font-sans text-xs font-medium transition cursor-pointer flex items-center gap-bojana-inside shadow-bojana-widget"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   <span>Aprobar {opt.letra}</span>
@@ -455,21 +457,21 @@ export default function DecisionesModule({
 
                 {/* CASE B: TECHNICAL ENGINEERING REVIEW (Direct 3-State Controls) */}
                 {item.tipo === 'revision_tecnica' && (
-                  <div className="p-4 sm:p-5 bg-gray-50/60 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                    <span className="text-[11px] font-mono text-gray-500 font-semibold">
+                  <div className="p-4 sm:p-5 bg-bojana-surface/60 border-b border-bojana-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <span className="text-xs font-sans text-bojana-muted font-medium">
                       Control de Convalidación Técnica:
                     </span>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-bojana-inside">
                       {(['Pendiente', 'Aprobado', 'Requiere cambios'] as DecisionStatus[]).map((st) => (
                         <button
                           key={st}
                           type="button"
                           onClick={() => handleSetStatus(item.id, st)}
-                          className={`px-3 py-1.5 rounded-lg font-mono text-xs font-bold transition border cursor-pointer ${
-                            item.estado === st 
-                              ? getStatusBadge(st) + ' shadow-xs' 
-                              : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-100'
+                          className={`bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget font-sans text-xs font-medium transition border cursor-pointer ${
+                            item.estado === st
+                              ? getStatusBadge(st) + "shadow-bojana-widget"
+                              : "bg-bojana-surface text-bojana-muted border-bojana-line hover:bg-bojana-soft"
                           }`}
                         >
                           {st === 'Aprobado' && <Check className="w-3 h-3 inline mr-1" />}
@@ -482,20 +484,20 @@ export default function DecisionesModule({
 
                 {/* 4. COMMENTS & FEEDBACK THREAD */}
                 <div className="p-5 sm:p-6 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-mono text-gray-500 font-bold uppercase tracking-wider">
-                    <MessageSquare className="w-3.5 h-3.5 text-gray-400" />
+                  <div className="flex items-center gap-bojana-inside text-xs font-sans text-bojana-muted font-medium uppercase tracking-normal">
+                    <MessageSquare className="w-3.5 h-3.5 text-bojana-muted" />
                     <span>Registro de Comentarios & Observaciones ({item.comentarios.length})</span>
                   </div>
 
                   {item.comentarios.length > 0 && (
-                    <div className="space-y-2.5 pl-2 border-l-2 border-gray-100">
+                    <div className="space-y-bojana-inside pl-2 border-l-2 border-bojana-line">
                       {item.comentarios.map((c) => (
                         <div key={c.id} className="text-xs space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <strong className="text-gray-900 font-semibold">{c.autor}</strong>
-                            <span className="text-[10px] font-mono text-gray-400">{c.fecha}</span>
+                          <div className="flex items-center gap-bojana-inside">
+                            <strong className="text-bojana-ink font-medium">{c.autor}</strong>
+                            <span className="text-xs font-sans text-bojana-muted">{c.fecha}</span>
                           </div>
-                          <p className="text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-150 inline-block font-sans max-w-2xl leading-normal">
+                          <p className="text-bojana-ink bg-bojana-surface p-2.5 rounded-bojana-widget border border-bojana-line inline-block font-sans max-w-2xl leading-normal">
                             {c.texto}
                           </p>
                         </div>
@@ -505,7 +507,7 @@ export default function DecisionesModule({
 
                   {/* Input for new comment or requesting changes */}
                   <div className="pt-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-bojana-inside">
                       <input
                         type="text"
                         placeholder="Escribir un comentario o aclaración..."
@@ -514,21 +516,21 @@ export default function DecisionesModule({
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') handleAddComment(item.id);
                         }}
-                        className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-900 focus:bg-white focus:outline-hidden focus:border-gray-900"
+                        className="bojana-field flex-1 bg-bojana-surface border border-bojana-line rounded-bojana-widget px-3 py-2 text-xs text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                       />
                       <button
                         type="button"
                         onClick={() => handleAddComment(item.id)}
-                        className="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-mono font-bold transition cursor-pointer"
+                        className="bojana-button bojana-button-text px-3 py-2 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
                       >
                         Enviar
                       </button>
-                      
+
                       {!isApproved && (
                         <button
                           type="button"
                           onClick={() => handleRequestChanges(item.id)}
-                          className="px-3 py-2 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-mono font-bold transition cursor-pointer whitespace-nowrap"
+                          className="bojana-button bojana-button-text px-3 py-2 rounded-bojana-widget bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink text-xs font-sans font-medium transition cursor-pointer whitespace-nowrap"
                         >
                           Solicitar Cambios
                         </button>
@@ -546,27 +548,27 @@ export default function DecisionesModule({
       {/* 5. MODAL: NUEVA SOLICITUD DE DECISIÓN (ADMIN) */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white border border-gray-200 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-scale-up">
-            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-              <h3 className="text-sm font-bold text-gray-950 font-sans">
+          <div className="bojana-modal bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full p-6 shadow-bojana-widget space-y-bojana-block animate-scale-up">
+            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
+              <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
                 Crear Solicitud de Decisión o Revisión
               </h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-700">
+              <button onClick={() => setShowCreateModal(false)} className="bojana-button bojana-button-text text-bojana-muted hover:text-bojana-ink">
                 &times;
               </button>
             </div>
 
-            <form onSubmit={handleCreateDecision} className="space-y-4 text-xs">
+            <form onSubmit={handleCreateDecision} className="space-y-bojana-block text-xs">
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Tipo de Solicitud</label>
-                <div className="grid grid-cols-2 gap-2 font-mono">
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Tipo de Solicitud</label>
+                <div className="grid grid-cols-2 gap-bojana-inside font-sans">
                   <button
                     type="button"
                     onClick={() => setNewType('decision_diseno')}
-                    className={`p-2 rounded-lg border font-bold text-left ${
-                      newType === 'decision_diseno' 
-                        ? 'bg-gray-950 text-white border-gray-950' 
-                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                    className={`bojana-button bojana-button-primary p-2 rounded-bojana-widget border font-medium text-left ${
+                      newType === "decision_diseno"
+                        ? "bg-bojana-ink text-bojana-inverse border-bojana-line"
+                        : "bg-bojana-surface text-bojana-ink border-bojana-line"
                     }`}
                   >
                     <span>Decisión con Opciones (A / B)</span>
@@ -574,10 +576,10 @@ export default function DecisionesModule({
                   <button
                     type="button"
                     onClick={() => setNewType('revision_tecnica')}
-                    className={`p-2 rounded-lg border font-bold text-left ${
-                      newType === 'revision_tecnica' 
-                        ? 'bg-gray-950 text-white border-gray-950' 
-                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                    className={`bojana-button bojana-button-primary p-2 rounded-bojana-widget border font-medium text-left ${
+                      newType === "revision_tecnica"
+                        ? "bg-bojana-ink text-bojana-inverse border-bojana-line"
+                        : "bg-bojana-surface text-bojana-ink border-bojana-line"
                     }`}
                   >
                     <span>Revisión Técnica / Plano</span>
@@ -586,84 +588,84 @@ export default function DecisionesModule({
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Título</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Título</label>
                 <input
                   type="text"
                   required
                   placeholder={newType === 'decision_diseno' ? 'ej: Terminación de cocina' : 'ej: Plano eléctrico — Rev. 02'}
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2.5 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
 
               <div>
-                <label className="font-mono text-gray-500 font-bold block mb-1">Descripción / Alcance</label>
+                <label className="font-sans text-bojana-muted font-medium block mb-1">Descripción / Alcance</label>
                 <textarea
                   rows={2}
                   placeholder="Detalles sobre lo que se somete a convalidación del comitente..."
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs text-gray-900 focus:bg-white"
+                  className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs text-bojana-ink focus:bg-bojana-surface"
                 />
               </div>
 
               {/* Options fields if design decision */}
               {newType === 'decision_diseno' && (
-                <div className="space-y-3 border-t border-gray-100 pt-3">
-                  <span className="text-[10px] font-mono uppercase text-gray-400 font-bold block">
+                <div className="space-y-3 border-t border-bojana-line pt-3">
+                  <span className="text-xs font-sans uppercase text-bojana-muted font-medium block">
                     Alternativas para el Cliente
                   </span>
 
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
-                    <span className="text-xs font-mono font-bold text-gray-800">Opción A:</span>
+                  <div className="bojana-widget bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line space-y-bojana-inside">
+                    <span className="text-xs font-sans font-medium text-bojana-ink">Opción A:</span>
                     <input
                       type="text"
                       placeholder="Título Opción A (ej: Roble natural)"
                       value={optATitle}
                       onChange={(e) => setOptATitle(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                     />
                     <input
                       type="text"
                       placeholder="Descripción breve Opción A"
                       value={optADesc}
                       onChange={(e) => setOptADesc(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                     />
                   </div>
 
-                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-2">
-                    <span className="text-xs font-mono font-bold text-gray-800">Opción B:</span>
+                  <div className="bojana-widget bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line space-y-bojana-inside">
+                    <span className="text-xs font-sans font-medium text-bojana-ink">Opción B:</span>
                     <input
                       type="text"
                       placeholder="Título Opción B (ej: Roble oscuro)"
                       value={optBTitle}
                       onChange={(e) => setOptBTitle(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                     />
                     <input
                       type="text"
                       placeholder="Descripción breve Opción B"
                       value={optBDesc}
                       onChange={(e) => setOptBDesc(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs"
+                      className="bojana-field w-full bg-bojana-surface border border-bojana-line rounded-bojana-widget p-2 text-xs"
                     />
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-700 font-mono"
+                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget border border-bojana-line text-bojana-ink font-sans"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-gray-950 text-white font-mono font-bold"
+                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans font-medium"
                 >
                   Publicar Solicitud
                 </button>

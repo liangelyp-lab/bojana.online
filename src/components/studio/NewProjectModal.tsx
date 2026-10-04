@@ -92,9 +92,9 @@ const emptyDraft = (): Draft => ({
 });
 const uid = () => crypto.randomUUID();
 const fieldClass =
-  "w-full min-w-0 rounded-md border border-[#D8D8D2] bg-white px-3 py-2.5 text-sm text-[#111111] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#111111]";
+  "bojana-field w-full min-w-0 rounded-bojana-widget border border-bojana-line bg-bojana-surface px-3 py-2.5 text-sm text-bojana-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bojana-ink";
 const secondaryClass =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#D8D8D2] px-3 py-2 text-sm hover:bg-[#ECECE7] focus-visible:outline-2 focus-visible:outline-offset-2";
+  "bojana-button bojana-button-secondary inline-flex min-h-11 items-center justify-center gap-bojana-inside rounded-bojana-widget border border-bojana-line px-3 py-2 text-sm hover:bg-bojana-soft focus-visible:outline-2 focus-visible:outline-offset-2";
 
 export default function NewProjectModal(props: Props) {
   return props.isOpen ? <ProjectCreationForm {...props} /> : null;
@@ -356,17 +356,17 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="creation-title"
-        className="flex flex-col w-full max-w-5xl max-h-full rounded-lg bg-[#F7F7F4] text-[#111111] shadow-xl overflow-hidden"
+        className="flex flex-col w-full bojana-modal max-w-bojana-modal max-h-full rounded-bojana-widget bg-bojana-canvas text-bojana-ink shadow-bojana-widget overflow-hidden"
       >
-        <header className="flex justify-between items-start gap-4 border-b border-[#D8D8D2] p-5 sm:px-8">
+        <header className="flex justify-between items-start gap-bojana-block border-b border-bojana-line p-5 sm:px-8">
           <div>
-            <p className="text-xs uppercase tracking-widest text-[#686864]">
+            <p className="text-xs uppercase tracking-normal text-bojana-muted">
               Bojana Estudio
             </p>
-            <h2 id="creation-title" className="text-2xl mt-1">
+            <h2 id="creation-title" className="bojana-heading-section text-2xl mt-1">
               Crear proyecto
             </h2>
-            <p className="text-sm text-[#686864] mt-1">
+            <p className="text-sm text-bojana-muted mt-1">
               Configurá todo el ADN a partir del alcance aprobado.
             </p>
           </div>
@@ -381,7 +381,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
         </header>
         <nav
           aria-label="Secciones del ADN"
-          className="flex flex-wrap gap-x-5 gap-y-2 px-5 sm:px-8 py-3 border-b border-[#D8D8D2] text-xs"
+          className="flex flex-wrap gap-x-5 gap-y-2 px-5 sm:px-8 py-3 border-b border-bojana-line text-xs"
         >
           {[
             "Identidad",
@@ -401,9 +401,9 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             </a>
           ))}
         </nav>
-        <div className="overflow-y-auto p-5 sm:p-8 space-y-10">
+        <div className="overflow-y-auto p-5 sm:p-8 space-y-bojana-block">
           <Section index={0} title="Identidad y propósito">
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-bojana-block">
               <Field
                 label="Nombre del proyecto"
                 value={draft.nombre}
@@ -459,7 +459,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
               onChange={(v) => set("fueraDeAlcance", v)}
               multiline
             />
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-bojana-block">
               <Field
                 label="Inicio estimado (opcional)"
                 value={draft.inicio}
@@ -476,7 +476,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             {draft.hitos.map((h, i) => (
               <div
                 key={h.id}
-                className="grid sm:grid-cols-[1fr_180px_auto] gap-2"
+                className="grid sm:grid-cols-[1fr_180px_auto] gap-bojana-inside"
               >
                 <Field
                   label="Hito"
@@ -534,7 +534,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 {disciplines.map((disc) => (
                   <label
                     key={disc}
-                    className="flex gap-2 items-center min-h-11 px-3 border border-[#D8D8D2] rounded-md"
+                    className="flex gap-bojana-inside items-center min-h-11 px-3 border border-bojana-line rounded-bojana-widget"
                   >
                     <input
                       type="checkbox"
@@ -576,7 +576,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 ))}
               </div>
             </fieldset>
-            <div className="grid sm:grid-cols-3 gap-4">
+            <div className="grid sm:grid-cols-3 gap-bojana-block">
               <Field
                 label="Cliente / comitente"
                 value={draft.cliente}
@@ -595,13 +595,13 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 onChange={(v) => set("telefono", v)}
               />
             </div>
-            <p className="text-sm text-[#686864]">
+            <p className="text-sm text-bojana-muted">
               Equipo y responsables del estudio
             </p>
             {draft.equipo.map((m) => (
               <div
                 key={m.id}
-                className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-2"
+                className="grid sm:grid-cols-[1fr_1fr_1fr_auto] gap-bojana-inside"
               >
                 <Field
                   label="Nombre"
@@ -669,13 +669,13 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 ])
               }
             />
-            <p className="text-sm text-[#686864]">
+            <p className="text-sm text-bojana-muted">
               Participantes del cliente y permisos
             </p>
             {draft.contactos.map((c) => (
               <div
                 key={c.id}
-                className="grid sm:grid-cols-[1fr_1fr_auto_auto] gap-2 items-end"
+                className="grid sm:grid-cols-[1fr_1fr_auto_auto] gap-bojana-inside items-end"
               >
                 <Field
                   label="Nombre"
@@ -704,7 +704,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                     )
                   }
                 />
-                <label className="flex items-center min-h-11 gap-2 text-sm">
+                <label className="flex items-center min-h-11 gap-bojana-inside text-sm">
                   <input
                     type="checkbox"
                     checked={c.accesoPortal}
@@ -743,7 +743,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             />
           </Section>
           <Section index={3} title="Orden de trabajo">
-            <p className="text-sm text-[#686864]">
+            <p className="text-sm text-bojana-muted">
               Elegí necesidades y agregá las tareas reales del alcance. Las
               etapas son agrupaciones opcionales dentro de cada necesidad. Todas
               las tareas tienen el mismo peso.
@@ -751,10 +751,10 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             {draft.disciplinas.map((disc) => (
               <div
                 key={disc}
-                className="space-y-3 border-t border-[#D8D8D2] pt-4"
+                className="space-y-3 border-t border-bojana-line pt-4"
               >
-                <h4>{disc}</h4>
-                <div className="flex flex-wrap gap-2">
+                <h4 className="bojana-heading-component">{disc}</h4>
+                <div className="flex flex-wrap gap-bojana-inside">
                   {DISCIPLINE_NEEDS_MAP[disc].map((p) => (
                     <button
                       key={p.id}
@@ -775,9 +775,9 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             {draft.necesidades.map((need, ni) => (
               <div
                 key={need.id}
-                className="space-y-4 border-t border-[#D8D8D2] pt-5"
+                className="space-y-bojana-block border-t border-bojana-line pt-5"
               >
-                <div className="flex flex-wrap items-end gap-2">
+                <div className="flex flex-wrap items-end gap-bojana-inside">
                   <div className="flex-1">
                     <Field
                       label={`Necesidad · ${need.disciplina}`}
@@ -821,9 +821,9 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 {need.tareas.map((task, ti) => (
                   <div
                     key={task.id}
-                    className="space-y-3 border-l-2 border-[#D8D8D2] pl-4"
+                    className="space-y-3 border-l-2 border-bojana-line pl-4"
                   >
-                    <div className="flex flex-wrap items-end gap-2">
+                    <div className="flex flex-wrap items-end gap-bojana-inside">
                       <div className="flex-1">
                         <Field
                           label={`Tarea ${ti + 1}`}
@@ -857,7 +857,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                           updateTask(need, task.id, { etapa: v })
                         }
                       />
-                      <label className="text-sm space-y-1 block">
+                      <label className="text-sm space-y-bojana-inside block">
                         <span>Responsable</span>
                         <select
                           className={fieldClass}
@@ -877,7 +877,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                         </select>
                       </label>
                     </div>
-                    <label className="flex items-center gap-2 min-h-11 text-sm">
+                    <label className="flex items-center gap-bojana-inside min-h-11 text-sm">
                       <input
                         type="checkbox"
                         checked={task.visibleCliente}
@@ -896,7 +896,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                       Mostrar esta tarea en la vista del cliente
                     </label>
                     <fieldset>
-                      <legend className="text-xs text-[#686864]">
+                      <legend className="text-xs text-bojana-muted">
                         Depende de estas tareas (opcional)
                       </legend>
                       <div className="flex flex-wrap gap-x-4">
@@ -905,7 +905,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                           .map((dep) => (
                             <label
                               key={dep.id}
-                              className="flex gap-2 items-center min-h-9 text-xs"
+                              className="flex gap-bojana-inside items-center min-h-9 text-xs"
                             >
                               <input
                                 type="checkbox"
@@ -962,8 +962,8 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
               multiline
               onChange={(v) => set("detalleSiguiente", v)}
             />
-            <div className="grid sm:grid-cols-2 gap-4">
-              <label className="text-sm space-y-1">
+            <div className="grid sm:grid-cols-2 gap-bojana-block">
+              <label className="text-sm space-y-bojana-inside">
                 <span>Quién debe actuar</span>
                 <select
                   className={fieldClass}
@@ -979,7 +979,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                   <option value="cliente">El cliente</option>
                 </select>
               </label>
-              <label className="text-sm space-y-1">
+              <label className="text-sm space-y-bojana-inside">
                 <span>
                   Tarea asociada{" "}
                   {draft.actorSiguiente === "cliente"
@@ -1008,14 +1008,14 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             </div>
           </Section>
           <Section index={5} title="Base documental">
-            <p className="text-sm text-[#686864]">
+            <p className="text-sm text-bojana-muted">
               Registrá enlaces del presupuesto aprobado y los documentos
               disponibles. Adjuntarlos no suma avance.
             </p>
             {draft.documentos.map((doc) => (
               <div
                 key={doc.id}
-                className="grid sm:grid-cols-2 gap-3 border-t border-[#D8D8D2] pt-4"
+                className="grid sm:grid-cols-2 gap-3 border-t border-bojana-line pt-4"
               >
                 <Field
                   label="Nombre del documento"
@@ -1043,7 +1043,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                     )
                   }
                 />
-                <label className="text-sm space-y-1">
+                <label className="text-sm space-y-bojana-inside">
                   <span>Tipo</span>
                   <select
                     className={fieldClass}
@@ -1079,7 +1079,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                     )
                   }
                 />
-                <label className="flex gap-2 items-center text-sm">
+                <label className="flex gap-bojana-inside items-center text-sm">
                   <input
                     type="checkbox"
                     checked={doc.visibleCliente !== false}
@@ -1124,26 +1124,26 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
             />
           </Section>
           <Section index={6} title="Revisión del ADN">
-            <dl className="grid sm:grid-cols-2 gap-4 text-sm">
+            <dl className="grid sm:grid-cols-2 gap-bojana-block text-sm">
               <div>
-                <dt className="text-[#686864]">Proyecto y cliente</dt>
+                <dt className="text-bojana-muted">Proyecto y cliente</dt>
                 <dd>
                   {draft.nombre || "Pendiente"} · {draft.cliente || "Pendiente"}
                 </dd>
               </div>
               <div>
-                <dt className="text-[#686864]">Ejecución inicial</dt>
+                <dt className="text-bojana-muted">Ejecución inicial</dt>
                 <dd>
                   0% · {draft.necesidades.length} necesidades · {tasks.length}{" "}
                   tareas
                 </dd>
               </div>
               <div>
-                <dt className="text-[#686864]">Próximo paso</dt>
+                <dt className="text-bojana-muted">Próximo paso</dt>
                 <dd>{draft.siguiente || "Pendiente"}</dd>
               </div>
               <div>
-                <dt className="text-[#686864]">Documentación visible</dt>
+                <dt className="text-bojana-muted">Documentación visible</dt>
                 <dd>
                   {
                     draft.documentos.filter((d) => d.visibleCliente !== false)
@@ -1153,9 +1153,9 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 </dd>
               </div>
             </dl>
-            <p className="text-sm text-[#686864]">Secuencia para el cliente</p>
+            <p className="text-sm text-bojana-muted">Secuencia para el cliente</p>
             {sequence.length ? (
-              <ol className="space-y-2 text-sm">
+              <ol className="space-y-bojana-inside text-sm">
                 {sequence.map((s, i) => (
                   <li key={s.id}>
                     {i + 1}. {s.nombre} · Próximamente
@@ -1167,14 +1167,14 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
                 Todavía no hay tareas visibles seleccionadas.
               </p>
             )}
-            <p className="text-sm text-[#686864]">
+            <p className="text-sm text-bojana-muted">
               Crear genera el workspace con esta configuración. La publicación y
               la bienvenida se realizan después, mediante acciones separadas.
             </p>
           </Section>
         </div>
-        <footer className="border-t border-[#D8D8D2] p-4 sm:px-8 flex flex-wrap justify-between items-center gap-3 bg-white">
-          <p role="status" className="text-sm text-[#686864] flex-1">
+        <footer className="border-t border-bojana-line p-4 sm:px-8 flex flex-wrap justify-between items-center gap-3 bg-bojana-surface">
+          <p role="status" className="text-sm text-bojana-muted flex-1">
             {notice || "El proyecto comienza en 0%."}
           </p>
           <button
@@ -1197,7 +1197,7 @@ function ProjectCreationForm({ onClose, onFinish }: Props) {
           </button>
           <button
             type="submit"
-            className="min-h-11 bg-[#111111] text-white px-5 py-2 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2"
+            className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-bojana-widget focus-visible:outline-2 focus-visible:outline-offset-2"
           >
             Crear proyecto
           </button>
@@ -1222,29 +1222,39 @@ function Field({
   multiline?: boolean;
   required?: boolean;
 }) {
+  const [error, setError] = useState('');
+  const examples: Record<string,string> = { 'Nombre del proyecto':'Ej.: Remodelación del SUM', 'Cliente / comitente':'Ej.: Consorcio Los Alisos', 'Propósito — resultado esperado':'Ej.: Conectar los espacios comunes', 'Ubicación':'Ej.: Nordelta, Tigre', 'Qué incluye el alcance aprobado':'Ej.: Planos y dos visualizaciones', 'Primer movimiento':'Ej.: Preparar la propuesta inicial' };
+  const validate = (e: React.InvalidEvent<HTMLInputElement|HTMLTextAreaElement>) => { e.preventDefault(); setError(e.currentTarget.validationMessage); };
   return (
-    <label className="block text-sm space-y-1">
-      <span>
+    <label className="block text-sm space-y-bojana-inside">
+      <span className="bojana-label">
         {label}
         {required && " *"}
       </span>
       {multiline ? (
         <textarea
           required={required}
+          aria-invalid={!!error}
+          onInvalid={validate}
+          placeholder={examples[label]}
           rows={3}
           className={fieldClass}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { setError(''); onChange(e.target.value); }}
         />
       ) : (
         <input
           required={required}
+          aria-invalid={!!error}
+          onInvalid={validate}
+          placeholder={examples[label]}
           type={type}
           className={fieldClass}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => { setError(''); onChange(e.target.value); }}
         />
       )}
+      {error && <p role="alert" className="text-xs text-bojana-error">{error}</p>}
     </label>
   );
 }
@@ -1258,8 +1268,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section id={`creation-${index}`} className="space-y-4 scroll-mt-4">
-      <h3 className="text-lg">{title}</h3>
+    <section id={`creation-${index}`} className="space-y-bojana-block scroll-mt-4">
+      <h3 className="bojana-heading-component text-lg">{title}</h3>
       {children}
     </section>
   );
@@ -1301,7 +1311,7 @@ function Order({
         type="button"
         disabled={index === 0}
         aria-label={`Subir ${label}`}
-        className={`${secondaryClass} disabled:opacity-40`}
+        className={`bojana-icon-button  ${secondaryClass} disabled:opacity-40`}
         onClick={() => onMove(-1)}
       >
         <ArrowUp size={16} />
@@ -1310,7 +1320,7 @@ function Order({
         type="button"
         disabled={index === count - 1}
         aria-label={`Bajar ${label}`}
-        className={`${secondaryClass} disabled:opacity-40`}
+        className={`bojana-icon-button  ${secondaryClass} disabled:opacity-40`}
         onClick={() => onMove(1)}
       >
         <ArrowDown size={16} />
