@@ -6,19 +6,51 @@ import {
   RotateCcw
 } from 'lucide-react';
 
+interface TeamUser {
+  id: string;
+  nombre: string;
+  email: string;
+  rol: string;
+}
+
 interface StudioSettingsViewProps {
   onResetDefaults: () => void;
   onToast: (msg: string) => void;
+  onActiveUserChange?: (user: TeamUser | null) => void;
 }
 
 export default function StudioSettingsView({
   onResetDefaults,
-  onToast
+  onToast,
+  onActiveUserChange
 }: StudioSettingsViewProps) {
   const [studioName, setStudioName] = useState('Bojana Estudio');
   const [studioEmail, setStudioEmail] = useState('contacto@bojanaestudio.com');
   const [studioPhone, setStudioPhone] = useState('+54 9 11 4589-2230');
   const [studioCity, setStudioCity] = useState('Buenos Aires, Argentina');
+  const [teamUsers, setTeamUsers] = useState<TeamUser[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bojana-studio-users') || '[]'); } catch { return []; }
+  });
+  const [newUser, setNewUser] = useState({ nombre: '', email: '', rol: '' });
+
+  const addTeamUser = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!newUser.nombre.trim() || !newUser.email.trim()) return;
+    const user: TeamUser = { id: `user-${Date.now()}`, nombre: newUser.nombre.trim(), email: newUser.email.trim(), rol: newUser.rol.trim() || 'Miembro del estudio' };
+    const next = [...teamUsers, user];
+    setTeamUsers(next);
+    localStorage.setItem('bojana-studio-users', JSON.stringify(next));
+    setNewUser({ nombre: '', email: '', rol: '' });
+    onActiveUserChange?.(user);
+    onToast('Usuario del estudio registrado.');
+  };
+
+  const removeTeamUser = (id: string) => {
+    const next = teamUsers.filter(user => user.id !== id);
+    setTeamUsers(next);
+    localStorage.setItem('bojana-studio-users', JSON.stringify(next));
+    onToast('Usuario eliminado del equipo.');
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,6 +104,40 @@ export default function StudioSettingsView({
               </Button>
             </div>
           </form>
+        </div>
+
+        <div className="lg:col-span-12 rounded-3xl border border-line bg-white p-7 shadow-sm space-y-6">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Accesos internos</p>
+            <h3 className="mt-2 font-display text-2xl font-normal text-ink">Equipo del estudio</h3>
+            <p className="mt-1 text-sm text-ink-muted">Registrá las personas que pueden ingresar y trabajar en el panel del estudio.</p>
+          </div>
+
+          <form onSubmit={addTeamUser} className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+            <Field label="Nombre completo" value={newUser.nombre} onChange={event => setNewUser({ ...newUser, nombre: event.target.value })} placeholder="Nombre y apellido" required />
+            <Field label="Email de acceso" type="email" value={newUser.email} onChange={event => setNewUser({ ...newUser, email: event.target.value })} placeholder="nombre@estudio.com" required />
+            <Field label="Rol" value={newUser.rol} onChange={event => setNewUser({ ...newUser, rol: event.target.value })} placeholder="Arquitecta, dirección..." />
+            <Button type="submit" className="md:mb-0">Agregar usuario</Button>
+          </form>
+
+          {teamUsers.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-line bg-canvas/50 p-6 text-center text-sm text-ink-muted">Todavía no hay usuarios registrados.</div>
+          ) : (
+            <div className="divide-y divide-line rounded-2xl border border-line">
+              {teamUsers.map(user => (
+                <div key={user.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-ink">{user.nombre}</p>
+                    <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} es ahora el usuario visible.`); }}>Usar en navegación</Button>
+                    <Button variant="ghost" onClick={() => removeTeamUser(user.id)}>Eliminar</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Storage & System Operations (Column 2 of 2) */}

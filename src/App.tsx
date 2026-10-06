@@ -699,12 +699,14 @@ function AdminSidebar({
   onViewClientPortal,
   projects,
   onOpenProject,
+  activeUser,
 }: {
   active: string
   setActive: (value: string) => void
   onViewClientPortal: () => void
   projects: ProjectData[]
   onOpenProject: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean }) => void
+  activeUser?: { nombre: string; rol: string } | null
 }) {
   return (
     <aside className="sticky top-0 hidden h-screen max-h-screen w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex">
@@ -746,13 +748,6 @@ function AdminSidebar({
         <Eyebrow>Organizacion</Eyebrow>
         <div className="mt-4 space-y-1">
           <Button
-            className="w-full !justify-start !rounded-xl !px-3 !text-white/55 hover:!bg-white/5 hover:!text-white"
-            onClick={() => setActive("Clientes")}
-            variant="ghost"
-          >
-            <Icon className="size-4.5" name="people" /> Equipo
-          </Button>
-          <Button
             className={`w-full !justify-start !rounded-xl !px-3 ${
               active === "Configuracion"
                 ? "!bg-white/10 !text-white"
@@ -772,8 +767,8 @@ function AdminSidebar({
             EM
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">Elena Marquez</p>
-            <p className="truncate text-xs text-white/45">Administradora</p>
+            <p className="truncate text-sm font-semibold">{activeUser?.nombre || "Usuario del estudio"}</p>
+            <p className="truncate text-xs text-white/45">{activeUser?.rol || "Sin usuario configurado"}</p>
           </div>
           <Icon className="size-4 text-white/45" name="more" />
         </div>
@@ -1258,6 +1253,8 @@ function AdminPortal({
   onUpdateProject,
   onResetDefaults,
   onEditProject,
+  activeUser,
+  setActiveUser,
 }: {
   allProjects: ProjectData[]
   currentProject?: ProjectData
@@ -1280,6 +1277,8 @@ function AdminPortal({
   onUpdateProject: (updated: ProjectData) => void
   onResetDefaults: () => void
   onEditProject: () => void
+  activeUser?: { nombre: string; rol: string } | null
+  setActiveUser?: (user: { id?: string; nombre: string; email?: string; rol: string } | null) => void
 }) {
   const [activeNav, setActiveNav] = useState("Proyectos")
   const [activeTab, setActiveTab] = useState("Resumen")
@@ -1331,6 +1330,7 @@ function AdminPortal({
           }}
           onViewClientPortal={onViewClientPortal}
           projects={allProjects}
+          activeUser={activeUser}
           onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.decision ? "Decisiones" : "Resumen") }}
         />
         <div className="min-w-0 flex-1 lg:min-h-0 lg:overflow-y-auto">
@@ -1598,6 +1598,7 @@ function AdminPortal({
               <StudioSettingsView
                 onResetDefaults={onResetDefaults}
                 onToast={onPublishToast}
+                onActiveUserChange={user => setActiveUser?.(user)}
               />
             )}
           </main>
@@ -2805,7 +2806,7 @@ function ClientPortal({
                 <div className="rounded-3xl border border-line bg-white p-7">
                   <Eyebrow>Canal de comunicación</Eyebrow>
                   <Heading as="h3" className="mt-2 font-display text-2xl text-ink">
-                    Contacto directo con Elena Marquez
+                    Contacto directo con el equipo del estudio
                   </Heading>
                   <p className="mt-2 text-sm text-ink-muted leading-relaxed">
                     Las dudas técnicas, consultas y acuerdos sobre la obra se canalizan a través de este portal para mantener la trazabilidad completa del proyecto.
@@ -2840,11 +2841,15 @@ export default function App() {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
   }, [allProjects, selectedProjectId])
 
-  const [activeProject, setActiveProject] = useState({
-    name: "Casa del Olivo",
-    code: "BE 024",
-    desc: "Reforma integral y ampliacion de vivienda - Javea, Alicante",
+  const [activeProject, setActiveProject] = useState({ name: "Sin proyecto seleccionado", code: "—", desc: "Creá un proyecto para comenzar." })
+  const [activeUser, setActiveUserState] = useState<{ id?: string; nombre: string; email?: string; rol: string } | null>(() => {
+    try { return JSON.parse(localStorage.getItem("bojana-active-user") || "null") } catch { return null }
   })
+  const setActiveUser = (user: { id?: string; nombre: string; email?: string; rol: string } | null) => {
+    setActiveUserState(user)
+    if (user) localStorage.setItem("bojana-active-user", JSON.stringify(user))
+    else localStorage.removeItem("bojana-active-user")
+  }
 
   // Synchronize activeProject with selected project if any
   useEffect(() => {
@@ -2957,6 +2962,8 @@ export default function App() {
           selectedProjectId={selectedProjectId}
           setSelectedProjectId={setSelectedProjectId}
           tasks={taskList}
+          activeUser={activeUser}
+          setActiveUser={setActiveUser}
         />
       )}
 
