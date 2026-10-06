@@ -1,0 +1,11 @@
+{
+  "title": "Bojana Online",
+  "description": "Streamline project management and client communication for architecture and engineering firms, enhancing organization and transparency throughout the project lifecycle.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
