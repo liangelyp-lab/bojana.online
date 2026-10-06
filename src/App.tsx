@@ -1260,7 +1260,7 @@ function AdminPortal({
   onEditProject,
 }: {
   allProjects: ProjectData[]
-  currentProject: ProjectData
+  currentProject?: ProjectData
   selectedProjectId: string | null
   setSelectedProjectId: (id: string | null) => void
   activeProject: { name: string; code: string; desc: string }
@@ -1289,6 +1289,26 @@ function AdminPortal({
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
   const [clientAlert, setClientAlert] = useState<{ title: string; message: string; actionType: ClientAlertActionType } | null>(null)
+
+  if (!currentProject) {
+    return (
+      <div className="min-h-screen bg-canvas text-ink">
+        <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 text-center">
+          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Bojana Estudio</p>
+          <h1 className="mt-4 font-display text-4xl font-normal">Todavía no hay proyectos</h1>
+          <p className="mt-3 max-w-lg text-sm leading-6 text-ink-muted">
+            Creá tu primer proyecto para comenzar a configurar el portal del comitente.
+          </p>
+          <Button className="mt-7" onClick={onNewProject}>
+            Crear primer proyecto <Icon className="size-4" name="plus" />
+          </Button>
+          <Button className="mt-3" onClick={onSignOut} variant="ghost">
+            Cerrar sesión
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   const workspaceTasks = useMemo(
     () => selectedProjectId ? getProjectTasks(currentProject) : tasks,
@@ -2826,7 +2846,7 @@ type Screen = "signin" | "admin" | "client"
 export default function App() {
   const [screen, setScreen] = useState<Screen>("signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>("p-01")
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
   const currentProject = useMemo(() => {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
@@ -2985,7 +3005,7 @@ export default function App() {
         />
       )}
 
-      {screen === "client" && (
+      {screen === "client" && currentProject && (
         <ClientPortal
           activeProject={activeProject}
           currentProject={currentProject}
