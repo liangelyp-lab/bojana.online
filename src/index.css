@@ -1,0 +1,1025 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400;1,6..72,500&display=swap");
+@import "tailwindcss";
+
+/* ─── Design Tokens ─────────────────────────────────────────────────── */
+@theme {
+  /* Typography */
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
+
+  /* Palette — Canvas & Surfaces */
+  --color-canvas:        #f7f6f2;
+  --color-white:         #ffffff;
+  --color-stone:         #edece6;
+  --color-line:          #deddd6;
+  --color-line-strong:   #b8b7ab;
+
+  /* Palette — Ink / Text (Calibrated for WCAG AA/AAA Contrast on Canvas & White) */
+  --color-ink:           #1a1f19;
+  --color-ink-soft:      #2c342b;
+  --color-ink-muted:     #4d574c;
+  --color-ink-faint:     #636f62;
+
+  /* Palette — Brand accents & State Badges (High Contrast) */
+  --color-forest:        #3a3a3a;
+  --color-clay:          #a8472f;
+  --color-clay-dark:     #7a2612;
+  --color-clay-pale:     #f8ebe6;
+  --color-sand:          #ded2bd;
+  --color-sand-strong:   #6e5220;
+  --color-sage:          #9eb5a4;
+  --color-mint:          #8ab99c;
+  --color-mint-pale:     #e4efe7;
+
+  /* Bojana semantic color tokens - Harmonized with Refine Architectural Studio Palette */
+  --color-bojana-canvas:     var(--color-canvas);
+  --color-bojana-surface:    #ffffff;
+  --color-bojana-soft:       var(--color-stone);
+  --color-bojana-ink:        var(--color-ink);
+  --color-bojana-muted:      var(--color-ink-muted);
+  --color-bojana-line:       var(--color-line);
+  --color-bojana-line-strong:var(--color-line-strong);
+  --color-bojana-primary:    var(--color-forest);
+  --color-bojana-inverse:    #ffffff;
+  --color-bojana-success:    var(--color-forest);
+  --color-bojana-waiting:    var(--color-clay-pale);
+  --color-bojana-error:      var(--color-clay-dark);
+  --color-bojana-discipline: var(--color-ink);
+  --color-bojana-focus:      rgba(58, 58, 58, 0.12);
+
+  /* Bojana border radii - Refine aesthetic */
+  --radius-bojana-editorial: 0.75rem;
+  --radius-bojana-widget:    1.5rem;
+  --radius-bojana-button:    9999px;
+  --radius-bojana-input:     0.875rem;
+  --radius-bojana-overlay:   1.5rem;
+  --radius-bojana-image:     1.5rem;
+  --radius-bojana-badge:     9999px;
+
+  /* Bojana shadows */
+  --shadow-bojana-base:    0 1.5rem 4rem rgb(31 42 35 / 0.08);
+  --shadow-bojana-widget:  0 1px 3px 0 rgb(0 0 0 / 0.04);
+  --shadow-bojana-overlay: 0 1.5rem 4rem rgb(31 42 35 / 0.15);
+
+  /* Bojana spacing scale */
+  --spacing-bojana-block:  1rem;
+  --spacing-bojana-inside: 0.5rem;
+
+  /* Bojana container widths */
+  --container-bojana-shell:   80rem;
+  --container-bojana-reading: 56rem;
+  --container-bojana-modal:   52rem;
+
+  /* Original Refine system tokens */
+  --width-sidebar:              16.5rem;
+  --max-width-content:          75rem;
+  --grid-template-columns-hero: minmax(0, 1.05fr) minmax(22rem, 0.95fr);
+  --grid-template-columns-action: minmax(0, 1fr) auto;
+  --grid-template-columns-progress: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  --grid-template-columns-story: 4.5rem minmax(0, 1fr) auto;
+  --spacing-hero:    29rem;
+  --spacing-image:   23rem;
+  --spacing-progress: 42%;
+  --shadow-card:     0 1.5rem 4rem rgb(31 42 35 / 0.1);
+}
+
+/* ─── CSS Custom Properties (for non-Tailwind use) ─────────────────── */
+:root {
+  --bojana-gradient: linear-gradient(135deg, #2d6a4f 0%, #4a9970 50%, #d4a853 100%);
+  --bojana-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Base Reset ────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: var(--color-bojana-canvas);
+    scroll-behavior: smooth;
+    min-height: 100%;
+  }
+
+  body {
+    min-width: 20rem;
+    min-height: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    background: var(--color-bojana-canvas);
+    color: var(--color-bojana-ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  button { font: inherit; cursor: pointer; }
+  input, textarea, select { font: inherit; }
+
+  ::selection {
+    background: var(--color-sand);
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}
+
+/* Keep the sign-in composition inside short mobile viewports. */
+@media (max-width: 639px) and (max-height: 740px) {
+  .signin-shell > section:first-child {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .signin-content {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .signin-content form {
+    gap: 0.5rem;
+  }
+
+  .signin-content form > * {
+    flex-shrink: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-height: 850px) {
+  .signin-shell > section:first-child {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .signin-content {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .signin-content form {
+    margin-top: 1rem;
+    gap: 0.625rem;
+  }
+
+  .signin-content form > div:first-child,
+  .signin-content form > div:nth-child(2) {
+    gap: 0.25rem;
+  }
+
+  .signin-content form button {
+    min-height: 2.75rem;
+  }
+
+  .signin-content > p:last-child {
+    display: none;
+  }
+
+  .signin-shell > section:last-child {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  .signin-shell > section:last-child .font-display.text-4xl {
+    font-size: 2.5rem;
+  }
+
+  .signin-shell > section:last-child .mt-10 {
+    margin-top: 1.5rem;
+  }
+}
+
+/* ─── Bojana Component Classes ──────────────────────────────────────── */
+@layer components {
+  .focused-notification-task {
+    border-color: var(--color-ink) !important;
+    background: var(--color-stone) !important;
+    outline: 3px solid rgb(168 71 47 / 0.55) !important;
+    outline-offset: 4px;
+    box-shadow: 0 0 0 3px rgb(26 31 25 / 0.12), 0 1rem 2rem rgb(26 31 25 / 0.12) !important;
+  }
+
+  /* ── Typography ─────────────────────────────────────── */
+  .bojana-heading-display {
+    font-family: var(--font-display);
+    font-size: 2.25rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-bojana-ink);
+  }
+
+  .bojana-heading-page {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  .bojana-heading-section {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 400;
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    color: var(--color-ink);
+  }
+
+  .bojana-heading-component {
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: 0;
+    color: var(--color-ink);
+  }
+
+  .bojana-label {
+    font-family: var(--font-sans);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-faint);
+  }
+
+  .bojana-editorial {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* ── Badge ───────────────────────────────────────────── */
+  .bojana-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-bojana-badge);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    letter-spacing: 0.02em;
+    border: 1px solid var(--color-line);
+    background: var(--color-stone);
+    color: var(--color-ink-muted);
+  }
+
+  /* ── Buttons ─────────────────────────────────────────── */
+  .bojana-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--radius-bojana-button);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    line-height: 1;
+    white-space: nowrap;
+    transition: background-color var(--bojana-transition),
+                color var(--bojana-transition),
+                border-color var(--bojana-transition),
+                box-shadow var(--bojana-transition),
+                opacity var(--bojana-transition);
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    outline: none;
+  }
+
+  .bojana-button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .bojana-button:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-bojana-focus);
+  }
+
+  .bojana-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .bojana-button-primary {
+    background: var(--color-forest);
+    color: #ffffff;
+    border-color: var(--color-forest);
+  }
+
+  .bojana-button-primary:hover:not(:disabled) {
+    background: #1c2b24;
+    border-color: #1c2b24;
+  }
+
+  .bojana-button-secondary {
+    background: #ffffff;
+    color: var(--color-ink);
+    border-color: var(--color-line);
+  }
+
+  .bojana-button-secondary:hover:not(:disabled) {
+    background: var(--color-stone);
+    border-color: var(--color-line-strong);
+  }
+
+  .bojana-button-danger {
+    background: var(--color-clay-pale);
+    color: var(--color-clay-dark);
+    border-color: var(--color-clay);
+  }
+
+  .bojana-button-danger:hover:not(:disabled) {
+    background: var(--color-clay);
+    color: #ffffff;
+  }
+
+  .bojana-button-text {
+    background: transparent;
+    color: var(--color-bojana-muted);
+    border-color: transparent;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+
+  .bojana-button-text:hover:not(:disabled) {
+    color: var(--color-bojana-ink);
+    background: var(--color-bojana-soft);
+  }
+
+  .bojana-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    min-width: 2rem;
+    min-height: 2rem;
+    aspect-ratio: 1 / 1;
+    border-radius: 9999px;
+    border: none;
+    background: transparent;
+    color: var(--color-bojana-muted);
+    transition: background var(--bojana-transition), color var(--bojana-transition), transform var(--bojana-transition);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .bojana-icon-button:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+
+  .bojana-icon-button:hover {
+    background: var(--color-bojana-soft);
+    color: var(--color-bojana-ink);
+  }
+
+  .bojana-modal-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 1.625rem;
+    padding: 0.25rem 0.625rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-bojana-badge);
+    font-size: 0.6875rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  /* ── Modal Tabs ──────────────────────────────────────── */
+  .bojana-modal-tablist {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    min-height: 3rem;
+    gap: 0.25rem;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--color-bojana-line);
+    background: var(--color-bojana-canvas);
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .bojana-modal-tablist::-webkit-scrollbar { display: none; }
+
+  .bojana-modal-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 3rem;
+    gap: 0.5rem;
+    flex-shrink: 0;
+    padding: 0 1rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--color-bojana-muted);
+    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--bojana-transition), border-color var(--bojana-transition), background var(--bojana-transition);
+    margin-bottom: -1px; /* overlap the tablist border */
+  }
+
+  .bojana-modal-tab:hover:not([aria-selected="true"]) {
+    color: var(--color-bojana-ink);
+    background: var(--color-bojana-soft);
+  }
+
+  .bojana-modal-tab.active,
+  .bojana-modal-tab[aria-selected="true"] {
+    color: var(--color-bojana-ink);
+    background: var(--color-bojana-soft);
+    border-bottom-color: var(--color-bojana-primary);
+    font-weight: 600;
+  }
+
+  .bojana-modal-tab:focus-visible {
+    outline: 2px solid var(--color-bojana-primary);
+    outline-offset: -2px;
+    border-radius: 4px 4px 0 0;
+  }
+
+  /* ── Inline filter tabs ──────────────────────────────── */
+  .bojana-filter-tablist { display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; }
+  .bojana-filter-tablist::-webkit-scrollbar { display: none; }
+  .bojana-filter-tab { flex-shrink: 0; border: 1px solid transparent; border-radius: 999px; padding: 0.5rem 0.875rem; color: var(--color-bojana-muted); font-size: 0.75rem; font-family: var(--font-sans); font-weight: 600; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: color var(--bojana-transition), background var(--bojana-transition), border-color var(--bojana-transition), transform var(--bojana-transition); }
+  .bojana-filter-tab:hover:not([aria-selected="true"]) { background: var(--color-bojana-soft); color: var(--color-bojana-ink); }
+  .bojana-filter-tab[aria-selected="true"] { background: var(--color-bojana-primary); color: var(--color-bojana-inverse); border-color: var(--color-bojana-primary); }
+  .bojana-filter-tab:active { transform: scale(0.98); }
+  .bojana-filter-tab:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: 2px; }
+
+  /* ── Form Controls ───────────────────────────────────── */
+  .bojana-input {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 0;
+    border-radius: var(--radius-bojana-input);
+    background: var(--color-white);
+    color: var(--color-bojana-ink);
+    font-size: 0.8125rem;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    transition: border-color var(--bojana-transition), box-shadow var(--bojana-transition);
+    outline: none;
+  }
+
+  .bojana-input::placeholder {
+    color: var(--color-bojana-muted);
+    opacity: 0.7;
+  }
+
+  .bojana-input:focus {
+    border-color: var(--color-bojana-ink);
+    box-shadow: 0 0 0 2px var(--color-bojana-focus);
+  }
+
+  .bojana-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .bojana-control {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-bojana-line);
+    border-radius: var(--radius-bojana-input);
+    background: var(--color-white);
+    color: var(--color-bojana-ink);
+    font-size: 0.8125rem;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+    outline: none;
+    transition: border-color var(--bojana-transition), box-shadow var(--bojana-transition);
+  }
+
+  .bojana-control:focus {
+    border-color: var(--color-bojana-ink);
+    box-shadow: 0 0 0 2px var(--color-bojana-focus);
+  }
+
+  /* ── Cards / Widgets ─────────────────────────────────── */
+  .bojana-widget {
+    border-radius: var(--radius-bojana-widget);
+    border: 1px solid var(--color-bojana-line);
+    background: var(--color-bojana-surface);
+    box-shadow: var(--shadow-bojana-widget);
+  }
+
+  /* ── Skeleton ────────────────────────────────────────── */
+  .bojana-skeleton {
+    border-radius: 0.25rem;
+    background: linear-gradient(
+      90deg,
+      var(--color-bojana-line) 25%,
+      var(--color-bojana-soft) 50%,
+      var(--color-bojana-line) 75%
+    );
+    background-size: 200% 100%;
+    animation: bojana-shimmer 1.4s ease-in-out infinite;
+  }
+
+  @keyframes bojana-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Brand ───────────────────────────────────────────── */
+  .bojana-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--color-bojana-ink);
+    letter-spacing: -0.01em;
+  }
+
+  .bojana-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.375rem;
+    background: var(--color-bojana-ink);
+    color: var(--color-bojana-inverse);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  /* ── Studio Shell Layout ─────────────────────────────── */
+  .bojana-studio-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--color-bojana-canvas);
+    border-bottom: 1px solid var(--color-bojana-line);
+    backdrop-filter: blur(8px);
+  }
+
+  .bojana-studio-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+    max-width: var(--container-bojana-shell);
+    margin: 0 auto;
+  }
+
+  .bojana-studio-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .bojana-studio-tabs {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--color-bojana-line);
+    background: var(--color-bojana-canvas);
+    padding: 0 1.25rem;
+    gap: 0.125rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .bojana-studio-tabs::-webkit-scrollbar { display: none; }
+
+  .bojana-project-tab {
+    position: relative;
+    flex-shrink: 0;
+    min-height: 0;
+    padding: 0.75rem 1rem 0.875rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--color-bojana-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--bojana-transition), border-color var(--bojana-transition), background var(--bojana-transition);
+  }
+  .bojana-project-tab:hover:not([aria-selected="true"]) { color: var(--color-bojana-ink); background: var(--color-bojana-soft); }
+  .bojana-project-tab[aria-selected="true"] { color: var(--color-bojana-ink); border-bottom-color: var(--color-bojana-primary); }
+  .bojana-project-tab:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: -2px; }
+
+  /* ── Workspace / Grid Layout matching App.tsx 2-column distribution ─────────────────── */
+  .bojana-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+    align-items: start;
+    width: 100%;
+  }
+
+  @media (max-width: 1279px) {
+    .bojana-workspace {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .bojana-workspace-index {
+    display: none;
+  }
+
+  .bojana-workspace-canvas {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .bojana-workspace-inspector {
+    width: 100%;
+  }
+
+  /* Index / sidebar panel links */
+  .bojana-index-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: var(--color-bojana-muted);
+    text-decoration: none;
+    transition: background var(--bojana-transition), color var(--bojana-transition);
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .bojana-index-link:hover {
+    background: var(--color-bojana-soft);
+    color: var(--color-bojana-ink);
+  }
+
+  .bojana-index-link[aria-current="page"],
+  .bojana-index-link.active {
+    background: var(--color-bojana-line);
+    color: var(--color-bojana-ink);
+    font-weight: 500;
+  }
+
+  /* Open/close toggles for index and inspector panels */
+  .bojana-open-index,
+  .bojana-open-inspector {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.375rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-bojana-line);
+    background: var(--color-bojana-canvas);
+    color: var(--color-bojana-muted);
+    cursor: pointer;
+    transition: background var(--bojana-transition), color var(--bojana-transition);
+  }
+
+  .bojana-open-index:hover,
+  .bojana-open-inspector:hover {
+    background: var(--color-bojana-soft);
+    color: var(--color-bojana-ink);
+  }
+
+  /* ── Progress Bar ────────────────────────────────────── */
+  .bojana-progress {
+    width: 100%;
+    height: 0.375rem;
+    border-radius: var(--radius-bojana-badge);
+    background: var(--color-bojana-line);
+    overflow: hidden;
+  }
+
+  .bojana-operational-progress {
+    height: 100%;
+    border-radius: var(--radius-bojana-badge);
+    background: var(--color-bojana-ink);
+    transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Task Row ────────────────────────────────────────── */
+  .bojana-task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-bojana-widget);
+    border: 0;
+    background: var(--color-bojana-surface);
+    transition: border-color var(--bojana-transition), box-shadow var(--bojana-transition);
+    cursor: pointer;
+  }
+
+  .bojana-task-row:hover {
+    box-shadow: var(--shadow-bojana-widget);
+  }
+
+  .bojana-task-title {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-bojana-ink);
+    line-height: 1.4;
+  }
+
+  /* ── Media ───────────────────────────────────────────── */
+  .bojana-media {
+    border-radius: var(--radius-bojana-image);
+    overflow: hidden;
+    background: var(--color-bojana-soft);
+    border: 1px solid var(--color-bojana-line);
+  }
+
+  .bojana-media-caption {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--color-bojana-muted);
+    border-top: 1px solid var(--color-bojana-line);
+  }
+
+  .bojana-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .bojana-annotated-media {
+    position: relative;
+  }
+
+  /* Image comparison slider */
+  .bojana-comparison {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-bojana-image);
+    border: 1px solid var(--color-bojana-line);
+    user-select: none;
+    touch-action: pan-y;
+    cursor: col-resize;
+  }
+
+  .bojana-comparison-viewport {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  /* ── Overlay / Modal ─────────────────────────────────── */
+  .bojana-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(17, 17, 17, 0.55);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: bojana-fade-in 180ms ease;
+  }
+
+  .bojana-modal {
+    position: relative;
+    width: 100%;
+    max-width: var(--container-bojana-modal);
+    max-height: 90dvh;
+    overflow-y: auto;
+    border-radius: var(--radius-bojana-overlay);
+    background: var(--color-bojana-canvas);
+    border: 1px solid var(--color-bojana-line);
+    color: var(--color-bojana-ink);
+    box-shadow: var(--shadow-bojana-overlay);
+    animation: bojana-slide-up 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* The project editor must never grow with its long task list. The header
+     and footer stay in the viewport; only the content region scrolls. */
+  .bojana-project-editor {
+    height: calc(100vh - 2rem);
+    max-height: calc(100vh - 2rem);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+  }
+
+  .bojana-project-editor-overlay {
+    align-items: stretch;
+    padding: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .bojana-project-editor-overlay { padding: 1.5rem; }
+    .bojana-project-editor {
+      height: calc(100vh - 3rem);
+      max-height: calc(100vh - 3rem);
+    }
+  }
+
+  /* ── Drawer (slide-in panel) ─────────────────────────── */
+  .bojana-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(17, 17, 17, 0.35);
+    backdrop-filter: blur(2px);
+    display: flex;
+    justify-content: flex-end;
+    animation: bojana-fade-in 180ms ease;
+  }
+
+  .bojana-drawer-backdrop.left {
+    justify-content: flex-start;
+  }
+
+  .bojana-drawer {
+    width: min(32rem, 100%);
+    height: 100%;
+    background: var(--color-bojana-canvas);
+    border-left: 1px solid var(--color-bojana-line);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: bojana-slide-from-right 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: var(--shadow-bojana-overlay);
+  }
+
+  .bojana-drawer-left {
+    border-left: none;
+    border-right: 1px solid var(--color-bojana-line);
+    animation: bojana-slide-from-left 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .bojana-drawer-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-bojana-line);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    background: var(--color-bojana-canvas);
+    z-index: 1;
+  }
+
+  /* ── Client Portal Layout ────────────────────────────── */
+  .bojana-client-header {
+    background: var(--color-bojana-canvas);
+    border-bottom: 1px solid var(--color-bojana-line);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .bojana-client-index {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-bojana-canvas);
+    border-bottom: 1px solid var(--color-bojana-line);
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .bojana-client-index::-webkit-scrollbar { display: none; }
+
+  /* ── Chapter / Section ───────────────────────────────── */
+  .bojana-chapter {
+    padding: 3rem 0;
+    border-bottom: 1px solid var(--color-bojana-line);
+  }
+
+  .bojana-chapter:last-child {
+    border-bottom: none;
+  }
+
+  /* ── Saved indicator ─────────────────────────────────── */
+  .bojana-saved {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: var(--radius-bojana-badge);
+    background: var(--color-bojana-soft);
+    border: 1px solid var(--color-bojana-line);
+    font-size: 0.75rem;
+    color: var(--color-bojana-muted);
+    font-weight: 400;
+  }
+
+  /* ── Base / Canvas layout ────────────────────────────── */
+  .bojana-base {
+    min-height: 100dvh;
+    background: var(--color-bojana-canvas);
+    color: var(--color-bojana-ink);
+    font-family: var(--font-sans);
+  }
+
+  .bojana-canvas {
+    max-width: var(--container-bojana-shell);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .bojana-reading {
+    max-width: var(--container-bojana-reading);
+    margin: 0 auto;
+  }
+
+  .bojana-shell {
+    max-width: var(--container-bojana-shell);
+    margin: 0 auto;
+  }
+
+  /* ── File item ───────────────────────────────────────── */
+  .bojana-file {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.875rem;
+    border-radius: var(--radius-bojana-widget);
+    border: 1px solid var(--color-bojana-line);
+    background: var(--color-bojana-surface);
+    font-size: 0.8125rem;
+    color: var(--color-bojana-ink);
+    transition: border-color var(--bojana-transition), box-shadow var(--bojana-transition);
+    text-decoration: none;
+  }
+
+  .bojana-file:hover {
+    border-color: var(--color-bojana-line-strong);
+    box-shadow: var(--shadow-bojana-widget);
+  }
+
+  /* ── Block / Inside spacing helpers ──────────────────── */
+  .bojana-block {
+    margin-bottom: var(--spacing-bojana-block);
+  }
+
+  .bojana-inside {
+    gap: var(--spacing-bojana-inside);
+  }
+}
+
+/* ─── Animations ────────────────────────────────────────────────────── */
+@keyframes bojana-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes bojana-slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bojana-slide-from-right {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes bojana-slide-from-left {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+.animate-fade-in {
+  animation: bojana-fade-in 300ms ease;
+}

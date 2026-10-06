@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bojana UI Lab · Componentes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --canvas: #f7f6f2; --surface: #fff; --soft: #edece6; --line: #deddd6;
+      --line-strong: #b8b7ab; --ink: #1a1f19; --muted: #4d574c;
+      --primary: #3a3a3a; --accent: #a8472f; --waiting: #f8ebe6;
+      --sans: "DM Sans", system-ui, sans-serif; --display: "Newsreader", Georgia, serif;
+      --radius-card: 24px; --radius-control: 999px; --shadow: 0 12px 40px rgb(31 42 35 / .08);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font: 14px/1.5 var(--sans); }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .app { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
+    aside { position: sticky; top: 0; height: 100vh; padding: 28px 18px; background: #202821; color: #fff; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; margin: 0 12px 30px; }
+    .brand-mark { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #829087; border-radius: 10px; font-size: 11px; }
+    .nav-title { margin: 24px 12px 8px; color: #9eaaa1; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; }
+    .nav button { display: block; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; color: #d9e0da; background: transparent; text-align: left; }
+    .nav button:hover, .nav button.active { background: #344137; color: #fff; }
+    main { width: min(1180px, 100%); padding: 44px clamp(22px, 5vw, 70px) 80px; }
+    .eyebrow { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 400; line-height: 1.05; }
+    h1 { margin-top: 8px; font-size: clamp(42px, 6vw, 72px); }
+    h2 { margin-bottom: 18px; font-size: 30px; }
+    h3 { font-size: 22px; }
+    .intro { max-width: 720px; margin: 18px 0 34px; color: var(--muted); font-size: 16px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0 44px; }
+    .select, .toolbar button { min-height: 38px; padding: 8px 14px; border: 1px solid var(--line); border-radius: var(--radius-control); background: var(--surface); color: var(--ink); }
+    .toolbar button.primary { border-color: var(--primary); background: var(--primary); color: #fff; }
+    section { scroll-margin-top: 24px; margin: 64px 0; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    .section-head small { color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .preview { min-height: 170px; padding: 24px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); box-shadow: var(--shadow); }
+    .preview.dark { background: #202821; color: #fff; }
+    .label { display: block; margin-bottom: 12px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+    .btn { min-height: 40px; padding: 9px 17px; border: 1px solid transparent; border-radius: var(--radius-control); font-weight: 600; font-size: 12px; }
+    .btn.primary { background: var(--primary); color: #fff; }
+    .btn.secondary { border-color: var(--line); background: #fff; color: var(--ink); }
+    .btn.ghost { background: transparent; color: var(--muted); }
+    .btn.danger { background: var(--accent); color: #fff; }
+    .badge { display: inline-flex; align-items: center; gap: 7px; min-height: 26px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 11px; font-weight: 600; }
+    .badge.active { color: var(--primary); background: var(--soft); border-color: var(--primary); }
+    .badge.waiting { background: var(--waiting); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--line); }
+    .tab { flex: 0 0 auto; padding: 12px 15px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .tab.active { border-bottom-color: var(--primary); color: var(--ink); }
+    .field { width: 100%; padding: 11px 13px; border: 1px solid var(--line); border-radius: 14px; outline: 0; background: var(--surface); }
+    .field:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgb(58 58 58 / .12); }
+    .field-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 12px; font-weight: 600; }
+    .modal-demo { max-width: 680px; margin: auto; overflow: hidden; border: 1px solid var(--line); border-radius: 26px; background: var(--canvas); box-shadow: 0 24px 70px rgb(0 0 0 / .18); }
+    .modal-head { display: flex; justify-content: space-between; gap: 18px; padding: 24px; border-bottom: 1px solid var(--line); background: rgb(255 255 255 / .72); }
+    .modal-head p { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+    .close { width: 32px; height: 32px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); }
+    .modal-body { padding: 24px; }
+    .callout { padding: 16px; border: 1px solid #e5cfc6; border-radius: 20px; background: var(--waiting); }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+    .metric { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+    .progress { height: 10px; overflow: hidden; border-radius: 999px; background: var(--soft); }
+    .progress span { display: block; width: 63%; height: 100%; background: var(--primary); }
+    .layout-card { min-height: 170px; padding: 18px; border: 1px dashed var(--line-strong); border-radius: 18px; background: var(--surface); }
+    .layout-shell { display: grid; grid-template-columns: 180px 1fr; gap: 12px; }
+    .layout-sidebar { grid-row: span 2; background: #202821; border-radius: 14px; }
+    .layout-wide { display: grid; grid-template-columns: 1fr 220px; gap: 12px; }
+    .token { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .swatch { width: 34px; height: 24px; border-radius: 8px; border: 1px solid var(--line); }
+    .code { margin-top: 10px; color: var(--muted); font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    @media (max-width: 760px) { .app { display: block; } aside { position: static; height: auto; } .nav { display: flex; gap: 4px; overflow-x: auto; } .nav-title { display: none; } .nav button { width: auto; white-space: nowrap; } main { padding-top: 30px; } .layout-shell, .layout-wide { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand"><span class="brand-mark">BE</span><span>Bojana UI Lab</span></div>
+      <div class="nav-title">Catálogo</div>
+      <nav class="nav">
+        <button class="active" data-target="foundations">Foundations</button>
+        <button data-target="actions">Acciones</button>
+        <button data-target="navigation">Navegación</button>
+        <button data-target="feedback">Feedback</button>
+        <button data-target="layouts">Layouts</button>
+        <button data-target="instances">Instancias</button>
+      </nav>
+    </aside>
+
+    <main>
+      <div class="eyebrow">Storybook interno · Portal del estudio</div>
+      <h1>Componentes<br />Bojana</h1>
+      <p class="intro">Un espacio independiente para comparar variantes, fijar decisiones visuales y documentar qué componente debe usarse en cada instancia del portal.</p>
+      <div class="toolbar">
+        <select class="select" id="fontSelect" aria-label="Cambiar fuente">
+          <option value="default">DM Sans + Newsreader</option>
+          <option value="system">System UI + Georgia</option>
+          <option value="editorial">DM Sans + Georgia</option>
+        </select>
+        <button class="primary" id="toggleDensity">Cambiar densidad</button>
+        <button id="toggleTheme">Alternar superficie</button>
+      </div>
+
+      <section id="foundations">
+        <div class="section-head"><h2>Foundations</h2><small>Tokens compartidos</small></div>
+        <div class="grid">
+          <div class="preview"><span class="label">Tipografía</span><h3>Newsreader Display</h3><p style="font-size:24px;margin:8px 0 0">Bojana Estudio</p><div class="code">--display · títulos editoriales</div></div>
+          <div class="preview"><span class="label">Tipografía UI</span><div style="font-size:22px;font-weight:600">DM Sans</div><p style="margin:8px 0 0;color:var(--muted)">Labels, controles, estados y navegación.</p><div class="code">--sans · interfaz</div></div>
+          <div class="preview"><span class="label">Color</span><div class="token"><span class="swatch" style="background:#3a3a3a"></span><span>Primary · #3A3A3A</span></div><div class="token"><span class="swatch" style="background:#edece6"></span><span>Soft · #EDECE6</span></div><div class="token"><span class="swatch" style="background:#f8ebe6"></span><span>Waiting · #F8EBE6</span></div></div>
+        </div>
+      </section>
+
+      <section id="actions">
+        <div class="section-head"><h2>Acciones</h2><small>Button / Badge / Form field</small></div>
+        <div class="grid">
+          <div class="preview"><span class="label">Buttons</span><div class="row"><button class="btn primary">Principal</button><button class="btn secondary">Secundaria</button><button class="btn ghost">Ghost</button><button class="btn danger">Peligro</button></div></div>
+          <div class="preview"><span class="label">Badges</span><div class="row"><span class="badge active"><span class="dot"></span>Portal activo</span><span class="badge"><span class="dot"></span>Progreso 63%</span><span class="badge waiting">Esperando cliente</span></div></div>
+          <div class="preview"><span class="label">Field</span><label class="field-label">Nombre del comitente</label><input class="field" value="Consorcio Los Alisos" /></div>
+        </div>
+      </section>
+
+      <section id="navigation">
+        <div class="section-head"><h2>Navegación</h2><small>Tabs por contexto</small></div>
+        <div class="preview">
+          <span class="label">Tabs estructurales</span>
+          <div class="tabs" data-tabs>
+            <button class="tab active">Revisión antes de publicar</button><button class="tab">Email posterior opcional</button><button class="tab">Historial (1)</button>
+          </div>
+          <div style="height:24px"></div>
+          <span class="label">Tabs de filtro</span>
+          <div class="row"><button class="btn primary">Todos (8)</button><button class="btn secondary">Activos (6)</button><button class="btn secondary">Finalizados (2)</button></div>
+        </div>
+      </section>
+
+      <section id="feedback">
+        <div class="section-head"><h2>Feedback</h2><small>Estados y lectura de avance</small></div>
+        <div class="grid">
+          <div class="preview"><div class="callout"><strong>Previsualización del comitente</strong><br /><span>Esto es exactamente lo que verá el cliente.</span></div></div>
+          <div class="preview"><div class="metric"><strong>Estado del proyecto</strong><span class="badge">63% completo</span></div><div class="progress"><span></span></div><p style="color:var(--muted);margin-bottom:0">Base formalizada. El progreso comienza a reflejarse en tiempo real.</p></div>
+        </div>
+      </section>
+
+      <section id="layouts">
+        <div class="section-head"><h2>Layouts</h2><small>Distribuciones disponibles</small></div>
+        <div class="grid">
+          <div class="layout-card"><span class="label">Workspace</span><div class="layout-shell"><div class="layout-sidebar"></div><div class="card"></div><div class="card"></div></div></div>
+          <div class="layout-card"><span class="label">Content + inspector</span><div class="layout-wide"><div class="card"></div><div class="card"></div></div></div>
+          <div class="layout-card"><span class="label">Modal editorial</span><div class="card"><h3>Comunicación y acceso</h3><p style="color:var(--muted)">Header + tabs + body scrollable + footer.</p></div></div>
+        </div>
+      </section>
+
+      <section id="instances">
+        <div class="section-head"><h2>Instancias reales</h2><small>Referencia para comparar el portal</small></div>
+        <div class="modal-demo">
+          <div class="modal-head"><div><div class="row"><span class="badge active"><span class="dot"></span>Portal activo</span><span class="badge">Progreso: 63%</span><span class="badge">BA-024</span></div><h3 style="margin-top:16px">Comunicación y acceso al portal</h3><p>El portal ya está activo y visible para el cliente.</p></div><button class="close">×</button></div>
+          <div class="tabs"><button class="tab active">Revisión antes de publicar</button><button class="tab">Email posterior opcional</button><button class="tab">Historial (1)</button></div>
+          <div class="modal-body"><div class="callout"><strong>Previsualización comitente al 0%</strong><br />Esto es exactamente lo que verá el cliente al abrir su enlace por primera vez.</div><div style="height:16px"></div><div class="card"><div class="metric"><strong>Estado del proyecto</strong><span class="badge">0% avance de ejecución</span></div><div class="progress"><span style="width:3%"></span></div></div></div>
+        </div>
+        <p class="code">Instancia: PublishInviteModal · variante: portal_preview · componente oficial sugerido: ModalTabs + ModalMeta + Callout + ProgressCard</p>
+      </section>
+    </main>
+  </div>
+  <script>
+    const root = document.documentElement;
+    document.querySelectorAll('[data-target]').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('.nav button').forEach(item => item.classList.remove('active'));
+      button.classList.add('active'); document.getElementById(button.dataset.target)?.scrollIntoView({ behavior: 'smooth' });
+    }));
+    document.querySelectorAll('[data-tabs]').forEach(list => list.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => { list.querySelectorAll('.tab').forEach(item => item.classList.remove('active')); tab.classList.add('active'); })));
+    document.getElementById('fontSelect').addEventListener('change', event => { const value = event.target.value; root.style.setProperty('--sans', value === 'system' ? 'system-ui, sans-serif' : '"DM Sans", system-ui, sans-serif'); root.style.setProperty('--display', value === 'system' ? 'Georgia, serif' : value === 'editorial' ? 'Georgia, serif' : '"Newsreader", Georgia, serif'); });
+    document.getElementById('toggleDensity').addEventListener('click', event => { document.body.classList.toggle('compact'); event.target.textContent = document.body.classList.contains('compact') ? 'Densidad cómoda' : 'Cambiar densidad'; });
+    document.getElementById('toggleTheme').addEventListener('click', () => { const dark = root.style.getPropertyValue('--canvas') === '#202821'; root.style.setProperty('--canvas', dark ? '#f7f6f2' : '#202821'); root.style.setProperty('--surface', dark ? '#fff' : '#2e392f'); root.style.setProperty('--ink', dark ? '#1a1f19' : '#f2f4ef'); root.style.setProperty('--muted', dark ? '#4d574c' : '#c4cec5'); });
+  </script>
+</body>
+</html>
