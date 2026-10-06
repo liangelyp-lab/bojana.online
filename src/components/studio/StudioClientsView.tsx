@@ -9,6 +9,7 @@ import {
   X,
   ChevronRight
 } from 'lucide-react';
+import { EmptyState } from '../ui/DesignSystem';
 
 interface StudioClientsViewProps {
   projects: ProjectData[];
@@ -53,7 +54,13 @@ export default function StudioClientsView({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Left: Clients List (Column 1 of 2) */}
         <div className="space-y-4">
-          {clients.map((client) => {
+          {clients.length === 0 ? (
+            <EmptyState
+              icon={Users2}
+              title="Todavía no hay clientes"
+              description="Los clientes aparecerán aquí cuando estén asociados a un proyecto del estudio."
+            />
+          ) : clients.map((client) => {
             const isSelected = selectedClientId === client.id;
             const projectCount = projects.filter(
               (p) =>

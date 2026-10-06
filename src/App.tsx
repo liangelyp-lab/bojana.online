@@ -22,7 +22,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, InputControl, Tabs } from "./components/ui/DesignSystem";
+import { Badge, Button, EmptyState, InputControl, Tabs } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 
@@ -1290,33 +1290,13 @@ function AdminPortal({
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
   const [clientAlert, setClientAlert] = useState<{ title: string; message: string; actionType: ClientAlertActionType } | null>(null)
 
-  if (!currentProject) {
-    return (
-      <div className="min-h-screen bg-canvas text-ink">
-        <div className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center px-6 text-center">
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Bojana Estudio</p>
-          <h1 className="mt-4 font-display text-4xl font-normal">Todavía no hay proyectos</h1>
-          <p className="mt-3 max-w-lg text-sm leading-6 text-ink-muted">
-            Creá tu primer proyecto para comenzar a configurar el portal del comitente.
-          </p>
-          <Button className="mt-7" onClick={onNewProject}>
-            Crear primer proyecto <Icon className="size-4" name="plus" />
-          </Button>
-          <Button className="mt-3" onClick={onSignOut} variant="ghost">
-            Cerrar sesión
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   const workspaceTasks = useMemo(
     () => selectedProjectId ? getProjectTasks(currentProject) : tasks,
     [currentProject, selectedProjectId, tasks],
   )
   const workspaceDecision = useMemo<DashboardDecision | null>(() => {
     if (!selectedProjectId) return decision
-    const projectDecision = currentProject.decisiones?.[0]
+    const projectDecision = currentProject?.decisiones?.[0]
     if (!projectDecision) return null
     return {
       title: projectDecision.titulo,
@@ -1325,17 +1305,17 @@ function AdminPortal({
       optionChosen: projectDecision.opciones?.find((option) => option.id === projectDecision.opcionAprobadaId)?.titulo,
     }
   }, [currentProject, decision, selectedProjectId])
-  const workspaceMilestones = currentProject.hitosInternos || []
+  const workspaceMilestones = currentProject?.hitosInternos || []
 
   const completedCount = useMemo(() => workspaceTasks.filter(t => t.status === "Completado").length, [workspaceTasks])
   const inProgressCount = useMemo(() => workspaceTasks.filter(t => t.status === "En curso").length, [workspaceTasks])
   const waitingClientCount = useMemo(() => workspaceDecision?.status === "pendiente" ? 1 : 0, [workspaceDecision])
   const progressPercent = workspaceTasks.length ? Math.round((completedCount / workspaceTasks.length) * 100) : 0
-  const deliveryDate = currentProject.info?.fechaFin
+  const deliveryDate = currentProject?.info?.fechaFin
   const deliveryDays = deliveryDate
     ? Math.max(0, Math.ceil((new Date(`${deliveryDate}T00:00:00`).getTime() - Date.now()) / 86400000))
     : null
-  const nextMilestone = currentProject.info?.proximoHito || workspaceMilestones[0]?.nombre || "Sin próximo hito"
+  const nextMilestone = currentProject?.info?.proximoHito || workspaceMilestones[0]?.nombre || "Sin próximo hito"
 
   return (
     <div className="min-h-screen bg-canvas text-ink lg:h-screen lg:overflow-hidden">
@@ -1452,7 +1432,7 @@ function AdminPortal({
                   onEditProject={onEditProject}
                   onViewClientPortal={onViewClientPortal}
                   onRequestAction={() => {
-                    const firstTask = currentProject.disciplinasOperativas?.[0]?.necesidades?.[0]?.tareas?.[0]
+                    const firstTask = currentProject?.disciplinasOperativas?.[0]?.necesidades?.[0]?.tareas?.[0]
                     if (firstTask) {
                       setActionModalTask(firstTask)
                       setIsActionModalOpen(true)
@@ -1460,7 +1440,7 @@ function AdminPortal({
                       onReviewDecision()
                     }
                   }}
-                  project={currentProject}
+                  project={currentProject!}
                 />
 
                 <Tabs
@@ -1572,7 +1552,15 @@ function AdminPortal({
                     Supervisión técnica de actividades en curso y compromisos con comitentes.
                   </p>
                 </div>
-                <TasksPanel onToggleTask={onToggleTask} tasks={workspaceTasks} />
+                {workspaceTasks.length === 0 ? (
+                  <EmptyState
+                    title="Todavía no hay tareas"
+                    description="Las tareas aparecerán cuando crees un proyecto y definas sus necesidades de trabajo."
+                    action={{ label: "Crear primer proyecto", onClick: onNewProject }}
+                  />
+                ) : (
+                  <TasksPanel onToggleTask={onToggleTask} tasks={workspaceTasks} />
+                )}
               </div>
             )}
 
@@ -1617,10 +1605,10 @@ function AdminPortal({
       </div>
 
       {/* Request Client Action Modal */}
-      {isActionModalOpen && actionModalTask && (
+      {isActionModalOpen && actionModalTask && currentProject && (
         <RequestClientActionModal
-          clientEmail={currentProject.cliente?.email || "cliente@ejemplo.com"}
-          clientName={currentProject.cliente?.nombre || "Comitente"}
+          clientEmail={currentProject?.cliente?.email || "cliente@ejemplo.com"}
+          clientName={currentProject?.cliente?.nombre || "Comitente"}
           isOpen={isActionModalOpen}
           onClose={() => setIsActionModalOpen(false)}
           onSaveAction={(action, sendEmailImmediately) => {
@@ -1628,13 +1616,13 @@ function AdminPortal({
             onPublishToast("Solicitud de decisión enviada al comitente.")
           }}
           onToast={onPublishToast}
-          projectName={currentProject.info?.nombre || activeProject.name}
+          projectName={currentProject?.info?.nombre || activeProject.name}
           task={actionModalTask}
         />
       )}
 
       {/* Publish / Invite Modal */}
-      {isPublishModalOpen && (
+      {isPublishModalOpen && currentProject && (
         <PublishInviteModal
           isOpen={isPublishModalOpen}
           onClose={() => setIsPublishModalOpen(false)}
@@ -1647,10 +1635,10 @@ function AdminPortal({
         />
       )}
       <ClientAlertModal
-        isOpen={Boolean(clientAlert)}
-        projectName={currentProject.info?.nombre || activeProject.name}
-        clientName={currentProject.cliente?.nombre || "Comitente"}
-        clientEmail={currentProject.cliente?.email || ""}
+        isOpen={Boolean(clientAlert && currentProject)}
+        projectName={currentProject?.info?.nombre || activeProject.name}
+        clientName={currentProject?.cliente?.nombre || "Comitente"}
+        clientEmail={currentProject?.cliente?.email || ""}
         initialTitle={clientAlert?.title}
         initialMessage={clientAlert?.message}
         initialAction={clientAlert?.actionType}
@@ -1665,9 +1653,9 @@ function AdminPortal({
             descripcion: `${message}\nAcción esperada: ${clientAlertActionLabel(actionType)}.`,
             fechaCreacion: now,
             estado: "Pendiente",
-            comentarios: [{ id: `comment-${Date.now()}`, autor: "Bojana Estudio", rol: "admin", fecha: now, texto: `Alerta enviada a ${currentProject.cliente?.email || "el cliente"}. Acción requerida: ${clientAlertActionLabel(actionType)}.` }]
+            comentarios: [{ id: `comment-${Date.now()}`, autor: "Bojana Estudio", rol: "admin", fecha: now, texto: `Alerta enviada a ${currentProject?.cliente?.email || "el cliente"}. Acción requerida: ${clientAlertActionLabel(actionType)}.` }]
           }
-          if (shouldRegisterDecision) onUpdateProject({ ...currentProject, decisiones: [alertDecision, ...(currentProject.decisiones || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } })
+          if (shouldRegisterDecision && currentProject) onUpdateProject({ ...currentProject, decisiones: [alertDecision, ...(currentProject.decisiones || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } })
           setClientAlert(null)
           onPublishToast(shouldRegisterDecision ? `Alerta enviada y registrada en Decisiones: ${title}.` : `Alerta enviada: ${title}.`)
         }}
@@ -2869,40 +2857,7 @@ export default function App() {
     }
   }, [currentProject])
 
-  const [taskList, setTaskList] = useState<Task[]>([
-    {
-      title: "Ajustar distribucion de planta baja",
-      area: "Arquitectura - Distribucion",
-      owner: "Elena Marquez",
-      initials: "EM",
-      due: "18 jun",
-      status: "Completado",
-    },
-    {
-      title: "Validar propuesta de fachada",
-      area: "Diseno - Materialidad",
-      owner: "Ana Morales",
-      initials: "AM",
-      due: "Hoy",
-      status: "Esperando cliente",
-    },
-    {
-      title: "Revisar calculo de cimentacion",
-      area: "Ing. civil - Estructura",
-      owner: "Diego Soler",
-      initials: "DS",
-      due: "20 jun",
-      status: "En revision",
-    },
-    {
-      title: "Preparar planos para licencia",
-      area: "Arquitectura - Documentacion",
-      owner: "Lucia Vidal",
-      initials: "LV",
-      due: "24 jun",
-      status: "Pendiente",
-    },
-  ])
+  const [taskList, setTaskList] = useState<Task[]>([])
 
   const [decision, setDecision] = useState<{
     title: string
