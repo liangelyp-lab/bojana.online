@@ -53,15 +53,6 @@ export default function RequestClientActionModal({
   onToast
 }: RequestClientActionModalProps) {
   const existing = task.accionCliente;
-  const actionLabel = tipo === 'elegir_alternativa'
-    ? 'Elegir alternativa'
-    : tipo === 'enviar_informacion'
-      ? 'Enviar información'
-      : tipo === 'subir_documento'
-        ? 'Subir documento'
-        : tipo === 'confirmar_decision'
-          ? 'Confirmar decisión'
-          : 'Aprobar o rechazar';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -74,6 +65,15 @@ export default function RequestClientActionModal({
 
   const [activeTab, setActiveTab] = useState<'config' | 'email_preview'>('config');
   const [tipo, setTipo] = useState<ClientActionType>(existing?.tipo || (prefill?.opciones?.length ? 'elegir_alternativa' : 'aprobar_rechazar'));
+  const actionLabel = tipo === 'elegir_alternativa'
+    ? 'Elegir alternativa'
+    : tipo === 'enviar_informacion'
+      ? 'Enviar información'
+      : tipo === 'subir_documento'
+        ? 'Subir documento'
+        : tipo === 'confirmar_decision'
+          ? 'Confirmar decisión'
+          : 'Aprobar o rechazar';
   const [titulo, setTitulo] = useState(existing?.titulo || prefill?.titulo || `Aprobación de ${task.titulo}`);
   const [mensaje, setMensaje] = useState(
     existing?.mensaje || prefill?.descripcion || 'Necesitamos tu aprobación para continuar con el desarrollo final y la siguiente etapa del proyecto.'
