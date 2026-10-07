@@ -1,4 +1,5 @@
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, LoaderCircle, LucideIcon } from 'lucide-react';
 import { EstadoEtapa } from '../../types';
 import { taskStateLabel, taskStateBadgeClasses } from '../../design/status';
@@ -34,12 +35,37 @@ export function Button({
   type?: 'button' | 'submit';
 }) {
   const tooltipId = useId();
+  const tooltipAnchorRef = useRef<HTMLSpanElement>(null);
+  const [tooltipOpen, setTooltipOpen] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<React.CSSProperties>({});
   const variants = {
     primary: 'bg-forest text-white hover:bg-[#1c2b24] shadow-sm active:scale-[0.98] focus-visible:ring-forest/30',
     secondary: 'border border-line bg-white text-ink hover:border-line-strong hover:bg-stone active:scale-[0.98] focus-visible:ring-forest/30',
     ghost: 'text-ink-muted hover:bg-stone hover:text-ink active:scale-[0.98] focus-visible:ring-forest/30',
     icon: 'size-10 !min-h-0 !p-0 aspect-square rounded-full text-ink-muted hover:bg-stone hover:text-ink active:scale-95 focus-visible:ring-forest/30'
   };
+
+  const updateTooltipPosition = () => {
+    const anchor = tooltipAnchorRef.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    setTooltipPosition({
+      left: rect.left + rect.width / 2,
+      top: rect.bottom + 10
+    });
+  };
+
+  useEffect(() => {
+    if (!tooltipOpen) return;
+    updateTooltipPosition();
+    const reposition = () => updateTooltipPosition();
+    window.addEventListener('resize', reposition);
+    window.addEventListener('scroll', reposition, true);
+    return () => {
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+    };
+  }, [tooltipOpen]);
 
   const button = (
     <button
@@ -58,11 +84,27 @@ export function Button({
   if (!tooltip) return button;
 
   return (
-    <span className="bojana-tooltip-anchor">
+    <span
+      ref={tooltipAnchorRef}
+      className="bojana-tooltip-anchor"
+      onBlur={() => setTooltipOpen(false)}
+      onFocus={() => {
+        updateTooltipPosition();
+        setTooltipOpen(true);
+      }}
+      onMouseEnter={() => {
+        updateTooltipPosition();
+        setTooltipOpen(true);
+      }}
+      onMouseLeave={() => setTooltipOpen(false)}
+    >
       {button}
-      <span id={tooltipId} role="tooltip" className="bojana-tooltip">
-        {tooltip}
-      </span>
+      {typeof document !== 'undefined' && createPortal(
+        <span id={tooltipId} role="tooltip" aria-hidden={!tooltipOpen} className={`bojana-tooltip ${tooltipOpen ? 'bojana-tooltip-visible' : ''}`} style={tooltipPosition}>
+          {tooltip}
+        </span>,
+        document.body
+      )}
     </span>
   );
 }
