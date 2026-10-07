@@ -45,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const allowedEmail = String(process.env.LARK_ALLOWED_EMAIL || '').trim().toLowerCase();
     const openId = String(user.data.open_id || '').trim();
     if (!email && (!allowedOpenId || openId !== allowedOpenId || !allowedEmail)) {
-      console.error('Lark identity email missing', { open_id: openId, union_id: user.data.union_id || '', name: user.data.name || '' });
+      console.error(`Lark identity email missing open_id=${openId} union_id=${String(user.data.union_id || '')} name=${String(user.data.name || '')}`);
       throw new Error('supabase_lark_config_or_email_missing');
     }
     const loginEmail = email || allowedEmail;
