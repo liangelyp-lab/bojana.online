@@ -128,12 +128,6 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
           })}
         </div>
         <form className="mt-4 border-t border-line pt-4" onSubmit={sendReply}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Responder</p>
-            <h3 className="mt-1 font-display text-xl text-ink">Escribí una respuesta</h3>
-          </div>
-        </div>
         <TextAreaControl className="mt-3" disabled={sending} onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={3} value={reply} />
         {error && <p className="mt-3 rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark" role="alert">{error}</p>}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
