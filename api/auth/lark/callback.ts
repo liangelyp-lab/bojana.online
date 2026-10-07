@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const email = String(user.data.email || '').trim().toLowerCase();
+    const email = await resolveLarkEmail(user.data.email, userAccessToken);
     if (!supabaseUrl || !serviceKey || !email) throw new Error('supabase_lark_config_or_email_missing');
 
     const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, 'content-type': 'application/json' };
@@ -63,6 +63,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error('Lark OAuth callback failed:', detail);
     return res.redirect(302, '/?auth_error=lark_callback_failed');
   }
+}
+
+async function resolveLarkEmail(userInfoEmail: unknown, accessToken: string) {
+  const directEmail = String(userInfoEmail || '').trim().toLowerCase();
+  if (directEmail) return directEmail;
+
+  const profileResponse = await fetch('https://open.larksuite.com/open-apis/mail/v1/user_mailbox/profile', {
+    headers: { authorization: `Bearer ${accessToken}` },
+  });
+  if (!profileResponse.ok) return '';
+  const profile = await profileResponse.json() as { data?: { email?: string; email_address?: string; mail_address?: string } };
+  return String(profile.data?.email || profile.data?.email_address || profile.data?.mail_address || '').trim().toLowerCase();
 }
 
 function parseCookies(value: string) {
