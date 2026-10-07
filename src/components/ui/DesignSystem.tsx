@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { X, LoaderCircle, LucideIcon } from 'lucide-react';
 import { EstadoEtapa } from '../../types';
 import { taskStateLabel, taskStateBadgeClasses } from '../../design/status';
@@ -19,6 +19,7 @@ export function Button({
   onClick,
   ariaLabel,
   title,
+  tooltip,
   disabled = false,
   type = 'button'
 }: {
@@ -28,9 +29,11 @@ export function Button({
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   ariaLabel?: string;
   title?: string;
+  tooltip?: string;
   disabled?: boolean;
   type?: 'button' | 'submit';
 }) {
+  const tooltipId = useId();
   const variants = {
     primary: 'bg-forest text-white hover:bg-[#1c2b24] shadow-sm active:scale-[0.98] focus-visible:ring-forest/30',
     secondary: 'border border-line bg-white text-ink hover:border-line-strong hover:bg-stone active:scale-[0.98] focus-visible:ring-forest/30',
@@ -38,9 +41,10 @@ export function Button({
     icon: 'size-10 !min-h-0 !p-0 aspect-square rounded-full text-ink-muted hover:bg-stone hover:text-ink active:scale-95 focus-visible:ring-forest/30'
   };
 
-  return (
+  const button = (
     <button
       aria-label={ariaLabel}
+      aria-describedby={tooltip ? tooltipId : undefined}
       title={title}
       disabled={disabled}
       className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variants[variant]} ${className}`}
@@ -49,6 +53,17 @@ export function Button({
     >
       {children}
     </button>
+  );
+
+  if (!tooltip) return button;
+
+  return (
+    <span className="bojana-tooltip-anchor">
+      {button}
+      <span id={tooltipId} role="tooltip" className="bojana-tooltip">
+        {tooltip}
+      </span>
+    </span>
   );
 }
 

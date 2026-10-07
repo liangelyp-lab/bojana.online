@@ -388,6 +388,48 @@
     color: var(--color-bojana-ink);
   }
 
+  .bojana-tooltip-anchor {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .bojana-tooltip {
+    position: absolute;
+    top: calc(100% + 0.625rem);
+    left: 50%;
+    z-index: 50;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    background: var(--color-bojana-ink);
+    color: var(--color-bojana-inverse);
+    box-shadow: var(--shadow-bojana-widget);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -0.25rem);
+    transition: opacity var(--bojana-transition), transform var(--bojana-transition);
+  }
+
+  .bojana-tooltip::before {
+    content: "";
+    position: absolute;
+    top: -0.25rem;
+    left: 50%;
+    width: 0.5rem;
+    height: 0.5rem;
+    background: var(--color-bojana-ink);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .bojana-tooltip-anchor:hover .bojana-tooltip,
+  .bojana-tooltip-anchor:focus-within .bojana-tooltip {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
   .bojana-modal-meta {
     display: inline-flex;
     align-items: center;

@@ -53,7 +53,6 @@ type IconName =
   | "people"
   | "plus"
   | "publish"
-  | "preview"
   | "search"
   | "settings"
   | "tasks"
@@ -167,12 +166,6 @@ function Icon({
       <>
         <path d="M12 16V4M7 9l5-5 5 5" />
         <path d="M5 14v6h14v-6" />
-      </>
-    ),
-    preview: (
-      <>
-        <path d="M3 5h11v12H3z" />
-        <path d="M7 19h8a2 2 0 0 0 2-2V9h4v10H7z" />
       </>
     ),
     search: (
@@ -821,11 +814,11 @@ function ProjectExecutionSummary({
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
-          <Button ariaLabel="Configurar proyecto" className="!size-10 !p-0" onClick={onEditProject} variant="icon">
+          <Button ariaLabel="Configurar proyecto" className="!size-10 !p-0" onClick={onEditProject} tooltip="Configurar proyecto" variant="icon">
             <Icon className="size-4" name="settings" />
           </Button>
-          <Button ariaLabel="Ver sitio publicado" className="!size-10 !p-0" onClick={onViewClientPortal} title="Ver sitio publicado" variant="icon">
-            <Icon className="size-5" name="preview" />
+          <Button ariaLabel="Ver sitio publicado" className="!size-10 !p-0" onClick={onViewClientPortal} tooltip="Ver sitio publicado" variant="icon">
+            <Icon className="size-5" name="eye" />
           </Button>
           <Button onClick={onRequestAction} variant="secondary"><Icon className="size-4" name="message" /> Solicitar acción</Button>
           <Button onClick={onPublish} variant="primary"><Icon className="size-4" name="publish" /> Publicación y acceso</Button>
