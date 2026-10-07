@@ -55,14 +55,17 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
   if (!requester) return;
   const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
   try {
-    const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role,email&limit=1`, { headers: adminHeaders });
-    const members = await memberResponse.json() as Array<{ id: string; studio_id: string; role: string; email?: string }>;
+    const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role&limit=1`, { headers: adminHeaders });
+    const members = await memberResponse.json() as Array<{ id: string; studio_id: string; role: string }>;
     if (!memberResponse.ok) return res.status(502).json({ error: "No pudimos validar el acceso al estudio." });
     let member = members[0];
     if (!member && requester.email) {
-      const emailResponse = await fetch(`${baseUrl}/rest/v1/studio_users?email=eq.${encodeURIComponent(requester.email)}&select=id,studio_id,role,email&limit=1`, { headers: adminHeaders });
+      const emailResponse = await fetch(`${baseUrl}/rest/v1/studio_users?email=ilike.${encodeURIComponent(requester.email)}&select=id,studio_id,role&limit=1`, { headers: adminHeaders });
       const emailMembers = await emailResponse.json() as typeof members;
-      if (!emailResponse.ok) return res.status(502).json({ error: "No pudimos validar el acceso al estudio." });
+      if (!emailResponse.ok) {
+        console.error("Studio user email lookup failed", emailResponse.status, emailMembers);
+        return res.status(403).json({ error: "No encontramos tu usuario dentro del estudio." });
+      }
       member = emailMembers[0];
     }
     if (!member) return res.status(403).json({ error: "No tenés permiso para acceder a los proyectos." });
