@@ -63,7 +63,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       const response = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`, { headers: adminHeaders });
       const rows = await response.json();
       if (!response.ok) return res.status(502).json({ error: "No pudimos cargar los proyectos." });
-      return res.status(200).json({ projects: rows.map((row: { data: unknown }) => row.data).filter(Boolean) });
+      return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
     const project = req.body?.project;
