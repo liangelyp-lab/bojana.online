@@ -1636,6 +1636,7 @@ function AdminPortal({
             {/* 7. CONFIGURACIÓN VIEW */}
             {activeNav === "Configuracion" && (
               <StudioSettingsView
+                projects={allProjects}
                 onToast={onPublishToast}
                 onActiveUserChange={user => setActiveUser?.(user)}
               />
@@ -2876,7 +2877,8 @@ export default function App() {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
     return { accessToken: hash.get("access_token"), refreshToken: hash.get("refresh_token") || undefined, type: hash.get("type") }
   }, [])
-  const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : "signin")
+  const directToken = useMemo(() => new URLSearchParams(window.location.search).get("portal"), [])
+  const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : directToken ? "client" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
@@ -2925,12 +2927,26 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!directToken || directToken === "portal-direct") return
+    void fetch(`/api/portal/direct?token=${encodeURIComponent(directToken)}`)
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("No se pudo cargar el portal directo.")))
+      .then(data => {
+        const project = data.project as ProjectData
+        setAllProjects([project])
+        setSelectedProjectId(project.id)
+        setScreen("client")
+      })
+      .catch(() => undefined)
+  }, [directToken])
+
+  useEffect(() => {
     void restoreSession().then(user => {
+      if (directToken) return
       if (!user) return
       setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: "admin" })
       setScreen("admin")
     }).catch(() => undefined)
-  }, [])
+  }, [directToken])
 
   useEffect(() => {
     void hydrateProjectsFromSupabase().then((projects) => {

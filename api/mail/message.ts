@@ -3,7 +3,7 @@ import { simpleParser } from "mailparser"
 import { requireSupabaseUser } from "../_lib/auth"
 
 function config() {
-  return { host: process.env.MAIL_HOST!, port: Number(process.env.MAIL_PORT), secure: true, auth: { user: process.env.MAIL_USER!, pass: process.env.MAIL_PASSWORD! }, logger: false }
+  return { host: process.env.MAIL_HOST!, port: Number(process.env.MAIL_PORT), secure: true as const, auth: { user: process.env.MAIL_USER!, pass: process.env.MAIL_PASSWORD! }, logger: false as const }
 }
 
 export default async function handler(req: any, res: any) {
@@ -17,8 +17,10 @@ export default async function handler(req: any, res: any) {
     const lock = await client.getMailboxLock("INBOX")
     try {
       const message = await client.fetchOne(uid, { source: true, envelope: true }, { uid: true })
-      if (!message?.source) return res.status(404).json({ message: "Correo no encontrado" })
-      const parsed = await simpleParser(message.source)
+      if (!message) return res.status(404).json({ message: "Correo no encontrado" })
+      const source = message.source
+      if (!source || typeof source === "boolean") return res.status(404).json({ message: "Correo no encontrado" })
+      const parsed = await simpleParser(source)
       return res.status(200).json({
         uid,
         subject: parsed.subject || "(sin asunto)",
@@ -26,7 +28,7 @@ export default async function handler(req: any, res: any) {
         date: parsed.date || null,
         text: parsed.text || "",
         html: typeof parsed.html === "string" ? parsed.html : "",
-        attachments: parsed.attachments.map(file => ({ filename: file.filename, contentType: file.contentType, size: file.size })),
+        attachments: parsed.attachments.map((file: { filename?: string | null; contentType?: string; size?: number }) => ({ filename: file.filename, contentType: file.contentType, size: file.size })),
       })
     } finally { lock.release() }
   } catch (error) {
