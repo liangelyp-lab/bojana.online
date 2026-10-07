@@ -61,8 +61,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const session = `${sessionPayload}.${sessionSignature}`;
     res.setHeader('Set-Cookie', [
       'bojana_lark_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-      `bojana_lark_session=${encodeURIComponent(session)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`,
+      `bojana_lark_session=${session}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`,
     ]);
+    console.error('Lark session issued');
     return res.redirect(302, '/');
   } catch (err) {
     console.error('Lark OAuth callback failed', err);
@@ -107,7 +108,10 @@ function findEmail(value: unknown, depth = 0): string {
 }
 
 function parseCookies(value: string) {
-  return Object.fromEntries(value.split(';').map(part => part.trim().split('=' as const)).filter(([key, val]) => key && val));
+  return Object.fromEntries(value.split(';').map(part => {
+    const separator = part.indexOf('=');
+    return separator >= 0 ? [part.slice(0, separator).trim(), part.slice(separator + 1).trim()] : ['', ''];
+  }).filter(([key, val]) => key && val));
 }
 
 function safeEqual(a: string, b: string) {

@@ -3,7 +3,10 @@ import crypto from 'node:crypto';
 export async function requireSupabaseUser(req: any, res: any): Promise<{ id: string; email?: string } | null> {
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  const cookies = Object.fromEntries(String(req.headers.cookie || '').split(';').map((part: string) => part.trim().split('=' as const)).filter(([key, value]: string[]) => key && value));
+  const cookies = Object.fromEntries(String(req.headers.cookie || '').split(';').map((part: string) => {
+    const separator = part.indexOf('=');
+    return separator >= 0 ? [part.slice(0, separator).trim(), part.slice(separator + 1).trim()] : ['', ''];
+  }).filter(([key, value]: string[]) => key && value));
   const header = String(req.headers.authorization || '');
   const token = header.startsWith('Bearer ') ? header.slice(7) : cookies.bojana_access ? decodeURIComponent(cookies.bojana_access) : '';
   if (!token && cookies.bojana_lark_session) {

@@ -9,7 +9,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const cookies = parseCookies(req.headers.cookie || '');
   if (cookies.bojana_lark_session) {
     const larkUser = verifyLarkSession(cookies.bojana_lark_session);
-    if (larkUser) return res.status(200).json({ user: larkUser, access_token: '', auth_source: 'lark' });
+    if (larkUser) {
+      console.error('Lark session accepted');
+      return res.status(200).json({ user: larkUser, access_token: '', auth_source: 'lark' });
+    }
+    console.error('Lark session rejected');
+  } else {
+    console.error('Lark session cookie missing');
   }
   if (!baseUrl || !anonKey || !cookies.bojana_access) return res.status(401).json({ error: 'No active session' });
   const response = await fetch(`${baseUrl}/auth/v1/user`, { headers: { apikey: anonKey, authorization: `Bearer ${decodeURIComponent(cookies.bojana_access)}` } });
@@ -17,7 +23,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   return res.status(200).json({ user: await response.json(), access_token: decodeURIComponent(cookies.bojana_access) });
 }
 
-function parseCookies(value: string) { return Object.fromEntries(value.split(';').map(part => part.trim().split('=' as const)).filter(([key, val]) => key && val)); }
+function parseCookies(value: string) {
+  return Object.fromEntries(value.split(';').map(part => {
+    const separator = part.indexOf('=');
+    return separator >= 0 ? [part.slice(0, separator).trim(), part.slice(separator + 1).trim()] : ['', ''];
+  }).filter(([key, val]) => key && val));
+}
 
 function verifyLarkSession(value: string) {
   try {
