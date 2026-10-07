@@ -2667,6 +2667,12 @@ function ClientPortal({
     return () => window.cancelAnimationFrame(frame)
   }, [active])
 
+  useEffect(() => {
+    if (!highlightedTaskId) return
+    const timeout = window.setTimeout(() => setHighlightedTaskId(null), 4500)
+    return () => window.clearTimeout(timeout)
+  }, [highlightedTaskId])
+
   const projectTasks = useMemo(
     () => (currentProject.disciplinasOperativas || []).flatMap(discipline =>
       discipline.necesidades.flatMap(need => need.visibleCliente === false ? [] : need.tareas.filter(task => task.visibleCliente))
@@ -3011,9 +3017,9 @@ function ClientPortal({
                       })}
                     </div>
                   )}
-                  <form className="mt-4 space-y-2.5" onSubmit={sendClientMessage}>
+                  <form className="mt-4 space-y-2.5 border-t border-line pt-4" onSubmit={sendClientMessage}>
                     <label className="block text-xs font-semibold text-ink" htmlFor="client-message">
-                      Escribí tu consulta
+                      Tu mensaje
                     </label>
                     <TextAreaControl
                       id="client-message"
@@ -3021,7 +3027,7 @@ function ClientPortal({
                       value={clientMessage}
                       onChange={event => setClientMessage(event.target.value)}
                     />
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-[11px] text-ink-faint">El mensaje queda registrado en la actividad de este proyecto.</p>
                       <Button className="!min-h-9 !px-3 text-xs" disabled={!clientMessage.trim()} type="submit" variant="secondary">
                         Enviar mensaje al equipo <Icon className="size-4" name="arrow" />
