@@ -193,8 +193,7 @@ export default function StudioDashboard({
                   <div className="flex items-center justify-between border-t border-line pt-4 text-xs text-ink-muted">
                     <span>Actualizado {updateDate}</span>
                     <span className="inline-flex items-center gap-1 font-semibold text-forest transition group-hover:translate-x-1">
-                      <span>Entrar al proyecto</span>
-                      <ChevronRight className="size-3.5" />
+                      <ChevronRight className="size-5" aria-hidden="true" />
                     </span>
                   </div>
                 </div>
