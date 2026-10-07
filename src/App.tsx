@@ -801,7 +801,7 @@ function ProjectExecutionSummary({
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <Heading as="h1" className="font-display text-4xl leading-none text-ink md:text-5xl">
+            <Heading as="h1" className="font-display text-4xl font-normal leading-tight text-ink">
               {project.info?.nombre || "Proyecto"}
             </Heading>
             <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold ${statusClasses}`}>
