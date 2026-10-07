@@ -456,7 +456,7 @@ function SignIn({ onSignIn }: { onSignIn: (email: string, password: string) => P
       document.body.style.overflow = previousOverflow
       document.documentElement.style.overflow = previousDocumentOverflow
     }
-  }, [activeUser?.id])
+  }, [])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -2877,7 +2877,7 @@ export default function App() {
     void hydrateProjectsFromSupabase().then((projects) => {
       if (projects && projects.length > 0) setAllProjects(projects)
     })
-  }, [])
+  }, [activeUser?.id])
 
   const showToast = (msg?: string) => {
     if (!msg) return
