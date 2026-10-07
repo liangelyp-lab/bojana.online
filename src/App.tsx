@@ -3027,33 +3027,33 @@ function ClientPortal({
             {active === "Conversaciones" && (
               <div className="mt-8 scroll-mt-8 space-y-6" id="client-conversations">
                 {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
-                <div className="rounded-3xl border border-line bg-white p-7">
+                <div className="rounded-2xl border border-line bg-white p-5">
                   <Eyebrow>Canal de comunicación</Eyebrow>
-                  <Heading as="h3" className="mt-2 font-display text-2xl text-ink">
+                  <Heading as="h3" className="mt-1 font-display text-xl text-ink">
                     Contacto directo con el equipo del estudio
                   </Heading>
-                  <p className="mt-2 text-sm text-ink-muted leading-relaxed">
+                  <p className="mt-1.5 max-w-2xl text-xs leading-5 text-ink-muted">
                     Las dudas técnicas, consultas y acuerdos sobre la obra se canalizan a través de este portal para mantener la trazabilidad completa del proyecto.
                   </p>
                   {conversationMessages.length > 0 && (
-                    <div className="mt-6 space-y-3 border-t border-line pt-6">
+                    <div className="mt-4 space-y-2.5 border-t border-line pt-4">
                       <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Historial de conversación</p>
                       {conversationMessages.map(activity => {
                         const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
                         return (
-                          <article className={`rounded-2xl border p-4 ${fromClient ? "border-line bg-stone/45" : "border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
+                          <article className={`rounded-xl border p-3 ${fromClient ? "border-line bg-stone/45" : "border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
                             <div className="flex items-center justify-between gap-3 text-xs">
                               <span className="font-semibold text-ink">{fromClient ? "Tu mensaje" : "Bojana Estudio"}</span>
                               <span className="text-ink-faint">{activity.fecha}</span>
                             </div>
-                            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink-muted">{activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio):\s*/, "")}</p>
+                            <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio):\s*/, "")}</p>
                           </article>
                         )
                       })}
                     </div>
                   )}
-                  <form className="mt-6 space-y-3" onSubmit={sendClientMessage}>
-                    <label className="block text-sm font-semibold text-ink" htmlFor="client-message">
+                  <form className="mt-4 space-y-2.5" onSubmit={sendClientMessage}>
+                    <label className="block text-xs font-semibold text-ink" htmlFor="client-message">
                       Escribí tu consulta
                     </label>
                     <TextAreaControl
@@ -3063,8 +3063,8 @@ function ClientPortal({
                       onChange={event => setClientMessage(event.target.value)}
                     />
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <p className="text-xs text-ink-faint">El mensaje queda registrado en la actividad de este proyecto.</p>
-                      <Button disabled={!clientMessage.trim()} type="submit" variant="secondary">
+                      <p className="text-[11px] text-ink-faint">El mensaje queda registrado en la actividad de este proyecto.</p>
+                      <Button className="!min-h-9 !px-3 text-xs" disabled={!clientMessage.trim()} type="submit" variant="secondary">
                         Enviar mensaje al equipo <Icon className="size-4" name="arrow" />
                       </Button>
                     </div>
