@@ -201,6 +201,16 @@ export default function DocumentosModule({
             <p className="text-xs text-bojana-muted">
               No hay archivos bajo la categoría seleccionada o que coincidan con la búsqueda.
             </p>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowAddDocModal(true)}
+                className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-forest/90"
+              >
+                <span className="text-sm leading-none">+</span>
+                Agregar documento
+              </button>
+            )}
           </div>
         ) : (
           filteredDocs.map((doc) => {

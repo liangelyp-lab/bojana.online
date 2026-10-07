@@ -1,6 +1,6 @@
 import { MediaComparison } from '../ui/Media';
 import { decisionStateBadgeClasses } from '../../design/status';
-import { Badge, Button, EmptyState, InputControl, TextAreaControl } from '../ui/DesignSystem';
+import { Badge, Button, InputControl, TextAreaControl } from '../ui/DesignSystem';
 import React, { useEffect, useState } from 'react';
 import {
   ProjectData,
@@ -11,21 +11,11 @@ import {
 } from '../../types';
 import {
   CheckSquare,
-  Clock,
   CheckCircle2,
-  AlertCircle,
   MessageSquare,
   Plus,
   Trash2,
-  Send,
-  ArrowRight,
-  Check,
-  X,
-  FileText,
-  CornerDownRight,
-  ShieldCheck,
-  Sparkles,
-  Info
+  Check
 } from 'lucide-react';
 
 interface DecisionesModuleProps {
@@ -248,33 +238,7 @@ export default function DecisionesModule({
   return (
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
-      {/* 1. TOP HEADER */}
-      <div className="rounded-3xl border border-line bg-white p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-            Módulo de Decisiones & Revisiones
-          </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-ink">
-            Aprobación de Opciones & Revisiones Técnicas
-          </h2>
-          <p className="text-xs text-ink-muted mt-1">
-            Espacio interactivo para que el comitente convalide alternativas materiales y revise planos de ingeniería.
-          </p>
-        </div>
-
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 cursor-pointer shrink-0"
-          >
-            <Plus className="size-4 text-white" />
-            <span>Nueva solicitud</span>
-          </button>
-        )}
-      </div>
-
-      {/* 2. FILTER TABS */}
+      {/* FILTER TABS */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         <div className="flex items-center gap-2 overflow-x-auto text-xs font-semibold">
           {['todos', 'Pendiente', 'Aprobado', 'Requiere cambios'].map((st) => (
@@ -307,12 +271,21 @@ export default function DecisionesModule({
             <p className="text-xs text-ink-muted max-w-sm mx-auto">
               Todas las consultas han sido procesadas o no hay solicitudes pendientes.
             </p>
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => setShowCreateModal(true)}
+                className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-forest/90"
+              >
+                <Plus className="size-3.5" />
+                Nueva solicitud
+              </button>
+            )}
           </div>
         ) : (
           filteredDecisiones.map((item) => {
             const isApproved = item.estado === 'Aprobado';
             const requiresChanges = item.estado === 'Requiere cambios';
-            const isPending = item.estado === 'Pendiente';
 
             return (
               <div
