@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, KeyRound, Save } from "lucide-react";
 import type { ProjectData } from "../../types";
 import { Brand, Button, Field } from "../ui/DesignSystem";
@@ -20,6 +20,14 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
   const [credentials, setCredentials] = useState<CreatedCredentials | null>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
+
+  useEffect(() => {
+    if (!projects.length) {
+      setProjectId("");
+      return;
+    }
+    if (!projects.some(project => project.id === projectId)) setProjectId(projects[0].id);
+  }, [projects, projectId]);
 
   const addTeamUser = (event: React.FormEvent) => {
     event.preventDefault();

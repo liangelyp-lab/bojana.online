@@ -26,9 +26,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const requesterResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=role,studio_id`, { headers: adminHeaders });
     const requesterRows = await requesterResponse.json();
     if (!requesterRows[0] || !["owner", "admin", "team"].includes(requesterRows[0].role)) return res.status(403).json({ error: "No tenés permiso para crear accesos." });
-    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&select=id,studio_id,name`, { headers: adminHeaders });
-    const projects = await projectResponse.json();
-    const project = projects[0];
+    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(requesterRows[0].studio_id)}&select=id,studio_id,name,data`, { headers: adminHeaders });
+    const projects = await projectResponse.json() as Array<{ id: string; studio_id: string; name: string; data?: { id?: string } }>;
+    const project = projects.find(candidate => candidate.id === projectId || candidate.data?.id === projectId);
     if (!projectResponse.ok || !project) return res.status(404).json({ error: "No encontramos el proyecto." });
     if (project.studio_id !== requesterRows[0].studio_id) return res.status(403).json({ error: "El proyecto no pertenece a tu estudio." });
     const password = randomPassword();

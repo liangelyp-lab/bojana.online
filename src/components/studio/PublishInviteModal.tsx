@@ -304,10 +304,11 @@ export default function PublishInviteModal({
                 {/* Primary Button */}
                 <div className="pt-2 text-center">
                   <a
-                    href={dedicatedUrl || '#'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-bojana-inside px-8 py-3.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium transition shadow-bojana-widget"
+                    href={dedicatedUrl || undefined}
+                    target={dedicatedUrl ? "_blank" : undefined}
+                    rel={dedicatedUrl ? "noreferrer" : undefined}
+                    onClick={(event) => { if (!dedicatedUrl) { event.preventDefault(); onToast('Generando el acceso seguro, esperá un momento y probá de nuevo.'); } }}
+                    className={`inline-flex items-center justify-center gap-bojana-inside px-8 py-3.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium transition shadow-bojana-widget ${dedicatedUrl ? '' : 'opacity-60'}`}
                   >
                     <span>Acceder al proyecto</span>
                     <ExternalLink className="w-3.5 h-3.5 text-bojana-ink" />
