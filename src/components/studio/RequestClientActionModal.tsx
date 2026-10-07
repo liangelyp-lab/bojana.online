@@ -223,11 +223,11 @@ export default function RequestClientActionModal({
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-bojana-inside">
                   {[
-                    { id: 'aprobar_rechazar', label: 'Aprobar / rechazar', desc: 'Validar propuesta o render' },
-                    { id: 'elegir_alternativa', label: 'Elegir alternativa', desc: 'Selección entre Opción A / B' },
-                    { id: 'enviar_informacion', label: 'Enviar información', desc: 'Medidas, datos o especificaciones' },
-                    { id: 'subir_documento', label: 'Subir documento', desc: 'Certificado, firma o archivo' },
-                    { id: 'confirmar_decision', label: 'Confirmar decisión', desc: 'Acuerdo de inicio o hito' },
+                    { id: 'aprobar_rechazar', label: 'Aprobar / rechazar' },
+                    { id: 'elegir_alternativa', label: 'Elegir alternativa' },
+                    { id: 'enviar_informacion', label: 'Enviar información' },
+                    { id: 'subir_documento', label: 'Subir documento' },
+                    { id: 'confirmar_decision', label: 'Confirmar decisión' },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -240,9 +240,6 @@ export default function RequestClientActionModal({
                       }`}
                     >
                       <strong className="block text-xs font-medium">{t.label}</strong>
-                      <span className={`text-xs block mt-0.5 ${tipo === t.id ? "text-bojana-line" : "text-bojana-muted"}`}>
-                        {t.desc}
-                      </span>
                     </button>
                   ))}
                 </div>
