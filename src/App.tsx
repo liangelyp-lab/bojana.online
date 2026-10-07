@@ -310,6 +310,8 @@ type TaskStatus =
   | "Completado"
 
 type Task = {
+  id?: string
+  projectId?: string
   title: string
   area: string
   owner: string
@@ -343,6 +345,8 @@ function getProjectTasks(project: ProjectData): Task[] {
                 ? "En curso"
                 : "Pendiente"
         return {
+          id: task.id,
+          projectId: project.id,
           title: task.titulo,
           area: `${discipline.id} · ${need.nombre}`,
           owner: owner?.nombre || "Sin asignar",
@@ -357,86 +361,6 @@ function getProjectTasks(project: ProjectData): Task[] {
     ),
   )
 }
-
-const tasks: Task[] = [
-  {
-    title: "Ajustar distribucion de planta baja",
-    area: "Arquitectura - Distribucion",
-    owner: "Elena Marquez",
-    initials: "EM",
-    due: "18 jun",
-    status: "En curso",
-  },
-  {
-    title: "Validar propuesta de fachada",
-    area: "Diseno - Materialidad",
-    owner: "Ana Morales",
-    initials: "AM",
-    due: "Hoy",
-    status: "Esperando cliente",
-  },
-  {
-    title: "Revisar calculo de cimentacion",
-    area: "Ing. civil - Estructura",
-    owner: "Diego Soler",
-    initials: "DS",
-    due: "20 jun",
-    status: "En revision",
-  },
-  {
-    title: "Preparar planos para licencia",
-    area: "Arquitectura - Documentacion",
-    owner: "Lucia Vidal",
-    initials: "LV",
-    due: "24 jun",
-    status: "Pendiente",
-  },
-]
-
-const updates = [
-  {
-    date: "14 JUN",
-    title: "Nueva propuesta de distribucion",
-    description:
-      "Ajustamos la planta principal para ampliar la relacion entre cocina, comedor y jardin.",
-    tag: "Arquitectura",
-    color: "bg-clay",
-  },
-  {
-    date: "10 JUN",
-    title: "Estudio geotecnico recibido",
-    description:
-      "Los resultados confirman las condiciones previstas y permiten continuar con el calculo estructural.",
-    tag: "Ingenieria civil",
-    color: "bg-forest",
-  },
-  {
-    date: "04 JUN",
-    title: "Visita de medicion completada",
-    description:
-      "El equipo verifico dimensiones y elementos existentes para actualizar la documentacion base.",
-    tag: "Proyecto",
-    color: "bg-sand-strong",
-  },
-]
-
-const documents = [
-  {
-    name: "Propuesta de distribucion V03",
-    meta: "PDF - 8,4 MB - 14 jun 2025",
-    status: "Para revisar",
-  },
-  {
-    name: "Informe geotecnico",
-    meta: "PDF - 12,1 MB - 10 jun 2025",
-    status: "Final",
-  },
-  {
-    name: "Levantamiento del estado actual",
-    meta: "PDF - 6,8 MB - 04 jun 2025",
-    status: "Final",
-  },
-]
 
 // ─── Sign In Screen ───────────────────────────────────────────────────────────
 
@@ -746,14 +670,12 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
 function AdminSidebar({
   active,
   setActive,
-  onViewClientPortal,
   projects,
   onOpenProject,
   activeUser,
 }: {
   active: string
   setActive: (value: string) => void
-  onViewClientPortal: () => void
   projects: ProjectData[]
   onOpenProject: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean; communication?: boolean }) => void
   activeUser?: { nombre: string; rol: string } | null
@@ -837,69 +759,6 @@ function AdminHeader({
         </Button>
       </div>
     </header>
-  )
-}
-
-function ProjectHeader({
-  projectName = "Casa del Olivo",
-  projectCode = "BE 024",
-  projectDesc = "Reforma integral y ampliacion de vivienda - Javea, Alicante",
-  projectStatus = "En marcha",
-  onRequestAction,
-  onPublishInvite,
-  onEditProject,
-  onViewClientPortal,
-}: {
-  projectName?: string
-  projectCode?: string
-  projectDesc?: string
-  projectStatus?: string
-  onRequestAction?: () => void
-  onPublishInvite?: () => void
-  onEditProject?: () => void
-  onViewClientPortal?: () => void
-}) {
-  return (
-    <section className="flex flex-col gap-7 xl:flex-row xl:items-end xl:justify-between">
-      <div>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-ink-faint">
-          <span>Proyectos</span>
-          <Icon className="size-3.5" name="chevron" />
-          <span className="text-ink-muted" aria-current="page">{projectName}</span>
-        </div>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Heading
-            as="h1"
-            className="font-display text-4xl leading-tight text-ink md:text-5xl"
-          >
-            {projectName}
-          </Heading>
-          <span className="rounded-full bg-mint-pale px-3 py-1.5 text-xs font-bold text-forest">
-            {projectStatus}
-          </span>
-        </div>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-muted">
-          {projectDesc}
-        </p>
-      </div>
-      <div className="flex flex-wrap gap-2.5">
-        {onEditProject && (
-          <Button ariaLabel="Configurar proyecto" className="!size-10 !p-0" onClick={onEditProject} variant="icon">
-            <Icon className="size-4" name="settings" />
-          </Button>
-        )}
-        {onRequestAction && (
-          <Button onClick={onRequestAction} variant="secondary">
-            <Icon className="size-4" name="message" /> Solicitar acción
-          </Button>
-        )}
-        {onPublishInvite && (
-          <Button onClick={onPublishInvite} variant="secondary">
-            <Icon className="size-4" name="publish" /> Publicar e invitar
-          </Button>
-        )}
-      </div>
-    </section>
   )
 }
 
@@ -1029,9 +888,11 @@ const statusStyles: Record<TaskStatus, string> = {
 function TasksPanel({
   tasks,
   onToggleTask,
+  onOpenTask,
 }: {
   tasks: Task[]
   onToggleTask: (title: string) => void
+  onOpenTask?: (task: Task) => void
 }) {
   const [filter, setFilter] = useState("Todas")
   const visibleTasks = useMemo(
@@ -1072,13 +933,16 @@ function TasksPanel({
           <article
             className="grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_auto] md:items-center md:px-6"
             key={task.title}
+            onDoubleClick={() => onOpenTask?.(task)}
           >
             <div className="min-w-0">
               <Heading
                 as="h3"
                 className="truncate text-sm font-semibold text-ink"
               >
-                {task.title}
+                {onOpenTask && task.projectId ? (
+                  <button type="button" className="text-left hover:text-forest" onClick={() => onOpenTask(task)}>{task.title}</button>
+                ) : task.title}
               </Heading>
               <p className="mt-1 text-xs text-ink-faint">{task.area}</p>
               {(task.deliverablesCount || task.pendingApprovals) ? <p className="mt-1 text-[11px] text-ink-muted">{task.deliverablesCount || 0} entregables · {task.publishedDeliverables || 0} publicados{task.pendingApprovals ? ` · ${task.pendingApprovals} aprobación${task.pendingApprovals === 1 ? "" : "es"}` : ""}</p> : <p className="mt-1 text-[11px] text-ink-faint">Sin entregables configurados</p>}
@@ -1258,54 +1122,6 @@ function ClientActions({
           ))}
         </div>
       )}
-    </section>
-  )
-}
-
-function PublishPanel({ project, onReviewPublication, onOpenAlert }: { project: ProjectData; onReviewPublication: () => void; onOpenAlert: (prefill: { title: string; message: string; actionType: ClientAlertActionType }) => void }) {
-  const [published, setPublished] = useState(false)
-  useEffect(() => {
-    if ((project.info?.cambiosSinPublicar || 0) > 0) setPublished(false)
-  }, [project.info?.cambiosSinPublicar])
-  const advancesCount = project.avances?.length || 0
-  const documentsCount = project.documentos?.length || 0
-  const decisionsCount = project.decisiones?.length || 0
-  const taskChangesCount = project.info?.cambiosSinPublicar || 0
-  const hasChanges = taskChangesCount + advancesCount + documentsCount + decisionsCount > 0
-  const latestUpdate = project.disciplinasOperativas?.flatMap(discipline => discipline.necesidades.flatMap(need => need.tareas.flatMap(task => task.actualizaciones || []))).slice().sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]
-
-  return (
-    <section className="rounded-3xl bg-forest p-6 text-white">
-      <div className="flex items-start justify-between gap-4">
-        <div className="grid size-10 place-items-center rounded-full bg-white/10">
-          <Icon name={published ? "check" : "publish"} />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="icon" ariaLabel="Avisar al cliente" className="!size-9 !text-white hover:!bg-white/10" onClick={() => onOpenAlert({ title: latestUpdate?.titulo || `Novedades de ${project.info?.nombre || "tu proyecto"}`, message: latestUpdate?.descripcion || "Hay una nueva actualización disponible en el portal del proyecto.", actionType: latestUpdate?.accion === 'revision' ? 'revision' : latestUpdate?.accion === 'solicitud_informacion' ? 'informacion' : latestUpdate?.accion === 'publicar_terminar' ? 'entrega' : 'avance' })}>
-            <Icon className="size-4" name="bell" />
-          </Button>
-          <Badge tone="neutral" className="border-white/10 bg-white/10 text-white/70">
-            {published ? "Publicado" : "Borrador"}
-          </Badge>
-        </div>
-      </div>
-      <Heading as="h2" className="mt-7 font-display text-2xl">
-        {published ? "Actualización publicada" : hasChanges ? "Cambios pendientes de publicación" : "Sin cambios para publicar"}
-      </Heading>
-      <p className="mt-2 text-sm leading-6 text-white/60">
-        {published
-          ? "El cliente ya puede ver los últimos avances en su portal."
-          : hasChanges
-            ? `${taskChangesCount ? `${taskChangesCount} cambios en tareas` : ""}${taskChangesCount && (advancesCount + documentsCount + decisionsCount) > 0 ? ", " : ""}${advancesCount} avances, ${documentsCount} documentos y ${decisionsCount} decisiones preparados.`
-            : "Este proyecto todavía no tiene avances, documentos ni solicitudes para publicar."}
-      </p>
-      <Button
-        className="mt-6 w-full !bg-white !text-forest hover:!bg-stone"
-        onClick={onReviewPublication}
-      >
-        {published ? "Ver publicación" : "Revisar publicación"}{" "}
-        <Icon className="size-4" name="arrow" />
-      </Button>
     </section>
   )
 }
@@ -1681,7 +1497,6 @@ function AdminPortal({
               setSelectedProjectId(null)
             }
           }}
-          onViewClientPortal={onViewClientPortal}
           projects={allProjects}
           activeUser={activeUser}
           onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen") }}
@@ -1925,7 +1740,17 @@ function AdminPortal({
                     action={{ label: "Crear primer proyecto", onClick: onNewProject }}
                   />
                 ) : (
-                  <TasksPanel onToggleTask={onToggleTask} tasks={studyTasks} />
+                  <TasksPanel
+                    onToggleTask={onToggleTask}
+                    tasks={studyTasks}
+                    onOpenTask={(task) => {
+                      if (!task.projectId || !task.id) return
+                      setNotificationTarget({ taskId: task.id })
+                      setSelectedProjectId(task.projectId)
+                      setActiveNav("Proyectos")
+                      setActiveTab("Resumen")
+                    }}
+                  />
                 )}
               </div>
             )}
@@ -2158,55 +1983,6 @@ function ClientSidebar({
         <Icon className={`size-4.5 transition-transform ${expanded ? "rotate-180" : ""}`} name="chevron" />
       </Button>
     </div>
-  )
-}
-
-function ClientHeader({ openMenu, projectName, clientName, hasPendingDecision }: { openMenu: () => void; projectName: string; clientName: string; hasPendingDecision: boolean }) {
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  return (
-    <header className="relative z-50 flex h-20 items-center justify-between border-b border-line bg-canvas/90 px-5 backdrop-blur md:px-10 lg:px-12">
-      <div className="flex items-center gap-3">
-        <Button
-          ariaLabel="Abrir menu"
-          className="!size-11 !p-0 lg:hidden"
-          onClick={openMenu}
-          variant="icon"
-        >
-          <Icon name="menu" />
-        </Button>
-        <div className="w-28 lg:hidden">
-          <img src={bojanaLogoWhite} alt="Bojana Estudio" className="h-auto w-full brightness-0 opacity-70" />
-        </div>
-        <p className="hidden text-sm text-ink-muted sm:block">
-          Portal de cliente
-          <span className="mx-2 text-line-strong">/</span>
-          <span className="font-semibold text-ink">{projectName}</span>
-        </p>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="relative">
-          <Button ariaLabel="Notificaciones" className="relative !size-11 !rounded-full !border !border-line-strong !bg-white !p-0 shadow-sm" variant="icon" onClick={() => setNotificationsOpen((open) => !open)}>
-            <Icon className="size-5" name="bell" />
-            {hasPendingDecision && <span className="absolute right-2.5 top-2.5 size-2 rounded-full bg-clay ring-2 ring-canvas" />}
-          </Button>
-          {notificationsOpen && (
-            <div className="absolute right-0 top-12 z-[100] w-72 rounded-2xl border border-line bg-white p-4 shadow-xl">
-              <p className="text-sm font-semibold text-ink">Notificaciones</p>
-              <p className="mt-2 text-xs leading-relaxed text-ink-muted">{hasPendingDecision ? "Hay una decisión pendiente de revisión en tu proyecto." : "No hay notificaciones nuevas para este proyecto."}</p>
-              <Button className="mt-3 w-full" variant="secondary" onClick={() => setNotificationsOpen(false)}>Cerrar</Button>
-            </div>
-          )}
-        </div>
-        <Button ariaLabel={`Perfil de ${clientName}`} className="!rounded-full !px-2.5" variant="ghost">
-          <span className="grid size-8 place-items-center rounded-full bg-sand text-xs font-bold text-ink">
-            AM
-          </span>
-            <span className="hidden pr-1 sm:inline">{clientName}</span>
-          <Icon className="hidden size-4 sm:block" name="chevron" />
-        </Button>
-      </div>
-    </header>
   )
 }
 
@@ -2883,7 +2659,6 @@ function ClientPortal({
   onToast: (msg: string) => void
 }) {
   const [active, setActive] = useState("Resumen")
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [expandedClientTaskId, setExpandedClientTaskId] = useState<string | null>(null)
   const [showActionUpdatesOnly, setShowActionUpdatesOnly] = useState(false)
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
