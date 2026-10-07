@@ -135,7 +135,13 @@ export default function OperationalExecutionPanel({
 }: OperationalExecutionPanelProps) {
   // Ensure operational disciplines exist
   const disciplines: OperationalDiscipline[] = project.disciplinasOperativas && project.disciplinasOperativas.length > 0
-    ? project.disciplinasOperativas
+    ? project.disciplinasOperativas.map(discipline => ({
+        ...discipline,
+        necesidades: (discipline.necesidades || []).map(need => ({
+          ...need,
+          tareas: need.tareas || [],
+        })),
+      }))
     : generateEmptyOperationalDisciplines(project.disciplinas || []);
 
   // Expanded disciplines state
