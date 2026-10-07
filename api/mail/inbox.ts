@@ -2,10 +2,12 @@ import { ImapFlow } from "imapflow"
 import { requireSupabaseUser } from "../_lib/auth"
 
 function config() {
-  const required = ["MAIL_HOST", "MAIL_PORT", "MAIL_USER", "MAIL_PASSWORD"] as const
+  const host = process.env.MAIL_HOST || process.env.SMTP_HOST
+  if (!host) throw new Error("Missing MAIL_HOST or SMTP_HOST")
+  const required = ["MAIL_PORT", "MAIL_USER", "MAIL_PASSWORD"] as const
   for (const key of required) if (!process.env[key]) throw new Error(`Missing ${key}`)
   return {
-    host: process.env.MAIL_HOST!,
+    host,
     port: Number(process.env.MAIL_PORT),
     auth: { user: process.env.MAIL_USER!, pass: process.env.MAIL_PASSWORD! },
   }

@@ -3,7 +3,9 @@ import { simpleParser } from "mailparser"
 import { requireSupabaseUser } from "../_lib/auth"
 
 function config() {
-  return { host: process.env.MAIL_HOST!, port: Number(process.env.MAIL_PORT), secure: true as const, auth: { user: process.env.MAIL_USER!, pass: process.env.MAIL_PASSWORD! }, logger: false as const }
+  const host = process.env.MAIL_HOST || process.env.SMTP_HOST
+  if (!host) throw new Error("Missing MAIL_HOST or SMTP_HOST")
+  return { host, port: Number(process.env.MAIL_PORT), secure: true as const, auth: { user: process.env.MAIL_USER!, pass: process.env.MAIL_PASSWORD! }, logger: false as const }
 }
 
 export default async function handler(req: any, res: any) {
