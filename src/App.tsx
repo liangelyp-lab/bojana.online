@@ -925,7 +925,7 @@ function ProjectExecutionSummary({
     : projectStatus === "Revisión"
       ? "border-sand-strong/40 bg-sand/30 text-ink"
       : projectStatus === "En progreso"
-        ? "border-clay/30 bg-clay-pale text-clay-dark"
+        ? "border-blue-200 bg-blue-50 text-blue-800"
         : "border-line bg-stone text-ink-faint"
 
   return (

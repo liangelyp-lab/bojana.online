@@ -1165,7 +1165,7 @@ export default function OperationalExecutionPanel({
                   : getProjectStatusLabel(project) === 'Revisión'
                     ? "text-ink bg-sand/30 border-sand-strong/40"
                     : getProjectStatusLabel(project) === 'En progreso'
-                      ? "text-clay-dark bg-clay-pale border-clay/30"
+                      ? "text-blue-800 bg-blue-50 border-blue-200"
                       : "text-ink-faint bg-stone border-line"
               }`}>
                 <span className="size-1.5 rounded-full bg-current opacity-70" />

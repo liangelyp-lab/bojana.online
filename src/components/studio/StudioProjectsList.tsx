@@ -171,7 +171,7 @@ export default function StudioProjectsList({
                 ? 'bg-sand/30 border-sand-strong/40 text-ink'
                 : progressStatus === 'Borrador'
                   ? 'bg-stone border-line text-ink-faint'
-                  : 'bg-clay-pale border-clay/30 text-clay-dark';
+                  : 'bg-blue-50 border-blue-200 text-blue-800';
 
             return (
               <div

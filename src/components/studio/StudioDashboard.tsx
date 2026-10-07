@@ -161,7 +161,7 @@ export default function StudioDashboard({
                   ? 'bg-sand/30 border-sand-strong/40 text-ink'
                   : status === 'Borrador'
                     ? 'bg-stone border-line text-ink-faint'
-                    : 'bg-clay-pale border-clay/30 text-clay-dark';
+                    : 'bg-blue-50 border-blue-200 text-blue-800';
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
               const nextAction = getProjectNextAction(p);
