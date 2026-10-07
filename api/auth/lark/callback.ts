@@ -41,15 +41,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const email = await resolveLarkEmail(user.data.email, userAccessToken);
-    if (!supabaseUrl || !serviceKey || !email) throw new Error('supabase_lark_config_or_email_missing');
+    const allowedOpenId = String(process.env.LARK_ALLOWED_OPEN_ID || '').trim();
+    const allowedEmail = String(process.env.LARK_ALLOWED_EMAIL || '').trim().toLowerCase();
+    const openId = String(user.data.open_id || '').trim();
+    if (!email && (!allowedOpenId || openId !== allowedOpenId || !allowedEmail)) {
+      console.error('Lark identity email missing', { open_id: openId, union_id: user.data.union_id || '', name: user.data.name || '' });
+      throw new Error('supabase_lark_config_or_email_missing');
+    }
+    const loginEmail = email || allowedEmail;
 
     const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, 'content-type': 'application/json' };
-    const memberResponse = await fetch(`${supabaseUrl}/rest/v1/studio_users?email=eq.${encodeURIComponent(email)}&select=id,name,role&limit=1`, { headers: adminHeaders });
+    const memberResponse = await fetch(`${supabaseUrl}/rest/v1/studio_users?email=eq.${encodeURIComponent(loginEmail)}&select=id,name,role&limit=1`, { headers: adminHeaders });
     const members = await memberResponse.json() as Array<{ id: string; name?: string; role?: string }>;
     const member = members[0];
     if (!memberResponse.ok || !member) throw new Error('lark_user_not_authorized');
 
-    const sessionPayload = Buffer.from(JSON.stringify({ id: member.id, email, name: user.data.name || member.name || email, role: member.role || 'team', exp: Date.now() + 8 * 60 * 60 * 1000 })).toString('base64url');
+    const sessionPayload = Buffer.from(JSON.stringify({ id: member.id, email: loginEmail, name: user.data.name || member.name || loginEmail, role: member.role || 'team', exp: Date.now() + 8 * 60 * 60 * 1000 })).toString('base64url');
     const sessionSignature = crypto.createHmac('sha256', process.env.LARK_APP_SECRET!).update(sessionPayload).digest('base64url');
     const session = `${sessionPayload}.${sessionSignature}`;
     res.setHeader('Set-Cookie', [
