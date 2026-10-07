@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { LibraryItem } from '../types';
-import {
-  Search,
-  Download,
-  CheckCircle,
-  HelpCircle,
-  Inbox
-} from 'lucide-react';
+import { Search, Download, CheckCircle, Inbox, FileText } from 'lucide-react';
 import { Field } from './ui/DesignSystem';
 
 interface LibraryProps {
@@ -29,7 +23,8 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
 
   const allItems = [...items, ...parsedReportes];
 
-  const [selectedCategory, setSelectedCategory] = useState<'TODOS' | LibraryItem['categoria'] | 'Reportes'>('TODOS');
+  const categoryOptions = ['TODOS', ...Array.from(new Set(allItems.map((item) => item.categoria)))];
+  const [selectedCategory, setSelectedCategory] = useState('TODOS');
   const [searchWord, setSearchWord] = useState('');
 
   // Download sim trigger
@@ -57,7 +52,9 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
     const matchesCategory = selectedCategory === 'TODOS' || item.categoria === selectedCategory;
     const matchesSearch =
       item.titulo.toLowerCase().includes(searchWord.toLowerCase()) ||
-      item.codigo.toLowerCase().includes(searchWord.toLowerCase());
+      item.codigo.toLowerCase().includes(searchWord.toLowerCase()) ||
+      item.proyecto?.toLowerCase().includes(searchWord.toLowerCase()) ||
+      item.origen?.toLowerCase().includes(searchWord.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -67,7 +64,7 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         {/* Category buttons */}
         <div className="flex items-center gap-2 overflow-x-auto text-xs font-semibold">
-          {(['TODOS', 'Planos', 'Renders', 'Pliegos', 'Certificados', 'Informes'] as const).map((cat) => (
+          {categoryOptions.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
@@ -87,7 +84,7 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
           <Search className="size-4 text-ink-faint absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Field
             type="text"
-            placeholder="Buscar por código u obra..."
+            placeholder="Buscar por nombre, proyecto o código..."
             value={searchWord}
             onChange={(e) => setSearchWord(e.target.value)}
             className="rounded-full bg-canvas/50 pl-10 pr-4 py-2 text-xs"
@@ -100,9 +97,9 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
         {filteredItems.length === 0 ? (
           <div className="col-span-full rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
             <Inbox className="size-10 text-ink-faint opacity-40 mx-auto" />
-            <h3 className="font-display text-xl text-ink">No se encontraron documentos</h3>
+            <h3 className="font-display text-xl text-ink">La biblioteca está vacía</h3>
             <p className="text-xs text-ink-muted max-w-sm mx-auto">
-              No hay planos o especificaciones técnicas cargadas para este filtro.
+              Los documentos, planos, imágenes y entregables del estudio aparecerán acá.
             </p>
           </div>
         ) : (
@@ -117,7 +114,8 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="rounded-full bg-stone px-2.5 py-0.5 font-bold text-ink-muted">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-stone px-2.5 py-0.5 font-bold text-ink-muted">
+                      <FileText className="size-3" />
                       {item.categoria}
                     </span>
                     <span className="text-xs font-semibold text-ink-faint">{item.revision}</span>
@@ -128,6 +126,9 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
                       {item.titulo}
                     </h5>
                     <span className="text-xs text-ink-faint block mt-1 font-mono">{item.codigo}</span>
+                    {item.proyecto && (
+                      <span className="text-xs text-ink-muted block mt-2">{item.proyecto}</span>
+                    )}
                   </div>
                 </div>
 
@@ -169,16 +170,6 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
         )}
       </div>
 
-      {/* COMPLIANCE BLUEPRINT RULES CARD */}
-      <div className="rounded-3xl border border-line bg-white p-7 text-xs text-ink-muted shadow-sm space-y-2">
-        <h5 className="font-display text-lg font-semibold text-ink flex items-center gap-2">
-          <HelpCircle className="size-4 text-forest" />
-          Restricción en Revisiones Técnicas de Planos
-        </h5>
-        <p className="leading-relaxed">
-          De acuerdo con el pliego contractual, las contratistas de obra están estrictamente prohibidas de ejecutar tareas basándose en revisiones de planos clasificadas como &quot;Borrador de Trabajo&quot;. Únicamente se permite la construcción con planos firmados por Dirección de Obra con código de certificación <strong>&quot;Rev. Oficial (Aprobada)&quot;</strong>. La plataforma audita y sella cada bajada para asegurar consistencia civil.
-        </p>
-      </div>
     </div>
   );
 }

@@ -713,4 +713,7 @@ export interface LibraryItem {
   revision: string;
   fecha: string;
   tamano: string;
+  url?: string;
+  proyecto?: string;
+  origen?: string;
 }

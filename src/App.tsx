@@ -8,7 +8,7 @@ import {
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
-import type { DecisionItem, ExpectedDeliverableStatus, ProjectActivityLog, ProjectData } from "./types";
+import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
 import StudioProjectsList from "./components/studio/StudioProjectsList";
@@ -1341,6 +1341,176 @@ function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectDa
   )
 }
 
+function collectLibraryItems(projects: ProjectData[]): LibraryItem[] {
+  const files: LibraryItem[] = [];
+  const add = (item: Omit<LibraryItem, "url" | "proyecto" | "origen"> & { url?: string; proyecto: string; origen: string }) => {
+    if (!item.url) return;
+    files.push(item);
+  };
+
+  const documentCategory = (type?: string) => {
+    const normalized = (type || "").toLowerCase();
+    if (normalized.includes("plano")) return "Planos";
+    if (normalized.includes("cert")) return "Certificados";
+    if (normalized.includes("presupuesto") || normalized.includes("contrato")) return "Administración";
+    return "Documentos";
+  };
+
+  projects.forEach((project) => {
+    const projectName = project.info?.nombre || project.id;
+    const projectDate = project.ultimaModificacion || project.info?.ultimaActualizacion || "N/D";
+    const addProjectFile = (item: Omit<LibraryItem, "proyecto" | "origen"> & { url?: string; origen: string }) => {
+      add({ ...item, proyecto: projectName });
+    };
+
+    addProjectFile({
+      id: `cover-${project.id}`,
+      categoria: "Imágenes",
+      titulo: `Portada · ${projectName}`,
+      codigo: project.info?.codigo || project.id,
+      revision: "Actual",
+      fecha: projectDate,
+      tamano: "—",
+      url: project.info?.portadaUrl,
+      origen: "Información del proyecto"
+    });
+
+    project.baseContractual?.documentosBase?.forEach((document, index) => addProjectFile({
+      id: `base-${project.id}-${index}`,
+      categoria: documentCategory(document.tipo),
+      titulo: document.nombre,
+      codigo: document.tipo || "DOCUMENTO",
+      revision: "Base contractual",
+      fecha: document.fecha || projectDate,
+      tamano: "—",
+      url: document.url,
+      origen: "Documentación base"
+    }));
+
+    project.documentos?.forEach((document) => document.revisiones?.forEach((revision) => addProjectFile({
+      id: `document-${project.id}-${document.id}-${revision.numeroRevision}`,
+      categoria: documentCategory(document.categoria),
+      titulo: `${document.titulo} · ${revision.numeroRevision}`,
+      codigo: document.formato || "DOCUMENTO",
+      revision: revision.numeroRevision,
+      fecha: revision.fecha || projectDate,
+      tamano: revision.tamano || "—",
+      url: revision.url,
+      origen: "Entregables del proyecto"
+    })));
+
+    project.avances?.forEach((advance) => advance.archivos?.forEach((file, index) => addProjectFile({
+      id: `advance-${project.id}-${advance.id}-${index}`,
+      categoria: "Avances",
+      titulo: file.nombre,
+      codigo: "AVANCE",
+      revision: "Publicado",
+      fecha: advance.fecha || projectDate,
+      tamano: file.tamano || "—",
+      url: file.url,
+      origen: advance.titulo
+    })));
+
+    project.visualizaciones?.galeria?.forEach((render) => addProjectFile({
+      id: `render-${project.id}-${render.id}`,
+      categoria: "Imágenes",
+      titulo: render.titulo,
+      codigo: "RENDER",
+      revision: "Publicado",
+      fecha: render.fecha || projectDate,
+      tamano: "—",
+      url: render.imagenUrl,
+      origen: "Visualizaciones"
+    }));
+
+    project.visualizaciones?.tours?.forEach((tour) => addProjectFile({
+      id: `tour-${project.id}-${tour.id}`,
+      categoria: "Planos",
+      titulo: tour.titulo,
+      codigo: "PLANO",
+      revision: tour.publicado ? "Publicado" : "Interno",
+      fecha: projectDate,
+      tamano: "—",
+      url: tour.planoUrl,
+      origen: "Tours sobre plano"
+    }));
+
+    project.decisiones?.forEach((decision) => addProjectFile({
+      id: `decision-${project.id}-${decision.id}`,
+      categoria: "Decisiones",
+      titulo: decision.titulo,
+      codigo: "DECISIÓN",
+      revision: decision.estado,
+      fecha: decision.fechaCreacion || projectDate,
+      tamano: "—",
+      url: decision.archivoAdjuntoUrl,
+      origen: "Decisiones y revisiones"
+    }));
+
+    project.materiales?.forEach((material) => {
+      addProjectFile({
+        id: `material-${project.id}-${material.id}`,
+        categoria: "Materiales",
+        titulo: material.nombre,
+        codigo: "MATERIAL",
+        revision: "Actual",
+        fecha: projectDate,
+        tamano: "—",
+        url: material.imagenUrl,
+        origen: "Materiales y propuestas"
+      });
+      material.alternativas?.forEach((alternative) => addProjectFile({
+        id: `material-alt-${project.id}-${material.id}-${alternative.id}`,
+        categoria: "Materiales",
+        titulo: `${material.nombre} · ${alternative.titulo}`,
+        codigo: alternative.numero || "ALTERNATIVA",
+        revision: "Alternativa",
+        fecha: projectDate,
+        tamano: "—",
+        url: alternative.imagenUrl,
+        origen: "Materiales y propuestas"
+      }));
+    });
+
+    project.disciplinasOperativas?.forEach((discipline) => discipline.necesidades?.forEach((need) => need.tareas?.forEach((task) => {
+      task.archivos?.forEach((file, index) => {
+        const category = file.funcion === "resultado"
+          ? "Entregables"
+          : file.funcion === "evidencia"
+            ? "Evidencia"
+            : file.tipo === "imagen" || file.tipo === "video"
+              ? "Imágenes"
+              : "Documentos";
+        addProjectFile({
+          id: `task-file-${project.id}-${task.id}-${index}`,
+          categoria: category,
+          titulo: file.nombre,
+          codigo: task.id,
+          revision: file.version ? `v${file.version}` : "Archivo",
+          fecha: projectDate,
+          tamano: "—",
+          url: file.url,
+          origen: `${discipline.id} · ${task.titulo}`
+        });
+      });
+
+      task.accionCliente?.adjuntos?.forEach((file, index) => addProjectFile({
+        id: `action-file-${project.id}-${task.id}-${index}`,
+        categoria: "Solicitudes",
+        titulo: file.nombre,
+        codigo: task.id,
+        revision: "Solicitud al cliente",
+        fecha: projectDate,
+        tamano: "—",
+        url: file.url,
+        origen: task.accionCliente?.titulo || "Acción del cliente"
+      }));
+    })));
+  });
+
+  return files;
+}
+
 function AdminPortal({
   allProjects,
   currentProject,
@@ -1392,6 +1562,7 @@ function AdminPortal({
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
   const [clientAlert, setClientAlert] = useState<{ title: string; message: string; actionType: ClientAlertActionType } | null>(null)
+  const libraryItems = useMemo(() => collectLibraryItems(allProjects), [allProjects])
   const [studioEmail, setStudioEmail] = useState(() => {
     try { return localStorage.getItem("bojana-studio-email") || "info@bojana.com.ar" } catch { return "info@bojana.com.ar" }
   })
@@ -1760,15 +1931,15 @@ function AdminPortal({
             {activeNav === "Biblioteca" && (
               <div className="w-full space-y-8 animate-fade-in">
                 <div className="border-b border-line pb-8">
-                  <Eyebrow>Recursos y especificaciones</Eyebrow>
+                  <Eyebrow>Documentos del estudio</Eyebrow>
                   <Heading as="h1" className="mt-2 font-display text-4xl leading-tight text-ink md:text-5xl">
-                    Biblioteca de acabados
+                    Biblioteca de documentos
                   </Heading>
                   <p className="mt-2 text-sm text-ink-muted">
-                    Catálogo técnico de especificaciones, planos aprobados y certificados de calidad de Bojana Estudio.
+                    Un solo lugar para consultar todos los archivos, documentos y entregables de Bojana Estudio.
                   </p>
                 </div>
-                <Library items={[]} onToast={onPublishToast} />
+                <Library items={libraryItems} onToast={onPublishToast} />
               </div>
             )}
 
