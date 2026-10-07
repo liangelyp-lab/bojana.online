@@ -1,6 +1,5 @@
 import type { ProjectData } from "../types";
 import { getAccessToken } from "./authService";
-
 const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "");
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -23,10 +22,10 @@ async function supabaseRequest<T>(path: string, init: RequestInit = {}): Promise
 }
 
 export async function listRemoteProjects(): Promise<ProjectData[]> {
-  const rows = await supabaseRequest<{ data: ProjectData }[]>(
-    "projects?select=data&order=updated_at.desc",
-  );
-  return rows.map((row) => row.data);
+  const response = await fetch("/api/projects", { credentials: "include" });
+  const data = await response.json() as { projects?: ProjectData[]; error?: string };
+  if (!response.ok) throw new Error(data.error || "No pudimos cargar los proyectos.");
+  return data.projects || [];
 }
 
 async function getDefaultStudioId(): Promise<string> {
@@ -36,17 +35,11 @@ async function getDefaultStudioId(): Promise<string> {
 }
 
 export async function saveRemoteProject(project: ProjectData): Promise<void> {
-  const studioId = await getDefaultStudioId();
-  await supabaseRequest("projects?on_conflict=id", {
+  const response = await fetch("/api/projects", {
     method: "POST",
-    headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
-    body: JSON.stringify({
-      id: project.id,
-      studio_id: studioId,
-      name: project.info?.nombre || project.brief?.nombre || project.id,
-      lifecycle_status: project.lifecycleStatus || "BORRADOR",
-      data: project,
-      updated_at: new Date().toISOString(),
-    }),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ project }),
   });
+  if (!response.ok) throw new Error("No pudimos guardar el proyecto remoto.");
 }

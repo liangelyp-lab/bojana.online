@@ -26,7 +26,7 @@ import Library from "./components/Library";
 import { Badge, Button, EmptyState, InputControl, Tabs } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
-import { getAuthUser, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
+import { getAccessToken, getAuthUser, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
 
 
 // ─── Icon ────────────────────────────────────────────────────────────────────
@@ -256,11 +256,11 @@ function Field({
   return (
     <label className="block" htmlFor={id}>
       <span className="mb-2 block text-sm font-semibold text-ink">{label}</span>
-      <span className="flex min-h-12 items-center gap-3 rounded-xl border border-line bg-white px-4 transition-colors focus-within:border-forest focus-within:ring-2 focus-within:ring-mint-pale">
+      <span className="bojana-control flex min-h-12 items-center gap-3 px-4 focus-within:border-forest focus-within:ring-2 focus-within:ring-mint-pale">
         <Icon className="size-4.5 shrink-0 text-ink-faint" name={icon} />
         <InputControl
           autoComplete={autoComplete}
-          className="min-w-0 flex-1 bg-transparent text-sm text-ink outline-none placeholder:text-ink-faint"
+          className="!min-w-0 !flex-1 !border-0 !rounded-none !bg-transparent !p-0 text-sm text-ink outline-none placeholder:text-ink-faint focus:!border-0 focus:!ring-0"
           id={id}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
@@ -570,7 +570,7 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
                 />
                 Mantener la sesion iniciada
               </label>
-              <Button className="!px-0" variant="ghost">
+              <Button className="!px-3" variant="ghost">
                 Olvidaste tu contrasena?
               </Button>
             </div>
@@ -2875,7 +2875,12 @@ type Screen = "signin" | "admin" | "client"
 export default function App() {
   const recoveryParams = useMemo(() => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
-    return { accessToken: hash.get("access_token"), refreshToken: hash.get("refresh_token") || undefined, type: hash.get("type") }
+    const search = new URLSearchParams(window.location.search)
+    return {
+      accessToken: hash.get("access_token") || search.get("access_token"),
+      refreshToken: hash.get("refresh_token") || search.get("refresh_token") || undefined,
+      type: hash.get("type") || search.get("type"),
+    }
   }, [])
   const directToken = useMemo(() => new URLSearchParams(window.location.search).get("portal"), [])
   const authError = useMemo(() => {
@@ -2887,6 +2892,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : directToken ? "client" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [forcedPasswordToken, setForcedPasswordToken] = useState<string | null>(null)
 
   const currentProject = useMemo(() => {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
@@ -2947,12 +2953,14 @@ export default function App() {
 
   useEffect(() => {
     void restoreSession().then(user => {
-      if (directToken) return
+      // A recovery link owns the screen until the new password is saved.
+      // Do not let the regular session bootstrap replace it with sign in/admin.
+      if (directToken || (recoveryParams.accessToken && recoveryParams.type === "recovery")) return
       if (!user) return
-      setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: "admin" })
+      setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: user.role || "team" })
       setScreen("admin")
     }).catch(() => undefined)
-  }, [directToken])
+  }, [directToken, recoveryParams.accessToken, recoveryParams.type])
 
   useEffect(() => {
     void hydrateProjectsFromSupabase().then((projects) => {
@@ -3004,8 +3012,8 @@ export default function App() {
 
   return (
     <>
-      {screen === "reset" && recoveryParams.accessToken && (
-        <PasswordReset accessToken={recoveryParams.accessToken} refreshToken={recoveryParams.refreshToken} onComplete={() => { window.history.replaceState({}, "", window.location.pathname); setScreen("signin") }} />
+      {screen === "reset" && (recoveryParams.accessToken || forcedPasswordToken) && (
+        <PasswordReset accessToken={recoveryParams.accessToken || forcedPasswordToken!} refreshToken={recoveryParams.refreshToken} onComplete={() => { setForcedPasswordToken(null); window.history.replaceState({}, "", window.location.pathname); setScreen("signin") }} />
       )}
       {screen === "signin" && (
         <SignIn
@@ -3013,8 +3021,9 @@ export default function App() {
           onSignIn={async (email, password) => {
             try {
               const user = await signInWithPassword(email, password)
-              setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: "admin" })
-              setScreen("admin")
+              setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: user.role || "team" })
+              if (user.mustChangePassword) { setForcedPasswordToken(getAccessToken()); setScreen("reset") }
+              else setScreen("admin")
               return true
             } catch (error) {
               console.error("Supabase sign-in failed", error)

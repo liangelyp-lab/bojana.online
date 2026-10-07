@@ -8,6 +8,7 @@ import {
   getLifecycleLabel
 } from '../../services/storageService';
 import { getClientProjectSequence } from '../../services/projectStructure';
+import { createSecureProjectLink } from '../../services/projectAccess';
 import {
   X,
   Mail,
@@ -68,9 +69,11 @@ export default function PublishInviteModal({
   const lifecycle = getLifecycleLabel(project.lifecycleStatus || 'LISTO_PARA_COMPARTIR');
   const isAlreadyActive = project.lifecycleStatus === 'ACTIVO';
 
-  const dedicatedUrl = typeof window !== 'undefined'
-    ? `${window.location.origin}${window.location.pathname}?portal=${project.cliente?.dedicatedToken || 'portal-direct'}`
-    : `https://bojana.com.ar/portal?token=${project.cliente?.dedicatedToken || 'token'}`;
+  const [dedicatedUrl, setDedicatedUrl] = useState('');
+  useEffect(() => {
+    if (!isOpen || !isAlreadyActive) return;
+    void createSecureProjectLink(project.id).then(setDedicatedUrl).catch(() => setDedicatedUrl(''));
+  }, [isOpen, isAlreadyActive, project.id]);
 
   const contractualBase = project.baseContractual;
   const plazoInicio = contractualBase?.plazoInicio || project.info?.fechaInicio || '15 OCT 2026';
@@ -78,11 +81,15 @@ export default function PublishInviteModal({
   const alcance = contractualBase?.alcance || project.info?.descripcion || 'Remodelación integral y desarrollo de proyecto arquitectónico con supervisión de obra.';
   const docsBase = contractualBase?.documentosBase || [];
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(dedicatedUrl);
-    setCopiedLink(true);
-    onToast('Enlace de acceso directo copiado al portapapeles.');
-    setTimeout(() => setCopiedLink(false), 2500);
+  const handleCopyLink = async () => {
+    try {
+      const url = dedicatedUrl || await createSecureProjectLink(project.id);
+      setDedicatedUrl(url);
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      onToast('Enlace de acceso directo copiado. Vence en 7 días.');
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch (error) { onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.'); }
   };
 
   const handlePublish = async () => {
@@ -273,7 +280,7 @@ export default function PublishInviteModal({
                 {/* Primary Button */}
                 <div className="pt-2 text-center">
                   <a
-                    href={dedicatedUrl}
+                    href={dedicatedUrl || '#'}
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center justify-center gap-bojana-inside px-8 py-3.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium transition shadow-bojana-widget"

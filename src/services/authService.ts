@@ -2,12 +2,14 @@ export interface AuthUser {
   id: string;
   email?: string;
   name?: string;
+  role?: string;
+  mustChangePassword?: boolean;
 }
 
 interface AuthSessionResponse {
   access_token: string;
   refresh_token: string;
-  user: { id: string; email?: string; user_metadata?: { name?: string } };
+  user: { id: string; email?: string; user_metadata?: { name?: string; must_change_password?: boolean }; app_metadata?: { role?: string } };
 }
 
 const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "");
@@ -72,5 +74,5 @@ export async function updatePassword(password: string, accessToken: string, refr
 }
 
 function toAuthUser(user: AuthSessionResponse["user"]): AuthUser {
-  return { id: user.id, email: user.email, name: user.user_metadata?.name };
+  return { id: user.id, email: user.email, name: user.user_metadata?.name, role: user.app_metadata?.role, mustChangePassword: Boolean(user.user_metadata?.must_change_password) };
 }

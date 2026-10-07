@@ -19,7 +19,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         authorization: `Bearer ${accessToken}`,
         "content-type": "application/json",
       },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ password, data: { must_change_password: false } }),
     });
     const data = await update.json();
     if (!update.ok) return res.status(update.status).json({ error: data.msg || data.message || "El enlace ya venció. Pedí uno nuevo." });

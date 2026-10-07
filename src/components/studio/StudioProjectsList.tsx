@@ -6,6 +6,7 @@ import {
   getLifecycleLabel
 } from '../../services/storageService';
 import { lifecycleBadgeClasses } from '../../design/status';
+import { createSecureProjectLink } from '../../services/projectAccess';
 import { EmptyState, Field } from '../ui/DesignSystem';
 import {
   Search,
@@ -56,13 +57,15 @@ export default function StudioProjectsList({
     return matchesSearch;
   });
 
-  const handleCopyLink = (e: React.MouseEvent, p: ProjectData) => {
+  const handleCopyLink = async (e: React.MouseEvent, p: ProjectData) => {
     e.stopPropagation();
-    const url = `${window.location.origin}${window.location.pathname}?portal=${p.cliente?.dedicatedToken || 'portal-direct'}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(p.id);
-    onToast(`Enlace directo de ${p.info?.nombre || 'proyecto'} copiado.`);
-    setTimeout(() => setCopiedId(null), 2500);
+    try {
+      const url = await createSecureProjectLink(p.id);
+      await navigator.clipboard.writeText(url);
+      setCopiedId(p.id);
+      onToast(`Enlace directo de ${p.info?.nombre || 'proyecto'} copiado. Vence en 7 días.`);
+      setTimeout(() => setCopiedId(null), 2500);
+    } catch (error) { onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.'); }
   };
 
   return (

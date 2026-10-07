@@ -66,6 +66,7 @@ create table if not exists public.activity_log (
 create index if not exists projects_studio_updated_idx on public.projects(studio_id, updated_at desc);
 create index if not exists activity_project_created_idx on public.activity_log(project_id, created_at desc);
 create index if not exists project_members_user_idx on public.project_members(user_id, project_id);
+create index if not exists activity_actor_created_idx on public.activity_log(actor_id, created_at desc);
 
 -- Authenticated studio-membership policies.
 alter table public.studios enable row level security;

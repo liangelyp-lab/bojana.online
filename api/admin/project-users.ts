@@ -30,13 +30,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!projectResponse.ok || !project) return res.status(404).json({ error: "No encontramos el proyecto." });
     if (project.studio_id !== requesterRows[0].studio_id) return res.status(403).json({ error: "El proyecto no pertenece a tu estudio." });
     const password = randomPassword();
-    const authResponse = await fetch(`${baseUrl}/auth/v1/admin/users`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { name } }) });
+    const authResponse = await fetch(`${baseUrl}/auth/v1/admin/users`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { name, must_change_password: true } }) });
     const authData = await authResponse.json();
     if (!authResponse.ok) return res.status(authResponse.status).json({ error: authData.msg || authData.message || "No pudimos crear el usuario. Verificá si el email ya existe." });
-    const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, { method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" }, body: JSON.stringify({ id: authData.id, studio_id: project.studio_id, name, email, role }) });
+    const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, { method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" }, body: JSON.stringify({ id: authData.id, studio_id: project.studio_id, name, email, role: "client" }) });
     if (!userResponse.ok) return res.status(502).json({ error: "El usuario se creó en Auth, pero no pudimos vincularlo al estudio." });
     const memberResponse = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...adminHeaders, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify({ project_id: project.id, user_id: authData.id, role }) });
     if (!memberResponse.ok) return res.status(502).json({ error: "El usuario se creó, pero no pudimos vincularlo al proyecto." });
+    await fetch(`${baseUrl}/rest/v1/activity_log`, { method: "POST", headers: { ...adminHeaders, Prefer: "return=minimal" }, body: JSON.stringify({ studio_id: project.studio_id, project_id: project.id, actor_id: requester.id, event_type: "project_member.created", summary: `Acceso ${role} creado para ${email}`, data: { user_id: authData.id, role } }) });
     return res.status(200).json({ user: { id: authData.id, name, email, role }, project: { id: project.id, name: project.name }, password });
   } catch (error) {
     console.error("Project user creation failed", error);
