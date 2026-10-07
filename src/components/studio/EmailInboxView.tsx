@@ -36,7 +36,7 @@ export default function EmailInboxView() {
   const openMessage = async (message: MailItem) => {
     setSelected(message); setDetail(null); setError("")
     try {
-      const response = await fetch(`/api/mail/message?uid=${message.uid}`)
+      const response = await fetch(`/api/mail/inbox?uid=${message.uid}`)
       const data = await readApiResponse(response)
       if (!response.ok) throw new Error(data.message || "No se pudo abrir el correo")
       setDetail(data)

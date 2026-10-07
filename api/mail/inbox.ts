@@ -1,4 +1,5 @@
 import { ImapFlow } from "imapflow"
+import { simpleParser } from "mailparser"
 import { requireStudioRole } from "../_lib/auth.js"
 
 function config() {
@@ -16,12 +17,30 @@ function config() {
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" })
   if (!await requireStudioRole(req, res, ['owner', 'admin', 'team'])) return
+  const uid = Number(req.query?.uid)
   let client: ImapFlow | null = null
   try {
     client = new ImapFlow({ ...config(), secure: true as const, logger: false as const })
     await client.connect()
     const lock = await client.getMailboxLock("INBOX")
     try {
+      if (Number.isInteger(uid) && uid > 0) {
+        const message = await client.fetchOne(uid, { source: true, envelope: true }, { uid: true })
+        if (!message) return res.status(404).json({ message: "Correo no encontrado" })
+        const source = message.source
+        if (!source || typeof source === "boolean") return res.status(404).json({ message: "Correo no encontrado" })
+        const parsed = await simpleParser(source)
+        return res.status(200).json({
+          uid,
+          subject: parsed.subject || "(sin asunto)",
+          from: parsed.from?.text || "",
+          date: parsed.date || null,
+          text: parsed.text || "",
+          html: typeof parsed.html === "string" ? parsed.html : "",
+          attachments: parsed.attachments.map((file: { filename?: string | null; contentType?: string; size?: number }) => ({ filename: file.filename, contentType: file.contentType, size: file.size })),
+        })
+      }
+
       const messages = []
       for await (const message of client.fetch("*", { envelope: true, flags: true, source: false }, { uid: true })) {
         messages.push({
