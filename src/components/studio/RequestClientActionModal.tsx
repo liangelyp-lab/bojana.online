@@ -33,6 +33,8 @@ interface RequestClientActionModalProps {
   prefill?: {
     titulo: string;
     descripcion: string;
+    accion?: 'borrador' | 'publicar_avance' | 'revision' | 'solicitud_informacion' | 'publicar_terminar';
+    recursos?: string;
     fechaLimiteRespuesta: string;
     opciones?: ClientActionAlternative[];
   };
@@ -108,11 +110,12 @@ export default function RequestClientActionModal({
   }, [isOpen, onClose]);
 
   const [activeTab, setActiveTab] = useState<'config' | 'email_preview'>('config');
-  const initialTipo = existing?.tipo || (prefill?.opciones?.length ? 'elegir_alternativa' : 'aprobar_rechazar');
+  const initialTipo = prefill?.opciones?.length ? 'elegir_alternativa' : existing?.tipo || 'aprobar_rechazar';
   const initialEmailConfig = clientActionEmailConfig[initialTipo];
+  const prefillMessage = [prefill?.descripcion, prefill?.recursos].filter(Boolean).join('\n\nRecursos de la actualización:\n');
   const [tipo, setTipo] = useState<ClientActionType>(initialTipo);
-  const [titulo, setTitulo] = useState(existing?.titulo || prefill?.titulo || initialEmailConfig.title(task.titulo));
-  const [mensaje, setMensaje] = useState(existing?.mensaje || prefill?.descripcion || initialEmailConfig.message);
+  const [titulo, setTitulo] = useState(prefill?.titulo || existing?.titulo || initialEmailConfig.title(task.titulo));
+  const [mensaje, setMensaje] = useState(prefillMessage || existing?.mensaje || initialEmailConfig.message);
   const [accionTexto, setAccionTexto] = useState(existing?.accionRequeridaTexto || initialEmailConfig.actionText);
   const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || prefill?.fechaLimiteRespuesta || '');
   const [bloquear, setBloquear] = useState(existing?.bloquearSiguientesEtapas ?? true);
@@ -130,7 +133,7 @@ export default function RequestClientActionModal({
 
   // Alternatives state (if tipo === 'elegir_alternativa')
   const [alternativas, setAlternativas] = useState<ClientActionAlternative[]>(
-    existing?.alternativas || prefill?.opciones || []
+    prefill?.opciones || existing?.alternativas || []
   );
 
   // Attachments state

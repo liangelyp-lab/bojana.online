@@ -203,6 +203,7 @@ export default function OperationalExecutionPanel({
     prefill?: {
       titulo: string;
       descripcion: string;
+      accion?: TaskUpdateAction;
       recursos: string;
       responsableRespuesta: string;
       fechaLimiteRespuesta: string;
