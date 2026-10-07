@@ -744,9 +744,6 @@ function AdminSidebar({
 
       <div className="mt-auto rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-3">
-          <div className="grid size-9 place-items-center rounded-full bg-sand text-xs font-bold text-ink">
-            EM
-          </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{activeUser?.nombre || "Usuario del estudio"}</p>
             <p className="truncate text-xs text-white/45">{activeUser?.rol || "Sin usuario configurado"}</p>
