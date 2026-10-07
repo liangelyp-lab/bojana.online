@@ -2673,6 +2673,13 @@ function ClientPortal({
     return () => window.clearTimeout(timeout)
   }, [highlightedTaskId])
 
+  useEffect(() => {
+    if (active !== "Resumen") {
+      setHighlightedTaskId(null)
+      setExpandedClientTaskId(null)
+    }
+  }, [active])
+
   const projectTasks = useMemo(
     () => (currentProject.disciplinasOperativas || []).flatMap(discipline =>
       discipline.necesidades.flatMap(need => need.visibleCliente === false ? [] : need.tareas.filter(task => task.visibleCliente))
@@ -2904,7 +2911,13 @@ function ClientPortal({
             setHighlightedTaskId(taskId || null)
             if (taskId) setExpandedClientTaskId(taskId)
           }}
-          setActive={setActive}
+          setActive={next => {
+            setActive(next)
+            if (next !== "Resumen") {
+              setHighlightedTaskId(null)
+              setExpandedClientTaskId(null)
+            }
+          }}
         />
         <div className="min-w-0 flex-1 lg:pl-24">
           <main className="mx-auto max-w-content px-5 py-7 md:px-10 md:py-10 lg:px-12 lg:py-12">
