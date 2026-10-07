@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase, publishAndActivateProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -1668,9 +1668,12 @@ function AdminPortal({
           isOpen={isPublishModalOpen}
           onClose={() => setIsPublishModalOpen(false)}
           onPublish={() => {
+            const published = publishAndActivateProject(currentProject)
+            handleUpdateProject(published)
             setIsPublishModalOpen(false)
             onPublishToast("Portal del comitente sincronizado y publicado.")
           }}
+          onUpdateProject={handleUpdateProject}
           onToast={onPublishToast}
           project={currentProject}
         />

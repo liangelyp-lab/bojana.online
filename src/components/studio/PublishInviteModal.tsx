@@ -5,7 +5,8 @@ import {
 } from '../../types';
 import {
   getEffectiveProgress,
-  getLifecycleLabel
+  getLifecycleLabel,
+  createInvitationLog
 } from '../../services/storageService';
 import { getClientProjectSequence } from '../../services/projectStructure';
 import { createSecureProjectLink } from '../../services/projectAccess';
@@ -34,6 +35,7 @@ interface PublishInviteModalProps {
   project: ProjectData;
   onClose: () => void;
   onPublish: () => void | Promise<void>;
+  onUpdateProject?: (project: ProjectData) => void;
   onToast: (msg: string) => void;
 }
 
@@ -42,6 +44,7 @@ export default function PublishInviteModal({
   project,
   onClose,
   onPublish,
+  onUpdateProject,
   onToast
 }: PublishInviteModalProps) {
   const [publishError, setPublishError] = useState('');
@@ -61,6 +64,7 @@ export default function PublishInviteModal({
   const [copiedLink, setCopiedLink] = useState(false);
   const projectStages = getClientProjectSequence(project);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const title = project.info?.nombre || 'Proyecto';
   const subtitle = project.info?.subtitulo || project.disciplinas?.join(' · ') || '';
@@ -99,8 +103,28 @@ export default function PublishInviteModal({
     finally { setIsPublishing(false); }
   };
 
-  const handleSendEmail = () => {
-    onToast(`Email listo para enviar manualmente a ${recipientEmail || project.cliente?.email || 'cliente@email.com'}. La comunicación queda separada de la publicación.`);
+  const handleSendEmail = async () => {
+    const email = recipientEmail.trim();
+    if (!email || !isAlreadyActive) return;
+    setIsSending(true); setPublishError('');
+    try {
+      const url = dedicatedUrl || await createSecureProjectLink(project.id);
+      setDedicatedUrl(url);
+      const response = await fetch('/api/mail/send', {
+        method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: email,
+          subject: `Tu portal de proyecto · ${title}`,
+          text: `Hola ${recipientName || 'Comitente'},\n\nYa podés acceder al portal de tu proyecto "${title}" en Bojana Estudio.\n\nAccedé desde este enlace seguro (vence en 7 días):\n${url}\n\nSi tenés alguna consulta, respondé a este correo.\n\nBojana Estudio\ninfo@bojana.com.ar`,
+        }),
+      });
+      const data = await response.json() as { message?: string };
+      if (!response.ok) throw new Error(data.message || 'No pudimos enviar el email.');
+      const invitation = createInvitationLog(project, recipientName, email, 'lark_smtp');
+      onUpdateProject?.({ ...project, historialInvitaciones: [invitation, ...(project.historialInvitaciones || [])] });
+      onToast(`Email de bienvenida enviado a ${email}.`);
+    } catch (error) { setPublishError(error instanceof Error ? error.message : 'No pudimos enviar el email.'); }
+    finally { setIsSending(false); }
   };
 
   const invitationHistory: ProjectInvitationLog[] = project.historialInvitaciones || [];
@@ -307,12 +331,12 @@ export default function PublishInviteModal({
               <div className="flex justify-end">
                 <button
                   type="button"
-                  onClick={handleSendEmail}
-                  disabled={!isAlreadyActive || !recipientEmail.trim()}
+                  onClick={() => void handleSendEmail()}
+                  disabled={!isAlreadyActive || !recipientEmail.trim() || isSending}
                   className="bojana-button bojana-button-secondary px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft disabled:opacity-50 disabled:cursor-not-allowed text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  <span>Enviar email manualmente</span>
+                  <span>{isSending ? 'Enviando email...' : 'Enviar email de bienvenida'}</span>
                 </button>
               </div>
             </div>
