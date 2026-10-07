@@ -5,19 +5,13 @@ import {
 } from '../../types';
 import {
   Camera,
-  Calendar,
   Plus,
   Trash2,
   FileText,
   Download,
   X,
   ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-  Sparkles,
-  Share2,
-  CheckCircle2,
-  Image as ImageIcon
+  ChevronRight
 } from 'lucide-react';
 import { Badge, Button, InputControl, TextAreaControl } from '../ui/DesignSystem';
 
@@ -142,33 +136,20 @@ export default function AvancesModule({
   return (
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
-      {/* 1. TOP HEADER & ACTION */}
-      <div className="rounded-3xl border border-line bg-white p-7 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-            Project Story &bull; Bitácora Visual
-          </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-ink">
-            Registro Fotográfico y Avances de Obra
-          </h2>
-          <p className="text-xs text-ink-muted mt-1">
-            Actualizaciones periódicas con galería fotográfica, descripciones técnicas y reportes.
-          </p>
-        </div>
-
-        {isAdmin && (
+      {isAdmin && posts.length > 0 && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 cursor-pointer shrink-0"
+            className="inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 cursor-pointer"
           >
             <Plus className="size-4 text-white" />
             <span>Publicar nuevo avance</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* 2. CHRONOLOGICAL FEED OF POSTS */}
+      {/* CHRONOLOGICAL FEED OF POSTS */}
       {posts.length === 0 ? (
         <div className="rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
           <Camera className="size-10 text-ink-faint opacity-40 mx-auto" />
