@@ -37,16 +37,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const user = await userResponse.json() as { code: number; data?: { open_id?: string; union_id?: string; name?: string; email?: string } };
     if (!userResponse.ok || user.code !== 0 || !user.data) throw new Error(`user_info:${user.code}:${(user as any).msg || 'unknown'}`);
 
-    const session = Buffer.from(JSON.stringify({
-      openId: user.data.open_id,
-      unionId: user.data.union_id,
-      name: user.data.name,
-      email: user.data.email,
-      exp: Date.now() + 8 * 60 * 60 * 1000,
-    })).toString('base64url');
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const email = String(user.data.email || '').trim().toLowerCase();
+    if (!supabaseUrl || !serviceKey || !email) throw new Error('supabase_lark_config_or_email_missing');
+
+    const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, 'content-type': 'application/json' };
+    const memberResponse = await fetch(`${supabaseUrl}/rest/v1/studio_users?email=eq.${encodeURIComponent(email)}&select=id,name,role&limit=1`, { headers: adminHeaders });
+    const members = await memberResponse.json() as Array<{ id: string; name?: string; role?: string }>;
+    const member = members[0];
+    if (!memberResponse.ok || !member) throw new Error('lark_user_not_authorized');
+
+    const sessionPayload = Buffer.from(JSON.stringify({ id: member.id, email, name: user.data.name || member.name || email, role: member.role || 'team', exp: Date.now() + 8 * 60 * 60 * 1000 })).toString('base64url');
+    const sessionSignature = crypto.createHmac('sha256', process.env.LARK_APP_SECRET!).update(sessionPayload).digest('base64url');
+    const session = `${sessionPayload}.${sessionSignature}`;
     res.setHeader('Set-Cookie', [
       'bojana_lark_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-      `bojana_session=${session}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`,
+      `bojana_lark_session=${encodeURIComponent(session)}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=28800`,
     ]);
     return res.redirect(302, '/');
   } catch (err) {

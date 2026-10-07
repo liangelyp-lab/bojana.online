@@ -1,11 +1,16 @@
 type VercelRequest = any;
 type VercelResponse = any;
+import crypto from 'node:crypto';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
   const cookies = parseCookies(req.headers.cookie || '');
+  if (cookies.bojana_lark_session) {
+    const larkUser = verifyLarkSession(cookies.bojana_lark_session);
+    if (larkUser) return res.status(200).json({ user: larkUser, access_token: '', auth_source: 'lark' });
+  }
   if (!baseUrl || !anonKey || !cookies.bojana_access) return res.status(401).json({ error: 'No active session' });
   const response = await fetch(`${baseUrl}/auth/v1/user`, { headers: { apikey: anonKey, authorization: `Bearer ${decodeURIComponent(cookies.bojana_access)}` } });
   if (!response.ok) return res.status(401).json({ error: 'Session expired' });
@@ -13,3 +18,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 function parseCookies(value: string) { return Object.fromEntries(value.split(';').map(part => part.trim().split('=' as const)).filter(([key, val]) => key && val)); }
+
+function verifyLarkSession(value: string) {
+  try {
+    const [payload, signature] = decodeURIComponent(value).split('.');
+    const secret = process.env.LARK_APP_SECRET;
+    if (!payload || !signature || !secret) return null;
+    const expected = crypto.createHmac('sha256', secret).update(payload).digest('base64url');
+    const left = Buffer.from(signature); const right = Buffer.from(expected);
+    if (left.length !== right.length || !crypto.timingSafeEqual(left, right)) return null;
+    const user = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { id: string; email?: string; name?: string; role?: string; exp: number };
+    return user.exp > Date.now() ? { id: user.id, email: user.email, user_metadata: { name: user.name }, app_metadata: { role: user.role } } : null;
+  } catch { return null; }
+}
