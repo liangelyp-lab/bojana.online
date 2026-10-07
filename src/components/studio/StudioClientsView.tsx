@@ -14,13 +14,11 @@ import { EmptyState } from '../ui/DesignSystem';
 interface StudioClientsViewProps {
   projects: ProjectData[];
   onSelectProject: (projectId: string) => void;
-  onToast: (msg: string) => void;
 }
 
 export default function StudioClientsView({
   projects,
-  onSelectProject,
-  onToast
+  onSelectProject
 }: StudioClientsViewProps) {
   const [clients] = useState<ClientEntity[]>(() => getAllClients());
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -43,7 +41,7 @@ export default function StudioClientsView({
         <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
           Directorio de comitentes
         </p>
-        <h1 className="mt-2 font-display text-3xl sm:text-4xl leading-tight font-normal text-ink">
+        <h1 className="mt-2 font-display text-4xl leading-tight font-normal text-ink md:text-5xl">
           Clientes
         </h1>
         <p className="mt-2 text-sm text-ink-muted leading-relaxed">
