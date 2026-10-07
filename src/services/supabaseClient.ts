@@ -1,4 +1,5 @@
 import type { ProjectData } from "../types";
+import { getAccessToken } from "./authService";
 
 const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "");
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -11,7 +12,7 @@ async function supabaseRequest<T>(path: string, init: RequestInit = {}): Promise
     ...init,
     headers: {
       apikey: anonKey!,
-      Authorization: `Bearer ${anonKey}`,
+      Authorization: `Bearer ${getAccessToken() || anonKey}`,
       "Content-Type": "application/json",
       ...(init.headers || {}),
     },
@@ -28,12 +29,20 @@ export async function listRemoteProjects(): Promise<ProjectData[]> {
   return rows.map((row) => row.data);
 }
 
+async function getDefaultStudioId(): Promise<string> {
+  const rows = await supabaseRequest<{ id: string }[]>("studios?select=id&name=eq.Bojana%20Estudio&limit=1");
+  if (!rows[0]?.id) throw new Error("No encontramos el estudio Bojana Estudio en Supabase.");
+  return rows[0].id;
+}
+
 export async function saveRemoteProject(project: ProjectData): Promise<void> {
+  const studioId = await getDefaultStudioId();
   await supabaseRequest("projects?on_conflict=id", {
     method: "POST",
     headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
     body: JSON.stringify({
       id: project.id,
+      studio_id: studioId,
       name: project.info?.nombre || project.brief?.nombre || project.id,
       lifecycle_status: project.lifecycleStatus || "BORRADOR",
       data: project,

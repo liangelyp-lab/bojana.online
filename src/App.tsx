@@ -26,6 +26,7 @@ import Library from "./components/Library";
 import { Badge, Button, EmptyState, InputControl, Tabs } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
+import { getAuthUser, signInWithPassword, signOut as signOutAuth, type AuthUser } from "./services/authService";
 
 
 // ─── Icon ────────────────────────────────────────────────────────────────────
@@ -438,11 +439,12 @@ const documents = [
 
 // ─── Sign In Screen ───────────────────────────────────────────────────────────
 
-function SignIn({ onSignIn }: { onSignIn: (screen?: "admin" | "client") => void }) {
+function SignIn({ onSignIn }: { onSignIn: (email: string, password: string) => Promise<boolean> }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -454,12 +456,15 @@ function SignIn({ onSignIn }: { onSignIn: (screen?: "admin" | "client") => void 
       document.body.style.overflow = previousOverflow
       document.documentElement.style.overflow = previousDocumentOverflow
     }
-  }, [])
+  }, [activeUser?.id])
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
-    if (email && password) onSignIn("admin")
+    if (email && password) {
+      setError(null)
+      void onSignIn(email, password).then(ok => { if (!ok) setError("No pudimos iniciar sesión con esos datos.") })
+    }
   }
 
   return (
@@ -528,6 +533,8 @@ function SignIn({ onSignIn }: { onSignIn: (screen?: "admin" | "client") => void 
                 Introduce tu correo y contrasena para continuar.
               </p>
             )}
+
+            {error && <p className="rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark">{error}</p>}
 
             <Button className="!min-h-12 w-full" type="submit">
               Iniciar sesion <Icon className="size-4" name="arrow" />
@@ -2818,7 +2825,7 @@ function ClientPortal({
 type Screen = "signin" | "admin" | "client"
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("signin")
+  const [screen, setScreen] = useState<Screen>(() => getAuthUser() ? "admin" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
@@ -2828,6 +2835,8 @@ export default function App() {
 
   const [activeProject, setActiveProject] = useState({ name: "Sin proyecto seleccionado", code: "—", desc: "Creá un proyecto para comenzar." })
   const [activeUser, setActiveUserState] = useState<{ id?: string; nombre: string; email?: string; rol: string } | null>(() => {
+    const authUser = getAuthUser()
+    if (authUser) return { id: authUser.id, nombre: authUser.name || authUser.email || "Usuario", email: authUser.email, rol: "admin" }
     try { return JSON.parse(localStorage.getItem("bojana-active-user") || "null") } catch { return null }
   })
   const setActiveUser = (user: { id?: string; nombre: string; email?: string; rol: string } | null) => {
@@ -2916,8 +2925,16 @@ export default function App() {
     <>
       {screen === "signin" && (
         <SignIn
-          onSignIn={(targetScreen?: "admin" | "client") => {
-            setScreen(targetScreen === "client" ? "client" : "admin")
+          onSignIn={async (email, password) => {
+            try {
+              const user = await signInWithPassword(email, password)
+              setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: "admin" })
+              setScreen("admin")
+              return true
+            } catch (error) {
+              console.error("Supabase sign-in failed", error)
+              return false
+            }
           }}
         />
       )}
@@ -2938,7 +2955,7 @@ export default function App() {
           }}
           onPublishToast={showToast}
           onReviewDecision={() => setScreen("client")}
-          onSignOut={() => setScreen("signin")}
+          onSignOut={() => { signOutAuth(); setActiveUser(null); setScreen("signin") }}
           onToggleTask={handleToggleTask}
           onUpdateProject={handleUpdateProject}
           onViewClientPortal={() => setScreen("client")}
