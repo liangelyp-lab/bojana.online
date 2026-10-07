@@ -162,7 +162,7 @@ export default function DocumentosModule({
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
       {/* CATEGORIES FILTER & SEARCH BAR */}
-      {documents.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
+      {docs.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         {/* Category Tabs */}
         <div role="tablist" aria-label="Categorías de documentos" className="bojana-filter-tablist w-full sm:w-auto">
           {categories.map((cat) => (
