@@ -1374,6 +1374,7 @@ function AdminPortal({
     title: string
     description: string
     status: "pendiente" | "aprobado" | "cambios"
+    requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision"
     optionChosen?: string
   }
   onReviewDecision: () => void
@@ -2097,7 +2098,8 @@ function ActionCard({
   onApprove: (option: string, comment: string) => void
   onRequestChanges: (comment: string) => void
 }) {
-  const availableOptions = decision.options && decision.options.length > 0
+  const isChoiceRequest = decision.requestType === "elegir_alternativa" || (!decision.requestType && Boolean(decision.options?.length))
+  const availableOptions = isChoiceRequest && decision.options && decision.options.length > 0
     ? decision.options
     : [
         { id: "option-a", title: "Opción A", description: "Aprobar la opción A." },
@@ -2177,7 +2179,7 @@ function ActionCard({
               {decision.title}
             </Heading>
             <p className="mt-2 text-sm text-ink-muted">
-              Revisá el contenido y elegí una respuesta. También podés dejar un comentario para el equipo.
+              {decision.requestType === "enviar_informacion" ? "Revisá el pedido y enviá la información solicitada." : decision.requestType === "subir_documento" ? "Revisá el pedido y adjuntá el documento solicitado." : decision.requestType === "confirmar_decision" ? "Revisá el acuerdo y confirmá tu decisión." : "Revisá el contenido y elegí una respuesta. También podés dejar un comentario para el equipo."}
             </p>
 
             {decision.content && <p className="mt-5 rounded-2xl bg-stone/60 p-4 text-sm leading-6 text-ink">{decision.content}</p>}
@@ -2195,7 +2197,7 @@ function ActionCard({
               </div>)}
             </div>}
 
-            <div className="mt-6 space-y-3">
+            {isChoiceRequest && <div className="mt-6 space-y-3">
               {availableOptions.map((opt) => (
                 <label
                   key={opt.id}
@@ -2220,10 +2222,10 @@ function ActionCard({
                   </div>
                 </label>
               ))}
-            </div>
+            </div>}
 
             <label className="mt-5 block">
-              <span className="mb-1.5 block text-xs font-semibold text-ink-muted">Comentario (opcional)</span>
+              <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{decision.requestType === "enviar_informacion" ? "Información para el equipo" : decision.requestType === "subir_documento" ? "Comentario sobre el documento" : "Comentario (opcional)"}</span>
               <textarea className="bojana-control min-h-24 resize-y" value={comment} onChange={event => setComment(event.target.value)} placeholder="Agregá una observación o pedido de cambio..." />
             </label>
 
@@ -2236,11 +2238,11 @@ function ActionCard({
               </Button>
               <Button
                 onClick={() => {
-                  onApprove(selectedOption || "aprobado", comment)
+                  onApprove(isChoiceRequest ? (selectedOption || "aprobado") : "", comment)
                   setShowModal(false)
                 }}
               >
-                Aprobar esta opción <Icon className="size-4" name="check" />
+                {decision.requestType === "enviar_informacion" ? "Enviar información" : decision.requestType === "subir_documento" ? "Enviar documento" : decision.requestType === "confirmar_decision" ? "Confirmar decisión" : isChoiceRequest ? "Aprobar esta opción" : "Aprobar y continuar"} <Icon className="size-4" name="check" />
               </Button>
             </div>
           </div>
@@ -2769,6 +2771,7 @@ function ClientPortal({
     ? {
         title: actionTask.accionCliente.titulo,
         description: actionTask.accionCliente.mensaje,
+        requestType: actionTask.accionCliente.tipo,
         content: actionUpdate?.descripcion || actionTask.notaCliente || actionTask.descripcionTrabajo,
         resources: actionResources,
         status: actionTask.accionCliente.estado === "aprobado" ? "aprobado" as const : actionTask.accionCliente.estado === "requiere_ajustes" ? "cambios" as const : "pendiente" as const,
