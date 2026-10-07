@@ -931,9 +931,9 @@ function TasksPanel({
       <div>
         {visibleTasks.map((task) => (
           <article
-            className="grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_auto] md:items-center md:px-6"
+            className={`grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_auto] md:items-center md:px-6 ${onOpenTask && task.projectId ? "cursor-pointer transition hover:bg-canvas/60" : ""}`}
             key={task.title}
-            onDoubleClick={() => onOpenTask?.(task)}
+            onClick={() => onOpenTask?.(task)}
           >
             <div className="min-w-0">
               <Heading
@@ -941,7 +941,7 @@ function TasksPanel({
                 className="truncate text-sm font-semibold text-ink"
               >
                 {onOpenTask && task.projectId ? (
-                  <button type="button" className="text-left hover:text-forest" onClick={() => onOpenTask(task)}>{task.title}</button>
+                  <button type="button" className="text-left hover:text-forest" onClick={(event) => { event.stopPropagation(); onOpenTask(task) }}>{task.title}</button>
                 ) : task.title}
               </Heading>
               <p className="mt-1 text-xs text-ink-faint">{task.area}</p>
@@ -962,7 +962,7 @@ function TasksPanel({
             <div className="flex items-center justify-between gap-2">
               <button
                 type="button"
-                onClick={() => onToggleTask(task.title)}
+                onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}
                 title="Clic para cambiar estado"
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold cursor-pointer transition hover:opacity-85 ${statusStyles[task.status]}`}
               >
@@ -972,7 +972,7 @@ function TasksPanel({
                 ariaLabel={`Mas opciones para ${task.title}`}
                 className="!size-9 !p-0"
                 variant="icon"
-                onClick={() => onToggleTask(task.title)}
+                onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}
               >
                 <Icon className="size-4" name="more" />
               </Button>
