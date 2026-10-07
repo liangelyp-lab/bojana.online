@@ -168,7 +168,7 @@ export default function StudioProjectsList({
             const statusClass = progressStatus === 'Completado'
               ? 'bg-mint-pale border-mint/40 text-forest'
               : progressStatus === 'Revisión'
-                ? 'bg-sand/30 border-sand-strong/40 text-ink'
+                ? 'bg-clay-pale border-clay/30 text-clay-dark'
                 : progressStatus === 'Borrador'
                   ? 'bg-stone border-line text-ink-faint'
                   : 'bg-blue-50 border-blue-200 text-blue-800';
@@ -208,7 +208,7 @@ export default function StudioProjectsList({
 
                   {/* Siguiente Acción badge */}
                   <div className="pt-1">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-clay-pale border border-clay/30 px-3 py-1 text-xs font-semibold text-clay-dark">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 border border-yellow-300 px-3 py-1 text-xs font-semibold text-yellow-800">
                       <Zap className="size-3 text-clay shrink-0" />
                       <span>Siguiente: <strong>{getProjectNextAction(p).titulo}</strong></span>
                     </span>

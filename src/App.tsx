@@ -923,7 +923,7 @@ function ProjectExecutionSummary({
   const statusClasses = projectStatus === "Completado"
     ? "border-mint/40 bg-mint-pale text-forest"
     : projectStatus === "Revisión"
-      ? "border-sand-strong/40 bg-sand/30 text-ink"
+      ? "border-clay/30 bg-clay-pale text-clay-dark"
       : projectStatus === "En progreso"
         ? "border-blue-200 bg-blue-50 text-blue-800"
         : "border-line bg-stone text-ink-faint"

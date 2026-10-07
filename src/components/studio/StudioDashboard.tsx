@@ -158,7 +158,7 @@ export default function StudioDashboard({
               const statusClass = status === 'Completado'
                 ? 'bg-mint-pale border-mint/40 text-forest'
                 : status === 'Revisión'
-                  ? 'bg-sand/30 border-sand-strong/40 text-ink'
+                  ? 'bg-clay-pale border-clay/30 text-clay-dark'
                   : status === 'Borrador'
                     ? 'bg-stone border-line text-ink-faint'
                     : 'bg-blue-50 border-blue-200 text-blue-800';
@@ -193,12 +193,12 @@ export default function StudioDashboard({
                     </div>
 
                     {/* Siguiente Acción Destacada */}
-                    <div className="rounded-2xl border border-clay/30 bg-clay-pale p-4 text-xs space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-clay-dark">
+                    <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-4 text-xs space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-yellow-800">
                         <Zap className="size-3.5 text-clay shrink-0" />
                         <span>Siguiente acción</span>
                       </div>
-                      <strong className="block text-sm font-semibold text-ink">
+                      <strong className="block text-sm font-semibold text-yellow-900">
                         {nextAction.titulo}
                       </strong>
                       <p className="text-xs text-ink-muted line-clamp-2">

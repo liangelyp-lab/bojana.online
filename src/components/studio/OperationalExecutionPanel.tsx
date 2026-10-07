@@ -1163,7 +1163,7 @@ export default function OperationalExecutionPanel({
                 getProjectStatusLabel(project) === 'Completado'
                   ? "text-forest bg-mint-pale border-mint/40"
                   : getProjectStatusLabel(project) === 'Revisión'
-                    ? "text-ink bg-sand/30 border-sand-strong/40"
+                    ? "text-clay-dark bg-clay-pale border-clay/30"
                     : getProjectStatusLabel(project) === 'En progreso'
                       ? "text-blue-800 bg-blue-50 border-blue-200"
                       : "text-ink-faint bg-stone border-line"
