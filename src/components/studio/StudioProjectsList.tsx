@@ -160,7 +160,6 @@ export default function StudioProjectsList({
             const status = p.info?.estadoGeneral || p.brief?.estadoGeneral || 'En Ejecución';
             const stage = p.info?.etapaActual || 'Documentación ejecutiva';
             const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
-            const code = p.info?.codigo || 'PROJ';
             const updateDate = p.info?.ultimaActualizacion || '02 Oct';
             const isCopied = copiedId === p.id;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
@@ -174,9 +173,6 @@ export default function StudioProjectsList({
                 {/* Project Identity */}
                 <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-stone px-2.5 py-0.5 text-xs font-bold text-ink-muted">
-                      {code}
-                    </span>
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-semibold border ${
                         p.lifecycleStatus

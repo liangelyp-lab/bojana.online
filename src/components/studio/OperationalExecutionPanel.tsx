@@ -559,8 +559,8 @@ export default function OperationalExecutionPanel({
       titulo: prefill.titulo.trim(),
       descripcion: prefill.descripcion.trim() || undefined,
       recursos: prefill.recursos.split('\n').map(item => item.trim()).filter(Boolean),
-      accion: 'revision',
-      estado: 'en_revision',
+      accion: prefill.accion,
+      estado: prefill.accion === 'publicar_avance' || prefill.accion === 'publicar_terminar' ? 'publicada' : prefill.accion === 'solicitud_informacion' ? 'solicitud_enviada' : 'en_revision',
       fecha: new Date().toISOString(),
       autor: 'Bojana Estudio',
       visibilidad: 'publicada',
@@ -603,7 +603,7 @@ export default function OperationalExecutionPanel({
     setSelectedTaskForAction(null);
     onToast(
       sendEmailImmediately
-        ? `✓ Solicitud guardada. Prepará el email para ${project.cliente?.email || 'el cliente'} y envialo cuando decidas.`
+        ? `✓ Actualización publicada y solicitud enviada por email a ${project.cliente?.email || 'el cliente'}.`
         : `✓ Solicitud guardada. Estado de la tarea actualizado a "Esperando al cliente".`
     );
   };
@@ -789,7 +789,7 @@ export default function OperationalExecutionPanel({
               <Button variant="primary" className="!min-h-9 !px-3 text-xs" disabled={!updateDraft.titulo.trim()} onClick={() => {
             if (editingUpdateId) {
               saveTaskUpdate(task, disc, need, updateDraft.accion);
-            } else if (updateDraft.accion === 'revision') {
+            } else if (updateDraft.accion !== 'borrador') {
               setUpdateDraftOpen(false);
               setSelectedTaskForAction({
                 task,

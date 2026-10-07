@@ -53,6 +53,15 @@ export default function RequestClientActionModal({
   onToast
 }: RequestClientActionModalProps) {
   const existing = task.accionCliente;
+  const actionLabel = tipo === 'elegir_alternativa'
+    ? 'Elegir alternativa'
+    : tipo === 'enviar_informacion'
+      ? 'Enviar información'
+      : tipo === 'subir_documento'
+        ? 'Subir documento'
+        : tipo === 'confirmar_decision'
+          ? 'Confirmar decisión'
+          : 'Aprobar o rechazar';
 
   useEffect(() => {
     if (!isOpen) return;
@@ -461,7 +470,7 @@ export default function RequestClientActionModal({
                 </div>
                 <div>
                   <span className="text-bojana-muted font-medium">Asunto:</span>{' '}
-                  <span className="text-bojana-ink font-medium">{projectName} &bull; Necesitamos tu aprobación</span>
+                  <span className="text-bojana-ink font-medium">{projectName} &bull; {titulo}</span>
                 </div>
               </div>
 
@@ -472,7 +481,7 @@ export default function RequestClientActionModal({
                     BOJANA ESTUDIO
                   </span>
                   <span className="text-xs font-sans text-bojana-ink bg-bojana-waiting px-2 py-0.5 rounded-bojana-badge border border-bojana-line font-medium">
-                    Decisión requerida
+                    {actionLabel}
                   </span>
                 </div>
 
