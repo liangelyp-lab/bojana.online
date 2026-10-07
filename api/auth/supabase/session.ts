@@ -3,6 +3,14 @@ type VercelResponse = any;
 import crypto from 'node:crypto';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method === 'POST') {
+    res.setHeader('Set-Cookie', [
+      'bojana_access=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      'bojana_refresh=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      'bojana_lark_session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    ]);
+    return res.status(204).end();
+  }
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;

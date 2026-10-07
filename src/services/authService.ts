@@ -57,7 +57,7 @@ export function getAuthUser(): AuthUser | null {
 }
 
 export async function signOut(): Promise<void> {
-  await fetch("/api/auth/supabase/logout", { method: "POST", credentials: "include" });
+  await fetch("/api/auth/supabase/session", { method: "POST", credentials: "include" });
   currentSession = null;
 }
 
