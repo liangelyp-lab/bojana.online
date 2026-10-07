@@ -88,18 +88,6 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
 
   return (
     <section className="space-y-4 animate-fade-in">
-      <div className="border-b border-line pb-5">
-        <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Comunicación</p>
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="font-display text-3xl font-normal leading-tight text-ink">Mensajes del cliente</h2>
-            <p className="mt-1 text-xs text-ink-muted">
-              Respondé desde el portal o enviá una respuesta al email asociado al proyecto.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
