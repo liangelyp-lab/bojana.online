@@ -2797,7 +2797,7 @@ function ClientPortal({
             ...need,
             tareas: need.tareas.map(task => task.id !== actionTask.id ? task : {
               ...task,
-              estado: approved && task.estado === "Esperando al cliente" ? "En curso" as import("./types").EstadoEtapa : task.estado,
+              estado: approved ? "Completado" as import("./types").EstadoEtapa : task.estado,
               accionCliente: task.accionCliente ? {
                 ...task.accionCliente,
                 estado: (approved ? "aprobado" : "requiere_ajustes") as import("./types").ClientActionStatus,
@@ -2900,6 +2900,7 @@ function ClientPortal({
         ...need,
         tareas: need.tareas.map(task => task.id !== taskId ? task : {
           ...task,
+          estado: status === "aprobada" ? "Completado" as import("./types").EstadoEtapa : task.estado,
           actualizaciones: (task.actualizaciones || []).map(update => update.id === updateId ? { ...update, estado: status } : update),
         }),
       })),
