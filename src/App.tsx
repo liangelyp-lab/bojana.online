@@ -804,7 +804,7 @@ function ProjectExecutionSummary({
             <Heading as="h1" className="font-display text-4xl font-normal leading-tight text-ink">
               {project.info?.nombre || "Proyecto"}
             </Heading>
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold ${statusClasses}`}>
+            <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold ${statusClasses}`}>
               <span className="size-1.5 rounded-full bg-current opacity-70" />
               {projectStatus}
             </span>
