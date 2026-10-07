@@ -41,6 +41,50 @@ interface RequestClientActionModalProps {
   onToast: (msg: string) => void;
 }
 
+const clientActionEmailConfig: Record<ClientActionType, {
+  label: string;
+  modalTitle: string;
+  title: (taskTitle: string) => string;
+  message: string;
+  actionText: string;
+}> = {
+  aprobar_rechazar: {
+    label: 'Aprobar / rechazar',
+    modalTitle: 'Solicitar aprobación o rechazo al comitente',
+    title: (taskTitle) => `Aprobación de ${taskTitle}`,
+    message: 'Necesitamos tu aprobación o rechazo para continuar con el desarrollo final y la siguiente etapa del proyecto.',
+    actionText: 'Aprobar propuesta'
+  },
+  elegir_alternativa: {
+    label: 'Elegir alternativa',
+    modalTitle: 'Solicitar elección de alternativa al comitente',
+    title: (taskTitle) => `Elegir alternativa para ${taskTitle}`,
+    message: 'Revisá las alternativas disponibles y elegí una opción para que podamos continuar con el proyecto.',
+    actionText: 'Elegir alternativa'
+  },
+  enviar_informacion: {
+    label: 'Enviar información',
+    modalTitle: 'Solicitar información al comitente',
+    title: (taskTitle) => `Información requerida: ${taskTitle}`,
+    message: 'Necesitamos que nos envíes la información solicitada para poder continuar con el proyecto.',
+    actionText: 'Enviar información'
+  },
+  subir_documento: {
+    label: 'Subir documento',
+    modalTitle: 'Solicitar documento al comitente',
+    title: (taskTitle) => `Documento requerido: ${taskTitle}`,
+    message: 'Necesitamos que subas el documento solicitado para completar esta etapa del proyecto.',
+    actionText: 'Subir documento'
+  },
+  confirmar_decision: {
+    label: 'Confirmar decisión',
+    modalTitle: 'Solicitar confirmación al comitente',
+    title: (taskTitle) => `Confirmar decisión: ${taskTitle}`,
+    message: 'Necesitamos que confirmes esta decisión para dejarla registrada y continuar con el proyecto.',
+    actionText: 'Confirmar decisión'
+  }
+};
+
 export default function RequestClientActionModal({
   isOpen,
   task,
@@ -64,24 +108,26 @@ export default function RequestClientActionModal({
   }, [isOpen, onClose]);
 
   const [activeTab, setActiveTab] = useState<'config' | 'email_preview'>('config');
-  const [tipo, setTipo] = useState<ClientActionType>(existing?.tipo || (prefill?.opciones?.length ? 'elegir_alternativa' : 'aprobar_rechazar'));
-  const actionLabel = tipo === 'elegir_alternativa'
-    ? 'Elegir alternativa'
-    : tipo === 'enviar_informacion'
-      ? 'Enviar información'
-      : tipo === 'subir_documento'
-        ? 'Subir documento'
-        : tipo === 'confirmar_decision'
-          ? 'Confirmar decisión'
-          : 'Aprobar o rechazar';
-  const [titulo, setTitulo] = useState(existing?.titulo || prefill?.titulo || `Aprobación de ${task.titulo}`);
-  const [mensaje, setMensaje] = useState(
-    existing?.mensaje || prefill?.descripcion || 'Necesitamos tu aprobación para continuar con el desarrollo final y la siguiente etapa del proyecto.'
-  );
-  const [accionTexto, setAccionTexto] = useState(existing?.accionRequeridaTexto || 'Aprobar propuesta');
+  const initialTipo = existing?.tipo || (prefill?.opciones?.length ? 'elegir_alternativa' : 'aprobar_rechazar');
+  const initialEmailConfig = clientActionEmailConfig[initialTipo];
+  const [tipo, setTipo] = useState<ClientActionType>(initialTipo);
+  const [titulo, setTitulo] = useState(existing?.titulo || prefill?.titulo || initialEmailConfig.title(task.titulo));
+  const [mensaje, setMensaje] = useState(existing?.mensaje || prefill?.descripcion || initialEmailConfig.message);
+  const [accionTexto, setAccionTexto] = useState(existing?.accionRequeridaTexto || initialEmailConfig.actionText);
   const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || prefill?.fechaLimiteRespuesta || '');
   const [bloquear, setBloquear] = useState(existing?.bloquearSiguientesEtapas ?? true);
   const [pesoPct, setPesoPct] = useState(existing?.pesoPorcentaje ?? 10);
+
+  const emailConfig = clientActionEmailConfig[tipo];
+
+  const handleTypeChange = (nextType: ClientActionType) => {
+    const previousConfig = clientActionEmailConfig[tipo];
+    const nextConfig = clientActionEmailConfig[nextType];
+    setTipo(nextType);
+    setTitulo((current) => current === previousConfig.title(task.titulo) ? nextConfig.title(task.titulo) : current);
+    setMensaje((current) => current === previousConfig.message ? nextConfig.message : current);
+    setAccionTexto((current) => current === previousConfig.actionText ? nextConfig.actionText : current);
+  };
 
   // Alternatives state (if tipo === 'elegir_alternativa')
   const [alternativas, setAlternativas] = useState<ClientActionAlternative[]>(
@@ -184,7 +230,7 @@ export default function RequestClientActionModal({
               </span>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl font-normal text-ink">
-              Solicitar aprobación o acción al comitente
+              {emailConfig.modalTitle}
             </h2>
             <p className="text-xs text-bojana-muted font-sans">
               La tarea pasará a estado &ldquo;Esperando al cliente&rdquo; sin romper el flujo ni computar avance falso.
@@ -232,7 +278,7 @@ export default function RequestClientActionModal({
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => setTipo(t.id as ClientActionType)}
+                      onClick={() => handleTypeChange(t.id as ClientActionType)}
                       className={`bojana-button bojana-button-primary p-3 rounded-bojana-widget border text-left transition cursor-pointer flex flex-col justify-between ${
                         tipo === t.id
                           ? "bg-bojana-ink text-bojana-inverse border-bojana-line shadow-bojana-widget"
@@ -316,7 +362,7 @@ export default function RequestClientActionModal({
                       className="bojana-button bojana-button-text text-xs font-sans font-medium text-bojana-ink hover:text-bojana-success flex items-center gap-bojana-inside cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      <span>+ Agregar alternativa</span>
+                      <span>Agregar alternativa</span>
                     </button>
                   </div>
 
@@ -478,7 +524,7 @@ export default function RequestClientActionModal({
                     BOJANA ESTUDIO
                   </span>
                   <span className="text-xs font-sans text-bojana-ink bg-bojana-waiting px-2 py-0.5 rounded-bojana-badge border border-bojana-line font-medium">
-                    {actionLabel}
+                    {emailConfig.label}
                   </span>
                 </div>
 
