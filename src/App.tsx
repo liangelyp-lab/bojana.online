@@ -2983,23 +2983,26 @@ function ClientPortal({
             {active === "Conversaciones" && (
               <div className="mt-8 scroll-mt-8 space-y-6" id="client-conversations">
                 {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
-                <div className="rounded-2xl border border-line bg-white p-5">
-                  <Eyebrow>Canal de comunicación</Eyebrow>
-                  <Heading as="h3" className="mt-1 font-display text-xl text-ink">
-                    Contacto directo con el equipo del estudio
-                  </Heading>
-                  <p className="mt-1.5 max-w-2xl text-xs leading-5 text-ink-muted">
-                    Las dudas técnicas, consultas y acuerdos sobre la obra se canalizan a través de este portal para mantener la trazabilidad completa del proyecto.
-                  </p>
+                <div className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <Eyebrow>Canal de comunicación</Eyebrow>
+                      <Heading as="h3" className="mt-0.5 font-display text-lg text-ink">
+                        Conversación con el estudio
+                      </Heading>
+                    </div>
+                    <span className="rounded-full bg-stone px-2.5 py-1 text-[11px] font-semibold text-ink-muted">
+                      {conversationMessages.length} {conversationMessages.length === 1 ? "mensaje" : "mensajes"}
+                    </span>
+                  </div>
                   {conversationMessages.length > 0 && (
                     <div className="mt-4 space-y-2.5 border-t border-line pt-4">
-                      <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Historial de conversación</p>
                       {conversationMessages.map(activity => {
                         const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
                         return (
-                          <article className={`rounded-xl border p-3 ${fromClient ? "border-line bg-stone/45" : "border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
-                            <div className="flex items-center justify-between gap-3 text-xs">
-                              <span className="font-semibold text-ink">{fromClient ? "Tu mensaje" : "Bojana Estudio"}</span>
+                          <article className={`max-w-[92%] rounded-xl border p-3 ${fromClient ? "mr-auto border-line bg-stone/45" : "ml-auto border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
+                            <div className="flex items-center justify-between gap-3 text-[11px]">
+                              <span className="font-semibold text-ink">{fromClient ? "Vos" : "Bojana Estudio"}</span>
                               <span className="text-ink-faint">{activity.fecha}</span>
                             </div>
                             <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio):\s*/, "")}</p>
