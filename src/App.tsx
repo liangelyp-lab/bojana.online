@@ -1912,10 +1912,10 @@ function AdminPortal({
                 <div className="border-b border-line pb-8">
                   <Eyebrow>Operación del estudio</Eyebrow>
                   <Heading as="h1" className="mt-2 font-display text-4xl leading-tight text-ink md:text-5xl">
-                    Tareas y entregas
+                    Todas las tareas del estudio
                   </Heading>
                   <p className="mt-2 text-sm text-ink-muted">
-                    Supervisión técnica de actividades en curso y compromisos con comitentes.
+                    Supervisión conjunta de las tareas y entregas de todos los proyectos.
                   </p>
                 </div>
                 {studyTasks.length === 0 ? (
