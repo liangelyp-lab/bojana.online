@@ -2957,8 +2957,10 @@ export default function App() {
       // Do not let the regular session bootstrap replace it with sign in/admin.
       if (directToken || (recoveryParams.accessToken && recoveryParams.type === "recovery")) return
       if (!user) return
-      setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: user.role || "team" })
-      setScreen("admin")
+      const role = user.role || "client"
+      setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: role })
+      if (["owner", "admin", "team"].includes(role)) setScreen("admin")
+      else { setAllProjects([]); setSelectedProjectId(null); setScreen("client") }
     }).catch(() => undefined)
   }, [directToken, recoveryParams.accessToken, recoveryParams.type])
 
@@ -3021,9 +3023,11 @@ export default function App() {
           onSignIn={async (email, password) => {
             try {
               const user = await signInWithPassword(email, password)
-              setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: user.role || "team" })
+              const role = user.role || "client"
+              setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: role })
               if (user.mustChangePassword) { setForcedPasswordToken(getAccessToken()); setScreen("reset") }
-              else setScreen("admin")
+              else if (["owner", "admin", "team"].includes(role)) setScreen("admin")
+              else { setAllProjects([]); setSelectedProjectId(null); setScreen("client") }
               return true
             } catch (error) {
               console.error("Supabase sign-in failed", error)

@@ -20,7 +20,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!baseUrl || !anonKey || !cookies.bojana_access) return res.status(401).json({ error: 'No active session' });
   const response = await fetch(`${baseUrl}/auth/v1/user`, { headers: { apikey: anonKey, authorization: `Bearer ${decodeURIComponent(cookies.bojana_access)}` } });
   if (!response.ok) return res.status(401).json({ error: 'Session expired' });
-  return res.status(200).json({ user: await response.json(), access_token: decodeURIComponent(cookies.bojana_access) });
+  const user = await response.json();
+  await attachStudioRole(user);
+  return res.status(200).json({ user, access_token: decodeURIComponent(cookies.bojana_access) });
+}
+
+async function attachStudioRole(user: any) {
+  const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey || !user?.id) return;
+  const response = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(user.id)}&select=role&limit=1`, { headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } });
+  const rows = await response.json() as Array<{ role: string }>;
+  if (response.ok && rows[0]) user.app_metadata = { ...(user.app_metadata || {}), role: rows[0].role };
 }
 
 function parseCookies(value: string) {

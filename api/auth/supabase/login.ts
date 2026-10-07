@@ -12,9 +12,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
     const data = await auth.json();
     if (!auth.ok) return res.status(auth.status).json({ error: data.error_description || data.msg || 'Invalid credentials' });
+    await attachStudioRole(data);
     setSessionCookies(res, data.access_token, data.refresh_token, data.expires_in || 3600);
     return res.status(200).json({ user: data.user, access_token: data.access_token, expires_in: data.expires_in || 3600 });
   } catch (error) { console.error('Supabase login failed', error); return res.status(502).json({ error: 'Authentication service unavailable' }); }
+}
+
+async function attachStudioRole(data: any) {
+  const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey || !data?.user?.id) return;
+  const response = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(data.user.id)}&select=role&limit=1`, { headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } });
+  const rows = await response.json() as Array<{ role: string }>;
+  if (response.ok && rows[0]) data.user.app_metadata = { ...(data.user.app_metadata || {}), role: rows[0].role };
 }
 
 function setSessionCookies(res: VercelResponse, access: string, refresh: string, expiresIn: number) {
