@@ -83,7 +83,7 @@ export default function PublishInviteModal({
   const plazoInicio = contractualBase?.plazoInicio || project.info?.fechaInicio || '15 OCT 2026';
   const plazoFin = contractualBase?.plazoFin || project.info?.fechaFin || '30 MAR 2027';
   const alcance = contractualBase?.alcance || project.info?.descripcion || 'Remodelación integral y desarrollo de proyecto arquitectónico con supervisión de obra.';
-  const docsBase = contractualBase?.documentosBase || [];
+  const docsBase = Array.isArray(contractualBase?.documentosBase) ? contractualBase.documentosBase : [];
 
   const handleCopyLink = async () => {
     try {
@@ -127,7 +127,7 @@ export default function PublishInviteModal({
     finally { setIsSending(false); }
   };
 
-  const invitationHistory: ProjectInvitationLog[] = project.historialInvitaciones || [];
+  const invitationHistory: ProjectInvitationLog[] = Array.isArray(project.historialInvitaciones) ? project.historialInvitaciones : [];
 
   if (!isOpen) return null;
 
@@ -471,7 +471,7 @@ export default function PublishInviteModal({
                             <FileText className="w-4 h-4 text-bojana-muted shrink-0" />
                             <span className="font-medium">{doc.nombre}</span>
                             <span className="text-xs text-bojana-muted uppercase bg-bojana-soft px-2 py-0.5 rounded-bojana-badge">
-                              {doc.tipo.replace('_', ' ')}
+                              {(doc.tipo || doc.categoria || 'Documento').replace('_', ' ')}
                             </span>
                           </div>
                           <span className="text-xs text-bojana-success font-medium">

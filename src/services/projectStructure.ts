@@ -45,7 +45,8 @@ export function getClientProjectSequence(project: ProjectData) {
   }
   return project.disciplinasOperativas.flatMap((discipline) =>
     (discipline.necesidades || []).flatMap((need) => {
-      if (!need.tareas.length)
+      const needTasks = need.tareas || [];
+      if (!needTasks.length)
         return [
           {
             id: `${discipline.id}:${need.id}`,
@@ -55,7 +56,7 @@ export function getClientProjectSequence(project: ProjectData) {
             tareas: [],
           },
         ];
-      const tasks = need.tareas.filter(
+      const tasks = needTasks.filter(
         (t) => t.visibleCliente && t.estado !== "Fuera de alcance",
       );
       if (!tasks.length) return [];
