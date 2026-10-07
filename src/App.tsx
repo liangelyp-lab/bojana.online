@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, resetProjectDataToDefault, getEffectiveProgress } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -531,6 +531,14 @@ function SignIn({ onSignIn }: { onSignIn: (screen?: "admin" | "client") => void 
 
             <Button className="!min-h-12 w-full" type="submit">
               Iniciar sesion <Icon className="size-4" name="arrow" />
+            </Button>
+            <Button
+              className="w-full"
+              onClick={() => { window.location.href = "/api/auth/lark/start" }}
+              type="button"
+              variant="secondary"
+            >
+              Ingresar con Lark
             </Button>
           </form>
 
@@ -1229,7 +1237,6 @@ function AdminPortal({
   onReviewDecision,
   onPublishToast,
   onUpdateProject,
-  onResetDefaults,
   onEditProject,
   activeUser,
   setActiveUser,
@@ -1253,7 +1260,6 @@ function AdminPortal({
   onReviewDecision: () => void
   onPublishToast: (msg?: string) => void
   onUpdateProject: (updated: ProjectData) => void
-  onResetDefaults: () => void
   onEditProject: () => void
   activeUser?: { nombre: string; rol: string } | null
   setActiveUser?: (user: { id?: string; nombre: string; email?: string; rol: string } | null) => void
@@ -1576,7 +1582,6 @@ function AdminPortal({
             {/* 7. CONFIGURACIÓN VIEW */}
             {activeNav === "Configuracion" && (
               <StudioSettingsView
-                onResetDefaults={onResetDefaults}
                 onToast={onPublishToast}
                 onActiveUserChange={user => setActiveUser?.(user)}
               />
@@ -2901,13 +2906,6 @@ export default function App() {
     setAllProjects(getAllProjects())
   }
 
-  const handleResetDefaults = () => {
-    const res = resetProjectDataToDefault()
-    setAllProjects(res)
-    setSelectedProjectId(res[0]?.id || null)
-    showToast("Datos locales eliminados.")
-  }
-
   return (
     <>
       {screen === "signin" && (
@@ -2933,7 +2931,6 @@ export default function App() {
             setIsNewProjectModalOpen(true)
           }}
           onPublishToast={showToast}
-          onResetDefaults={handleResetDefaults}
           onReviewDecision={() => setScreen("client")}
           onSignOut={() => setScreen("signin")}
           onToggleTask={handleToggleTask}
