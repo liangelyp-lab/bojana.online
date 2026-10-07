@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from "react"
 import type { ProjectActivityLog, ProjectData } from "../../types"
-import { Badge, Button, TextAreaControl } from "../ui/DesignSystem"
+import { Button, TextAreaControl } from "../ui/DesignSystem"
 
 type ReplyChannel = "portal" | "email"
 
@@ -85,31 +85,30 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
   }
 
   return (
-    <section className="space-y-6 animate-fade-in">
-      <div className="border-b border-line pb-7">
+    <section className="space-y-4 animate-fade-in">
+      <div className="border-b border-line pb-5">
         <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Comunicación</p>
-        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="font-display text-4xl font-normal text-ink">Mensajes del cliente</h2>
-            <p className="mt-2 text-sm text-ink-muted">
+            <h2 className="font-display text-3xl font-normal leading-tight text-ink">Mensajes del cliente</h2>
+            <p className="mt-1 text-xs text-ink-muted">
               Respondé desde el portal o enviá una respuesta al email asociado al proyecto.
             </p>
           </div>
-          {clientEmail && <Badge tone="neutral">{clientEmail}</Badge>}
         </div>
       </div>
 
-      <div className="rounded-3xl border border-line bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Historial del portal</p>
-            <h3 className="mt-1 font-display text-2xl text-ink">Conversación del proyecto</h3>
+            <h3 className="mt-1 font-display text-xl text-ink">Conversación del proyecto</h3>
           </div>
           <span className="rounded-full bg-stone px-3 py-1 text-xs font-semibold text-ink-muted">{projectMessages.length} mensajes</span>
         </div>
-        <div className="mt-6 space-y-3">
+        <div className="mt-4 space-y-2">
           {projectMessages.length === 0 ? (
-            <p className="rounded-2xl border border-dashed border-line p-5 text-sm text-ink-faint">Todavía no hay comentarios enviados desde el portal.</p>
+            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-faint">Todavía no hay comentarios enviados desde el portal.</p>
           ) : projectMessages.map(activity => {
             const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
             const isEmail = activity.descripcion.startsWith("Correo enviado al cliente:")
@@ -126,21 +125,21 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
         </div>
       </div>
 
-      <form className="rounded-3xl border border-line bg-white p-6 shadow-sm" onSubmit={sendReply}>
+      <form className="rounded-2xl border border-line bg-white p-5 shadow-sm" onSubmit={sendReply}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Responder</p>
-            <h3 className="mt-1 font-display text-2xl text-ink">Elegí cómo contestar</h3>
+            <h3 className="mt-1 font-display text-xl text-ink">Elegí cómo contestar</h3>
           </div>
           <div className="flex rounded-full border border-line bg-stone p-1" role="group" aria-label="Canal de respuesta">
             <button type="button" className={`rounded-full px-3 py-2 text-xs font-semibold transition ${channel === "portal" ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`} onClick={() => setChannel("portal")}>En el portal</button>
             <button type="button" className={`rounded-full px-3 py-2 text-xs font-semibold transition ${channel === "email" ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`} onClick={() => setChannel("email")}>Por email</button>
           </div>
         </div>
-        <p className="mt-2 text-sm text-ink-muted">
+        <p className="mt-1 text-xs text-ink-muted">
           {channel === "portal" ? "La respuesta quedará visible en la conversación del portal del cliente." : clientEmail ? `Se enviará desde la cuenta del estudio a ${clientEmail}.` : "Cargá un email de cliente para habilitar esta opción."}
         </p>
-        <TextAreaControl className="mt-5" disabled={sending} onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={5} value={reply} />
+        <TextAreaControl className="mt-4" disabled={sending} onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={4} value={reply} />
         {error && <p className="mt-3 rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark" role="alert">{error}</p>}
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-ink-faint">La respuesta queda registrada en la actividad del proyecto.</p>
