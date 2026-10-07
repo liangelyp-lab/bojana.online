@@ -1673,7 +1673,7 @@ function AdminPortal({
             setIsPublishModalOpen(false)
             onPublishToast("Portal del comitente sincronizado y publicado.")
           }}
-          onUpdateProject={handleUpdateProject}
+          onUpdateProject={onUpdateProject}
           onToast={onPublishToast}
           project={currentProject}
         />
