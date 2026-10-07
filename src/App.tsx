@@ -14,6 +14,7 @@ import StudioDashboard from "./components/studio/StudioDashboard";
 import StudioProjectsList from "./components/studio/StudioProjectsList";
 import StudioClientsView from "./components/studio/StudioClientsView";
 import StudioSettingsView from "./components/studio/StudioSettingsView";
+import EmailInboxView from "./components/studio/EmailInboxView";
 import OperationalExecutionPanel from "./components/studio/OperationalExecutionPanel";
 import DecisionesModule from "./components/modules/DecisionesModule";
 import DocumentosModule from "./components/modules/DocumentosModule";
@@ -621,6 +622,7 @@ const mainNav: { label: string; icon: IconName }[] = [
   { label: "Proyectos", icon: "folder" },
   { label: "Tareas", icon: "tasks" },
   { label: "Clientes", icon: "people" },
+  { label: "Bandeja", icon: "mail" },
   { label: "Biblioteca", icon: "folder" },
 ]
 
@@ -1571,6 +1573,8 @@ function AdminPortal({
                 projects={allProjects}
               />
             )}
+
+            {activeNav === "Bandeja" && <EmailInboxView />}
 
             {/* 6. BIBLIOTECA VIEW */}
             {activeNav === "Biblioteca" && (

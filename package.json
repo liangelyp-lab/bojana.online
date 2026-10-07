@@ -10,7 +10,10 @@
     "format": "oxfmt"
   },
   "dependencies": {
+    "@types/nodemailer": "^6.4.15",
+    "imapflow": "^1.0.181",
     "lucide-react": "^1.52.0",
+    "nodemailer": "^7.0.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
