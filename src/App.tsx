@@ -919,6 +919,14 @@ function ProjectExecutionSummary({
   onViewClientPortal: () => void
 }) {
   const progress = getEffectiveProgress(project)
+  const projectStatus = getProjectStatusLabel(project)
+  const statusClasses = projectStatus === "Completado"
+    ? "border-mint/40 bg-mint-pale text-forest"
+    : projectStatus === "Revisión"
+      ? "border-sand-strong/40 bg-sand/30 text-ink"
+      : projectStatus === "En progreso"
+        ? "border-clay/30 bg-clay-pale text-clay-dark"
+        : "border-line bg-stone text-ink-faint"
 
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
@@ -937,9 +945,9 @@ function ProjectExecutionSummary({
             <Heading as="h1" className="font-display text-4xl leading-none text-ink md:text-5xl">
               {project.info?.nombre || "Proyecto"}
             </Heading>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-mint/40 bg-mint-pale px-3.5 py-2 text-xs font-semibold text-forest">
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-semibold ${statusClasses}`}>
               <span className="size-1.5 rounded-full bg-current opacity-70" />
-              {progress}% completo
+              {projectStatus}
             </span>
           </div>
           <p className="mt-4 text-sm text-ink-muted md:text-base">
