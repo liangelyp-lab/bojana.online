@@ -121,12 +121,11 @@ export default function RequestClientActionModal({
   const emailConfig = clientActionEmailConfig[tipo];
 
   const handleTypeChange = (nextType: ClientActionType) => {
-    const previousConfig = clientActionEmailConfig[tipo];
     const nextConfig = clientActionEmailConfig[nextType];
     setTipo(nextType);
-    setTitulo((current) => current === previousConfig.title(task.titulo) ? nextConfig.title(task.titulo) : current);
-    setMensaje((current) => current === previousConfig.message ? nextConfig.message : current);
-    setAccionTexto((current) => current === previousConfig.actionText ? nextConfig.actionText : current);
+    setTitulo(nextConfig.title(task.titulo));
+    setMensaje(nextConfig.message);
+    setAccionTexto(nextConfig.actionText);
   };
 
   // Alternatives state (if tipo === 'elegir_alternativa')
