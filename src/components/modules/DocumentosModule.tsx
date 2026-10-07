@@ -162,7 +162,7 @@ export default function DocumentosModule({
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
       {/* CATEGORIES FILTER & SEARCH BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
+      {documents.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         {/* Category Tabs */}
         <div role="tablist" aria-label="Categorías de documentos" className="bojana-filter-tablist w-full sm:w-auto">
           {categories.map((cat) => (
@@ -190,16 +190,16 @@ export default function DocumentosModule({
             className="w-full bg-bojana-surface pl-8 pr-3 py-1.5 text-xs text-bojana-ink"
           />
         </div>
-      </div>
+      </div>}
 
       {/* 3. DOCUMENTS LIST WITH VISIBLE VERSIONING */}
       <div className="space-y-bojana-block">
         {filteredDocs.length === 0 ? (
           <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-12 text-center space-y-3">
             <FileText className="w-10 h-10 text-bojana-line mx-auto" />
-            <h4 className="bojana-heading-component text-sm font-medium text-bojana-ink">No se encontraron documentos</h4>
+            <h4 className="font-display text-xl text-ink">Aún no hay documentos publicados</h4>
             <p className="text-xs text-bojana-muted">
-              No hay archivos bajo la categoría seleccionada o que coincidan con la búsqueda.
+              Los planos, memorias y entregables aparecerán aquí cuando se publiquen.
             </p>
             {isAdmin && (
               <button

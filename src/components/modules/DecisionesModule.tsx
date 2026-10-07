@@ -239,7 +239,7 @@ export default function DecisionesModule({
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
       {/* FILTER TABS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
+      {decisiones.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         <div className="flex items-center gap-2 overflow-x-auto text-xs font-semibold">
           {['todos', 'Pendiente', 'Aprobado', 'Requiere cambios'].map((st) => (
             <button
@@ -260,7 +260,7 @@ export default function DecisionesModule({
         <span className="text-xs text-ink-faint pr-2">
           {filteredDecisiones.length} solicitudes registradas
         </span>
-      </div>
+      </div>}
 
       {/* 3. DECISIONS FEED */}
       <div className="space-y-6">
