@@ -136,19 +136,6 @@ export default function AvancesModule({
   return (
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
-      {isAdmin && posts.length > 0 && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 cursor-pointer"
-          >
-            <Plus className="size-4 text-white" />
-            <span>Publicar nuevo avance</span>
-          </button>
-        </div>
-      )}
-
       {/* CHRONOLOGICAL FEED OF POSTS */}
       {posts.length === 0 ? (
         <div className="rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
@@ -159,10 +146,12 @@ export default function AvancesModule({
           </p>
           {isAdmin && (
             <button
+              type="button"
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-semibold text-white mt-2 cursor-pointer"
+              className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-semibold text-white cursor-pointer"
             >
-              Publicar primer avance
+              <Plus className="size-4 text-white" />
+              Publicar nuevo avance
             </button>
           )}
         </div>
