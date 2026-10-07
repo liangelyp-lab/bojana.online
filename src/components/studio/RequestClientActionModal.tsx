@@ -13,13 +13,6 @@ import {
   Plus,
   Trash2,
   Calendar,
-  Lock,
-  CheckCircle2,
-  Sparkles,
-  AlertCircle,
-  ShieldCheck,
-  FileText,
-  Image,
   ExternalLink
 } from 'lucide-react';
 import { Button, InputControl, ModalTabs, TextAreaControl } from '../ui/DesignSystem';
@@ -40,7 +33,6 @@ interface RequestClientActionModalProps {
   };
   onClose: () => void;
   onSaveAction: (action: ClientActionRequired, sendEmailImmediately: boolean) => void;
-  onToast: (msg: string) => void;
 }
 
 const clientActionEmailConfig: Record<ClientActionType, {
@@ -95,8 +87,7 @@ export default function RequestClientActionModal({
   clientEmail,
   prefill,
   onClose,
-  onSaveAction,
-  onToast
+  onSaveAction
 }: RequestClientActionModalProps) {
   const existing = task.accionCliente;
 
@@ -230,14 +221,6 @@ export default function RequestClientActionModal({
         {/* Header */}
         <div className="p-6 border-b border-line flex items-start justify-between gap-4 bg-white/70 backdrop-blur-sm">
           <div className="space-y-bojana-inside">
-            <div className="flex items-center gap-bojana-inside">
-              <span className="text-xs font-sans uppercase bg-bojana-waiting text-bojana-ink border border-bojana-line px-2.5 py-0.5 rounded-bojana-badge font-medium">
-                Requiere acción del cliente
-              </span>
-              <span className="text-xs font-sans text-bojana-muted">
-                Tarea: {task.titulo}
-              </span>
-            </div>
             <h2 className="font-display text-2xl sm:text-3xl font-normal text-ink">
               {emailConfig.modalTitle}
             </h2>

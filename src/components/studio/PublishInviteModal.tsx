@@ -4,8 +4,6 @@ import {
   ProjectInvitationLog
 } from '../../types';
 import {
-  getEffectiveProgress,
-  getLifecycleLabel,
   createInvitationLog
 } from '../../services/storageService';
 import { getClientProjectSequence } from '../../services/projectStructure';
@@ -16,16 +14,11 @@ import {
   Eye,
   Copy,
   Check,
-  Sparkles,
   Clock,
   ShieldCheck,
   ExternalLink,
   FileText,
-  Calendar,
-  Layers,
   CheckCircle2,
-  Building2,
-  ChevronRight,
   Info
 } from 'lucide-react';
 import { Field, ModalTabs } from '../ui/DesignSystem';
@@ -99,8 +92,6 @@ export default function PublishInviteModal({
   const title = project.info?.nombre || 'Proyecto';
   const subtitle = project.info?.subtitulo || project.disciplinas?.join(' · ') || '';
   const disciplines = project.disciplinas?.join(' + ') || 'Arquitectura';
-  const effectiveProg = getEffectiveProgress(project);
-  const lifecycle = getLifecycleLabel(project.lifecycleStatus || 'LISTO_PARA_COMPARTIR');
   const isAlreadyActive = project.lifecycleStatus === 'ACTIVO';
 
   const [dedicatedUrl, setDedicatedUrl] = useState('');
@@ -170,23 +161,6 @@ export default function PublishInviteModal({
         {/* 1. MODAL HEADER */}
         <div className="p-6 border-b border-line flex items-start justify-between gap-4 bg-white/70 backdrop-blur-sm">
           <div className="space-y-bojana-inside">
-            <div className="flex items-center gap-bojana-inside flex-wrap">
-              <span className={`bojana-modal-meta uppercase ${
-                isAlreadyActive
-                  ? "bg-bojana-soft text-bojana-success border-bojana-success"
-                  : "bg-bojana-waiting text-bojana-ink border-bojana-line"
-              }`}>
-                <span className="size-2 rounded-full bg-current" aria-hidden="true" />
-                {isAlreadyActive ? 'Portal activo' : 'Listo para compartir'}
-              </span>
-              <span className="bojana-modal-meta text-bojana-muted bg-bojana-surface border-bojana-line">
-                Progreso: {effectiveProg}%
-              </span>
-              <span className="bojana-modal-meta text-bojana-muted border-transparent">
-                {project.info?.codigo || 'BA-024'}
-              </span>
-            </div>
-
             <h2 className="font-display text-2xl sm:text-3xl font-normal text-ink">
               {isAlreadyActive ? 'Comunicación y acceso al portal' : 'Publicar cambios del portal'}
             </h2>
