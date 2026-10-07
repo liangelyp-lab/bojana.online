@@ -1735,15 +1735,13 @@ export default function OperationalExecutionPanel({
                                   </div>
 
                                   {need.tareas.length === 0 && (
-                                    <div className="pt-2">
-                                      <Button
-                                        className="!min-h-16 !w-fit !max-w-full !min-w-[20rem] !justify-start !rounded-full !border-0 !bg-[#efeee9] !px-7 !text-base !font-semibold !text-ink hover:!bg-[#e5e3dc]"
-                                        onClick={() => openProjectUpdate(`${disc.id} · ${need.nombre}`)}
-                                        variant="secondary"
-                                      >
-                                        <Plus className="size-6" /> Nueva actualización
-                                      </Button>
-                                    </div>
+                                    <Button
+                                      className="!min-h-9 !rounded-full !px-3 mt-2 self-start text-xs"
+                                      onClick={() => openProjectUpdate(`${disc.id} · ${need.nombre}`)}
+                                      variant="ghost"
+                                    >
+                                      <Plus className="size-3.5" /> Nueva actualización
+                                    </Button>
                                   )}
 
                                 </div>
