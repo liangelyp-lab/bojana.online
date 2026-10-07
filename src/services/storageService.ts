@@ -25,6 +25,7 @@ import {
   calculateProjectProgressFromDisciplines
 } from '../types';
 import { getPendingTaskDependencies } from './projectStructure';
+import { isSupabaseConfigured, listRemoteProjects, saveRemoteProject } from './supabaseClient';
 
 export {
   calculateTaskProgress,
@@ -1676,6 +1677,25 @@ export function saveProjectData(data: ProjectData): void {
     projects.push(updatedData);
   }
   saveAllProjects(projects);
+  if (isSupabaseConfigured) {
+    void saveRemoteProject(updatedData).catch((error) => console.error('Error syncing project with Supabase:', error));
+  }
+}
+
+/**
+ * Hydrates the browser cache from the central database. The local cache remains
+ * available as a fallback while Supabase is not configured or temporarily offline.
+ */
+export async function hydrateProjectsFromSupabase(): Promise<ProjectData[] | null> {
+  if (!isSupabaseConfigured) return null;
+  try {
+    const projects = await listRemoteProjects();
+    if (projects.length > 0) saveAllProjects(projects);
+    return projects;
+  } catch (error) {
+    console.error('Error loading projects from Supabase:', error);
+    return null;
+  }
 }
 
 export function deleteProject(id: string): void {

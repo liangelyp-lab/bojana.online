@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -2863,6 +2863,12 @@ export default function App() {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
   const [projectBeingEdited, setProjectBeingEdited] = useState<ProjectData | undefined>(undefined)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    void hydrateProjectsFromSupabase().then((projects) => {
+      if (projects && projects.length > 0) setAllProjects(projects)
+    })
+  }, [])
 
   const showToast = (msg?: string) => {
     if (!msg) return
