@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase, publishAndActivateProject } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -3008,13 +3008,18 @@ export default function App() {
 
   const handleCreateProject = (newProj: ProjectData) => {
     const wasEditing = Boolean(projectBeingEdited)
+    const client = upsertClientFromProject(newProj)
     saveProjectData(newProj)
     const updated = getAllProjects()
     setAllProjects(updated)
     setSelectedProjectId(newProj.id)
     setIsNewProjectModalOpen(false)
     setProjectBeingEdited(undefined)
-    showToast(wasEditing ? "Configuración del proyecto actualizada." : `Proyecto "${newProj.info?.nombre}" creado exitosamente.`)
+    showToast(wasEditing
+      ? "Configuración del proyecto y cliente actualizada."
+      : client
+        ? `Proyecto y cliente "${client.nombre}" creados exitosamente.`
+        : `Proyecto "${newProj.info?.nombre}" creado exitosamente.`)
   }
 
   const handleUpdateProject = (updated: ProjectData) => {

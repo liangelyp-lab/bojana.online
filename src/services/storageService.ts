@@ -1647,6 +1647,41 @@ export function saveAllClients(clients: ClientEntity[]): void {
   }
 }
 
+export function upsertClientFromProject(project: ProjectData): ClientEntity | null {
+  const config = project.cliente;
+  const name = (config?.nombre || config?.empresa || '').trim();
+  const email = (config?.email || '').trim().toLowerCase();
+  if (!name && !email) return null;
+
+  const clients = getAllClients();
+  const projectId = project.id;
+  const existingIndex = clients.findIndex(client => {
+    const sameProject = Array.isArray(client.proyectosIds) && client.proyectosIds.includes(projectId);
+    const sameEmail = email && client.email.trim().toLowerCase() === email;
+    const sameName = !email && client.nombre.trim().toLowerCase() === name.toLowerCase();
+    return sameProject || sameEmail || sameName;
+  });
+  const existing = existingIndex >= 0 ? clients[existingIndex] : undefined;
+  const primaryContact = config?.personas?.find(person => person.nombre.trim());
+  const client: ClientEntity = {
+    id: existing?.id || `cli-${projectId}`,
+    nombre: name || existing?.nombre || 'Cliente',
+    empresa: (config?.empresa || name || existing?.empresa || '').trim(),
+    email: email || existing?.email || '',
+    telefono: (config?.telefono || existing?.telefono || '').trim(),
+    proyectosIds: Array.from(new Set([...(existing?.proyectosIds || []), projectId])),
+    contactoPrincipal: primaryContact
+      ? `${primaryContact.nombre}${primaryContact.cargo ? ` (${primaryContact.cargo})` : ''}`
+      : existing?.contactoPrincipal,
+    notas: existing?.notas,
+  };
+
+  if (existingIndex >= 0) clients[existingIndex] = client;
+  else clients.push(client);
+  saveAllClients(clients);
+  return client;
+}
+
 export function saveAllProjects(projects: ProjectData[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
