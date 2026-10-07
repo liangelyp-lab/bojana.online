@@ -2539,7 +2539,7 @@ function ClientTaskUpdateWidget({
   const files = task.archivos || []
 
   return (
-    <article className={`rounded-3xl border bg-white p-6 transition md:p-7 ${highlighted ? "border-clay outline outline-4 outline-clay/20" : "border-line"}`}>
+    <article data-highlighted-update={highlighted ? "true" : undefined} className={`rounded-3xl border bg-white p-6 transition md:p-7 ${highlighted ? "border-clay outline outline-4 outline-clay/20" : "border-line"}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Eyebrow>{actionLabels[update.accion]}</Eyebrow>
@@ -2671,6 +2671,18 @@ function ClientPortal({
     if (!highlightedTaskId) return
     const timeout = window.setTimeout(() => setHighlightedTaskId(null), 4500)
     return () => window.clearTimeout(timeout)
+  }, [highlightedTaskId])
+
+  useEffect(() => {
+    if (!highlightedTaskId) return
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target
+      if (target instanceof Element && target.closest('[data-highlighted-update="true"]')) return
+      setHighlightedTaskId(null)
+      setExpandedClientTaskId(null)
+    }
+    document.addEventListener("mousedown", handleOutsideClick)
+    return () => document.removeEventListener("mousedown", handleOutsideClick)
   }, [highlightedTaskId])
 
   useEffect(() => {
