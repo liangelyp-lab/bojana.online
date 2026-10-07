@@ -1579,6 +1579,16 @@ function AdminPortal({
     () => selectedProjectId ? getProjectTasks(currentProject) : tasks,
     [currentProject, selectedProjectId, tasks],
   )
+  const studyTasks = useMemo(
+    () => allProjects.flatMap((project) => {
+      const projectName = project.info?.nombre || project.brief?.nombre || "Proyecto"
+      return getProjectTasks(project).map((task) => ({
+        ...task,
+        area: `${projectName} · ${task.area}`,
+      }))
+    }),
+    [allProjects],
+  )
   const workspaceDecision = useMemo<DashboardDecision | null>(() => {
     if (!selectedProjectId) return decision
     const projectDecision = currentProject?.decisiones?.[0]
@@ -1908,14 +1918,14 @@ function AdminPortal({
                     Supervisión técnica de actividades en curso y compromisos con comitentes.
                   </p>
                 </div>
-                {workspaceTasks.length === 0 ? (
+                {studyTasks.length === 0 ? (
                   <EmptyState
                     title="Todavía no hay tareas"
                     description="Las tareas aparecerán cuando crees un proyecto y definas sus necesidades de trabajo."
                     action={{ label: "Crear primer proyecto", onClick: onNewProject }}
                   />
                 ) : (
-                  <TasksPanel onToggleTask={onToggleTask} tasks={workspaceTasks} />
+                  <TasksPanel onToggleTask={onToggleTask} tasks={studyTasks} />
                 )}
               </div>
             )}
