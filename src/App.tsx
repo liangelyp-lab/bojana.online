@@ -683,7 +683,7 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
     projectId: project.id,
     projectName: project.info?.nombre || 'Proyecto',
     isDecision: /(decisi[oó]n|opci[oó]n|aprob(?:ó|ada|ado)|cambios solicitados)/i.test(activity.descripcion),
-    isCommunication: activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:"),
+    isCommunication: activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:") || activity.descripcion.startsWith("Correo enviado al cliente:"),
     notificationKey: `${project.id}-${activity.id}`
   }))).sort((a, b) => {
     const aTime = Date.parse(a.fecha)
@@ -1117,26 +1117,55 @@ function TasksPanel({
   )
 }
 
+type PendingClientActionSummary = {
+  taskId: string
+  taskTitle: string
+  title: string
+  message: string
+  actionLabel: string
+  deadline?: string
+}
+
 function ClientActions({
   decision,
+  pendingAction,
   comments = [],
   onReviewDecision,
 }: {
   decision: DashboardDecision | null
+  pendingAction?: PendingClientActionSummary | null
   comments?: { id: string; autor: string; fecha: string; texto: string }[]
   onReviewDecision: () => void
 }) {
+  const pendingActionCard = pendingAction ? (
+    <article className="rounded-2xl bg-clay-pale p-4">
+      <div className="flex items-start gap-3">
+        <span className="mt-1 size-2.5 shrink-0 rounded-full bg-clay" />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-clay-dark">Respuesta pendiente</p>
+          <p className="mt-1 text-sm font-semibold text-ink">{pendingAction.title}</p>
+          <p className="mt-1 text-xs leading-5 text-ink-muted">{pendingAction.message}</p>
+          <p className="mt-2 text-xs text-ink-faint">{pendingAction.actionLabel} · Tarea: {pendingAction.taskTitle}{pendingAction.deadline ? ` · Vence ${pendingAction.deadline}` : ""}</p>
+        </div>
+      </div>
+      <Button className="mt-4 w-full" onClick={onReviewDecision}>
+        Revisar solicitud pendiente
+      </Button>
+    </article>
+  ) : null
+
   if (!decision) {
     return (
       <section className="rounded-3xl border border-line bg-white p-6">
         <Eyebrow>Cliente</Eyebrow>
         <Heading as="h2" className="mt-2 font-display text-2xl text-ink">Acciones y respuestas</Heading>
-        {comments.length === 0 ? (
+        {pendingActionCard}
+        {comments.length === 0 && !pendingAction ? (
           <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
             Este proyecto todavía no tiene acciones pendientes ni respuestas del cliente.
           </p>
-        ) : (
-          <div className="mt-6 space-y-3">
+        ) : comments.length > 0 ? (
+          <div className={`${pendingAction ? "mt-5 border-t border-line pt-5" : "mt-6"} space-y-3`}>
             {comments.map(comment => (
               <article key={comment.id} className="rounded-2xl border border-line bg-stone/40 p-4">
                 <div className="flex items-center justify-between gap-3 text-xs text-ink-muted">
@@ -1147,7 +1176,7 @@ function ClientActions({
               </article>
             ))}
           </div>
-        )}
+        ) : null}
       </section>
     )
   }
@@ -1170,6 +1199,7 @@ function ClientActions({
       </div>
 
       <div className="mt-6 space-y-3">
+        {pendingActionCard}
         {isApproved ? (
           <article className="rounded-2xl border border-mint/40 bg-mint-pale p-4">
             <div className="flex items-start gap-3">
@@ -1380,6 +1410,36 @@ function AdminPortal({
       optionChosen: projectDecision.opciones?.find((option) => option.id === projectDecision.opcionAprobadaId)?.titulo,
     }
   }, [currentProject, decision, selectedProjectId])
+  const pendingClientAction = useMemo<PendingClientActionSummary | null>(() => {
+    if (!selectedProjectId) return null
+    for (const discipline of currentProject?.disciplinasOperativas || []) {
+      for (const need of discipline.necesidades || []) {
+        for (const task of need.tareas || []) {
+          const action = task.accionCliente
+          if (action?.activa && action.estado === "pendiente") {
+            return {
+              taskId: task.id,
+              taskTitle: task.titulo,
+              title: action.titulo,
+              message: action.mensaje,
+              actionLabel: action.accionRequeridaTexto,
+              deadline: action.fechaLimite,
+            }
+          }
+          if (task.estado === "Esperando al cliente") {
+            return {
+              taskId: task.id,
+              taskTitle: task.titulo,
+              title: task.titulo,
+              message: "Esta tarea está esperando una respuesta del cliente para continuar.",
+              actionLabel: "Responder",
+            }
+          }
+        }
+      }
+    }
+    return null
+  }, [currentProject, selectedProjectId])
   const workspaceMilestones = currentProject?.hitosInternos || []
   const clientComments = (currentProject?.decisiones || []).flatMap(decisionItem =>
     (decisionItem.comentarios || []).map(comment => ({
@@ -1601,7 +1661,7 @@ function AdminPortal({
                         focusUpdateId={notificationTarget?.updateId}
                       />
                       <aside className="space-y-6">
-                        <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} />
+                        <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} pendingAction={pendingClientAction} />
                         <UpcomingPanel milestones={workspaceMilestones} />
                       </aside>
                     </div>

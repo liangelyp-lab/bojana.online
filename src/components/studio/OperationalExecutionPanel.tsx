@@ -50,7 +50,6 @@ import {
   X,
   Zap,
   Paperclip,
-  ArrowRight,
   TrendingUp,
   ExternalLink,
   MessageSquare,
@@ -163,7 +162,6 @@ export default function OperationalExecutionPanel({
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [indexSearch, setIndexSearch] = useState('');
   const [taskError, setTaskError] = useState('');
-  const [waitingBannerDismissed, setWaitingBannerDismissed] = useState(false);
 
   useEffect(() => {
     if (!focusTaskId) return;
@@ -572,12 +570,18 @@ export default function OperationalExecutionPanel({
       descripcion: `Se solicitó acción al comitente: "${actionData.titulo}" (${actionData.accionRequeridaTexto}).`,
       autor: 'Bojana Estudio'
     };
+    const emailActivity = sendEmailImmediately ? {
+      id: `email-${Date.now()}`,
+      fecha: 'Hoy',
+      descripcion: `Correo enviado al cliente: ${project.cliente?.email || 'el cliente'} · Solicitud: "${actionData.titulo}".`,
+      autor: 'Bojana Estudio'
+    } : null;
 
     onUpdateProject({
       ...project,
       disciplinasOperativas: updatedDisciplines,
       progresoTotalCalculado: newProjectProgress,
-      actividadReciente: [newActivity, ...(project.actividadReciente || [])],
+      actividadReciente: [newActivity, ...(emailActivity ? [emailActivity] : []), ...(project.actividadReciente || [])],
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
@@ -1266,58 +1270,6 @@ export default function OperationalExecutionPanel({
             <Check className="w-3.5 h-3.5" />
             <span>Publicar cambios</span>
           </button>
-        </div>
-      )}
-
-      {/* TOP ATTENTION BANNER: REQUIERE ATENCIÓN: Esperando al cliente */}
-      {waitingForClientTasks.length > 0 && !waitingBannerDismissed && (
-        <div className="relative rounded-3xl border border-clay/30 bg-clay-pale p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-fade-in">
-          <button
-            type="button"
-            aria-label="Cerrar aviso de solicitudes pendientes"
-            onClick={() => setWaitingBannerDismissed(true)}
-            className="absolute right-4 top-3 grid size-8 place-items-center rounded-full text-xl leading-none text-bojana-muted transition hover:bg-white/60 hover:text-bojana-ink"
-          >
-            ×
-          </button>
-          <div className="flex items-start sm:items-center gap-3.5">
-            <div className="size-11 rounded-2xl bg-white border border-clay/20 flex items-center justify-center shrink-0 text-clay shadow-xs">
-              <AlertCircle className="size-5.5 text-clay animate-pulse" />
-            </div>
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-full bg-white border border-clay/30 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-clay-dark shadow-2xs">
-                  REQUIERE ATENCIÓN
-                </span>
-                <span className="text-xs font-semibold text-ink">
-                  Esperando al cliente ({waitingForClientTasks.length} {waitingForClientTasks.length === 1 ? 'solicitud activa' : 'solicitudes activas'})
-                </span>
-              </div>
-              <p className="text-xs text-ink-muted leading-relaxed">
-                El avance técnico del equipo Bojana no está demorado. Hay convalidaciones pendientes por parte del comitente.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={() => {
-                const first = waitingForClientTasks[0];
-                if (first) {
-                  setSelectedTaskForAction({
-                    task: first.task,
-                    discId: first.disc.id,
-                    needId: first.need.id
-                  });
-                }
-              }}
-              className="inline-flex items-center gap-2 rounded-full bg-clay px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-clay/90 active:scale-[0.98] cursor-pointer shrink-0"
-            >
-              <span>Ver solicitud pendiente</span>
-              <ArrowRight className="size-3.5 text-white" />
-            </button>
-          </div>
         </div>
       )}
 

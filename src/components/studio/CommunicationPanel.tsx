@@ -10,12 +10,14 @@ interface CommunicationPanelProps {
   onUpdateProject: (project: ProjectData) => void
 }
 
-function isPortalMessage(activity: ProjectActivityLog) {
-  return activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:")
+function isCommunicationEntry(activity: ProjectActivityLog) {
+  return activity.descripcion.startsWith("Mensaje del cliente:")
+    || activity.descripcion.startsWith("Respuesta del estudio:")
+    || activity.descripcion.startsWith("Correo enviado al cliente:")
 }
 
 function messageText(activity: ProjectActivityLog) {
-  return activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio):\s*/, "")
+  return activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio|Correo enviado al cliente):\s*/, "")
 }
 
 export default function CommunicationPanel({ project, onToast, onUpdateProject }: CommunicationPanelProps) {
@@ -24,7 +26,7 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
   const projectMessages = useMemo(
-    () => (project.actividadReciente || []).filter(isPortalMessage).slice().reverse(),
+    () => (project.actividadReciente || []).filter(isCommunicationEntry).slice().reverse(),
     [project.actividadReciente],
   )
   const clientEmail = project.cliente?.email?.trim() || ""
@@ -33,7 +35,7 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
     const activity: ProjectActivityLog = {
       id: `communication-${Date.now()}`,
       fecha: "Ahora",
-      descripcion,
+      descripcion: description,
       autor: "Bojana Estudio",
     }
     onUpdateProject({
@@ -110,10 +112,11 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
             <p className="rounded-2xl border border-dashed border-line p-5 text-sm text-ink-faint">Todavía no hay comentarios enviados desde el portal.</p>
           ) : projectMessages.map(activity => {
             const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
+            const isEmail = activity.descripcion.startsWith("Correo enviado al cliente:")
             return (
               <article className={`rounded-2xl border p-4 ${fromClient ? "border-clay/30 bg-clay-pale/50" : "border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : "Bojana Estudio"}</span>
+                  <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? "Bojana Estudio · Email enviado" : "Bojana Estudio"}</span>
                   <span className="text-ink-faint">{activity.fecha}</span>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink-muted">{messageText(activity)}</p>
