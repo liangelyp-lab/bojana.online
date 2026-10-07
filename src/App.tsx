@@ -1730,6 +1730,7 @@ function ClientSidebar({
   active,
   setActive,
   onBackToAdmin,
+  showAdminLink,
   projectName,
   projectCode,
   notificationCount,
@@ -1739,6 +1740,7 @@ function ClientSidebar({
   active: string
   setActive: (item: string) => void
   onBackToAdmin: () => void
+  showAdminLink: boolean
   projectName: string
   projectCode: string
   notificationCount: number
@@ -1806,8 +1808,8 @@ function ClientSidebar({
 
       <div className="mt-5 border-t border-line pt-4" />
 
-      {expanded && <Button ariaLabel="Volver al administrador" className="mt-2 w-full !justify-start !rounded-2xl !px-3" onClick={onBackToAdmin} title="Volver al administrador" variant="ghost"><Icon className="size-4.5" name="dashboard" /> Volver al admin</Button>}
-      {!expanded && <Button ariaLabel="Volver al administrador" className="mt-2 !size-11 !justify-center !rounded-2xl !px-0" onClick={onBackToAdmin} title="Volver al administrador" variant="ghost"><Icon className="size-4.5" name="dashboard" /></Button>}
+      {showAdminLink && expanded && <Button ariaLabel="Volver al administrador" className="mt-2 w-full !justify-start !rounded-2xl !px-3" onClick={onBackToAdmin} title="Volver al administrador" variant="ghost"><Icon className="size-4.5" name="dashboard" /> Volver al admin</Button>}
+      {showAdminLink && !expanded && <Button ariaLabel="Volver al administrador" className="mt-2 !size-11 !justify-center !rounded-2xl !px-0" onClick={onBackToAdmin} title="Volver al administrador" variant="ghost"><Icon className="size-4.5" name="dashboard" /></Button>}
 
       <div className="mt-auto flex flex-col items-center" title="Elena Marquez · Arquitecta responsable">
         <Button
@@ -2543,6 +2545,7 @@ function ClientPortal({
   currentProject,
   onApproveDecision,
   onBackToAdmin,
+  showAdminLink,
   onUpdateProject,
   onToast,
 }: {
@@ -2550,6 +2553,7 @@ function ClientPortal({
   currentProject: ProjectData
   onApproveDecision: (opt: string) => void
   onBackToAdmin: () => void
+  showAdminLink: boolean
   onUpdateProject: (updated: ProjectData) => void
   onToast: (msg: string) => void
 }) {
@@ -2759,6 +2763,7 @@ function ClientPortal({
         <ClientSidebar
           active={active}
           onBackToAdmin={onBackToAdmin}
+          showAdminLink={showAdminLink}
           projectCode={currentProject.info?.codigo || currentProject.id}
           projectName={currentProject.info?.nombre || activeProject.name}
           notificationCount={notificationCount}
@@ -3086,6 +3091,7 @@ export default function App() {
           currentProject={currentProject}
           onApproveDecision={handleApproveDecision}
           onBackToAdmin={() => setScreen("admin")}
+          showAdminLink={!directToken && ["owner", "admin", "team"].includes(activeUser?.rol || "")}
           onToast={showToast}
           onUpdateProject={handleUpdateProject}
         />
