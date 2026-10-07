@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { ProjectData } from '../../types';
 import {
-  getProjectNextAction,
   getEffectiveProgress,
   getProjectStatusLabel
 } from '../../services/storageService';
-import { lifecycleBadgeClasses } from '../../design/status';
 import { createSecureProjectLink } from '../../services/projectAccess';
 import { EmptyState, Field } from '../ui/DesignSystem';
 import {
@@ -15,7 +13,6 @@ import {
   Check,
   Copy,
   ChevronRight,
-  Zap
 } from 'lucide-react';
 
 interface StudioProjectsListProps {
@@ -157,13 +154,11 @@ export default function StudioProjectsList({
           filteredProjects.map((p) => {
             const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
             const subtitle = p.info?.subtitulo || p.brief?.subtitulo || '';
-            const status = p.info?.estadoGeneral || p.brief?.estadoGeneral || 'En Ejecución';
             const stage = p.info?.etapaActual || 'Documentación ejecutiva';
             const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
             const updateDate = p.info?.ultimaActualizacion || '02 Oct';
             const isCopied = copiedId === p.id;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
-            const progress = getEffectiveProgress(p);
             const progressStatus = getProjectStatusLabel(p);
             const statusClass = progressStatus === 'Completado'
               ? 'bg-mint-pale border-mint/40 text-forest'
@@ -206,13 +201,6 @@ export default function StudioProjectsList({
                     </p>
                   </div>
 
-                  {/* Siguiente Acción badge */}
-                  <div className="pt-1">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-yellow-50 border border-yellow-300 px-3 py-1 text-xs font-semibold text-yellow-800">
-                      <Zap className="size-3 text-clay shrink-0" />
-                      <span>Siguiente: <strong>{getProjectNextAction(p).titulo}</strong></span>
-                    </span>
-                  </div>
                 </div>
 
                 {/* Status Indicator & Last Update */}

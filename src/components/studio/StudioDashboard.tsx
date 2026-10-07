@@ -1,25 +1,22 @@
 import React from 'react';
 import { ProjectData } from '../../types';
-import { getProjectNextAction, getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
+import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
 import { EmptyState } from '../ui/DesignSystem';
 import {
   Plus,
   ChevronRight,
-  Zap,
   FolderKanban
 } from 'lucide-react';
 
 interface StudioDashboardProps {
   projects: ProjectData[];
   onSelectProject: (projectId: string, activity?: { taskId?: string; updateId?: string; communication?: boolean }) => void;
-  onNavigateToProjects: () => void;
   onNewProject: () => void;
 }
 
 export default function StudioDashboard({
   projects,
   onSelectProject,
-  onNavigateToProjects,
   onNewProject
 }: StudioDashboardProps) {
   const getProjectStatus = (project: ProjectData) => {
@@ -164,7 +161,6 @@ export default function StudioDashboard({
                     : 'bg-blue-50 border-blue-200 text-blue-800';
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
-              const nextAction = getProjectNextAction(p);
 
               return (
                 <div
@@ -192,19 +188,6 @@ export default function StudioDashboard({
                       </p>
                     </div>
 
-                    {/* Siguiente Acción Destacada */}
-                    <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-4 text-xs space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-yellow-800">
-                        <Zap className="size-3.5 text-clay shrink-0" />
-                        <span>Siguiente acción</span>
-                      </div>
-                      <strong className="block text-sm font-semibold text-yellow-900">
-                        {nextAction.titulo}
-                      </strong>
-                      <p className="text-xs text-ink-muted line-clamp-2">
-                        {nextAction.descripcion}
-                      </p>
-                    </div>
                   </div>
 
                   <div className="flex items-center justify-between border-t border-line pt-4 text-xs text-ink-muted">
