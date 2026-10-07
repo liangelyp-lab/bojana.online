@@ -54,13 +54,23 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
   const requester = await requireSupabaseUser(req, res);
   if (!requester) return;
   const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const sessionToken = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+  const sessionHeaders = anonKey && sessionToken
+    ? { apikey: anonKey, authorization: `Bearer ${sessionToken}`, "content-type": "application/json" }
+    : null;
   try {
-    const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role&limit=1`, { headers: adminHeaders });
+    let queryHeaders = adminHeaders;
+    let memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role&limit=1`, { headers: queryHeaders });
+    if (!memberResponse.ok && sessionHeaders) {
+      queryHeaders = sessionHeaders;
+      memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role&limit=1`, { headers: queryHeaders });
+    }
     const members = await memberResponse.json() as Array<{ id: string; studio_id: string; role: string }>;
     if (!memberResponse.ok) return res.status(502).json({ error: "No pudimos validar el acceso al estudio." });
     let member = members[0];
     if (!member && requester.email) {
-      const emailResponse = await fetch(`${baseUrl}/rest/v1/studio_users?email=ilike.${encodeURIComponent(requester.email)}&select=id,studio_id,role&limit=1`, { headers: adminHeaders });
+      const emailResponse = await fetch(`${baseUrl}/rest/v1/studio_users?email=ilike.${encodeURIComponent(requester.email)}&select=id,studio_id,role&limit=1`, { headers: queryHeaders });
       const emailMembers = await emailResponse.json() as typeof members;
       if (!emailResponse.ok) {
         console.error("Studio user email lookup failed", emailResponse.status, emailMembers);
@@ -77,7 +87,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       // Staff can see every project in the studio. Clients only receive the
       // projects explicitly assigned to their user through project_members.
       if (!isStaff) {
-        const accessResponse = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(member.id)}&select=project_id`, { headers: adminHeaders });
+        const accessResponse = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(member.id)}&select=project_id`, { headers: queryHeaders });
         const accessRows = await accessResponse.json() as Array<{ project_id: string }>;
         if (!accessResponse.ok) return res.status(502).json({ error: "No pudimos validar tus proyectos." });
         const projectIds = [...new Set(accessRows.map(row => row.project_id).filter(Boolean))];
@@ -85,7 +95,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
         projectsUrl += `&id=in.(${projectIds.map(projectId => encodeURIComponent(projectId)).join(",")})`;
       }
 
-      const response = await fetch(projectsUrl, { headers: adminHeaders });
+      const response = await fetch(projectsUrl, { headers: queryHeaders });
       const rows = await response.json();
       if (!response.ok) return res.status(502).json({ error: "No pudimos cargar los proyectos." });
       return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
