@@ -39,6 +39,32 @@ interface PublishInviteModalProps {
   onToast: (msg: string) => void;
 }
 
+function normalizePublishProject(project: ProjectData): ProjectData {
+  const raw = (project && typeof project === 'object' ? project : {}) as Partial<ProjectData>;
+  const info = raw.info && typeof raw.info === 'object' ? raw.info : {};
+  const baseContractual = raw.baseContractual && typeof raw.baseContractual === 'object' ? raw.baseContractual : undefined;
+  const disciplines = Array.isArray(raw.disciplinas) ? raw.disciplinas : [];
+  const operational = Array.isArray(raw.disciplinasOperativas)
+    ? raw.disciplinasOperativas.map(discipline => ({
+        ...discipline,
+        necesidades: Array.isArray(discipline?.necesidades)
+          ? discipline.necesidades.map(need => ({ ...need, tareas: Array.isArray(need?.tareas) ? need.tareas : [] }))
+          : [],
+      }))
+    : undefined;
+  return {
+    ...raw,
+    id: typeof raw.id === 'string' ? raw.id : '',
+    lifecycleStatus: raw.lifecycleStatus || 'LISTO_PARA_COMPARTIR',
+    info: { ...info, nombre: typeof info.nombre === 'string' ? info.nombre : 'Proyecto' },
+    disciplinas: disciplines,
+    cliente: raw.cliente && typeof raw.cliente === 'object' ? raw.cliente : {} as ProjectData['cliente'],
+    baseContractual,
+    disciplinasOperativas: operational,
+    historialInvitaciones: Array.isArray(raw.historialInvitaciones) ? raw.historialInvitaciones : [],
+  } as ProjectData;
+}
+
 export default function PublishInviteModal({
   isOpen,
   project,
@@ -47,6 +73,7 @@ export default function PublishInviteModal({
   onUpdateProject,
   onToast
 }: PublishInviteModalProps) {
+  project = normalizePublishProject(project);
   const [publishError, setPublishError] = useState('');
 
   useEffect(() => {
