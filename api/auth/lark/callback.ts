@@ -21,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({ app_id: appId, app_secret: appSecret }),
     });
     const appToken = await appTokenResponse.json() as { code: number; app_access_token?: string };
-    if (!appTokenResponse.ok || appToken.code !== 0 || !appToken.app_access_token) throw new Error('Unable to obtain Lark app token');
+    if (!appTokenResponse.ok || appToken.code !== 0 || !appToken.app_access_token) throw new Error(`app_token:${appToken.code}:${(appToken as any).msg || 'unknown'}`);
 
     const userTokenResponse = await fetch('https://open.larksuite.com/open-apis/authen/v1/access_token', {
       method: 'POST',
@@ -29,13 +29,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({ app_access_token: appToken.app_access_token, grant_type: 'authorization_code', code: String(code) }),
     });
     const userToken = await userTokenResponse.json() as { code: number; access_token?: string; expires_in?: number };
-    if (!userTokenResponse.ok || userToken.code !== 0 || !userToken.access_token) throw new Error('Unable to obtain Lark user token');
+    if (!userTokenResponse.ok || userToken.code !== 0 || !userToken.access_token) throw new Error(`user_token:${userToken.code}:${(userToken as any).msg || 'unknown'}`);
 
     const userResponse = await fetch('https://open.larksuite.com/open-apis/authen/v1/user_info', {
       headers: { authorization: `Bearer ${userToken.access_token}` },
     });
     const user = await userResponse.json() as { code: number; data?: { open_id?: string; union_id?: string; name?: string; email?: string } };
-    if (!userResponse.ok || user.code !== 0 || !user.data) throw new Error('Unable to obtain Lark user profile');
+    if (!userResponse.ok || user.code !== 0 || !user.data) throw new Error(`user_info:${user.code}:${(user as any).msg || 'unknown'}`);
 
     const session = Buffer.from(JSON.stringify({
       openId: user.data.open_id,
@@ -51,6 +51,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.redirect(302, '/');
   } catch (err) {
     console.error('Lark OAuth callback failed', err);
+    const detail = err instanceof Error ? err.message : 'unknown';
+    console.error('Lark OAuth callback failed:', detail);
     return res.redirect(302, '/?auth_error=lark_callback_failed');
   }
 }
