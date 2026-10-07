@@ -28,11 +28,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       headers: { 'content-type': 'application/json; charset=utf-8' },
       body: JSON.stringify({ app_access_token: appToken.app_access_token, grant_type: 'authorization_code', code: String(code) }),
     });
-    const userToken = await userTokenResponse.json() as { code: number; access_token?: string; expires_in?: number };
-    if (!userTokenResponse.ok || userToken.code !== 0 || !userToken.access_token) throw new Error(`user_token:${userToken.code}:${(userToken as any).msg || 'unknown'}`);
+    const userToken = await userTokenResponse.json() as { code: number; access_token?: string; expires_in?: number; data?: { access_token?: string; expires_in?: number } };
+    const userAccessToken = userToken.access_token || userToken.data?.access_token;
+    if (!userTokenResponse.ok || userToken.code !== 0 || !userAccessToken) throw new Error(`user_token:${userToken.code}:${(userToken as any).msg || 'unknown'}`);
 
     const userResponse = await fetch('https://open.larksuite.com/open-apis/authen/v1/user_info', {
-      headers: { authorization: `Bearer ${userToken.access_token}` },
+      headers: { authorization: `Bearer ${userAccessToken}` },
     });
     const user = await userResponse.json() as { code: number; data?: { open_id?: string; union_id?: string; name?: string; email?: string } };
     if (!userResponse.ok || user.code !== 0 || !user.data) throw new Error(`user_info:${user.code}:${(user as any).msg || 'unknown'}`);

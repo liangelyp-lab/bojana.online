@@ -1,5 +1,5 @@
 import { ImapFlow } from "imapflow"
-import { requireSupabaseUser } from "../_lib/auth"
+import { requireSupabaseUser } from "../_lib/auth.js"
 
 function config() {
   const host = process.env.MAIL_HOST || process.env.SMTP_HOST

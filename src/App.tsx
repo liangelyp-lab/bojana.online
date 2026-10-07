@@ -486,12 +486,12 @@ function PasswordReset({ accessToken, refreshToken, onComplete }: { accessToken:
   )
 }
 
-function SignIn({ onSignIn }: { onSignIn: (email: string, password: string) => Promise<boolean> }) {
+function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: string) => Promise<boolean>; authError?: string | null }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(authError || null)
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -2878,6 +2878,12 @@ export default function App() {
     return { accessToken: hash.get("access_token"), refreshToken: hash.get("refresh_token") || undefined, type: hash.get("type") }
   }, [])
   const directToken = useMemo(() => new URLSearchParams(window.location.search).get("portal"), [])
+  const authError = useMemo(() => {
+    const value = new URLSearchParams(window.location.search).get("auth_error")
+    if (value === "lark_user_not_authorized") return "Tu cuenta de Lark todavía no está autorizada en el estudio. Pedí que te agreguen desde Configuración."
+    if (value === "lark_callback_failed") return "No pudimos completar el acceso con Lark. Verificá la configuración de la aplicación."
+    return value ? "No pudimos iniciar sesión con Lark." : null
+  }, [])
   const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : directToken ? "client" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
@@ -3003,6 +3009,7 @@ export default function App() {
       )}
       {screen === "signin" && (
         <SignIn
+          authError={authError}
           onSignIn={async (email, password) => {
             try {
               const user = await signInWithPassword(email, password)

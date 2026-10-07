@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { requireSupabaseUser } from "../_lib/auth";
+import { requireSupabaseUser } from "../_lib/auth.js";
 
 type VercelRequest = any;
 type VercelResponse = any;
