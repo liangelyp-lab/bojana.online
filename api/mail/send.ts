@@ -1,7 +1,9 @@
 import nodemailer from "nodemailer"
+import { requireSupabaseUser } from "../_lib/auth"
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") return res.status(405).json({ message: "Method not allowed" })
+  if (!await requireSupabaseUser(req, res)) return
   const { to, subject, text, inReplyTo } = req.body || {}
   if (!to || !subject || !text) return res.status(400).json({ message: "to, subject y text son obligatorios" })
   try {

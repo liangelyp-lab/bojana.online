@@ -1,4 +1,5 @@
 import { ImapFlow } from "imapflow"
+import { requireSupabaseUser } from "../_lib/auth"
 
 function config() {
   const required = ["MAIL_HOST", "MAIL_PORT", "MAIL_USER", "MAIL_PASSWORD"] as const
@@ -12,6 +13,7 @@ function config() {
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" })
+  if (!await requireSupabaseUser(req, res)) return
   const client = new ImapFlow({ ...config(), secure: true, logger: false })
   try {
     await client.connect()

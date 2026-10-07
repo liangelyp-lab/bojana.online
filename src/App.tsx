@@ -26,7 +26,7 @@ import Library from "./components/Library";
 import { Badge, Button, EmptyState, InputControl, Tabs } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
-import { getAuthUser, signInWithPassword, signOut as signOutAuth, type AuthUser } from "./services/authService";
+import { getAuthUser, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
 
 
 // ─── Icon ────────────────────────────────────────────────────────────────────
@@ -438,6 +438,53 @@ const documents = [
 ]
 
 // ─── Sign In Screen ───────────────────────────────────────────────────────────
+
+function PasswordReset({ accessToken, refreshToken, onComplete }: { accessToken: string; refreshToken?: string; onComplete: () => void }) {
+  const [password, setPassword] = useState("")
+  const [confirmation, setConfirmation] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSubmitted(true)
+    if (password.length < 8 || password !== confirmation) return
+    setError(null)
+    void updatePassword(password, accessToken, refreshToken)
+      .then(() => setSaved(true))
+      .catch((reason: unknown) => setError(reason instanceof Error ? reason.message : "No pudimos guardar la contraseña."))
+  }
+
+  return (
+    <main className="signin-shell fixed inset-0 grid h-[100dvh] min-h-0 max-h-[100dvh] overflow-hidden bg-canvas lg:grid-cols-2">
+      <section className="flex h-full min-h-0 flex-col overflow-hidden px-6 py-4 sm:px-10 sm:py-5 lg:px-14 lg:py-8 xl:px-20">
+        <div className="signin-content my-auto w-full max-w-md py-3 sm:py-5 lg:mx-auto lg:py-8">
+          <Eyebrow>Seguridad del portal</Eyebrow>
+          <Heading as="h1" className="mt-2 font-display text-4xl leading-none tracking-tight text-ink sm:mt-4 sm:text-5xl">Crear nueva contraseña</Heading>
+          <p className="mt-3 max-w-sm text-sm leading-5 text-ink-muted sm:mt-5 sm:leading-6">Elegí una contraseña nueva para proteger tu acceso a Bojana Estudio.</p>
+          {saved ? (
+            <div className="mt-7 space-y-4">
+              <p className="rounded-xl bg-sage-pale px-4 py-3 text-sm text-forest">La contraseña se guardó correctamente.</p>
+              <Button className="!min-h-12 w-full" onClick={onComplete}>Ir al inicio de sesión <Icon className="size-4" name="arrow" /></Button>
+            </div>
+          ) : (
+            <form className="mt-7 space-y-4" onSubmit={handleSubmit}>
+              <Field autoComplete="new-password" icon="lock" id="new-password" label="Nueva contraseña" onChange={setPassword} placeholder="Mínimo 8 caracteres" type="password" value={password} />
+              <Field autoComplete="new-password" icon="lock" id="confirm-password" label="Repetir contraseña" onChange={setConfirmation} placeholder="Repetí la contraseña" type="password" value={confirmation} />
+              {submitted && password.length < 8 && <p className="rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark">La contraseña debe tener al menos 8 caracteres.</p>}
+              {submitted && password.length >= 8 && password !== confirmation && <p className="rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark">Las contraseñas no coinciden.</p>}
+              {error && <p className="rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark">{error}</p>}
+              <Button className="!min-h-12 w-full" type="submit">Guardar nueva contraseña <Icon className="size-4" name="check" /></Button>
+            </form>
+          )}
+        </div>
+        <div className="flex items-center justify-between gap-4 text-xs text-ink-faint"><p>2026 Bojana Estudio</p><p>Privacidad - Seguridad</p></div>
+      </section>
+      <section className="relative hidden h-full min-h-0 overflow-hidden bg-forest p-12 text-white lg:flex lg:flex-col lg:justify-end xl:p-16"><img src={bojanaLogoWhite} alt="Bojana Estudio" className="relative h-auto w-44 opacity-80" /></section>
+    </main>
+  )
+}
 
 function SignIn({ onSignIn }: { onSignIn: (email: string, password: string) => Promise<boolean> }) {
   const [email, setEmail] = useState("")
@@ -2825,7 +2872,11 @@ function ClientPortal({
 type Screen = "signin" | "admin" | "client"
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>(() => getAuthUser() ? "admin" : "signin")
+  const recoveryParams = useMemo(() => {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    return { accessToken: hash.get("access_token"), refreshToken: hash.get("refresh_token") || undefined, type: hash.get("type") }
+  }, [])
+  const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
@@ -2872,6 +2923,14 @@ export default function App() {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
   const [projectBeingEdited, setProjectBeingEdited] = useState<ProjectData | undefined>(undefined)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    void restoreSession().then(user => {
+      if (!user) return
+      setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: "admin" })
+      setScreen("admin")
+    }).catch(() => undefined)
+  }, [])
 
   useEffect(() => {
     void hydrateProjectsFromSupabase().then((projects) => {
@@ -2923,6 +2982,9 @@ export default function App() {
 
   return (
     <>
+      {screen === "reset" && recoveryParams.accessToken && (
+        <PasswordReset accessToken={recoveryParams.accessToken} refreshToken={recoveryParams.refreshToken} onComplete={() => { window.history.replaceState({}, "", window.location.pathname); setScreen("signin") }} />
+      )}
       {screen === "signin" && (
         <SignIn
           onSignIn={async (email, password) => {

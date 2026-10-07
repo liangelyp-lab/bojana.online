@@ -12,7 +12,7 @@ interface AuthSessionResponse {
 
 const url = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, "");
 const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const SESSION_KEY = "bojana-supabase-session";
+let currentSession: AuthSessionResponse | null = null;
 
 export const isAuthConfigured = Boolean(url && anonKey);
 
@@ -26,36 +26,49 @@ function headers() {
 
 export async function signInWithPassword(email: string, password: string): Promise<AuthUser> {
   if (!isAuthConfigured) throw new Error("La autenticación todavía no está configurada.");
-  const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+  const response = await fetch("/api/auth/supabase/login", {
     method: "POST",
-    headers: headers(),
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
   const data = await response.json() as AuthSessionResponse & { msg?: string; error_description?: string };
   if (!response.ok) throw new Error(data.error_description || data.msg || "Correo o contraseña incorrectos.");
-  localStorage.setItem(SESSION_KEY, JSON.stringify(data));
+  currentSession = data;
   return toAuthUser(data.user);
 }
 
-export function getAuthUser(): AuthUser | null {
-  try {
-    const session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null") as AuthSessionResponse | null;
-    return session?.user ? toAuthUser(session.user) : null;
-  } catch {
-    return null;
-  }
+export async function restoreSession(): Promise<AuthUser | null> {
+  const response = await fetch("/api/auth/supabase/session", { credentials: "include" });
+  if (!response.ok) return null;
+  const data = await response.json() as { user: AuthSessionResponse["user"]; access_token: string };
+  currentSession = { ...data, refresh_token: "" };
+  return toAuthUser(data.user);
 }
 
 export function getAccessToken(): string | null {
-  try {
-    return (JSON.parse(localStorage.getItem(SESSION_KEY) || "null") as AuthSessionResponse | null)?.access_token || null;
-  } catch {
-    return null;
-  }
+  return currentSession?.access_token || null;
 }
 
-export function signOut(): void {
-  localStorage.removeItem(SESSION_KEY);
+export function getAuthUser(): AuthUser | null {
+  return currentSession?.user ? toAuthUser(currentSession.user) : null;
+}
+
+export async function signOut(): Promise<void> {
+  await fetch("/api/auth/supabase/logout", { method: "POST", credentials: "include" });
+  currentSession = null;
+}
+
+export async function updatePassword(password: string, accessToken: string, refreshToken?: string): Promise<void> {
+  const response = await fetch("/api/auth/supabase/update-password", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password, accessToken, refreshToken }),
+  });
+  const data = await response.json() as { error?: string };
+  if (!response.ok) throw new Error(data.error || "No pudimos guardar la nueva contraseña.");
+  currentSession = null;
 }
 
 function toAuthUser(user: AuthSessionResponse["user"]): AuthUser {
