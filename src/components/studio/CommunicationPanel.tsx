@@ -106,19 +106,21 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
           </div>
           <span className="rounded-full bg-stone px-3 py-1 text-xs font-semibold text-ink-muted">{projectMessages.length} mensajes</span>
         </div>
-        <div className="mt-4 space-y-2">
+        <div className="mt-4 space-y-3">
           {projectMessages.length === 0 ? (
             <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-faint">Todavía no hay comentarios enviados desde el portal.</p>
           ) : projectMessages.map(activity => {
             const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
             const isEmail = activity.descripcion.startsWith("Correo enviado al cliente:")
             return (
-              <article className={`rounded-2xl border p-4 ${fromClient ? "border-clay/30 bg-clay-pale/50" : "border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? "Bojana Estudio · Email enviado" : "Bojana Estudio"}</span>
-                  <span className="text-ink-faint">{activity.fecha}</span>
+              <article className={`flex ${fromClient ? "justify-start" : "justify-end"}`} key={activity.id}>
+                <div className={`max-w-[82%] rounded-2xl border px-4 py-3 ${fromClient ? "rounded-tl-md border-clay/30 bg-clay-pale/50" : "rounded-tr-md border-mint/40 bg-mint-pale/40"}`}>
+                  <div className="flex items-center justify-between gap-4 text-[11px]">
+                    <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? "Bojana Estudio · Email" : "Bojana Estudio"}</span>
+                    <time className="shrink-0 text-ink-faint">{activity.fecha}</time>
+                  </div>
+                  <p className="mt-1.5 whitespace-pre-wrap text-sm leading-5 text-ink-muted">{messageText(activity)}</p>
                 </div>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink-muted">{messageText(activity)}</p>
               </article>
             )
           })}
