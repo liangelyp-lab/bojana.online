@@ -4,7 +4,6 @@ import { getProjectNextAction } from '../../services/storageService';
 import { EmptyState } from '../ui/DesignSystem';
 import {
   Plus,
-  ArrowRight,
   ChevronRight,
   Zap,
   FolderKanban
@@ -137,22 +136,6 @@ export default function StudioDashboard({
             </h2>
           </div>
 
-          <button
-            type="button"
-            onClick={onNavigateToProjects}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-ink transition cursor-pointer"
-          >
-            <span>Ver todos</span>
-            <ArrowRight className="size-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={onNewProject}
-            className="inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 active:scale-[0.98]"
-          >
-            <Plus className="size-4" />
-            <span>Nuevo proyecto</span>
-          </button>
         </div>
 
         {/* Project Cards Grid */}
