@@ -73,8 +73,24 @@ async function resolveLarkEmail(userInfoEmail: unknown, accessToken: string) {
     headers: { authorization: `Bearer ${accessToken}` },
   });
   if (!profileResponse.ok) return '';
-  const profile = await profileResponse.json() as { data?: { email?: string; email_address?: string; mail_address?: string } };
-  return String(profile.data?.email || profile.data?.email_address || profile.data?.mail_address || '').trim().toLowerCase();
+  const profile = await profileResponse.json();
+  return findEmail(profile).toLowerCase();
+}
+
+function findEmail(value: unknown, depth = 0): string {
+  if (depth > 5 || value === null || typeof value !== 'object') return '';
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (/email|mail_address/i.test(key)) {
+      if (typeof entry === 'string' && entry.includes('@')) return entry.trim();
+      if (entry && typeof entry === 'object') {
+        const nested = findEmail(entry, depth + 1);
+        if (nested) return nested;
+      }
+    }
+    const nested = findEmail(entry, depth + 1);
+    if (nested) return nested;
+  }
+  return '';
 }
 
 function parseCookies(value: string) {
