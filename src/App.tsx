@@ -735,11 +735,6 @@ function AdminSidebar({
           >
             <Icon className="size-4.5" name={item.icon} />
             {item.label}
-            {item.label === "Tareas" && (
-              <Badge tone="danger" className="ml-auto px-2 py-0.5">
-                8
-              </Badge>
-            )}
           </Button>
         ))}
       </nav>
