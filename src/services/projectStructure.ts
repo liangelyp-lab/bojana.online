@@ -36,10 +36,15 @@ export function getClientProjectSequence(project: ProjectData) {
   if (project.disciplinasOperativas === undefined) {
     return (project.progreso || [])
       .filter((p) => p.tipo === "etapa")
-      .sort((a, b) => a.orden - b.orden);
+      .sort((a, b) => a.orden - b.orden)
+      .map((stage) => ({
+        ...stage,
+        disciplina: project.disciplinas?.[0] || "General",
+        tareas: [],
+      }));
   }
   return project.disciplinasOperativas.flatMap((discipline) =>
-    discipline.necesidades.flatMap((need) => {
+    (discipline.necesidades || []).flatMap((need) => {
       if (!need.tareas.length)
         return [
           {
