@@ -110,13 +110,20 @@ export default function RequestClientActionModal({
   }, [isOpen, onClose]);
 
   const [activeTab, setActiveTab] = useState<'config' | 'email_preview'>('config');
-  const initialTipo = prefill?.opciones?.length ? 'elegir_alternativa' : existing?.tipo || 'aprobar_rechazar';
+  const updateTipo = prefill?.accion === 'solicitud_informacion'
+    ? 'enviar_informacion'
+    : prefill?.opciones?.length
+      ? 'elegir_alternativa'
+      : prefill?.accion && prefill.accion !== 'borrador'
+        ? 'aprobar_rechazar'
+        : undefined;
+  const initialTipo = updateTipo || existing?.tipo || 'aprobar_rechazar';
   const initialEmailConfig = clientActionEmailConfig[initialTipo];
   const prefillMessage = [prefill?.descripcion, prefill?.recursos].filter(Boolean).join('\n\nRecursos de la actualización:\n');
   const [tipo, setTipo] = useState<ClientActionType>(initialTipo);
   const [titulo, setTitulo] = useState(prefill?.titulo || existing?.titulo || initialEmailConfig.title(task.titulo));
   const [mensaje, setMensaje] = useState(prefillMessage || existing?.mensaje || initialEmailConfig.message);
-  const [accionTexto, setAccionTexto] = useState(existing?.accionRequeridaTexto || initialEmailConfig.actionText);
+  const [accionTexto, setAccionTexto] = useState(updateTipo ? initialEmailConfig.actionText : existing?.accionRequeridaTexto || initialEmailConfig.actionText);
   const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || prefill?.fechaLimiteRespuesta || '');
   const [bloquear, setBloquear] = useState(existing?.bloquearSiguientesEtapas ?? true);
   const [pesoPct, setPesoPct] = useState(existing?.pesoPorcentaje ?? 10);
