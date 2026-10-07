@@ -3,7 +3,7 @@ import { ProjectData } from '../../types';
 import {
   getProjectNextAction,
   getEffectiveProgress,
-  getLifecycleLabel
+  getProjectStatusLabel
 } from '../../services/storageService';
 import { lifecycleBadgeClasses } from '../../design/status';
 import { createSecureProjectLink } from '../../services/projectAccess';
@@ -164,13 +164,14 @@ export default function StudioProjectsList({
             const isCopied = copiedId === p.id;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
             const progress = getEffectiveProgress(p);
-            const progressStatus = p.lifecycleStatus === 'BORRADOR'
-              ? 'Borrador'
-              : p.lifecycleStatus === 'LISTO_PARA_COMPARTIR'
-                ? 'Revisión'
-                : progress >= 100
-                  ? 'Completado'
-                  : 'En progreso';
+            const progressStatus = getProjectStatusLabel(p);
+            const statusClass = progressStatus === 'Completado'
+              ? 'bg-mint-pale border-mint/40 text-forest'
+              : progressStatus === 'Revisión'
+                ? 'bg-sand/30 border-sand-strong/40 text-ink'
+                : progressStatus === 'Borrador'
+                  ? 'bg-stone border-line text-ink-faint'
+                  : 'bg-clay-pale border-clay/30 text-clay-dark';
 
             return (
               <div
@@ -182,11 +183,7 @@ export default function StudioProjectsList({
                 <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-semibold border ${
-                        p.lifecycleStatus
-                          ? lifecycleBadgeClasses(p.lifecycleStatus)
-                          : 'bg-mint-pale text-forest border-mint/40'
-                      }`}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-semibold border ${statusClass}`}
                     >
                       <span className="size-1.5 rounded-full bg-current opacity-70" />
                         <span>{progressStatus}</span>

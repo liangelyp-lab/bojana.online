@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProjectData } from '../../types';
-import { getProjectNextAction, getEffectiveProgress } from '../../services/storageService';
+import { getProjectNextAction, getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
 import { EmptyState } from '../ui/DesignSystem';
 import {
   Plus,
@@ -23,11 +23,7 @@ export default function StudioDashboard({
   onNewProject
 }: StudioDashboardProps) {
   const getProjectStatus = (project: ProjectData) => {
-    const progress = getEffectiveProgress(project);
-    if (project.lifecycleStatus === 'BORRADOR') return 'Borrador';
-    if (project.lifecycleStatus === 'LISTO_PARA_COMPARTIR') return 'Revisión';
-    if (progress >= 100) return 'Completado';
-    return 'En progreso';
+    return getProjectStatusLabel(project);
   };
 
   // Active projects (not finished)

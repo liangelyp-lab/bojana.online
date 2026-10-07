@@ -27,6 +27,7 @@ import {
   calculateProjectProgressFromDisciplines,
   generateEmptyOperationalDisciplines,
   getEffectiveProgress,
+  getProjectStatusLabel,
   getLifecycleLabel,
   publishAndActivateProject
 } from '../../services/storageService';
@@ -1159,12 +1160,16 @@ export default function OperationalExecutionPanel({
                 {projectTitle}
               </h1>
               <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1 text-xs font-semibold border ${
-                projectProgress > 0
+                getProjectStatusLabel(project) === 'Completado'
                   ? "text-forest bg-mint-pale border-mint/40"
-                  : "text-ink-muted bg-stone border-line"
+                  : getProjectStatusLabel(project) === 'Revisión'
+                    ? "text-ink bg-sand/30 border-sand-strong/40"
+                    : getProjectStatusLabel(project) === 'En progreso'
+                      ? "text-clay-dark bg-clay-pale border-clay/30"
+                      : "text-ink-faint bg-stone border-line"
               }`}>
                 <span className="size-1.5 rounded-full bg-current opacity-70" />
-                <span>{projectProgress}% completo</span>
+                <span>{getProjectStatusLabel(project)}</span>
               </span>
               {project.lifecycleStatus && project.lifecycleStatus !== 'ACTIVO' && (
                 <span className={`font-sans text-xs font-medium px-2.5 py-1 rounded-bojana-badge border ${

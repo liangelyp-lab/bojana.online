@@ -68,6 +68,25 @@ export function getEffectiveProgress(project: ProjectData): number {
   return project.progresoTotalCalculado ?? 0;
 }
 
+/** Canonical project badge label shared by dashboard and project list. */
+export function getProjectStatusLabel(project: ProjectData): 'Borrador' | 'En progreso' | 'Revisión' | 'Completado' {
+  if (project.lifecycleStatus === 'BORRADOR') return 'Borrador';
+
+  const tasks = (project.disciplinasOperativas || []).flatMap((discipline) =>
+    discipline.necesidades.flatMap((need) => need.tareas || [])
+  );
+  const waitingForReview = tasks.some((task) =>
+    task.estado === 'En revisión' ||
+    task.estado === 'Esperando al cliente' ||
+    task.estado === 'Requiere ajustes' ||
+    task.accionCliente?.activa && task.accionCliente.estado === 'pendiente'
+  );
+
+  if (getEffectiveProgress(project) >= 100 || project.lifecycleStatus === 'COMPLETADO') return 'Completado';
+  if (project.lifecycleStatus === 'LISTO_PARA_COMPARTIR' || waitingForReview) return 'Revisión';
+  return getEffectiveProgress(project) > 0 ? 'En progreso' : 'Borrador';
+}
+
 /**
  * Returns a human-readable label and color class for a lifecycle status.
  */
