@@ -2,7 +2,7 @@ import { Badge, Button, Field, InputControl, Select, SelectControl, StatusBadge,
 import { getPendingTaskDependencies } from '../../services/projectStructure';
 import TaskDeliverables from '../storage/TaskDeliverables';
 import { publishStorageProject } from '../../services/driveStorageService';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   ProjectData,
   OperationalDiscipline,
@@ -16,6 +16,7 @@ import {
   DeliverableInteractionType,
   TaskUpdateAction,
   TaskUpdate,
+  AvancePost,
   TaskContentType,
   DecisionItem,
   calculateTaskProgress
@@ -179,9 +180,6 @@ export default function OperationalExecutionPanel({
   // Real-time recalculation event to show prominent cascading feedback
   const [recalcEvent, setRecalcEvent] = useState<RecalculationEvent | null>(null);
 
-  // New task input state per need
-  const [inlineNewTaskInput, setInlineNewTaskInput] = useState<{ [needId: string]: string }>({});
-
   // Quick activity log input
   const [newActivityText, setNewActivityText] = useState('');
   const [newExpectedDeliverable, setNewExpectedDeliverable] = useState('');
@@ -190,6 +188,8 @@ export default function OperationalExecutionPanel({
   const [updateDraft, setUpdateDraft] = useState({ titulo: '', descripcion: '', recursos: '', accion: 'revision' as TaskUpdateAction, opciones: emptyUpdateOptions() });
   const [resourcesOpen, setResourcesOpen] = useState(false);
   const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null);
+  const [showProjectUpdateModal, setShowProjectUpdateModal] = useState(false);
+  const [projectUpdateDraft, setProjectUpdateDraft] = useState({ titulo: '', texto: '', categoria: 'General' });
   const [attachmentFunction, setAttachmentFunction] = useState<DocumentFunction>('resultado');
   const [attachmentDeliverableId, setAttachmentDeliverableId] = useState('');
 
@@ -415,62 +415,6 @@ export default function OperationalExecutionPanel({
     onToast(visibleCliente ? 'Necesidad completa visible para el cliente' : 'Necesidad completa oculta para el cliente');
   };
 
-  // Add task inline to a need
-  const handleAddInlineTask = (discId: DisciplinaType, needId: string) => {
-    const title = (inlineNewTaskInput[needId] || '').trim();
-    if (!title) return;
-
-    const disc = disciplines.find(d => d.id === discId);
-    const need = disc?.necesidades.find(n => n.id === needId);
-    if (!disc || !need) return;
-
-    const nextTaskWeight = Math.round(100 / (need.tareas.length + 1));
-    const newTask: ExecutionTask = {
-      id: `${needId}-inline-${Date.now()}`,
-      titulo: title,
-      pesoPorcentaje: nextTaskWeight,
-      estado: 'Pendiente',
-      visibleCliente: true,
-      tiposContenido: ['archivo'],
-      subetapas: [
-        { id: `sub-${Date.now()}-1`, label: 'Iniciar tarea', completada: false, pesoPorcentaje: 50 },
-        { id: `sub-${Date.now()}-2`, label: 'Revisión y entrega', completada: false, pesoPorcentaje: 50 }
-      ]
-    };
-
-    const newTareas = [...need.tareas.map(task => ({ ...task, pesoPorcentaje: nextTaskWeight })), newTask];
-    const updatedNeed: OperationalNeed = {
-      ...need,
-      tareas: newTareas,
-      progresoCalculado: calculateNeedProgress({ ...need, tareas: newTareas })
-    };
-
-    const updatedDisc: OperationalDiscipline = {
-      ...disc,
-      necesidades: disc.necesidades.map(n => n.id === need.id ? updatedNeed : n),
-      progresoCalculado: calculateDisciplineProgress({
-        ...disc,
-        necesidades: disc.necesidades.map(n => n.id === need.id ? updatedNeed : n)
-      })
-    };
-
-    const updatedDisciplines = disciplines.map(d => d.id === disc.id ? updatedDisc : d);
-    const newProjectProg = calculateProjectProgressFromDisciplines(updatedDisciplines);
-
-    onUpdateProject({
-      ...project,
-      disciplinasOperativas: updatedDisciplines,
-      progresoTotalCalculado: newProjectProg,
-      info: {
-        ...project.info,
-        cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1
-      }
-    });
-
-    setInlineNewTaskInput(prev => ({ ...prev, [needId]: '' }));
-    onToast(`✓ Tarea "${title}" agregada a ${need.nombre}.`);
-  };
-
   // Publish staged changes
   const handlePublishChanges = () => setIsPublishModalOpen(true);
 
@@ -489,6 +433,47 @@ export default function OperationalExecutionPanel({
     });
     setNewActivityText('');
     onToast('✓ Actividad registrada.');
+  };
+
+  const openProjectUpdate = (category: string) => {
+    setProjectUpdateDraft({ titulo: '', texto: '', categoria: category || 'General' });
+    setShowProjectUpdateModal(true);
+  };
+
+  const handleCreateProjectUpdate = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const title = projectUpdateDraft.titulo.trim();
+    const text = projectUpdateDraft.texto.trim();
+    if (!title || !text) return;
+    const now = new Date();
+    const newPost: AvancePost = {
+      id: `project-update-${Date.now()}`,
+      titulo: title,
+      fecha: now.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase(),
+      texto: text,
+      fotos: [],
+      categoria: projectUpdateDraft.categoria.trim() || 'General',
+      autor: 'Bojana Estudio',
+    };
+    const newActivity = {
+      id: `activity-${Date.now()}`,
+      fecha: 'Ahora',
+      descripcion: `Nueva actualización publicada: "${title}".`,
+      autor: 'Bojana Estudio',
+    };
+    onUpdateProject({
+      ...project,
+      avances: [newPost, ...(project.avances || [])],
+      actividadReciente: [newActivity, ...(project.actividadReciente || [])],
+      info: {
+        ...project.info,
+        cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
+        ultimaActualizacion: 'Ahora',
+      },
+    });
+    setProjectUpdateDraft({ titulo: '', texto: '', categoria: 'General' });
+    setShowProjectUpdateModal(false);
+    onToast(`Actualización "${title}" creada.`);
   };
 
   // Group tasks: waiting for client vs. studio team
@@ -1749,29 +1734,15 @@ export default function OperationalExecutionPanel({
                                     })}
                                   </div>
 
-                                  {/* Add Task Inline to this Need */}
-                                  <div className="flex gap-bojana-inside pt-2">
-                                    <InputControl
-                                      type="text"
-                                      placeholder={`+ Agregar tarea o ítem a ${need.nombre}...`}
-                                      value={inlineNewTaskInput[need.id] || ''}
-                                      onChange={(e) => setInlineNewTaskInput({ ...inlineNewTaskInput, [need.id]: e.target.value })}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          e.preventDefault();
-                                          handleAddInlineTask(disc.id, need.id);
-                                        }
-                                      }}
-                                      className="bojana-field flex-1 bg-bojana-surface border border-bojana-line rounded-bojana-widget px-3 py-2 text-xs text-bojana-ink focus:outline-none focus:border-bojana-line transition"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => handleAddInlineTask(disc.id, need.id)}
-                                      disabled={!(inlineNewTaskInput[need.id] || '').trim()}
-                                      className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink disabled:opacity-40 text-bojana-inverse text-xs font-sans font-medium transition cursor-pointer"
+                                  {/* Project-level updates are available even before tasks exist. */}
+                                  <div className="flex justify-end pt-2">
+                                    <Button
+                                      className="!min-h-9 !rounded-full !px-3 text-xs"
+                                      onClick={() => openProjectUpdate(`${disc.id} · ${need.nombre}`)}
+                                      variant="secondary"
                                     >
-                                      + Agregar
-                                    </button>
+                                      <Plus className="size-3.5" /> Nueva actualización
+                                    </Button>
                                   </div>
 
                                 </div>
@@ -1794,6 +1765,27 @@ export default function OperationalExecutionPanel({
 
       </div>
 
+      {showProjectUpdateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4" onClick={event => { if (event.target === event.currentTarget) setShowProjectUpdateModal(false); }}>
+          <form className="w-full max-w-xl space-y-5 rounded-3xl border border-line bg-canvas p-6 shadow-2xl" onSubmit={handleCreateProjectUpdate}>
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Actualización del proyecto</p>
+                <h2 className="mt-2 font-display text-3xl font-normal text-ink">Nueva actualización</h2>
+                <p className="mt-2 text-sm leading-6 text-ink-muted">Podés publicarla aunque todavía no haya tareas cargadas.</p>
+              </div>
+              <button type="button" aria-label="Cerrar nueva actualización" className="grid size-8 place-items-center rounded-full text-xl text-ink-muted hover:bg-stone hover:text-ink" onClick={() => setShowProjectUpdateModal(false)}>×</button>
+            </div>
+            <Field label="Título" value={projectUpdateDraft.titulo} onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, titulo: event.target.value })} placeholder="Ej.: Inicio de obra" autoFocus />
+            <Field label="Categoría" value={projectUpdateDraft.categoria} onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, categoria: event.target.value })} placeholder="General" />
+            <TextAreaControl aria-label="Mensaje de la actualización" className="min-h-32" onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, texto: event.target.value })} placeholder="Contá qué querés comunicar al cliente..." value={projectUpdateDraft.texto} />
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">
+              <Button onClick={() => setShowProjectUpdateModal(false)} variant="ghost">Cancelar</Button>
+              <Button disabled={!projectUpdateDraft.titulo.trim() || !projectUpdateDraft.texto.trim()} type="submit">Crear actualización</Button>
+            </div>
+          </form>
+        </div>
+      )}
       {taskError && !selected && <p role="alert" className="text-xs text-bojana-error">{taskError}</p>}
       {selectedTaskForAction && <RequestClientActionModal isOpen task={selectedTaskForAction.task} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} prefill={selectedTaskForAction.prefill} onClose={() => setSelectedTaskForAction(null)} onSaveAction={handleSaveClientAction} onToast={onToast} />}
       <ClientAlertModal isOpen={Boolean(clientAlert)} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} initialTitle={clientAlert?.title} initialMessage={clientAlert?.message} initialAction={clientAlert?.actionType} onClose={() => setClientAlert(null)} onSend={(title, message, actionType) => {
