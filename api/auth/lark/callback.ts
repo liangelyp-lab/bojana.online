@@ -76,9 +76,15 @@ async function resolveLarkEmail(userInfoEmail: unknown, accessToken: string) {
   const directEmail = String(userInfoEmail || '').trim().toLowerCase();
   if (directEmail) return directEmail;
 
-  const profileResponse = await fetch('https://open.larksuite.com/open-apis/mail/v1/user_mailbox/profile', {
-    headers: { authorization: `Bearer ${accessToken}` },
-  });
+  let profileResponse: Response;
+  try {
+    profileResponse = await fetch('https://open.larksuite.com/open-apis/mail/v1/user_mailbox/profile', {
+      headers: { authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(2500),
+    });
+  } catch {
+    return '';
+  }
   if (!profileResponse.ok) return '';
   const profile = await profileResponse.json();
   return findEmail(profile).toLowerCase();
