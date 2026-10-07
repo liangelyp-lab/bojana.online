@@ -1669,7 +1669,7 @@ function AdminPortal({
           onClose={() => setIsPublishModalOpen(false)}
           onPublish={() => {
             const published = publishAndActivateProject(currentProject)
-            handleUpdateProject(published)
+            onUpdateProject(published)
             setIsPublishModalOpen(false)
             onPublishToast("Portal del comitente sincronizado y publicado.")
           }}
