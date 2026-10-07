@@ -33,6 +33,7 @@ import { Field, ModalTabs } from '../ui/DesignSystem';
 interface PublishInviteModalProps {
   isOpen: boolean;
   project: ProjectData;
+  studioEmail: string;
   onClose: () => void;
   onPublish: () => void | Promise<void>;
   onUpdateProject?: (project: ProjectData) => void;
@@ -68,12 +69,14 @@ function normalizePublishProject(project: ProjectData): ProjectData {
 export default function PublishInviteModal({
   isOpen,
   project,
+  studioEmail,
   onClose,
   onPublish,
   onUpdateProject,
   onToast
 }: PublishInviteModalProps) {
   project = normalizePublishProject(project);
+  const senderEmail = studioEmail.trim() || 'info@bojana.com.ar';
   const [publishError, setPublishError] = useState('');
 
   useEffect(() => {
@@ -142,7 +145,7 @@ export default function PublishInviteModal({
         body: JSON.stringify({
           to: email,
           subject: `Tu portal de proyecto · ${title}`,
-          text: `Hola ${recipientName || 'Comitente'},\n\nYa podés acceder al portal de tu proyecto "${title}" en Bojana Estudio.\n\nAccedé desde este enlace seguro (vence en 7 días):\n${url}\n\nSi tenés alguna consulta, respondé a este correo.\n\nBojana Estudio\ninfo@bojana.com.ar`,
+          text: `Hola ${recipientName || 'Comitente'},\n\nYa podés acceder al portal de tu proyecto "${title}" en Bojana Estudio.\n\nAccedé desde este enlace seguro (vence en 7 días):\n${url}\n\nSi tenés alguna consulta, respondé a este correo.\n\nBojana Estudio\n${senderEmail}`,
         }),
       });
       const data = await response.json() as { message?: string };
@@ -231,7 +234,7 @@ export default function PublishInviteModal({
                   <div className="flex items-center gap-bojana-inside text-bojana-muted">
                     <span className="font-medium text-bojana-muted">De:</span>
                     <strong className="text-bojana-ink font-sans">Bojana Estudio</strong>
-                    <span className="text-bojana-muted">&lt;proyectos@bojana.com.ar&gt;</span>
+                    <span className="text-bojana-muted">&lt;{senderEmail}&gt;</span>
                   </div>
                   <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium flex items-center gap-bojana-inside self-start sm:self-auto">
                     <ShieldCheck className="w-3 h-3 text-bojana-success" />
@@ -351,7 +354,7 @@ export default function PublishInviteModal({
                     Si tenés alguna consulta podés responder directamente a este correo.
                   </p>
                   <p className="font-sans text-xs text-bojana-muted">
-                    Bojana Estudio &bull; Buenos Aires &bull; proyectos@bojana.com.ar
+                    Bojana Estudio &bull; Buenos Aires &bull; {senderEmail}
                   </p>
                 </div>
               </div>

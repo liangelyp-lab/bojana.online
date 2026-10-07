@@ -75,6 +75,7 @@ interface OperationalExecutionPanelProps {
   project: ProjectData;
   onUpdateProject: (updated: ProjectData) => void;
   onToast: (msg: string) => void;
+  studioEmail?: string;
   focusTaskId?: string;
   focusUpdateId?: string;
   onViewStory?: () => void;
@@ -128,6 +129,7 @@ export default function OperationalExecutionPanel({
   project,
   onUpdateProject,
   onToast,
+  studioEmail,
   focusTaskId,
   focusUpdateId,
   onViewStory,
@@ -1825,6 +1827,7 @@ export default function OperationalExecutionPanel({
       <PublishInviteModal
         isOpen={isPublishModalOpen}
         project={project}
+        studioEmail={studioEmail || 'info@bojana.com.ar'}
         onClose={() => setIsPublishModalOpen(false)}
         onPublish={handlePublish}
         onToast={onToast}

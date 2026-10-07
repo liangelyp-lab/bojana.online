@@ -1326,6 +1326,9 @@ function AdminPortal({
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
   const [clientAlert, setClientAlert] = useState<{ title: string; message: string; actionType: ClientAlertActionType } | null>(null)
+  const [studioEmail, setStudioEmail] = useState(() => {
+    try { return localStorage.getItem("bojana-studio-email") || "info@bojana.com.ar" } catch { return "info@bojana.com.ar" }
+  })
 
   const workspaceTasks = useMemo(
     () => selectedProjectId ? getProjectTasks(currentProject) : tasks,
@@ -1528,6 +1531,7 @@ function AdminPortal({
                         onToast={onPublishToast}
                         onUpdateProject={onUpdateProject}
                         project={currentProject}
+                        studioEmail={studioEmail}
                         focusTaskId={notificationTarget?.taskId}
                         focusUpdateId={notificationTarget?.updateId}
                       />
@@ -1639,6 +1643,8 @@ function AdminPortal({
                 projects={allProjects}
                 onToast={onPublishToast}
                 onActiveUserChange={user => setActiveUser?.(user)}
+                studioEmail={studioEmail}
+                onStudioEmailChange={setStudioEmail}
               />
             )}
           </main>
@@ -1676,6 +1682,7 @@ function AdminPortal({
           onUpdateProject={onUpdateProject}
           onToast={onPublishToast}
           project={currentProject}
+          studioEmail={studioEmail}
         />
       )}
       <ClientAlertModal
