@@ -532,22 +532,6 @@ function SignIn({ onSignIn }: { onSignIn: (screen?: "admin" | "client") => void 
             <Button className="!min-h-12 w-full" type="submit">
               Iniciar sesion <Icon className="size-4" name="arrow" />
             </Button>
-            <Button
-              className="w-full !mt-2.5"
-              onClick={() => onSignIn("admin")}
-              type="button"
-              variant="ghost"
-            >
-              Entrar al panel del estudio
-            </Button>
-            <Button
-              className="w-full !mt-1"
-              onClick={() => onSignIn("client")}
-              type="button"
-              variant="secondary"
-            >
-              Ver como comitente
-            </Button>
           </form>
 
           <p className="mt-3 text-center text-xs leading-4 text-ink-faint sm:mt-6 sm:leading-5">
