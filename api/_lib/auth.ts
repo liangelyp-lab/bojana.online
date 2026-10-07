@@ -19,6 +19,18 @@ export async function requireSupabaseUser(req: any, res: any): Promise<{ id: str
   return response.json();
 }
 
+export async function requireStudioRole(req: any, res: any, roles: string[]): Promise<{ id: string; email?: string; role: string; studioId: string } | null> {
+  const user = await requireSupabaseUser(req, res);
+  if (!user) return null;
+  const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey) { res.status(503).json({ message: 'Servicio de autorización no configurado' }); return null; }
+  const response = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(user.id)}&select=role,studio_id&limit=1`, { headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } });
+  const rows = await response.json() as Array<{ role: string; studio_id: string }>;
+  if (!response.ok || !rows[0] || !roles.includes(rows[0].role)) { res.status(403).json({ message: 'No tenés permiso para acceder a esta sección' }); return null; }
+  return { ...user, role: rows[0].role, studioId: rows[0].studio_id };
+}
+
 function verifyLarkSession(value: string) {
   try {
     const [payload, signature] = decodeURIComponent(value).split('.');

@@ -1,6 +1,6 @@
 import { ImapFlow } from "imapflow"
 import { simpleParser } from "mailparser"
-import { requireSupabaseUser } from "../_lib/auth.js"
+import { requireStudioRole } from "../_lib/auth.js"
 
 function config() {
   const host = process.env.MAIL_HOST || process.env.SMTP_HOST
@@ -10,7 +10,7 @@ function config() {
 
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" })
-  if (!await requireSupabaseUser(req, res)) return
+  if (!await requireStudioRole(req, res, ['owner', 'admin', 'team'])) return
   const uid = Number(req.query?.uid)
   if (!Number.isInteger(uid) || uid <= 0) return res.status(400).json({ message: "UID inválido" })
   let client: ImapFlow | null = null
