@@ -163,6 +163,8 @@ export default function StudioProjectsList({
             const updateDate = p.info?.ultimaActualizacion || '02 Oct';
             const isCopied = copiedId === p.id;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
+            const progress = getEffectiveProgress(p);
+            const progressStatus = progress >= 100 ? 'Completado' : progress > 0 ? 'En Ejecución' : 'Pendiente';
 
             return (
               <div
@@ -181,7 +183,7 @@ export default function StudioProjectsList({
                       }`}
                     >
                       <span className="size-1.5 rounded-full bg-current opacity-70" />
-                      <span>{p.lifecycleStatus ? getLifecycleLabel(p.lifecycleStatus).label : status}</span>
+                        <span>{progressStatus}</span>
                     </span>
                     <span className="rounded-full bg-stone px-2.5 py-0.5 text-xs font-bold text-ink">
                       {getEffectiveProgress(p)}%

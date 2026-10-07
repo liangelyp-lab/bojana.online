@@ -46,6 +46,24 @@ export const ADMIN_CREDENTIALS = {
  */
 export function getEffectiveProgress(project: ProjectData): number {
   const status = project.lifecycleStatus ?? 'ACTIVO';
+
+  // Always derive the visible value from the current needs/tasks. The stored
+  // field is only a snapshot and can be stale after an update arrives from
+  // another view or session.
+  const disciplines = project.disciplinasOperativas || [];
+  if (disciplines.length > 0) {
+    // Public snapshots may contain publishedProgress values from an older
+    // publication. Badges in the active workspace must follow live tasks.
+    const liveDisciplines = disciplines.map((discipline) => ({
+      ...discipline,
+      publishedProgress: undefined,
+      necesidades: discipline.necesidades.map((need) => ({
+        ...need,
+        publishedProgress: undefined,
+      })),
+    }));
+    return calculateProjectProgressFromDisciplines(liveDisciplines);
+  }
   if (status === 'BORRADOR' || status === 'LISTO_PARA_COMPARTIR') return 0;
   return project.progresoTotalCalculado ?? 0;
 }

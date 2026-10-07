@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProjectData } from '../../types';
-import { getProjectNextAction } from '../../services/storageService';
+import { getProjectNextAction, getEffectiveProgress } from '../../services/storageService';
 import { EmptyState } from '../ui/DesignSystem';
 import {
   Plus,
@@ -23,10 +23,10 @@ export default function StudioDashboard({
   onNewProject
 }: StudioDashboardProps) {
   const getProjectStatus = (project: ProjectData) => {
-    if (project.lifecycleStatus === 'COMPLETADO') return 'Finalizado';
-    if (project.lifecycleStatus === 'ACTIVO') return 'En Ejecución';
-    if (project.lifecycleStatus === 'LISTO_PARA_COMPARTIR') return 'En Revisión';
-    return project.info?.estadoGeneral || project.brief?.estadoGeneral || 'En Planificación';
+    const progress = getEffectiveProgress(project);
+    if (progress >= 100) return 'Completado';
+    if (progress > 0) return 'En Ejecución';
+    return 'Pendiente';
   };
 
   // Active projects (not finished)
@@ -157,6 +157,7 @@ export default function StudioDashboard({
             {activeProjects.map((p) => {
               const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
               const status = getProjectStatus(p);
+              const progress = getEffectiveProgress(p);
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
               const nextAction = getProjectNextAction(p);
@@ -172,6 +173,9 @@ export default function StudioDashboard({
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-mint-pale border border-mint/40 px-3 py-1 font-semibold text-forest">
                         <span className="size-1.5 rounded-full bg-forest opacity-70" />
                         <span>{status}</span>
+                      </span>
+                      <span className="rounded-full bg-stone px-2.5 py-1 font-bold text-ink">
+                        {progress}%
                       </span>
                     </div>
 

@@ -2732,7 +2732,8 @@ function ClientPortal({
         return ({
         id: `${discipline.id}-${need.id}`,
         name: need.nombre,
-        progress: calculateNeedProgress(need),
+        // Use live task progress so this breakdown matches every badge.
+        progress: calculateNeedProgress({ ...need, publishedProgress: undefined }),
         weight: need.pesoPorcentaje ?? 100,
         projectWeight: (((discipline.pesoPorcentaje ?? 100) / disciplineWeightTotal) * ((need.pesoPorcentaje ?? 100) / needWeightTotal)) * 100,
         tasks: need.tareas.filter(task => task.visibleCliente).map(task => {
@@ -2756,9 +2757,9 @@ function ClientPortal({
       }),
     }
   })
-  const progressPercent = currentProject.lifecycleStatus === "BORRADOR" || currentProject.lifecycleStatus === "LISTO_PARA_COMPARTIR"
-    ? 0
-    : Math.round(progressGroups.flatMap(group => group.needs).reduce((sum, need) => sum + (need.progress * need.projectWeight / 100), 0))
+  // Keep every portal badge and summary tied to the same canonical progress
+  // calculation used by the studio view.
+  const progressPercent = getEffectiveProgress(currentProject)
   const actionTask = projectTasks.find(task => task.accionCliente?.activa && task.accionCliente.estado !== "aprobado" && task.accionCliente.estado !== "informacion_enviada")
   const actionUpdate = actionTask ? (actionTask.actualizaciones || []).filter(update => update.estado !== "borrador").slice().sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0] : undefined
   const actionResources = Array.from(new Set(actionUpdate?.recursos || []))
