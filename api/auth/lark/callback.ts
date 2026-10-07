@@ -23,10 +23,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const appToken = await appTokenResponse.json() as { code: number; app_access_token?: string };
     if (!appTokenResponse.ok || appToken.code !== 0 || !appToken.app_access_token) throw new Error('Unable to obtain Lark app token');
 
-    const userTokenResponse = await fetch('https://open.larksuite.com/open-apis/authen/v1/oidc/access_token', {
+    const userTokenResponse = await fetch('https://open.larksuite.com/open-apis/authen/v1/access_token', {
       method: 'POST',
-      headers: { authorization: `Bearer ${appToken.app_access_token}`, 'content-type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ grant_type: 'authorization_code', code: String(code) }),
+      headers: { 'content-type': 'application/json; charset=utf-8' },
+      body: JSON.stringify({ app_access_token: appToken.app_access_token, grant_type: 'authorization_code', code: String(code) }),
     });
     const userToken = await userTokenResponse.json() as { code: number; access_token?: string; expires_in?: number };
     if (!userTokenResponse.ok || userToken.code !== 0 || !userToken.access_token) throw new Error('Unable to obtain Lark user token');
