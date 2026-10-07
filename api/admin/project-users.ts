@@ -9,6 +9,8 @@ function randomPassword() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const isProjectsResource = String(req.query?.resource || '') === 'projects';
+  if (isProjectsResource) return projectResourceHandler(req, res);
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -42,5 +44,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     console.error("Project user creation failed", error);
     return res.status(502).json({ error: "No pudimos conectar con Supabase." });
+  }
+}
+
+async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
+  const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!baseUrl || !serviceKey) return res.status(503).json({ error: "Supabase no está configurado." });
+  const requester = await requireSupabaseUser(req, res);
+  if (!requester) return;
+  const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
+  const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=studio_id,role&limit=1`, { headers: adminHeaders });
+  const members = await memberResponse.json() as Array<{ studio_id: string; role: string }>;
+  const member = members[0];
+  if (!member || !['owner', 'admin', 'team'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para gestionar proyectos." });
+  try {
+    if (req.method === 'GET') {
+      const response = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`, { headers: adminHeaders });
+      const rows = await response.json();
+      if (!response.ok) return res.status(502).json({ error: "No pudimos cargar los proyectos." });
+      return res.status(200).json({ projects: rows.map((row: { data: unknown }) => row.data).filter(Boolean) });
+    }
+    if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
+    const project = req.body?.project;
+    if (!project?.id || (!project.info && !project.brief)) return res.status(400).json({ error: "Proyecto inválido." });
+    const response = await fetch(`${baseUrl}/rest/v1/projects?on_conflict=id`, { method: 'POST', headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: project.id, studio_id: member.studio_id, name: project.info?.nombre || project.brief?.nombre || project.id, lifecycle_status: project.lifecycleStatus || 'BORRADOR', data: project, updated_at: new Date().toISOString() }) });
+    if (!response.ok) return res.status(502).json({ error: "No pudimos guardar el proyecto." });
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error('Project resource failed', error);
+    return res.status(502).json({ error: "No pudimos completar la operación." });
   }
 }

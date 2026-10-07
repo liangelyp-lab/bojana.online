@@ -22,7 +22,7 @@ async function supabaseRequest<T>(path: string, init: RequestInit = {}): Promise
 }
 
 export async function listRemoteProjects(): Promise<ProjectData[]> {
-  const response = await fetch("/api/projects", { credentials: "include" });
+  const response = await fetch("/api/admin/project-users?resource=projects", { credentials: "include" });
   const data = await response.json() as { projects?: ProjectData[]; error?: string };
   if (!response.ok) throw new Error(data.error || "No pudimos cargar los proyectos.");
   return data.projects || [];
@@ -35,7 +35,7 @@ async function getDefaultStudioId(): Promise<string> {
 }
 
 export async function saveRemoteProject(project: ProjectData): Promise<void> {
-  const response = await fetch("/api/projects", {
+  const response = await fetch("/api/admin/project-users?resource=projects", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
