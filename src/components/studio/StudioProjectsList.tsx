@@ -164,7 +164,13 @@ export default function StudioProjectsList({
             const isCopied = copiedId === p.id;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
             const progress = getEffectiveProgress(p);
-            const progressStatus = progress >= 100 ? 'Completado' : progress > 0 ? 'En Ejecución' : 'Pendiente';
+            const progressStatus = p.lifecycleStatus === 'BORRADOR'
+              ? 'Borrador'
+              : p.lifecycleStatus === 'LISTO_PARA_COMPARTIR'
+                ? 'Revisión'
+                : progress >= 100
+                  ? 'Completado'
+                  : 'En progreso';
 
             return (
               <div

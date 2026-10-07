@@ -24,14 +24,15 @@ export default function StudioDashboard({
 }: StudioDashboardProps) {
   const getProjectStatus = (project: ProjectData) => {
     const progress = getEffectiveProgress(project);
+    if (project.lifecycleStatus === 'BORRADOR') return 'Borrador';
+    if (project.lifecycleStatus === 'LISTO_PARA_COMPARTIR') return 'Revisión';
     if (progress >= 100) return 'Completado';
-    if (progress > 0) return 'En Ejecución';
-    return 'Pendiente';
+    return 'En progreso';
   };
 
   // Active projects (not finished)
   const activeProjects = projects.filter(
-    (p) => getProjectStatus(p) !== 'Finalizado'
+    (p) => getProjectStatus(p) !== 'Completado'
   );
 
   // Activity feed items: derived dynamically ONLY from projects that actually exist
@@ -158,6 +159,13 @@ export default function StudioDashboard({
               const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
               const status = getProjectStatus(p);
               const progress = getEffectiveProgress(p);
+              const statusClass = status === 'Completado'
+                ? 'bg-mint-pale border-mint/40 text-forest'
+                : status === 'Revisión'
+                  ? 'bg-sand/30 border-sand-strong/40 text-ink'
+                  : status === 'Borrador'
+                    ? 'bg-stone border-line text-ink-faint'
+                    : 'bg-clay-pale border-clay/30 text-clay-dark';
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
               const nextAction = getProjectNextAction(p);
@@ -170,8 +178,8 @@ export default function StudioDashboard({
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-mint-pale border border-mint/40 px-3 py-1 font-semibold text-forest">
-                        <span className="size-1.5 rounded-full bg-forest opacity-70" />
+                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-semibold ${statusClass}`}>
+                        <span className="size-1.5 rounded-full bg-current opacity-70" />
                         <span>{status}</span>
                       </span>
                       <span className="rounded-full bg-stone px-2.5 py-1 font-bold text-ink">
