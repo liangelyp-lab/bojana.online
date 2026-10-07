@@ -11,7 +11,7 @@ import {
 
 interface StudioDashboardProps {
   projects: ProjectData[];
-  onSelectProject: (projectId: string, activity?: { taskId?: string; updateId?: string }) => void;
+  onSelectProject: (projectId: string, activity?: { taskId?: string; updateId?: string; communication?: boolean }) => void;
   onNavigateToProjects: () => void;
   onNewProject: () => void;
 }
@@ -45,6 +45,7 @@ export default function StudioDashboard({
       badge: string;
       taskId?: string;
       updateId?: string;
+      isCommunication?: boolean;
     }> = [];
 
     projects.forEach((p) => {
@@ -68,6 +69,7 @@ export default function StudioDashboard({
           badge,
           taskId: act.taskId,
           updateId: act.updateId,
+          isCommunication: act.descripcion.startsWith('Mensaje del cliente:') || act.descripcion.startsWith('Respuesta del estudio:'),
         });
       });
 
@@ -167,9 +169,6 @@ export default function StudioDashboard({
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="rounded-full bg-stone px-2.5 py-1 font-bold text-ink-muted">
-                        {p.info?.codigo || 'PROJ'}
-                      </span>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-mint-pale border border-mint/40 px-3 py-1 font-semibold text-forest">
                         <span className="size-1.5 rounded-full bg-forest opacity-70" />
                         <span>{status}</span>
@@ -235,7 +234,7 @@ export default function StudioDashboard({
             {recentActivities.map((act) => (
               <div
                 key={act.id}
-                onClick={() => onSelectProject(act.proyectoId)}
+                onClick={() => onSelectProject(act.proyectoId, { communication: act.isCommunication })}
                 className="group flex items-start justify-between gap-4 p-5 transition hover:bg-canvas/50 cursor-pointer"
               >
                 <div className="space-y-1">
@@ -252,11 +251,20 @@ export default function StudioDashboard({
                   </p>
                 </div>
 
-                <div className="shrink-0 text-right text-xs">
+                <div className="flex shrink-0 flex-col items-end gap-2 text-right text-xs">
                   <span className="text-ink-faint block">{act.fecha}</span>
-                  <span className="font-semibold text-forest opacity-0 transition group-hover:opacity-100">
-                    Ver &rarr;
-                  </span>
+                  {act.isCommunication ? (
+                    <button
+                      type="button"
+                      className="rounded-full border border-line bg-white px-3 py-1.5 font-semibold text-forest opacity-0 shadow-sm transition hover:bg-stone group-hover:opacity-100"
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onSelectProject(act.proyectoId, { communication: true })
+                      }}
+                    >
+                      Responder
+                    </button>
+                  ) : <span className="font-semibold text-forest opacity-0 transition group-hover:opacity-100">Ver &rarr;</span>}
                 </div>
               </div>
             ))}

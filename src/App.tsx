@@ -15,6 +15,7 @@ import StudioProjectsList from "./components/studio/StudioProjectsList";
 import StudioClientsView from "./components/studio/StudioClientsView";
 import StudioSettingsView from "./components/studio/StudioSettingsView";
 import EmailInboxView from "./components/studio/EmailInboxView";
+import CommunicationPanel from "./components/studio/CommunicationPanel";
 import OperationalExecutionPanel from "./components/studio/OperationalExecutionPanel";
 import DecisionesModule from "./components/modules/DecisionesModule";
 import DocumentosModule from "./components/modules/DocumentosModule";
@@ -672,7 +673,7 @@ const mainNav: { label: string; icon: IconName }[] = [
   { label: "Biblioteca", icon: "folder" },
 ]
 
-function AdminNotificationsButton({ mobile = false, compact = false, projects = [], onOpenProject }: { mobile?: boolean; compact?: boolean; projects?: ProjectData[]; onOpenProject?: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean }) => void }) {
+function AdminNotificationsButton({ mobile = false, compact = false, projects = [], onOpenProject }: { mobile?: boolean; compact?: boolean; projects?: ProjectData[]; onOpenProject?: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean; communication?: boolean }) => void }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [reviewedIds, setReviewedIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem("bojana-reviewed-notifications") || "[]") } catch { return [] }
@@ -682,6 +683,7 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
     projectId: project.id,
     projectName: project.info?.nombre || 'Proyecto',
     isDecision: /(decisi[oó]n|opci[oó]n|aprob(?:ó|ada|ado)|cambios solicitados)/i.test(activity.descripcion),
+    isCommunication: activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:"),
     notificationKey: `${project.id}-${activity.id}`
   }))).sort((a, b) => {
     const aTime = Date.parse(a.fecha)
@@ -727,7 +729,7 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
           ) : (
             <div className="mt-3 divide-y divide-line rounded-xl border border-line bg-canvas">
               {notifications.map(notification => (
-                <button key={notification.notificationKey} type="button" className={`w-full px-3 py-2.5 text-left hover:bg-stone ${reviewedIds.includes(notification.notificationKey) ? "opacity-60" : ""}`} onClick={() => { markAsReviewed(notification.notificationKey); onOpenProject?.(notification.projectId, { ...notification, decision: notification.isDecision }); setNotificationsOpen(false) }}>
+                <button key={notification.notificationKey} type="button" className={`w-full px-3 py-2.5 text-left hover:bg-stone ${reviewedIds.includes(notification.notificationKey) ? "opacity-60" : ""}`} onClick={() => { markAsReviewed(notification.notificationKey); onOpenProject?.(notification.projectId, { ...notification, decision: notification.isDecision, communication: notification.isCommunication }); setNotificationsOpen(false) }}>
                   <span className="flex items-center justify-between gap-2 text-xs font-semibold text-ink"><span>{notification.projectName}</span>{reviewedIds.includes(notification.notificationKey) && <span className="text-[10px] font-medium text-ink-faint">Revisado</span>}</span>
                   <span className="mt-0.5 block truncate text-[11px] text-ink-muted">{notification.descripcion}</span>
                 </button>
@@ -753,7 +755,7 @@ function AdminSidebar({
   setActive: (value: string) => void
   onViewClientPortal: () => void
   projects: ProjectData[]
-  onOpenProject: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean }) => void
+  onOpenProject: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean; communication?: boolean }) => void
   activeUser?: { nombre: string; rol: string } | null
 }) {
   return (
@@ -863,7 +865,7 @@ function ProjectHeader({
         <div className="flex flex-wrap items-center gap-2 text-sm text-ink-faint">
           <span>Proyectos</span>
           <Icon className="size-3.5" name="chevron" />
-          <span className="text-ink-muted">{projectCode}</span>
+          <span className="text-ink-muted" aria-current="page">{projectName}</span>
         </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Heading
@@ -921,11 +923,13 @@ function ProjectExecutionSummary({
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
       <div className="mb-7 flex flex-wrap items-center gap-2 text-sm text-ink-faint">
-        <Button className="!px-0 text-xs text-ink-muted hover:text-ink" onClick={onBack} variant="ghost">← Volver a todos los proyectos</Button>
-        <span className="mx-1">·</span>
-        <span>Proyectos</span>
+        <Button className="!h-auto !min-h-0 !px-0 !py-0 text-sm text-ink-muted hover:text-ink" onClick={onBack} variant="ghost">
+          Proyectos
+        </Button>
         <Icon className="size-3.5" name="chevron" />
-        <span className="text-ink-muted">{project.info?.codigo || project.id}</span>
+        <span className="truncate text-ink-muted" aria-current="page">
+          {project.info?.nombre || "Proyecto"}
+        </span>
       </div>
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -971,6 +975,7 @@ const projectTabs = [
   "Project Story",
   "Documentos",
   "Decisiones",
+  "Comunicación",
 ]
 
 function StatCard({
@@ -1114,9 +1119,11 @@ function TasksPanel({
 
 function ClientActions({
   decision,
+  comments = [],
   onReviewDecision,
 }: {
   decision: DashboardDecision | null
+  comments?: { id: string; autor: string; fecha: string; texto: string }[]
   onReviewDecision: () => void
 }) {
   if (!decision) {
@@ -1124,9 +1131,23 @@ function ClientActions({
       <section className="rounded-3xl border border-line bg-white p-6">
         <Eyebrow>Cliente</Eyebrow>
         <Heading as="h2" className="mt-2 font-display text-2xl text-ink">Acciones y respuestas</Heading>
-        <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
-          Este proyecto todavía no tiene acciones pendientes ni respuestas del cliente.
-        </p>
+        {comments.length === 0 ? (
+          <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
+            Este proyecto todavía no tiene acciones pendientes ni respuestas del cliente.
+          </p>
+        ) : (
+          <div className="mt-6 space-y-3">
+            {comments.map(comment => (
+              <article key={comment.id} className="rounded-2xl border border-line bg-stone/40 p-4">
+                <div className="flex items-center justify-between gap-3 text-xs text-ink-muted">
+                  <span className="font-semibold text-ink">{comment.autor}</span>
+                  <span>{comment.fecha}</span>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-ink-muted">{comment.texto}</p>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     )
   }
@@ -1185,6 +1206,20 @@ function ClientActions({
           </article>
         )}
       </div>
+      {comments.length > 0 && (
+        <div className="mt-5 space-y-3 border-t border-line pt-5">
+          <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Comentarios del sitio</p>
+          {comments.map(comment => (
+            <article key={comment.id} className="rounded-2xl border border-line bg-stone/40 p-4">
+              <div className="flex items-center justify-between gap-3 text-xs text-ink-muted">
+                <span className="font-semibold text-ink">{comment.autor}</span>
+                <span>{comment.fecha}</span>
+              </div>
+              <p className="mt-2 text-sm leading-6 text-ink-muted">{comment.texto}</p>
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   )
 }
@@ -1346,6 +1381,33 @@ function AdminPortal({
     }
   }, [currentProject, decision, selectedProjectId])
   const workspaceMilestones = currentProject?.hitosInternos || []
+  const clientComments = (currentProject?.decisiones || []).flatMap(decisionItem =>
+    (decisionItem.comentarios || []).map(comment => ({
+      id: comment.id,
+      autor: comment.autor,
+      fecha: comment.fecha,
+      texto: comment.texto,
+    }))
+  ).concat(
+    (currentProject?.disciplinasOperativas || []).flatMap(discipline => discipline.necesidades.flatMap(need => need.tareas.flatMap(task => {
+      const response = task.accionCliente?.respuestaCliente
+      return response?.comentario ? [{
+        id: `action-comment-${task.id}`,
+        autor: currentProject?.cliente?.nombre || "Cliente",
+        fecha: response.fecha,
+        texto: response.comentario,
+      }] : []
+    })))
+  ).concat(
+    (currentProject?.actividadReciente || [])
+      .filter(activity => activity.autor && activity.autor !== "Bojana Estudio" && activity.descripcion.startsWith("Mensaje del cliente:"))
+      .map(activity => ({
+        id: activity.id,
+        autor: activity.autor || "Cliente",
+        fecha: activity.fecha,
+        texto: activity.descripcion.replace(/^Mensaje del cliente:\s*/, ""),
+      }))
+  )
 
   const completedCount = useMemo(() => workspaceTasks.filter(t => t.status === "Completado").length, [workspaceTasks])
   const inProgressCount = useMemo(() => workspaceTasks.filter(t => t.status === "En curso").length, [workspaceTasks])
@@ -1372,7 +1434,7 @@ function AdminPortal({
           onViewClientPortal={onViewClientPortal}
           projects={allProjects}
           activeUser={activeUser}
-          onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.decision ? "Decisiones" : "Resumen") }}
+          onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen") }}
         />
         <div className="min-w-0 flex-1 lg:min-h-0 lg:overflow-y-auto">
           <AdminHeader
@@ -1414,7 +1476,7 @@ function AdminPortal({
                 <Icon className="size-4" name="settings" /> Configuracion
               </Button>
               <div className="col-span-2">
-                <AdminNotificationsButton mobile projects={allProjects} onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.decision ? "Decisiones" : "Resumen"); setMenuOpen(false) }} />
+                <AdminNotificationsButton mobile projects={allProjects} onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen"); setMenuOpen(false) }} />
               </div>
               <Button
                 className="!justify-start !rounded-xl col-span-2"
@@ -1439,7 +1501,7 @@ function AdminPortal({
                   setNotificationTarget(activity?.taskId || activity?.updateId
                     ? { taskId: activity.taskId, updateId: activity.updateId }
                     : undefined)
-                  setActiveTab("Resumen")
+                  setActiveTab(activity?.communication ? "Comunicación" : "Resumen")
                 }}
                 onNavigateToProjects={() => {
                   setActiveNav("Proyectos")
@@ -1473,7 +1535,10 @@ function AdminPortal({
                   onEditProject={onEditProject}
                   onViewClientPortal={onViewClientPortal}
                   onRequestAction={() => {
-                    const firstTask = currentProject?.disciplinasOperativas?.[0]?.necesidades?.[0]?.tareas?.[0]
+                    const firstTask = currentProject?.disciplinasOperativas
+                      ?.flatMap((discipline) => discipline.necesidades || [])
+                      .flatMap((need) => need.tareas || [])
+                      .find(Boolean)
                     if (firstTask) {
                       setActionModalTask(firstTask)
                       setIsActionModalOpen(true)
@@ -1536,8 +1601,7 @@ function AdminPortal({
                         focusUpdateId={notificationTarget?.updateId}
                       />
                       <aside className="space-y-6">
-                        <ClientActions decision={workspaceDecision} onReviewDecision={onReviewDecision} />
-                        <PublishPanel project={currentProject} onReviewPublication={() => setIsPublishModalOpen(true)} onOpenAlert={setClientAlert} />
+                        <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} />
                         <UpcomingPanel milestones={workspaceMilestones} />
                       </aside>
                     </div>
@@ -1575,6 +1639,16 @@ function AdminPortal({
                       isAdmin={true}
                       onToast={onPublishToast}
                       onUpdateDecisiones={(decs) => onUpdateProject({ ...currentProject, decisiones: decs })}
+                      project={currentProject}
+                    />
+                  </div>
+                )}
+
+                {activeTab === "Comunicación" && currentProject && (
+                  <div className="mt-8">
+                    <CommunicationPanel
+                      onToast={onPublishToast}
+                      onUpdateProject={onUpdateProject}
                       project={currentProject}
                     />
                   </div>
@@ -2565,6 +2639,10 @@ function ClientPortal({
   const [clientMessage, setClientMessage] = useState("")
   const notificationCount = (currentProject.actividadReciente || []).length
   const recentNotifications = currentProject.actividadReciente || []
+  const conversationMessages = recentNotifications
+    .filter(activity => activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:"))
+    .slice()
+    .reverse()
 
   useEffect(() => {
     if (active !== "Conversaciones") return
@@ -2897,6 +2975,23 @@ function ClientPortal({
                   <p className="mt-2 text-sm text-ink-muted leading-relaxed">
                     Las dudas técnicas, consultas y acuerdos sobre la obra se canalizan a través de este portal para mantener la trazabilidad completa del proyecto.
                   </p>
+                  {conversationMessages.length > 0 && (
+                    <div className="mt-6 space-y-3 border-t border-line pt-6">
+                      <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Historial de conversación</p>
+                      {conversationMessages.map(activity => {
+                        const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
+                        return (
+                          <article className={`rounded-2xl border p-4 ${fromClient ? "border-line bg-stone/45" : "border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
+                            <div className="flex items-center justify-between gap-3 text-xs">
+                              <span className="font-semibold text-ink">{fromClient ? "Tu mensaje" : "Bojana Estudio"}</span>
+                              <span className="text-ink-faint">{activity.fecha}</span>
+                            </div>
+                            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-ink-muted">{activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio):\s*/, "")}</p>
+                          </article>
+                        )
+                      })}
+                    </div>
+                  )}
                   <form className="mt-6 space-y-3" onSubmit={sendClientMessage}>
                     <label className="block text-sm font-semibold text-ink" htmlFor="client-message">
                       Escribí tu consulta
