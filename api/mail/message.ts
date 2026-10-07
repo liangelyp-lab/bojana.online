@@ -11,8 +11,9 @@ export default async function handler(req: any, res: any) {
   if (!await requireSupabaseUser(req, res)) return
   const uid = Number(req.query?.uid)
   if (!Number.isInteger(uid) || uid <= 0) return res.status(400).json({ message: "UID inválido" })
-  const client = new ImapFlow(config())
+  let client: ImapFlow | null = null
   try {
+    client = new ImapFlow(config())
     await client.connect()
     const lock = await client.getMailboxLock("INBOX")
     try {
@@ -33,5 +34,5 @@ export default async function handler(req: any, res: any) {
     } finally { lock.release() }
   } catch (error) {
     return res.status(500).json({ message: error instanceof Error ? error.message : "No se pudo abrir el correo" })
-  } finally { await client.logout().catch(() => undefined) }
+  } finally { await client?.logout().catch(() => undefined) }
 }

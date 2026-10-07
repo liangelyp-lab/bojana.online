@@ -14,8 +14,9 @@ function config() {
 export default async function handler(req: any, res: any) {
   if (req.method !== "GET") return res.status(405).json({ message: "Method not allowed" })
   if (!await requireSupabaseUser(req, res)) return
-  const client = new ImapFlow({ ...config(), secure: true as const, logger: false as const })
+  let client: ImapFlow | null = null
   try {
+    client = new ImapFlow({ ...config(), secure: true as const, logger: false as const })
     await client.connect()
     const lock = await client.getMailboxLock("INBOX")
     try {
@@ -37,6 +38,6 @@ export default async function handler(req: any, res: any) {
   } catch (error) {
     return res.status(500).json({ message: error instanceof Error ? error.message : "No se pudo leer el buzón" })
   } finally {
-    await client.logout().catch(() => undefined)
+    await client?.logout().catch(() => undefined)
   }
 }

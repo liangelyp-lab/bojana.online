@@ -3,6 +3,14 @@ import { Mail, RefreshCw, Send, X } from "lucide-react"
 
 type MailItem = { uid: number; subject: string; from: string; fromName: string; date: string | null; unread: boolean }
 
+async function readApiResponse(response: Response): Promise<Record<string, any>> {
+  const contentType = response.headers.get("content-type") || ""
+  if (!contentType.includes("application/json")) {
+    throw new Error(response.ok ? "La respuesta del servidor no es válida." : "El servidor de correo no está configurado o está temporalmente fuera de servicio.")
+  }
+  return await response.json() as Record<string, any>
+}
+
 export default function EmailInboxView() {
   const [messages, setMessages] = useState<MailItem[]>([])
   const [selected, setSelected] = useState<MailItem | null>(null)
@@ -16,7 +24,7 @@ export default function EmailInboxView() {
     setLoading(true); setError("")
     try {
       const response = await fetch("/api/mail/inbox")
-      const data = await response.json()
+      const data = await readApiResponse(response)
       if (!response.ok) throw new Error(data.message || "No se pudo cargar la bandeja")
       setMessages(data.messages || [])
     } catch (err) { setError(err instanceof Error ? err.message : "No se pudo cargar la bandeja") }
@@ -29,7 +37,7 @@ export default function EmailInboxView() {
     setSelected(message); setDetail(null); setError("")
     try {
       const response = await fetch(`/api/mail/message?uid=${message.uid}`)
-      const data = await response.json()
+      const data = await readApiResponse(response)
       if (!response.ok) throw new Error(data.message || "No se pudo abrir el correo")
       setDetail(data)
     } catch (err) { setError(err instanceof Error ? err.message : "No se pudo abrir el correo") }
@@ -40,7 +48,7 @@ export default function EmailInboxView() {
     setSending(true); setError("")
     try {
       const response = await fetch("/api/mail/send", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: selected.from, subject: `Re: ${selected.subject}`, text: reply.trim() }) })
-      const data = await response.json()
+      const data = await readApiResponse(response)
       if (!response.ok) throw new Error(data.message || "No se pudo enviar la respuesta")
       setReply(""); setSelected(null)
     } catch (err) { setError(err instanceof Error ? err.message : "No se pudo enviar la respuesta") }
