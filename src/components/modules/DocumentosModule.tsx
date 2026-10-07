@@ -7,18 +7,12 @@ import {
 import {
   FileText,
   Download,
-  Clock,
   CheckCircle2,
-  Plus,
   Trash2,
   History,
   ChevronDown,
   ChevronUp,
   Search,
-  Filter,
-  ExternalLink,
-  ShieldCheck,
-  Tag,
   UploadCloud
 } from 'lucide-react';
 import { Badge, Button, Field, InputControl, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
@@ -66,7 +60,7 @@ export default function DocumentosModule({
   // New Revision Form
   const [revisionNumber, setRevisionNumber] = useState('');
   const [revisionChanges, setRevisionChanges] = useState('');
-  const [revisionSize, setRevisionSize] = useState('4.0 MB');
+  const [revisionSize] = useState('4.0 MB');
 
   const docs = project.documentos || [];
 
@@ -167,33 +161,7 @@ export default function DocumentosModule({
   return (
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
-      {/* 1. TOP HEADER & INTRO */}
-      <div className="rounded-3xl border border-line bg-white p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-            Módulo de Documentación Técnica
-          </p>
-          <h2 className="mt-1 font-display text-2xl font-semibold text-ink">
-            Planos, Memorias y Entregables
-          </h2>
-          <p className="text-xs text-ink-muted mt-1">
-            Repositorio centralizado con trazabilidad de revisiones vigentes e historial de cambios sin archivos duplicados.
-          </p>
-        </div>
-
-        {isAdmin && (
-          <button
-            type="button"
-            onClick={() => setShowAddDocModal(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 cursor-pointer shrink-0"
-          >
-            <Plus className="size-4 text-white" />
-            <span>Nuevo documento</span>
-          </button>
-        )}
-      </div>
-
-      {/* 2. CATEGORIES FILTER & SEARCH BAR */}
+      {/* CATEGORIES FILTER & SEARCH BAR */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         {/* Category Tabs */}
         <div role="tablist" aria-label="Categorías de documentos" className="bojana-filter-tablist w-full sm:w-auto">
