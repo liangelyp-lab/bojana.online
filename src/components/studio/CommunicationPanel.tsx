@@ -100,38 +100,40 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
         </div>
       </div>
 
-      <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+      <div className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Historial del portal</p>
-            <h3 className="mt-1 font-display text-xl text-ink">Conversación del proyecto</h3>
+            <h3 className="mt-0.5 font-display text-lg text-ink">Conversación con el cliente</h3>
           </div>
-          <span className="rounded-full bg-stone px-3 py-1 text-xs font-semibold text-ink-muted">{projectMessages.length} mensajes</span>
+          <span className="rounded-full bg-stone px-2.5 py-1 text-[11px] font-semibold text-ink-muted">{projectMessages.length} {projectMessages.length === 1 ? "mensaje" : "mensajes"}</span>
         </div>
-        <div className="mt-4 space-y-3">
+        <div className="mt-4 space-y-2.5 border-t border-line pt-4">
           {projectMessages.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-faint">Todavía no hay comentarios enviados desde el portal.</p>
+            <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-faint">Todavía no hay mensajes en esta conversación.</p>
           ) : projectMessages.map(activity => {
             const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
             const isEmail = activity.descripcion.startsWith("Correo enviado al cliente:")
             return (
               <article className={`flex ${fromClient ? "justify-start" : "justify-end"}`} key={activity.id}>
-                <div className={`max-w-[82%] rounded-2xl border px-4 py-3 ${fromClient ? "rounded-tl-md border-clay/30 bg-clay-pale/50" : "rounded-tr-md border-mint/40 bg-mint-pale/40"}`}>
+                <div className={`w-full rounded-xl border p-3 ${fromClient ? "border-line bg-stone/45" : "max-w-[92%] border-mint/40 bg-mint-pale/40"}`}>
                   <div className="flex items-center justify-between gap-4 text-[11px]">
                     <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? "Bojana Estudio · Email" : "Bojana Estudio"}</span>
                     <time className="shrink-0 text-ink-faint">{activity.fecha}</time>
                   </div>
-                  <p className="mt-1.5 whitespace-pre-wrap text-sm leading-5 text-ink-muted">{messageText(activity)}</p>
+                  <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{messageText(activity)}</p>
                 </div>
               </article>
             )
           })}
         </div>
         <form className="mt-4 border-t border-line pt-4" onSubmit={sendReply}>
-        <TextAreaControl className="mt-3" disabled={sending} onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={3} value={reply} />
+        <label className="block text-xs font-semibold text-ink" htmlFor="studio-reply">Escribí tu respuesta</label>
+        <TextAreaControl className="mt-2" disabled={sending} id="studio-reply" onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={3} value={reply} />
         {error && <p className="mt-3 rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark" role="alert">{error}</p>}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <div className="flex gap-2">
+          <p className="text-[11px] text-ink-faint">La respuesta queda registrada en la actividad del proyecto.</p>
+          <div className="flex flex-wrap gap-2">
             <Button data-channel="email" disabled={sending || !reply.trim() || !clientEmail} type="submit" variant="secondary">Enviar por email</Button>
             <Button data-channel="portal" disabled={sending || !reply.trim()} type="submit">Responder en el portal</Button>
           </div>
