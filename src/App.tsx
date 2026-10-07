@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
