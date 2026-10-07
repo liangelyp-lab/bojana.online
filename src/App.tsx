@@ -1568,11 +1568,6 @@ function AdminPortal({
                     : undefined)
                   setActiveTab(activity?.communication ? "Comunicación" : "Resumen")
                 }}
-                onNavigateToProjects={() => {
-                  setActiveNav("Proyectos")
-                  setSelectedProjectId(null)
-                  setNotificationTarget(undefined)
-                }}
                 onNewProject={onNewProject}
               />
             )}
@@ -1763,7 +1758,6 @@ function AdminPortal({
                   setActiveNav("Proyectos")
                   setActiveTab("Resumen")
                 }}
-                onToast={onPublishToast}
                 projects={allProjects}
               />
             )}
@@ -1807,11 +1801,10 @@ function AdminPortal({
           clientName={currentProject?.cliente?.nombre || "Comitente"}
           isOpen={isActionModalOpen}
           onClose={() => setIsActionModalOpen(false)}
-          onSaveAction={(action, sendEmailImmediately) => {
+          onSaveAction={() => {
             setIsActionModalOpen(false)
             onPublishToast("Solicitud de decisión enviada al comitente.")
           }}
-          onToast={onPublishToast}
           projectName={currentProject?.info?.nombre || activeProject.name}
           task={actionModalTask}
         />
@@ -1880,8 +1873,6 @@ function ClientSidebar({
   setActive,
   onBackToAdmin,
   showAdminLink,
-  projectName,
-  projectCode,
   notificationCount,
   recentNotifications,
   onOpenNotification,
@@ -1890,8 +1881,6 @@ function ClientSidebar({
   setActive: (item: string) => void
   onBackToAdmin: () => void
   showAdminLink: boolean
-  projectName: string
-  projectCode: string
   notificationCount: number
   recentNotifications: Array<{ id: string; descripcion: string; fecha: string; taskId?: string; updateId?: string }>
   onOpenNotification: (notification: { taskId?: string; updateId?: string }) => void
@@ -2902,8 +2891,6 @@ function ClientPortal({
           active={active}
           onBackToAdmin={onBackToAdmin}
           showAdminLink={showAdminLink}
-          projectCode={currentProject.info?.codigo || currentProject.id}
-          projectName={currentProject.info?.nombre || activeProject.name}
           notificationCount={notificationCount}
           recentNotifications={recentNotifications}
           onOpenNotification={({ taskId }) => {
@@ -2921,7 +2908,7 @@ function ClientPortal({
               projectPhase={currentProject.info?.etapaActual || "Sin etapa definida"}
               projectDesc={currentProject.info?.ubicacion || activeProject.desc}
               projectName={currentProject.info?.nombre || activeProject.name}
-              projectStatus={progressPercent >= 100 ? "Proyecto completado" : progressPercent > 0 ? "Proyecto en marcha" : "Proyecto por iniciar"}
+              projectStatus={getProjectStatusLabel(currentProject)}
             />
 
             {/* TAB: RESUMEN */}
@@ -3056,6 +3043,41 @@ function ClientPortal({
 
 type Screen = "signin" | "admin" | "client"
 
+function ClientProjectsState({
+  loading,
+  message,
+  onRetry,
+  onSignOut,
+}: {
+  loading: boolean
+  message?: string | null
+  onRetry: () => void
+  onSignOut: () => void
+}) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-6 py-12">
+      <section className="w-full max-w-lg rounded-3xl border border-line bg-white p-8 text-center shadow-sm sm:p-12">
+        <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-mint-pale text-forest" aria-hidden="true">
+          {loading ? <span className="size-6 animate-spin rounded-full border-2 border-forest/20 border-t-forest" /> : <span className="text-xl">BE</span>}
+        </div>
+        <div className="mt-6"><Eyebrow>Portal del cliente</Eyebrow></div>
+        <Heading as="h1" className="mt-3 text-3xl">
+          {loading ? "Cargando tus proyectos" : "Todavía no hay un proyecto disponible"}
+        </Heading>
+        <p className="mx-auto mt-4 max-w-md text-sm leading-6 text-ink-muted">
+          {loading ? "Estamos verificando los proyectos asociados a tu cuenta." : message || "Pedile al estudio que confirme tu acceso al proyecto."}
+        </p>
+        {!loading && (
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button onClick={onRetry} variant="secondary">Volver a intentar</Button>
+            <Button onClick={onSignOut} variant="ghost">Cerrar sesión</Button>
+          </div>
+        )}
+      </section>
+    </main>
+  )
+}
+
 export default function App() {
   const recoveryParams = useMemo(() => {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""))
@@ -3074,9 +3096,13 @@ export default function App() {
     return value ? "No pudimos iniciar sesión con Lark." : null
   }, [])
   const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : directToken ? "client" : "signin")
-  const [allProjects, setAllProjects] = useState<ProjectData[]>(() => getAllProjects())
+  const [allProjects, setAllProjects] = useState<ProjectData[]>(() => directToken ? [] : getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [forcedPasswordToken, setForcedPasswordToken] = useState<string | null>(null)
+  const [clientProjectsLoading, setClientProjectsLoading] = useState(Boolean(directToken && directToken !== "portal-direct"))
+  const [clientProjectsError, setClientProjectsError] = useState<string | null>(directToken === "portal-direct" ? "El enlace directo del portal no es válido o ya no está disponible." : null)
+  const [projectsReloadKey, setProjectsReloadKey] = useState(0)
+  const [sessionReady, setSessionReady] = useState(Boolean(directToken || (recoveryParams.accessToken && recoveryParams.type === "recovery")))
 
   const currentProject = useMemo(() => {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
@@ -3085,7 +3111,7 @@ export default function App() {
   const [activeProject, setActiveProject] = useState({ name: "Sin proyecto seleccionado", code: "—", desc: "Creá un proyecto para comenzar." })
   const [activeUser, setActiveUserState] = useState<{ id?: string; nombre: string; email?: string; rol: string } | null>(() => {
     const authUser = getAuthUser()
-    if (authUser) return { id: authUser.id, nombre: authUser.name || authUser.email || "Usuario", email: authUser.email, rol: "admin" }
+    if (authUser) return { id: authUser.id, nombre: authUser.name || authUser.email || "Usuario", email: authUser.email, rol: authUser.role || "client" }
     try { return JSON.parse(localStorage.getItem("bojana-active-user") || "null") } catch { return null }
   })
   const setActiveUser = (user: { id?: string; nombre: string; email?: string; rol: string } | null) => {
@@ -3128,11 +3154,19 @@ export default function App() {
       .then(response => response.ok ? response.json() : Promise.reject(new Error("No se pudo cargar el portal directo.")))
       .then(data => {
         const project = data.project as ProjectData
+        if (!project?.id) throw new Error("El portal no tiene un proyecto válido.")
         setAllProjects([project])
         setSelectedProjectId(project.id)
+        setClientProjectsError(null)
         setScreen("client")
       })
-      .catch(() => undefined)
+      .catch((error) => {
+        console.error("Direct portal loading failed", error)
+        setAllProjects([])
+        setSelectedProjectId(null)
+        setClientProjectsError("No pudimos cargar este portal. Pedile al estudio un nuevo enlace.")
+      })
+      .finally(() => setClientProjectsLoading(false))
   }, [directToken])
 
   useEffect(() => {
@@ -3143,16 +3177,45 @@ export default function App() {
       if (!user) return
       const role = user.role || "client"
       setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: role })
-      if (["owner", "admin", "team"].includes(role)) setScreen("admin")
-      else { setAllProjects([]); setSelectedProjectId(null); setScreen("client") }
-    }).catch(() => undefined)
+      if (["owner", "admin", "team"].includes(role)) {
+        setClientProjectsLoading(false)
+        setClientProjectsError(null)
+        setScreen("admin")
+      } else {
+        setAllProjects([])
+        setSelectedProjectId(null)
+        setClientProjectsLoading(true)
+        setClientProjectsError(null)
+        setScreen("client")
+      }
+    }).catch(() => undefined).finally(() => setSessionReady(true))
   }, [directToken, recoveryParams.accessToken, recoveryParams.type])
 
   useEffect(() => {
+    if (!sessionReady || !activeUser?.id || directToken) return
+    const isStaff = ["owner", "admin", "team"].includes(activeUser.rol)
+    if (!isStaff) {
+      setClientProjectsLoading(true)
+      setClientProjectsError(null)
+    }
     void hydrateProjectsFromSupabase().then((projects) => {
-      if (projects && projects.length > 0) setAllProjects(projects)
+      if (projects === null) {
+        if (!isStaff) {
+          setAllProjects([])
+          setSelectedProjectId(null)
+          setClientProjectsError("No pudimos cargar tus proyectos. Revisá tu conexión e intentá nuevamente.")
+        }
+        return
+      }
+      setAllProjects(projects)
+      if (!isStaff) {
+        setSelectedProjectId(current => current && projects.some(project => project.id === current) ? current : projects[0]?.id || null)
+        if (projects.length === 0) setClientProjectsError("Tu usuario todavía no tiene un proyecto asignado.")
+      }
+    }).finally(() => {
+      if (!isStaff) setClientProjectsLoading(false)
     })
-  }, [activeUser?.id])
+  }, [activeUser?.id, activeUser?.rol, directToken, projectsReloadKey, sessionReady])
 
   const showToast = (msg?: string) => {
     if (!msg) return
@@ -3201,6 +3264,16 @@ export default function App() {
     setAllProjects(getAllProjects())
   }
 
+  const handleSignOut = () => {
+    void signOutAuth()
+    setActiveUser(null)
+    setAllProjects([])
+    setSelectedProjectId(null)
+    setClientProjectsLoading(false)
+    setClientProjectsError(null)
+    setScreen("signin")
+  }
+
   return (
     <>
       {screen === "reset" && (recoveryParams.accessToken || forcedPasswordToken) && (
@@ -3215,8 +3288,17 @@ export default function App() {
               const role = user.role || "client"
               setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: role })
               if (user.mustChangePassword) { setForcedPasswordToken(getAccessToken()); setScreen("reset") }
-              else if (["owner", "admin", "team"].includes(role)) setScreen("admin")
-              else { setAllProjects([]); setSelectedProjectId(null); setScreen("client") }
+              else if (["owner", "admin", "team"].includes(role)) {
+                setClientProjectsLoading(false)
+                setClientProjectsError(null)
+                setScreen("admin")
+              } else {
+                setAllProjects([])
+                setSelectedProjectId(null)
+                setClientProjectsLoading(true)
+                setClientProjectsError(null)
+                setScreen("client")
+              }
               return true
             } catch (error) {
               console.error("Supabase sign-in failed", error)
@@ -3242,7 +3324,7 @@ export default function App() {
           }}
           onPublishToast={showToast}
           onReviewDecision={() => setScreen("client")}
-          onSignOut={() => { signOutAuth(); setActiveUser(null); setScreen("signin") }}
+          onSignOut={handleSignOut}
           onToggleTask={handleToggleTask}
           onUpdateProject={handleUpdateProject}
           onViewClientPortal={() => setScreen("client")}
@@ -3251,6 +3333,22 @@ export default function App() {
           tasks={taskList}
           activeUser={activeUser}
           setActiveUser={setActiveUser}
+        />
+      )}
+
+      {screen === "client" && clientProjectsLoading && (
+        <ClientProjectsState loading onRetry={() => undefined} onSignOut={handleSignOut} />
+      )}
+
+      {screen === "client" && !clientProjectsLoading && !currentProject && (
+        <ClientProjectsState
+          loading={false}
+          message={clientProjectsError}
+          onRetry={() => {
+            setClientProjectsLoading(true)
+            setProjectsReloadKey(value => value + 1)
+          }}
+          onSignOut={handleSignOut}
         />
       )}
 
