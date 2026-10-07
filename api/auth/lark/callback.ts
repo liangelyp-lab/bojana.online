@@ -38,9 +38,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const user = await userResponse.json() as { code: number; data?: { open_id?: string; union_id?: string; name?: string; email?: string } };
     if (!userResponse.ok || user.code !== 0 || !user.data) throw new Error(`user_info:${user.code}:${(user as any).msg || 'unknown'}`);
 
-    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const email = await resolveLarkEmail(user.data.email, userAccessToken);
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) throw new Error('supabase_server_config_missing');
+  const email = await resolveLarkEmail(user.data.email, userAccessToken);
     const allowedOpenId = String(process.env.LARK_ALLOWED_OPEN_ID || '').trim();
     const allowedEmail = String(process.env.LARK_ALLOWED_EMAIL || '').trim().toLowerCase();
     const openId = String(user.data.open_id || '').trim();
