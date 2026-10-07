@@ -37,11 +37,11 @@ export default function StudioClientsView({
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="border-b border-line pb-8">
+      <div className="border-b border-line pb-7">
         <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
           Directorio de comitentes
         </p>
-        <h1 className="mt-2 font-display text-4xl leading-tight font-normal text-ink md:text-5xl">
+        <h1 className="mt-2 font-display text-4xl leading-tight font-normal text-ink">
           Clientes
         </h1>
         <p className="mt-2 text-sm text-ink-muted leading-relaxed">

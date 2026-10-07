@@ -1719,9 +1719,9 @@ function AdminPortal({
             {/* 4. TAREAS VIEW (CROSS-PROJECT) */}
             {activeNav === "Tareas" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <div className="border-b border-line pb-8">
+                <div className="border-b border-line pb-7">
                   <Eyebrow>Operación del estudio</Eyebrow>
-                  <Heading as="h1" className="mt-2 font-display text-4xl font-normal leading-tight text-ink md:text-5xl">
+                  <Heading as="h1" className="mt-2 font-display text-4xl font-normal leading-tight text-ink">
                     Todas las tareas del estudio
                   </Heading>
                   <p className="mt-2 text-sm text-ink-muted">
@@ -1767,9 +1767,9 @@ function AdminPortal({
             {/* 6. BIBLIOTECA VIEW */}
             {activeNav === "Biblioteca" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <div className="border-b border-line pb-8">
+                <div className="border-b border-line pb-7">
                   <Eyebrow>Documentos del estudio</Eyebrow>
-                  <Heading as="h1" className="mt-2 font-display text-4xl font-normal leading-tight text-ink md:text-5xl">
+                  <Heading as="h1" className="mt-2 font-display text-4xl font-normal leading-tight text-ink">
                     Biblioteca de documentos
                   </Heading>
                   <p className="mt-2 text-sm text-ink-muted">

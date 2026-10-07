@@ -68,12 +68,12 @@ export default function StudioProjectsList({
   return (
     <div className="space-y-8 animate-fade-in">
       {/* 1. HEADER & NEW PROJECT CTA */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-line pb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-line pb-7">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
             Portafolio del estudio
           </p>
-          <h1 className="mt-2 font-display text-4xl leading-tight text-ink md:text-5xl">
+          <h1 className="mt-2 font-display text-4xl leading-tight text-ink">
             Proyectos
           </h1>
           <p className="mt-2 text-sm text-ink-muted">
