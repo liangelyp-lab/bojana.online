@@ -52,11 +52,13 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
   const sendReply = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const message = reply.trim()
+    const requestedChannel = ((event.nativeEvent as SubmitEvent).submitter as HTMLElement | null)?.dataset.channel as ReplyChannel | undefined
+    const activeChannel = requestedChannel || channel
     if (!message || sending) return
     setSending(true)
     setError("")
     try {
-      if (channel === "email") {
+      if (activeChannel === "email") {
         if (!clientEmail) throw new Error("Este proyecto no tiene un email de cliente cargado.")
         const response = await fetch("/api/mail/send", {
           method: "POST",
@@ -125,31 +127,23 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
             )
           })}
         </div>
-      </div>
-
-      <form className="rounded-2xl border border-line bg-white p-5 shadow-sm" onSubmit={sendReply}>
+        <form className="mt-4 border-t border-line pt-4" onSubmit={sendReply}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Responder</p>
-            <h3 className="mt-1 font-display text-xl text-ink">Elegí cómo contestar</h3>
-          </div>
-          <div className="flex rounded-full border border-line bg-stone p-1" role="group" aria-label="Canal de respuesta">
-            <button type="button" className={`rounded-full px-3 py-2 text-xs font-semibold transition ${channel === "portal" ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`} onClick={() => setChannel("portal")}>En el portal</button>
-            <button type="button" className={`rounded-full px-3 py-2 text-xs font-semibold transition ${channel === "email" ? "bg-white text-ink shadow-sm" : "text-ink-muted"}`} onClick={() => setChannel("email")}>Por email</button>
+            <h3 className="mt-1 font-display text-xl text-ink">Escribí una respuesta</h3>
           </div>
         </div>
-        <p className="mt-1 text-xs text-ink-muted">
-          {channel === "portal" ? "La respuesta quedará visible en la conversación del portal del cliente." : clientEmail ? `Se enviará desde la cuenta del estudio a ${clientEmail}.` : "Cargá un email de cliente para habilitar esta opción."}
-        </p>
-        <TextAreaControl className="mt-4" disabled={sending} onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={4} value={reply} />
+        <TextAreaControl className="mt-3" disabled={sending} onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={3} value={reply} />
         {error && <p className="mt-3 rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark" role="alert">{error}</p>}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs text-ink-faint">La respuesta queda registrada en la actividad del proyecto.</p>
-          <Button disabled={sending || !reply.trim() || (channel === "email" && !clientEmail)} type="submit">
-            {sending ? "Enviando..." : channel === "portal" ? "Responder en el portal" : "Enviar por email"}
-          </Button>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex gap-2">
+            <Button data-channel="email" disabled={sending || !reply.trim() || !clientEmail} type="submit" variant="secondary">Enviar por email</Button>
+            <Button data-channel="portal" disabled={sending || !reply.trim()} type="submit">Responder en el portal</Button>
+          </div>
         </div>
-      </form>
+        </form>
+      </div>
     </section>
   )
 }
