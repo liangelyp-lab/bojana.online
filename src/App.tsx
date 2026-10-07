@@ -8,7 +8,7 @@ import {
 } from "react"
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { getAllProjects, saveProjectData, getEffectiveProgress, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
-import type { DecisionItem, ExpectedDeliverableStatus, ProjectData } from "./types";
+import type { DecisionItem, ExpectedDeliverableStatus, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
 import StudioProjectsList from "./components/studio/StudioProjectsList";
@@ -23,7 +23,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, EmptyState, InputControl, Tabs } from "./components/ui/DesignSystem";
+import { Badge, Button, EmptyState, InputControl, Tabs, TextAreaControl } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -2562,8 +2562,17 @@ function ClientPortal({
   const [expandedClientTaskId, setExpandedClientTaskId] = useState<string | null>(null)
   const [showActionUpdatesOnly, setShowActionUpdatesOnly] = useState(false)
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
+  const [clientMessage, setClientMessage] = useState("")
   const notificationCount = (currentProject.actividadReciente || []).length
   const recentNotifications = currentProject.actividadReciente || []
+
+  useEffect(() => {
+    if (active !== "Conversaciones") return
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById("client-conversations")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    })
+    return () => window.cancelAnimationFrame(frame)
+  }, [active])
 
   const projectTasks = useMemo(
     () => (currentProject.disciplinasOperativas || []).flatMap(discipline =>
@@ -2689,6 +2698,28 @@ function ClientPortal({
     onUpdateProject({ ...currentProject, disciplinasOperativas: updatedDisciplines, decisiones: updatedDecisions, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } })
     if (approved) onApproveDecision(option)
     onToast(approved ? "Respuesta enviada: aprobación registrada." : "Comentario enviado: se solicitaron cambios.")
+  }
+  const sendClientMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const message = clientMessage.trim()
+    if (!message) return
+    const messageActivity: ProjectActivityLog = {
+      id: `client-message-${Date.now()}`,
+      fecha: "Ahora",
+      descripcion: `Mensaje del cliente: ${message}`,
+      autor: currentProject.cliente?.nombre || "Cliente",
+    }
+    onUpdateProject({
+      ...currentProject,
+      actividadReciente: [messageActivity, ...(currentProject.actividadReciente || [])],
+      info: {
+        ...currentProject.info,
+        cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1,
+        ultimaActualizacion: "Ahora",
+      },
+    })
+    setClientMessage("")
+    onToast("Mensaje enviado al equipo y guardado en el proyecto.")
   }
   const clientUpdates = projectTasks.flatMap(task => (task.actualizaciones || []).filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna").map(update => ({ task, update })))
   const actionableClientUpdates = clientUpdates.filter(({ update }) =>
@@ -2856,7 +2887,7 @@ function ClientPortal({
 
             {/* TAB: CONVERSACIONES / DECISIONES */}
             {active === "Conversaciones" && (
-              <div className="mt-8 space-y-6">
+              <div className="mt-8 scroll-mt-8 space-y-6" id="client-conversations">
                 {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
                 <div className="rounded-3xl border border-line bg-white p-7">
                   <Eyebrow>Canal de comunicación</Eyebrow>
@@ -2866,9 +2897,23 @@ function ClientPortal({
                   <p className="mt-2 text-sm text-ink-muted leading-relaxed">
                     Las dudas técnicas, consultas y acuerdos sobre la obra se canalizan a través de este portal para mantener la trazabilidad completa del proyecto.
                   </p>
-                  <Button className="mt-6" variant="secondary" onClick={() => onToast("Abrí la sección de conversaciones para escribir al equipo.")}>
-                    Enviar mensaje al equipo <Icon className="size-4" name="arrow" />
-                  </Button>
+                  <form className="mt-6 space-y-3" onSubmit={sendClientMessage}>
+                    <label className="block text-sm font-semibold text-ink" htmlFor="client-message">
+                      Escribí tu consulta
+                    </label>
+                    <TextAreaControl
+                      id="client-message"
+                      placeholder="Contanos qué necesitás revisar con el equipo..."
+                      value={clientMessage}
+                      onChange={event => setClientMessage(event.target.value)}
+                    />
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-xs text-ink-faint">El mensaje queda registrado en la actividad de este proyecto.</p>
+                      <Button disabled={!clientMessage.trim()} type="submit" variant="secondary">
+                        Enviar mensaje al equipo <Icon className="size-4" name="arrow" />
+                      </Button>
+                    </div>
+                  </form>
                 </div>
               </div>
             )}
