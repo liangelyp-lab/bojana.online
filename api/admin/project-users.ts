@@ -54,18 +54,41 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
   const requester = await requireSupabaseUser(req, res);
   if (!requester) return;
   const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
-  const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=studio_id,role&limit=1`, { headers: adminHeaders });
-  const members = await memberResponse.json() as Array<{ studio_id: string; role: string }>;
-  const member = members[0];
-  if (!member || !['owner', 'admin', 'team'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para gestionar proyectos." });
   try {
+    const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role,email&limit=1`, { headers: adminHeaders });
+    const members = await memberResponse.json() as Array<{ id: string; studio_id: string; role: string; email?: string }>;
+    if (!memberResponse.ok) return res.status(502).json({ error: "No pudimos validar el acceso al estudio." });
+    let member = members[0];
+    if (!member && requester.email) {
+      const emailResponse = await fetch(`${baseUrl}/rest/v1/studio_users?email=eq.${encodeURIComponent(requester.email)}&select=id,studio_id,role,email&limit=1`, { headers: adminHeaders });
+      const emailMembers = await emailResponse.json() as typeof members;
+      if (!emailResponse.ok) return res.status(502).json({ error: "No pudimos validar el acceso al estudio." });
+      member = emailMembers[0];
+    }
+    if (!member) return res.status(403).json({ error: "No tenés permiso para acceder a los proyectos." });
+    const isStaff = ["owner", "admin", "team"].includes(member.role);
+
     if (req.method === 'GET') {
-      const response = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`, { headers: adminHeaders });
+      let projectsUrl = `${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`;
+
+      // Staff can see every project in the studio. Clients only receive the
+      // projects explicitly assigned to their user through project_members.
+      if (!isStaff) {
+        const accessResponse = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(member.id)}&select=project_id`, { headers: adminHeaders });
+        const accessRows = await accessResponse.json() as Array<{ project_id: string }>;
+        if (!accessResponse.ok) return res.status(502).json({ error: "No pudimos validar tus proyectos." });
+        const projectIds = [...new Set(accessRows.map(row => row.project_id).filter(Boolean))];
+        if (projectIds.length === 0) return res.status(200).json({ projects: [] });
+        projectsUrl += `&id=in.(${projectIds.map(projectId => encodeURIComponent(projectId)).join(",")})`;
+      }
+
+      const response = await fetch(projectsUrl, { headers: adminHeaders });
       const rows = await response.json();
       if (!response.ok) return res.status(502).json({ error: "No pudimos cargar los proyectos." });
       return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
+    if (!isStaff) return res.status(403).json({ error: "No tenés permiso para guardar proyectos." });
     const project = req.body?.project;
     if (!project?.id || (!project.info && !project.brief)) return res.status(400).json({ error: "Proyecto inválido." });
     const response = await fetch(`${baseUrl}/rest/v1/projects?on_conflict=id`, { method: 'POST', headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: project.id, studio_id: member.studio_id, name: project.info?.nombre || project.brief?.nombre || project.id, lifecycle_status: project.lifecycleStatus || 'BORRADOR', data: project, updated_at: new Date().toISOString() }) });
