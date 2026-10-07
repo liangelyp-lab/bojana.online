@@ -195,10 +195,10 @@ export default function DocumentosModule({
       {/* 3. DOCUMENTS LIST WITH VISIBLE VERSIONING */}
       <div className="space-y-bojana-block">
         {filteredDocs.length === 0 ? (
-          <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-12 text-center space-y-3">
-            <FileText className="w-10 h-10 text-bojana-line mx-auto" />
+          <div className="rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
+            <FileText className="size-10 text-ink-faint opacity-40 mx-auto" />
             <h4 className="font-display text-xl text-ink">Aún no hay documentos publicados</h4>
-            <p className="text-xs text-bojana-muted">
+            <p className="text-xs text-ink-muted max-w-md mx-auto">
               Los planos, memorias y entregables aparecerán aquí cuando se publiquen.
             </p>
             {isAdmin && (
