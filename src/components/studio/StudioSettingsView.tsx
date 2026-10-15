@@ -28,6 +28,7 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
   const [createError, setCreateError] = useState("");
   const [editingUser, setEditingUser] = useState<TeamUser | null>(null);
   const [editingProjects, setEditingProjects] = useState<string[]>([]);
+  const [usersLoadError, setUsersLoadError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -35,10 +36,11 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
       .then(response => response.ok ? response.json() : Promise.reject(new Error("No pudimos cargar los usuarios.")))
       .then(data => {
         if (cancelled || !Array.isArray(data.users)) return;
+        setUsersLoadError("");
         const remoteUsers = (data.users as Array<{ id: string; name: string; email: string; role: string }>).map(user => ({ id: user.id, nombre: user.name, email: user.email, rol: user.role }));
         setTeamUsers(remoteUsers);
       })
-      .catch(() => undefined);
+      .catch(error => { if (!cancelled) setUsersLoadError(error instanceof Error ? error.message : "No pudimos cargar los usuarios de Supabase."); });
     return () => { cancelled = true; };
   }, []);
 
