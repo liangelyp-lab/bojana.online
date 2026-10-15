@@ -6,7 +6,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   // Keep recovery server-side so production does not depend on a browser key
   // that may be rotated or configured with the wrong key format.
-  const authKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const authKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   const email = String(req.body?.email || "").trim().toLowerCase();
   if (!baseUrl || !authKey) return res.status(500).json({ error: "Supabase is not configured" });
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: "Ingresá un correo válido." });
