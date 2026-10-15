@@ -563,14 +563,15 @@ export default function OperationalExecutionPanel({
       descripcion: `Se solicitó acción al comitente: "${actionData.titulo}" (${actionData.accionRequeridaTexto}).`,
       autor: 'Bojana Estudio'
     };
+    const emailLogId = `email-${Date.now()}`;
     const emailActivity = sendEmailImmediately ? {
-      id: `email-${Date.now()}`,
+      id: emailLogId,
       fecha: 'Hoy',
       descripcion: `Correo enviado al cliente: ${project.cliente?.email || 'el cliente'} · Solicitud: "${actionData.titulo}".`,
       autor: 'Bojana Estudio'
     } : null;
     const emailHistoryEntry: ProjectInvitationLog | null = sendEmailImmediately ? {
-      id: `email-${Date.now()}`,
+      id: emailLogId,
       fecha: `${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} · ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`,
       destinatario: project.cliente?.nombre || 'Comitente',
       email: project.cliente?.email || '',

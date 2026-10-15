@@ -25,10 +25,19 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
   const [reply, setReply] = useState("")
   const [sending, setSending] = useState(false)
   const [error, setError] = useState("")
-  const projectMessages = useMemo(
-    () => (project.actividadReciente || []).filter(isCommunicationEntry).slice().reverse(),
-    [project.actividadReciente],
-  )
+  const projectMessages = useMemo(() => {
+    const activityMessages = (project.actividadReciente || []).filter(isCommunicationEntry)
+    const activityIds = new Set(activityMessages.map(activity => activity.id))
+    const invitationMessages: ProjectActivityLog[] = (project.historialInvitaciones || [])
+      .filter(invitation => !activityIds.has(invitation.id))
+      .map(invitation => ({
+        id: invitation.id,
+        fecha: invitation.fecha,
+        descripcion: `Correo enviado al cliente: ${invitation.asunto} · ${invitation.email}`,
+        autor: "Bojana Estudio",
+      }))
+    return [...activityMessages, ...invitationMessages].slice().reverse()
+  }, [project.actividadReciente, project.historialInvitaciones])
   const clientEmail = project.cliente?.email?.trim() || ""
 
   const registerActivity = (description: string, emailSent = false) => {
