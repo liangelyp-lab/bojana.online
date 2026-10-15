@@ -90,7 +90,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       member = emailMembers[0];
     }
     if (!member) return res.status(403).json({ error: "No tenés permiso para acceder a los proyectos." });
-    const isStaff = ["owner", "admin", "team"].includes(member.role);
+    const isStaff = ["owner", "admin"].includes(member.role);
 
     if (req.method === 'GET') {
       // Prefer the authenticated session for reads. Supabase RLS already

@@ -13,6 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const name = String(req.body?.name || "").trim();
   const email = String(req.body?.email || "").trim().toLowerCase();
   const role = String(req.body?.role || "team").trim();
+  const projectIds = Array.isArray(req.body?.projectIds) ? req.body.projectIds.map((id: unknown) => String(id).trim()).filter(Boolean) : [];
   if (!name || !email) return res.status(400).json({ error: "Nombre y email son obligatorios." });
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: "Ingresá un email válido." });
   if (!["team", "admin"].includes(role)) return res.status(400).json({ error: "Rol inválido." });
@@ -51,6 +52,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({ id: invitedUserId, studio_id: requesterMember.studio_id, name, email, role }),
     });
     if (!userResponse.ok) return res.status(502).json({ error: "La invitación se creó, pero no pudimos vincularla al estudio." });
+    if (role === "team" && projectIds.length > 0) {
+      const projectRowsResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&select=id`, { headers });
+      const projectRows = await projectRowsResponse.json() as Array<{ id: string }>;
+      const allowedProjectIds = new Set(projectRows.map(project => project.id));
+      const rows = projectIds.filter(projectId => allowedProjectIds.has(projectId)).map(projectId => ({ project_id: projectId, user_id: invitedUserId, role: "editor" }));
+      if (rows.length > 0) {
+        const memberResponse = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) });
+        if (!memberResponse.ok) return res.status(502).json({ error: "El usuario se creó, pero no pudimos guardar sus proyectos." });
+      }
+    }
     return res.status(200).json({ user: { id: invitedUserId, name, email, role }, actionLink: inviteData.action_link });
   } catch (error) {
     console.error("Team user invitation failed", error);
