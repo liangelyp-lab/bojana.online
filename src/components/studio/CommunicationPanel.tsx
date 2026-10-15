@@ -144,8 +144,8 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <p className="text-[11px] text-ink-faint">La respuesta queda registrada en la actividad del proyecto.</p>
           <div className="flex flex-wrap gap-2">
-            <Button data-channel="email" disabled={sending || !reply.trim() || !clientEmail} type="submit" variant="secondary">Enviar por email</Button>
-            <Button data-channel="portal" disabled={sending || !reply.trim()} type="submit">Responder en el portal</Button>
+            <Button dataChannel="email" disabled={sending || !reply.trim() || !clientEmail} type="submit" variant="secondary">Enviar por email</Button>
+            <Button dataChannel="portal" disabled={sending || !reply.trim()} type="submit">Responder en el portal</Button>
           </div>
         </div>
         </form>

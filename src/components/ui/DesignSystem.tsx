@@ -21,6 +21,7 @@ export function Button({
   ariaLabel,
   title,
   tooltip,
+  dataChannel,
   disabled = false,
   type = 'button'
 }: {
@@ -31,6 +32,7 @@ export function Button({
   ariaLabel?: string;
   title?: string;
   tooltip?: string;
+  dataChannel?: string;
   disabled?: boolean;
   type?: 'button' | 'submit';
 }) {
@@ -72,6 +74,7 @@ export function Button({
       aria-label={ariaLabel}
       aria-describedby={tooltip ? tooltipId : undefined}
       title={title}
+      data-channel={dataChannel}
       disabled={disabled}
       className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variants[variant]} ${className}`}
       onClick={onClick}
