@@ -371,6 +371,12 @@ function PasswordReset({ accessToken, refreshToken, onComplete }: { accessToken:
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
+  const invitedEmail = (() => {
+    try {
+      const payload = accessToken.split(".")[1]
+      return payload ? JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/"))).email || "" : ""
+    } catch { return "" }
+  })()
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -387,8 +393,9 @@ function PasswordReset({ accessToken, refreshToken, onComplete }: { accessToken:
       <section className="flex h-full min-h-0 flex-col overflow-hidden px-6 py-4 sm:px-10 sm:py-5 lg:px-14 lg:py-8 xl:px-20">
         <div className="signin-content my-auto w-full max-w-md py-3 sm:py-5 lg:mx-auto lg:py-8">
           <Eyebrow>Seguridad del portal</Eyebrow>
-          <Heading as="h1" className="mt-2 font-display text-4xl leading-none tracking-tight text-ink sm:mt-4 sm:text-5xl">Crear nueva contraseña</Heading>
-          <p className="mt-3 max-w-sm text-sm leading-5 text-ink-muted sm:mt-5 sm:leading-6">Elegí una contraseña nueva para proteger tu acceso a Bojana Estudio.</p>
+          <Heading as="h1" className="mt-2 font-display text-4xl leading-none tracking-tight text-ink sm:mt-4 sm:text-5xl">Activar cuenta</Heading>
+          <p className="mt-3 max-w-sm text-sm leading-5 text-ink-muted sm:mt-5 sm:leading-6">Creá tu contraseña para entrar a Bojana Estudio.</p>
+          {invitedEmail && <p className="mt-4 rounded-xl bg-stone px-4 py-3 text-sm text-ink-muted">Cuenta invitada: <strong className="text-ink">{invitedEmail}</strong></p>}
           {saved ? (
             <div className="mt-7 space-y-4">
               <p className="rounded-xl bg-sage-pale px-4 py-3 text-sm text-forest">La contraseña se guardó correctamente.</p>
