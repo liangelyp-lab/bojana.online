@@ -1,5 +1,5 @@
 import { FormEvent, useMemo, useState } from "react"
-import type { ProjectActivityLog, ProjectData } from "../../types"
+import type { ProjectActivityLog, ProjectData, ProjectInvitationLog } from "../../types"
 import { Button, TextAreaControl } from "../ui/DesignSystem"
 
 type ReplyChannel = "portal" | "email"
@@ -31,16 +31,29 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
   )
   const clientEmail = project.cliente?.email?.trim() || ""
 
-  const registerActivity = (description: string) => {
+  const registerActivity = (description: string, emailSent = false) => {
     const activity: ProjectActivityLog = {
       id: `communication-${Date.now()}`,
       fecha: "Ahora",
       descripcion: description,
       autor: "Bojana Estudio",
     }
+    const emailHistoryEntry: ProjectInvitationLog | null = emailSent ? {
+      id: `email-${Date.now()}`,
+      fecha: "Ahora",
+      destinatario: project.cliente?.nombre || "Comitente",
+      email: clientEmail,
+      enviadoPor: "Bojana Estudio <info@bojana.com.ar>",
+      asunto: `Re: ${project.info?.nombre || "Bojana Estudio"} · Consulta del portal`,
+      metodo: "lark_smtp",
+      estado: "entregado",
+    } : null
     onUpdateProject({
       ...project,
       actividadReciente: [activity, ...(project.actividadReciente || [])],
+      historialInvitaciones: emailHistoryEntry
+        ? [emailHistoryEntry, ...(project.historialInvitaciones || [])]
+        : project.historialInvitaciones,
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
@@ -72,7 +85,7 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
         const contentType = response.headers.get("content-type") || ""
         const data = contentType.includes("application/json") ? await response.json() : {}
         if (!response.ok) throw new Error(data.message || "No se pudo enviar el email.")
-        registerActivity(`Correo enviado al cliente: ${message}`)
+        registerActivity(`Correo enviado al cliente: ${message}`, true)
         onToast(`Respuesta enviada por email a ${clientEmail}.`)
       } else {
         registerActivity(`Respuesta del estudio: ${message}`)
