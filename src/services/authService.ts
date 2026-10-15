@@ -66,10 +66,9 @@ export async function updatePassword(password: string, accessToken: string, refr
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-  const response = await fetch("/api/auth/supabase/recover", {
+  const response = await fetch(`${url}/auth/v1/recover`, {
     method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
+    headers: { apikey: anonKey, "Content-Type": "application/json" },
     body: JSON.stringify({ email, redirectTo: window.location.origin }),
   });
   const data = await response.json() as { error?: string };

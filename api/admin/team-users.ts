@@ -15,6 +15,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const requesterRows = await requesterResponse.json() as Array<{ studio_id: string; role: string }>;
   const requesterMember = requesterRows[0];
   if (!requesterMember || !["owner", "admin"].includes(requesterMember.role)) return res.status(403).json({ error: "Sólo owner o admin pueden administrar integrantes." });
+  const action = String(req.body?.action || "");
+  const targetId = String(req.body?.userId || "").trim();
+  if (req.method === "POST" && action) {
+    const targetResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(targetId)}&studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&select=id,name,email,role&limit=1`, { headers });
+    const targetRows = await targetResponse.json() as Array<{ id: string; name: string; email: string; role: string }>;
+    const target = targetRows[0];
+    if (!target) return res.status(404).json({ error: "No encontramos ese usuario." });
+    if (target.id === requester.id || target.role === "owner") return res.status(403).json({ error: "No podés administrar al owner ni tu propio usuario." });
+    if (action === "get_projects") {
+      const response = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(target.id)}&select=project_id`, { headers });
+      const rows = await response.json() as Array<{ project_id: string }>;
+      return res.status(200).json({ projectIds: rows.map(row => row.project_id) });
+    }
+    if (action === "projects") {
+      const projectIds = Array.isArray(req.body?.projectIds) ? req.body.projectIds.map((id: unknown) => String(id)).filter(Boolean) : [];
+      const removed = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(target.id)}`, { method: "DELETE", headers });
+      if (!removed.ok) return res.status(502).json({ error: "No pudimos quitar los accesos anteriores." });
+      if (projectIds.length) {
+        const added = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(projectIds.map(projectId => ({ project_id: projectId, user_id: target.id, role: "editor" }))) });
+        if (!added.ok) return res.status(502).json({ error: "No pudimos guardar los nuevos proyectos." });
+      }
+      return res.status(200).json({ ok: true });
+    }
+    if (action === "resend") {
+      const origin = `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host || "www.bojana.online"}`;
+      const response = await fetch(`${baseUrl}/auth/v1/admin/generate_link`, { method: "POST", headers, body: JSON.stringify({ type: "recovery", email: target.email, options: { redirectTo: origin } }) });
+      const data = await response.json() as { action_link?: string; msg?: string; message?: string };
+      if (!response.ok || !data.action_link) return res.status(response.status || 502).json({ error: data.msg || data.message || "No pudimos generar el enlace." });
+      return res.status(200).json({ user: target, actionLink: data.action_link });
+    }
+    if (action === "delete") {
+      const memberships = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(target.id)}`, { method: "DELETE", headers });
+      const profile = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(target.id)}&studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}`, { method: "DELETE", headers });
+      if (!memberships.ok || !profile.ok) return res.status(502).json({ error: "No pudimos eliminar todos los accesos del usuario." });
+      const auth = await fetch(`${baseUrl}/auth/v1/admin/users/${encodeURIComponent(target.id)}`, { method: "DELETE", headers });
+      if (!auth.ok && auth.status !== 404) return res.status(502).json({ error: "Se quitó del estudio, pero no pudimos eliminar la cuenta Auth." });
+      return res.status(200).json({ ok: true });
+    }
+    return res.status(400).json({ error: "Acción inválida." });
+  }
   if (req.method === "GET") {
     const usersResponse = await fetch(`${baseUrl}/rest/v1/studio_users?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&select=id,name,email,role&order=name.asc`, { headers });
     const users = await usersResponse.json();

@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/admin/team-user-access", "destination": "/api/admin/team-users" }
+  ]
+}
