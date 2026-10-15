@@ -27,7 +27,7 @@ import Library from "./components/Library";
 import { Badge, Button, EmptyState, InputControl, Tabs, TextAreaControl } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
-import { getAccessToken, getAuthUser, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
+import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
 
 
 // ─── Icon ────────────────────────────────────────────────────────────────────
@@ -327,6 +327,7 @@ type DashboardDecision = {
   title: string
   description: string
   status: "pendiente" | "aprobado" | "cambios"
+  requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision"
   optionChosen?: string
 }
 
@@ -417,6 +418,8 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
   const [showPassword, setShowPassword] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(authError || null)
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null)
+  const [recoveryLoading, setRecoveryLoading] = useState(false)
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow
@@ -436,6 +439,24 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
     if (email && password) {
       setError(null)
       void onSignIn(email, password).then(ok => { if (!ok) setError("No pudimos iniciar sesión con esos datos.") })
+    }
+  }
+
+  async function handleRecovery() {
+    setRecoveryMessage(null)
+    setError(null)
+    if (!email.trim()) {
+      setError("Ingresá tu correo para enviarte el enlace de recuperación.")
+      return
+    }
+    setRecoveryLoading(true)
+    try {
+      await requestPasswordReset(email.trim())
+      setRecoveryMessage("Te enviamos un enlace de recuperación. Revisá tu correo y también la carpeta de spam.")
+    } catch (recoveryError) {
+      setError(recoveryError instanceof Error ? recoveryError.message : "No pudimos enviar el correo de recuperación.")
+    } finally {
+      setRecoveryLoading(false)
     }
   }
 
@@ -495,8 +516,8 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
                 />
                 Mantener la sesion iniciada
               </label>
-              <Button className="!px-3" variant="ghost">
-                Olvidaste tu contrasena?
+              <Button className="!px-3" variant="ghost" onClick={() => void handleRecovery()} type="button">
+                {recoveryLoading ? "Enviando..." : "Olvidaste tu contrasena?"}
               </Button>
             </div>
 
@@ -507,6 +528,7 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
             )}
 
             {error && <p className="rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark">{error}</p>}
+            {recoveryMessage && <p className="rounded-xl bg-mint-pale px-4 py-3 text-sm text-ink">{recoveryMessage}</p>}
 
             <Button className="!min-h-12 w-full" type="submit">
               Iniciar sesion <Icon className="size-4" name="arrow" />
@@ -1392,7 +1414,7 @@ function AdminPortal({
   })
 
   const workspaceTasks = useMemo(
-    () => selectedProjectId ? getProjectTasks(currentProject) : tasks,
+    () => selectedProjectId && currentProject ? getProjectTasks(currentProject) : tasks,
     [currentProject, selectedProjectId, tasks],
   )
   const studyTasks = useMemo(
@@ -1655,7 +1677,7 @@ function AdminPortal({
                       <OperationalExecutionPanel
                         onToast={onPublishToast}
                         onUpdateProject={onUpdateProject}
-                        project={currentProject}
+                        project={currentProject!}
                         studioEmail={studioEmail}
                         focusTaskId={notificationTarget?.taskId}
                         focusUpdateId={notificationTarget?.updateId}
@@ -1674,8 +1696,8 @@ function AdminPortal({
                     <AvancesModule
                       isAdmin={true}
                       onToast={onPublishToast}
-                      onUpdateAvances={(avances) => onUpdateProject({ ...currentProject, avances })}
-                      project={currentProject}
+                      onUpdateAvances={(avances) => onUpdateProject({ ...currentProject!, avances })}
+                      project={currentProject!}
                     />
                   </div>
                 )}
@@ -1686,8 +1708,8 @@ function AdminPortal({
                     <DocumentosModule
                       isAdmin={true}
                       onToast={onPublishToast}
-                      onUpdateDocumentos={(docs) => onUpdateProject({ ...currentProject, documentos: docs })}
-                      project={currentProject}
+                      onUpdateDocumentos={(docs) => onUpdateProject({ ...currentProject!, documentos: docs })}
+                      project={currentProject!}
                     />
                   </div>
                 )}
@@ -1698,8 +1720,8 @@ function AdminPortal({
                     <DecisionesModule
                       isAdmin={true}
                       onToast={onPublishToast}
-                      onUpdateDecisiones={(decs) => onUpdateProject({ ...currentProject, decisiones: decs })}
-                      project={currentProject}
+                      onUpdateDecisiones={(decs) => onUpdateProject({ ...currentProject!, decisiones: decs })}
+                      project={currentProject!}
                     />
                   </div>
                 )}
@@ -2043,6 +2065,7 @@ function ActionCard({
     title: string
     description: string
     status: "pendiente" | "aprobado" | "cambios"
+    requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision"
     optionChosen?: string
     options?: { id: string; title: string; description?: string; imageUrl?: string; cost?: string }[]
     attachments?: { name: string; url?: string; type?: string }[]

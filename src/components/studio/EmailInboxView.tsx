@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react"
 import { Mail, RefreshCw, Send, X } from "lucide-react"
 
 type MailItem = { uid: number; subject: string; from: string; fromName: string; date: string | null; unread: boolean }
+type MailDetail = { text: string; html: string; attachments: { filename: string; size: number }[]; from?: string; subject?: string }
 
 async function readApiResponse(response: Response): Promise<Record<string, any>> {
   const contentType = response.headers.get("content-type") || ""
@@ -14,7 +15,7 @@ async function readApiResponse(response: Response): Promise<Record<string, any>>
 export default function EmailInboxView() {
   const [messages, setMessages] = useState<MailItem[]>([])
   const [selected, setSelected] = useState<MailItem | null>(null)
-  const [detail, setDetail] = useState<{ text: string; html: string; attachments: { filename: string; size: number }[] } | null>(null)
+  const [detail, setDetail] = useState<MailDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [reply, setReply] = useState("")
@@ -39,7 +40,7 @@ export default function EmailInboxView() {
       const response = await fetch(`/api/mail/inbox?uid=${message.uid}`)
       const data = await readApiResponse(response)
       if (!response.ok) throw new Error(data.message || "No se pudo abrir el correo")
-      setDetail(data)
+      setDetail(data as MailDetail)
     } catch (err) { setError(err instanceof Error ? err.message : "No se pudo abrir el correo") }
   }
 

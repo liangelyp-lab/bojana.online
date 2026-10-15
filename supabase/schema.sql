@@ -76,6 +76,21 @@ alter table public.projects enable row level security;
 alter table public.project_members enable row level security;
 alter table public.activity_log enable row level security;
 
+-- Keep this bootstrap script safe to re-run while iterating on the pilot.
+drop policy if exists "members can read own studio" on public.studios;
+drop policy if exists "users can read own membership" on public.studio_users;
+drop policy if exists "team can read studio projects" on public.projects;
+drop policy if exists "clients can read assigned projects" on public.projects;
+drop policy if exists "team can create projects" on public.projects;
+drop policy if exists "team can update projects" on public.projects;
+drop policy if exists "admins can delete projects" on public.projects;
+drop policy if exists "members can read clients" on public.clients;
+drop policy if exists "team can manage clients" on public.clients;
+drop policy if exists "members can read activity" on public.activity_log;
+drop policy if exists "members can write activity" on public.activity_log;
+drop policy if exists "users can read project memberships" on public.project_members;
+drop policy if exists "team can manage project memberships" on public.project_members;
+
 -- Seed one studio row and keep the id stable for the first pilot.
 insert into public.studios (name)
 select 'Bojana Estudio'

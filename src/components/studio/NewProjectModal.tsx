@@ -288,7 +288,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
       subetapas: nextStages,
     });
   };
-  const removeTask = (need: Need, id: string) => {
+  const removeTask = (id: string) => {
     setDraft((prev) => ({
       ...prev,
       tareaSiguiente: prev.tareaSiguiente === id ? "" : prev.tareaSiguiente,
@@ -907,7 +907,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                 </div>
               </div>
             ))}
-            {draft.necesidades.map((need, ni) => (
+            {draft.necesidades.map((need) => (
               <div
                 key={need.id}
                 className="space-y-bojana-block border-t border-bojana-line pt-5"
@@ -978,7 +978,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                     }}
                   />
                 </div>
-                {need.tareas.map((task, ti) => {
+                {need.tareas.map((task) => {
                   const taskIsExpanded = expandedTasks[task.id] ?? false;
                   return (
                   <div
@@ -1021,7 +1021,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                         </div>
                         <Remove
                           label={`Quitar tarea ${task.titulo}`}
-                          onClick={() => removeTask(need, task.id)}
+                          onClick={() => removeTask(task.id)}
                         />
                       </div>
                     </div>
@@ -1403,6 +1403,7 @@ function Field({
   required = false,
   compact = false,
   placeholder,
+  min,
 }: {
   label: string;
   value: string;
@@ -1412,6 +1413,7 @@ function Field({
   required?: boolean;
   compact?: boolean;
   placeholder?: string;
+  min?: string;
 }) {
   const [error, setError] = useState('');
   const examples: Record<string,string> = { 'Nombre del proyecto':'Ej.: Remodelación del SUM', 'Cliente / comitente':'Ej.: Consorcio Los Alisos', 'Propósito — resultado esperado':'Ej.: Conectar los espacios comunes', 'Ubicación':'Ej.: Nordelta, Tigre', 'Qué incluye el alcance aprobado':'Ej.: Planos y dos visualizaciones', 'Primer movimiento':'Ej.: Preparar la propuesta inicial' };
@@ -1440,6 +1442,7 @@ function Field({
           aria-invalid={!!error}
           onInvalid={validate}
           placeholder={placeholder || examples[label]}
+          min={min}
           type={type}
           className={`${fieldClass} ${compact ? "!px-3 !py-1.5" : ""}`}
           value={value}

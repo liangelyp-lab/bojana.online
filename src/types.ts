@@ -655,56 +655,6 @@ export interface Contractor {
   personal: number;
 }
 
-export type PortalModule = PortalModuleConfig & {
-  tipoWidget?: string;
-  esPersonalizado?: boolean;
-  orden?: number;
-};
-
-export type WidgetType = string;
-export type ProjectTypeConfig = any;
-export type ServiceItem = any;
-export type TaskItem = any;
-export type GalleryItem = any;
-export type DocumentItem = any;
-export type CertificationItem = any;
-export type QualityTestItem = any;
-export type ClientInquiry = any;
-
-export function calculateServiceProgress(service: any): number {
-  if (!service) return 0;
-  if (typeof service.avanceReal === 'number') return service.avanceReal;
-  if (!service.tareas || service.tareas.length === 0) return 100;
-  const total = service.tareas.reduce((acc: number, t: any) => acc + (t.avance || 0), 0);
-  return Math.round(total / service.tareas.length);
-}
-
-export function calculateProjectProgress(services: any[]): number {
-  if (!services || services.length === 0) return 0;
-  const total = services.reduce((acc: number, s: any) => acc + calculateServiceProgress(s), 0);
-  return Math.round(total / services.length);
-}
-
-export interface QualityCheck {
-  id: string;
-  item: string;
-  sector: string;
-  verificadoPor: string;
-  fechaVerificacion: string;
-  resultado: 'Aprobado' | 'Observado' | 'Pendiente';
-  observaciones?: string;
-}
-
-export interface ConcreteTest {
-  id: string;
-  fechaMoldeo: string;
-  sectorColocacion: string;
-  asentamientoCm: number;
-  resistencia7dMPa: number;
-  resistencia28dMPa: number;
-  estado: 'En Cursado' | 'Conforme' | 'Fuera de Pliego';
-}
-
 export interface LibraryItem {
   id: string;
   categoria: string;

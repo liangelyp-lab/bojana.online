@@ -50,7 +50,7 @@ function normalizePublishProject(project: ProjectData): ProjectData {
     ...raw,
     id: typeof raw.id === 'string' ? raw.id : '',
     lifecycleStatus: raw.lifecycleStatus || 'LISTO_PARA_COMPARTIR',
-    info: { ...info, nombre: typeof info.nombre === 'string' ? info.nombre : 'Proyecto' },
+    info: { ...(info as ProjectData['info']), nombre: typeof (info as ProjectData['info']).nombre === 'string' ? (info as ProjectData['info']).nombre : 'Proyecto' },
     disciplinas: disciplines,
     cliente: raw.cliente && typeof raw.cliente === 'object' ? raw.cliente : {} as ProjectData['cliente'],
     baseContractual,
@@ -475,7 +475,7 @@ export default function PublishInviteModal({
                             <FileText className="w-4 h-4 text-bojana-muted shrink-0" />
                             <span className="font-medium">{doc.nombre}</span>
                             <span className="text-xs text-bojana-muted uppercase bg-bojana-soft px-2 py-0.5 rounded-bojana-badge">
-                              {(doc.tipo || doc.categoria || 'Documento').replace('_', ' ')}
+                              {(doc.tipo || 'Documento').replace('_', ' ')}
                             </span>
                           </div>
                           <span className="text-xs text-bojana-success font-medium">

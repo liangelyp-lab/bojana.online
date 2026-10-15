@@ -1,4 +1,4 @@
-import type { EstadoEtapa, ProjectLifecycleStatus, DecisionStatus } from '../types';
+import type { EstadoEtapa, DecisionStatus } from '../types';
 
 const studioLabels: Record<EstadoEtapa, string> = {
   Pendiente: 'No iniciada',
@@ -26,7 +26,7 @@ export function taskStateLabel(state: EstadoEtapa, audience: 'studio' | 'client'
   return (audience === 'client' ? clientLabels : studioLabels)[state] || state;
 }
 
-export function taskStateBadgeClasses(state: EstadoEtapa, audience: 'studio' | 'client' = 'studio'): string {
+export function taskStateBadgeClasses(state: EstadoEtapa, _audience: 'studio' | 'client' = 'studio'): string {
   switch (state) {
     case 'Completado':
       return 'bg-forest text-white border-transparent';
@@ -55,19 +55,5 @@ export function decisionStateBadgeClasses(status: DecisionStatus): string {
     case 'Pendiente':
     default:
       return 'bg-sand/30 text-ink border-sand-strong/40';
-  }
-}
-
-export function lifecycleBadgeClasses(status: ProjectLifecycleStatus | undefined): string {
-  switch (status) {
-    case 'ACTIVO':
-      return 'bg-mint-pale text-forest border-mint/40';
-    case 'COMPLETADO':
-      return 'bg-stone text-ink-muted border-line';
-    case 'LISTO_PARA_COMPARTIR':
-      return 'bg-sand/30 text-ink border-sand-strong/40';
-    case 'BORRADOR':
-    default:
-      return 'bg-stone text-ink-faint border-line';
   }
 }

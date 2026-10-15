@@ -2,21 +2,12 @@ import {
   ProjectData, 
   PortalModuleConfig, 
   DisciplinaType, 
-  ProgressItem, 
-  AvancePost, 
-  DocumentoEntregable, 
-  PlanTour, 
-  DecisionItem, 
-  MaterialItem,
   ClientEntity,
-  ProjectDNA,
   DNAWorkflowStep,
   OperationalDiscipline,
   OperationalNeed,
   ExecutionTask,
-  SubEtapaItem,
   EstadoEtapa,
-  ContractualBase,
   ProjectLifecycleStatus,
   ProjectInvitationLog,
   calculateTaskProgress,
@@ -32,11 +23,6 @@ export {
   calculateNeedProgress,
   calculateDisciplineProgress,
   calculateProjectProgressFromDisciplines
-};
-
-export const ADMIN_CREDENTIALS = {
-  usuario: 'admin',
-  password: 'bojana2026'
 };
 
 /**
@@ -141,7 +127,7 @@ export const DISCIPLINE_NEEDS_MAP: Record<DisciplinaType, { id: string; label: s
 };
 
 // 2. GENERATE WORKFLOW FROM DNA
-export function generateWorkflowFromDNA(disciplinas: DisciplinaType[], selectedNeeds: string[]): DNAWorkflowStep[] {
+export function generateWorkflowFromDNA(_disciplinas: DisciplinaType[], selectedNeeds: string[]): DNAWorkflowStep[] {
   const steps: DNAWorkflowStep[] = [
     {
       id: 'info',
@@ -1762,7 +1748,10 @@ export async function hydrateProjectsFromSupabase(): Promise<ProjectData[] | nul
   if (!isSupabaseConfigured) return null;
   try {
     const projects = await listRemoteProjects();
-    if (projects.length > 0) saveAllProjects(projects);
+    // An empty successful response is meaningful for clients: it clears a
+    // stale local project instead of leaving them looking at another account's
+    // cached data.
+    saveAllProjects(projects);
     return projects;
   } catch (error) {
     console.error('Error loading projects from Supabase:', error);
@@ -1826,10 +1815,4 @@ export function publishAndActivateProject(project: ProjectData): ProjectData {
     },
     ultimaModificacion: new Date().toISOString()
   };
-}
-
-export function resetProjectDataToDefault(): ProjectData[] {
-  localStorage.removeItem(STORAGE_KEY);
-  localStorage.removeItem(CLIENTS_STORAGE_KEY);
-  return getAllProjects();
 }

@@ -8,7 +8,6 @@ import {
   OperationalDiscipline,
   OperationalNeed,
   ExecutionTask,
-  SubEtapaItem,
   DisciplinaType,
   EstadoEtapa,
   ClientActionRequired,
@@ -19,16 +18,15 @@ import {
   AvancePost,
   TaskContentType,
   DecisionItem,
-  calculateTaskProgress
+  calculateTaskProgress,
+  calculateDisciplineProgress
 } from '../../types';
 import {
   updateTaskInDisciplines,
   calculateNeedProgress,
-  calculateProjectProgressFromDisciplines,
   generateEmptyOperationalDisciplines,
   getEffectiveProgress,
   getProjectStatusLabel,
-  getLifecycleLabel,
   publishAndActivateProject
 } from '../../services/storageService';
 import PublishInviteModal from './PublishInviteModal';
@@ -37,7 +35,6 @@ import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } 
 import ClientUpdatePreviewModal from './ClientUpdatePreviewModal';
 import {
   CheckCircle2,
-  Circle,
   Clock,
   ChevronRight,
   ChevronDown,
@@ -53,13 +50,10 @@ import {
   Paperclip,
   TrendingUp,
   ExternalLink,
-  MessageSquare,
   Building2,
-  Calendar,
   AlertCircle,
   Mail,
   Bell,
-  ShieldCheck,
   Palette
 } from 'lucide-react';
 
@@ -159,8 +153,6 @@ export default function OperationalExecutionPanel({
   // Active expanded item within a need
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [taskPanel, setTaskPanel] = useState<{ id: string; mode: 'update' } | null>(null);
-  const [indexOpen, setIndexOpen] = useState(false);
-  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [indexSearch, setIndexSearch] = useState('');
   const [taskError, setTaskError] = useState('');
 
@@ -236,7 +228,6 @@ export default function OperationalExecutionPanel({
   const handleCompleteTask = (taskId: string, currentStatus?: EstadoEtapa) => {
     let affectedDiscId: DisciplinaType = 'Arquitectura';
     let affectedNeedId = '';
-    let taskTitle = '';
 
     for (const d of disciplines) {
       for (const n of d.necesidades) {
@@ -244,7 +235,6 @@ export default function OperationalExecutionPanel({
         if (found) {
           affectedDiscId = d.id;
           affectedNeedId = n.id;
-          taskTitle = found.titulo;
           break;
         }
       }
@@ -544,7 +534,7 @@ export default function OperationalExecutionPanel({
       titulo: prefill.titulo.trim(),
       descripcion: prefill.descripcion.trim() || undefined,
       recursos: prefill.recursos.split('\n').map(item => item.trim()).filter(Boolean),
-      accion: prefill.accion,
+      accion: prefill.accion || 'revision',
       estado: prefill.accion === 'publicar_avance' || prefill.accion === 'publicar_terminar' ? 'publicada' : prefill.accion === 'solicitud_informacion' ? 'solicitud_enviada' : 'en_revision',
       fecha: new Date().toISOString(),
       autor: 'Bojana Estudio',
@@ -646,24 +636,7 @@ export default function OperationalExecutionPanel({
     setResourcesOpen(false);
     setUpdateDraftOpen(false);
   };
-  const editTaskUpdate = (update: TaskUpdate) => {
-    setEditingUpdateId(update.id);
-    setUpdateDraft({
-      titulo: update.titulo,
-      descripcion: update.descripcion || '',
-      recursos: (update.recursos || []).join('\n'),
-      accion: update.accion,
-      opciones: (update.opciones || []).map(option => ({
-        id: option.id,
-        titulo: option.titulo,
-        descripcion: option.descripcion || '',
-        imagenUrl: option.imagenUrl || ''
-      }))
-    });
-    setResourcesOpen(Boolean(update.recursos?.length));
-    setUpdateDraftOpen(true);
-  };
-  const saveTaskUpdate = (task: ExecutionTask, disc: OperationalDiscipline, need: OperationalNeed, action: TaskUpdateAction) => {
+  const saveTaskUpdate = (task: ExecutionTask, action: TaskUpdateAction) => {
     if (!updateDraft.titulo.trim()) return;
     const updates = task.actualizaciones || [];
     const options = updateDraft.opciones.filter(option => option.titulo.trim()).map((option, index) => ({
@@ -751,7 +724,7 @@ export default function OperationalExecutionPanel({
             <span className="text-[11px] text-bojana-muted">Configurado en Settings</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {contentTypes.map(type => <span key={type} className="inline-flex items-center rounded-full border border-bojana-line bg-bojana-soft px-3 py-1.5 text-xs font-medium text-bojana-ink">{taskContentTypeLabels[type]}</span>)}
+            {contentTypes.map(type => <span key={type} className="inline-flex items-center rounded-full border border-bojana-line bg-bojana-soft px-3 py-1.5 text-xs font-medium text-bojana-ink">{taskContentTypeLabels[type as TaskContentType]}</span>)}
           </div>
         </div>
         <div className="sm:col-span-2">
@@ -760,7 +733,7 @@ export default function OperationalExecutionPanel({
             taskId={task.id}
             discipline={disc.id}
             compact
-            allowedContentTypes={contentTypes}
+            allowedContentTypes={contentTypes as TaskContentType[]}
             onChange={(storage, file) => {
               const updatedDisciplines = file
                 ? updateTaskInDisciplines(disciplines, task.id, { archivos: [...(task.archivos || []), { nombre: file.name, url: file.url, tipo: file.mimeType.startsWith('image/') ? 'imagen' : file.mimeType.startsWith('video/') ? 'video' : file.mimeType === 'application/pdf' ? 'pdf' : 'descargable', funcion: 'resultado', version: file.version, storage: file }] }).updatedDisciplines
@@ -776,10 +749,10 @@ export default function OperationalExecutionPanel({
               <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={resetUpdateDraft}>Cancelar</Button>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="secondary" className="!min-h-9 !px-3 text-xs" disabled={!updateDraft.titulo.trim()} onClick={() => saveTaskUpdate(task, disc, need, 'borrador')}>Guardar borrador</Button>
+              <Button variant="secondary" className="!min-h-9 !px-3 text-xs" disabled={!updateDraft.titulo.trim()} onClick={() => saveTaskUpdate(task, 'borrador')}>Guardar borrador</Button>
               <Button variant="primary" className="!min-h-9 !px-3 text-xs" disabled={!updateDraft.titulo.trim()} onClick={() => {
             if (editingUpdateId) {
-              saveTaskUpdate(task, disc, need, updateDraft.accion);
+              saveTaskUpdate(task, updateDraft.accion);
             } else if (updateDraft.accion !== 'borrador') {
               setUpdateDraftOpen(false);
               setSelectedTaskForAction({
@@ -789,7 +762,7 @@ export default function OperationalExecutionPanel({
                 prefill: { ...updateDraft, responsableRespuesta: '', fechaLimiteRespuesta: '', opciones: updateDraft.opciones.filter(option => option.titulo.trim()).map((option, index) => ({ id: option.id, letra: `Opción ${String.fromCharCode(65 + index)}`, titulo: option.titulo.trim(), descripcion: option.descripcion.trim() || undefined, imagenUrl: option.imagenUrl.trim() || undefined })) }
               });
             } else {
-              saveTaskUpdate(task, disc, need, updateDraft.accion);
+              saveTaskUpdate(task, updateDraft.accion);
             }
           }}>{updateDraft.accion === 'publicar_terminar' ? 'Publicar y terminar' : updateDraft.accion === 'publicar_avance' ? 'Publicar avance' : updateDraft.accion === 'revision' ? 'Continuar con revisión' : 'Solicitar información'}</Button>
             </div>
@@ -828,13 +801,13 @@ export default function OperationalExecutionPanel({
 {false && <div className="px-4 py-3.5 space-y-bojana-inside text-xs font-sans">
 
                                               {/* Subetapas Checklist */}
-                                              {task.subetapas && task.subetapas.length > 0 && (
+                                              {(task.subetapas || []).length > 0 && (
                                                 <div className="space-y-bojana-inside">
                                                   <span className="text-xs font-sans font-medium uppercase tracking-normal text-bojana-muted">
                                                     Etapas / Checklist
                                                   </span>
                                                   <div className="space-y-bojana-inside">
-                                                    {task.subetapas.map((sub) => (
+                                                    {(task.subetapas || []).map((sub) => (
                                                       <div
                                                         key={sub.id}
 
@@ -888,7 +861,7 @@ export default function OperationalExecutionPanel({
                                                     Archivos adjuntos
                                                   </span>
                                                   <div className="flex flex-wrap gap-bojana-inside">
-                                                    {task.archivos.filter(arch => !arch.storage).map((arch, aIdx) => (
+                                                    {(task.archivos || []).filter(arch => !arch.storage).map((arch, aIdx) => (
                                                       <div key={aIdx} className="bg-bojana-surface border border-bojana-line rounded-bojana-widget px-2.5 py-1 text-xs font-sans flex items-center gap-bojana-inside text-bojana-ink">
                                                         <Paperclip className="w-3 h-3 text-bojana-muted" />
                                                         <span className="min-w-0 flex-1">{arch.nombre}</span>
@@ -1135,7 +1108,7 @@ export default function OperationalExecutionPanel({
         </div>
   </div>;
   const projectIndex = <div className="space-y-3"><h2 className="bojana-heading-section bojana-heading-component">Índice del proyecto</h2><label className="block"><span className="bojana-label">Buscar</span><InputControl type="search" className="w-full" value={indexSearch} placeholder="Ej.: renders del SUM" onChange={e => setIndexSearch(e.target.value)} /></label>
-    <nav aria-label="Estructura del proyecto">{disciplines.map(disc => <div key={disc.id}><p className="bojana-label">{disc.id}</p>{disc.necesidades.filter(need => `${disc.id} ${need.nombre} ${need.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(need => <div key={need.id}><button className="bojana-index-link text-sm" type="button" onClick={() => { setCollapsedDisciplines(prev=>({...prev,[disc.id]:false})); setExpandedNeeds(prev=>({...prev,[need.id]:true})); setIndexOpen(false); requestAnimationFrame(()=>document.getElementById(`workspace-need-${disc.id}-${need.id}`)?.scrollIntoView({behavior:'smooth',block:'center'})); }}>{need.nombre} · {need.tareas.length}</button>{need.tareas.filter(t=>!indexSearch || t.titulo.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(task=><button type="button" className="bojana-index-link text-xs text-bojana-muted" aria-current={task.id === expandedTaskId} key={task.id} onClick={()=>{setExpandedTaskId(task.id);setTaskPanel({ id: task.id, mode: 'update' });setIndexOpen(false);}}>{task.titulo}</button>)}</div>)}</div>)}</nav>
+    <nav aria-label="Estructura del proyecto">{disciplines.map(disc => <div key={disc.id}><p className="bojana-label">{disc.id}</p>{disc.necesidades.filter(need => `${disc.id} ${need.nombre} ${need.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(need => <div key={need.id}><button className="bojana-index-link text-sm" type="button" onClick={() => { setCollapsedDisciplines(prev=>({...prev,[disc.id]:false})); setExpandedNeeds(prev=>({...prev,[need.id]:true})); requestAnimationFrame(()=>document.getElementById(`workspace-need-${disc.id}-${need.id}`)?.scrollIntoView({behavior:'smooth',block:'center'})); }}>{need.nombre} · {need.tareas.length}</button>{need.tareas.filter(t=>!indexSearch || t.titulo.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(task=><button type="button" className="bojana-index-link text-xs text-bojana-muted" aria-current={task.id === expandedTaskId} key={task.id} onClick={()=>{setExpandedTaskId(task.id);setTaskPanel({ id: task.id, mode: 'update' });}}>{task.titulo}</button>)}</div>)}</div>)}</nav>
     {indexSearch && !disciplines.some(d=>d.necesidades.some(n=>`${d.id} ${n.nombre} ${n.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase()))) && <div className="text-xs"><p>No hay resultados para esa búsqueda.</p><button type="button" className="bojana-button bojana-button-text" onClick={()=>setIndexSearch('')}>Limpiar búsqueda</button></div>}
   </div>;
 
@@ -1746,7 +1719,7 @@ export default function OperationalExecutionPanel({
         </div>
       )}
       {taskError && !selected && <p role="alert" className="text-xs text-bojana-error">{taskError}</p>}
-      {selectedTaskForAction && <RequestClientActionModal isOpen task={selectedTaskForAction.task} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} prefill={selectedTaskForAction.prefill} onClose={() => setSelectedTaskForAction(null)} onSaveAction={handleSaveClientAction} onToast={onToast} />}
+      {selectedTaskForAction && <RequestClientActionModal isOpen task={selectedTaskForAction.task} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} prefill={selectedTaskForAction.prefill} onClose={() => setSelectedTaskForAction(null)} onSaveAction={handleSaveClientAction} />}
       <ClientAlertModal isOpen={Boolean(clientAlert)} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} initialTitle={clientAlert?.title} initialMessage={clientAlert?.message} initialAction={clientAlert?.actionType} onClose={() => setClientAlert(null)} onSend={(title, message, actionType) => {
         const now = new Date().toISOString();
         const shouldRegisterDecision = actionType === 'revision' || actionType === 'informacion';

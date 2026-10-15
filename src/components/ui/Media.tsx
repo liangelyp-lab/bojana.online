@@ -1,28 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
-
-/** Pins and editor clicks use the image rectangle, never the letterboxed viewport. */
-export function AnnotatedMedia({ src, alt, children, canvasRef, onCanvasClick }: { src: string; alt: string; children: React.ReactNode; canvasRef?: React.RefObject<HTMLDivElement | null>; onCanvasClick?: (event: React.MouseEvent<HTMLDivElement>) => void }) {
-  const frame = useRef<HTMLDivElement>(null);
-  const [ratio, setRatio] = useState(1.6);
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  useLayoutEffect(() => {
-    const measure = () => {
-      const width = frame.current?.clientWidth || 0;
-      const height = frame.current?.clientHeight || 0;
-      const imageWidth = Math.min(width, height * ratio);
-      setSize({ width: imageWidth, height: imageWidth / ratio });
-    };
-    const observer = new ResizeObserver(measure);
-    if (frame.current) observer.observe(frame.current);
-    measure();
-    return () => observer.disconnect();
-  }, [ratio]);
-  return <div ref={frame} className="bojana-annotated-media">
-    <div ref={canvasRef} onClick={onCanvasClick} className="relative" style={{ width: size.width || '100%', height: size.height || '100%' }}>
-      <img src={src} alt={alt} className="w-full h-full object-contain select-none" onLoad={e => { const img=e.currentTarget; if (img.naturalHeight) setRatio(img.naturalWidth / img.naturalHeight); }} />{children}
-    </div>
-  </div>;
-}
+import { useRef, useState } from 'react';
 export function MediaComparison({ items }: { items: { id: string; title: string; src: string; caption?: string }[] }) {
   const [zoom, setZoom] = useState(1);
   const views = useRef<(HTMLDivElement|null)[]>([]);

@@ -18,14 +18,6 @@ let currentSession: AuthSessionResponse | null = null;
 
 export const isAuthConfigured = Boolean(url && anonKey);
 
-function headers() {
-  return {
-    apikey: anonKey!,
-    Authorization: `Bearer ${anonKey}`,
-    "Content-Type": "application/json",
-  };
-}
-
 export async function signInWithPassword(email: string, password: string): Promise<AuthUser> {
   if (!isAuthConfigured) throw new Error("La autenticación todavía no está configurada.");
   const response = await fetch("/api/auth/supabase/login", {
@@ -71,6 +63,17 @@ export async function updatePassword(password: string, accessToken: string, refr
   const data = await response.json() as { error?: string };
   if (!response.ok) throw new Error(data.error || "No pudimos guardar la nueva contraseña.");
   currentSession = null;
+}
+
+export async function requestPasswordReset(email: string): Promise<void> {
+  const response = await fetch("/api/auth/supabase/recover", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, redirectTo: window.location.origin }),
+  });
+  const data = await response.json() as { error?: string };
+  if (!response.ok) throw new Error(data.error || "No pudimos enviar el correo de recuperación.");
 }
 
 function toAuthUser(user: AuthSessionResponse["user"]): AuthUser {
