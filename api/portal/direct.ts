@@ -5,6 +5,9 @@ type VercelRequest = any;
 type VercelResponse = any;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   if (req.method === "POST") return createLink(req, res);
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -21,10 +24,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (left.length !== right.length || !crypto.timingSafeEqual(left, right)) return res.status(403).json({ error: "Enlace directo inválido." });
     const payload = JSON.parse(Buffer.from(encodedPayload, 'base64url').toString('utf8')) as { projectId?: string; exp?: number };
     if (!payload.projectId || !payload.exp || payload.exp <= Date.now()) return res.status(410).json({ error: "Este enlace venció. Pedí uno nuevo al estudio." });
-    const response = await fetch(`${baseUrl}/rest/v1/projects?select=data&lifecycle_status=eq.ACTIVO&id=eq.${encodeURIComponent(payload.projectId)}&limit=1`, { headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } });
-    const rows = await response.json();
-    if (!response.ok || !rows[0]?.data) return res.status(404).json({ error: "No encontramos ese portal." });
-    return res.status(200).json({ project: rows[0].data });
+    const response = await fetch(`${baseUrl}/rest/v1/projects?select=id,lifecycle_status,data&lifecycle_status=eq.ACTIVO&order=updated_at.desc&limit=100`, {
+      cache: 'no-store',
+      headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` },
+    });
+    const rows = await response.json() as Array<{ id?: string; lifecycle_status?: string; data?: { id?: string } }> | { message?: string };
+    if (!response.ok) {
+      console.error('Direct portal lookup upstream failed', response.status, rows);
+      return res.status(502).json({ error: "No pudimos verificar el portal." });
+    }
+    const activeProjects = Array.isArray(rows) ? rows : [];
+    const project = activeProjects.find(candidate => candidate.id === payload.projectId || candidate.data?.id === payload.projectId);
+    if (!project?.data) return res.status(404).json({ error: "No encontramos ese portal." });
+    return res.status(200).json({ project: project.data });
   } catch (error) {
     console.error("Direct portal lookup failed", error);
     return res.status(502).json({ error: "No pudimos cargar el portal." });

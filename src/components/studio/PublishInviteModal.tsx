@@ -23,6 +23,7 @@ import {
   Info
 } from 'lucide-react';
 import { Field, ModalTabs } from '../ui/DesignSystem';
+import ManualCopyDialog from '../ui/ManualCopyDialog';
 
 interface PublishInviteModalProps {
   isOpen: boolean;
@@ -96,6 +97,7 @@ export default function PublishInviteModal({
   const isAlreadyActive = project.lifecycleStatus === 'ACTIVO';
 
   const [dedicatedUrl, setDedicatedUrl] = useState('');
+  const [manualCopyUrl, setManualCopyUrl] = useState('');
   useEffect(() => {
     if (!isOpen || !isAlreadyActive) return;
     void createSecureProjectLink(project.id).then(setDedicatedUrl).catch(() => setDedicatedUrl(''));
@@ -108,14 +110,24 @@ export default function PublishInviteModal({
   const docsBase = Array.isArray(contractualBase?.documentosBase) ? contractualBase.documentosBase : [];
 
   const handleCopyLink = async () => {
+    let url: string;
     try {
-      const url = dedicatedUrl || await createSecureProjectLink(project.id);
+      url = dedicatedUrl || await createSecureProjectLink(project.id);
       setDedicatedUrl(url);
+    } catch (error) {
+      onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.');
+      return;
+    }
+
+    try {
       await copyTextToClipboard(url);
       setCopiedLink(true);
       onToast('Enlace de acceso directo copiado. Vence en 7 días.');
       setTimeout(() => setCopiedLink(false), 2500);
-    } catch (error) { onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.'); }
+    } catch {
+      setManualCopyUrl(url);
+      onToast('El navegador bloqueó la copia. Seleccioná el enlace para copiarlo manualmente.');
+    }
   };
 
   const handlePublish = async () => {
@@ -617,6 +629,13 @@ export default function PublishInviteModal({
         )}
 
       </div>
+      {manualCopyUrl && (
+        <ManualCopyDialog
+          title={title}
+          url={manualCopyUrl}
+          onClose={() => setManualCopyUrl('')}
+        />
+      )}
     </div>
   );
 }

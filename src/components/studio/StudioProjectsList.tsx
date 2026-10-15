@@ -7,6 +7,7 @@ import {
 import { createSecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
 import { EmptyState, Field } from '../ui/DesignSystem';
+import ManualCopyDialog from '../ui/ManualCopyDialog';
 import {
   Search,
   Plus,
@@ -32,6 +33,7 @@ export default function StudioProjectsList({
   const [searchQuery, setSearchQuery] = useState('');
   const [filterTab, setFilterTab] = useState<'todos' | 'activos' | 'finalizados'>('todos');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [manualCopyLink, setManualCopyLink] = useState<{ title: string; url: string } | null>(null);
 
   const filteredProjects = projects.filter((p) => {
     const title = p.info?.nombre || p.brief?.nombre || '';
@@ -57,17 +59,29 @@ export default function StudioProjectsList({
 
   const handleCopyLink = async (e: React.MouseEvent, p: ProjectData) => {
     e.stopPropagation();
+    const title = p.info?.nombre || 'proyecto';
+    let url: string;
     try {
-      const url = await createSecureProjectLink(p.id);
+      url = await createSecureProjectLink(p.id);
+    } catch (error) {
+      onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.');
+      return;
+    }
+
+    try {
       await copyTextToClipboard(url);
       setCopiedId(p.id);
-      onToast(`Enlace directo de ${p.info?.nombre || 'proyecto'} copiado. Vence en 7 días.`);
+      onToast(`Enlace directo de ${title} copiado. Vence en 7 días.`);
       setTimeout(() => setCopiedId(null), 2500);
-    } catch (error) { onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.'); }
+    } catch {
+      setManualCopyLink({ title, url });
+      onToast('El navegador bloqueó la copia. Seleccioná el enlace para copiarlo manualmente.');
+    }
   };
 
   return (
-    <div className="space-y-8 animate-fade-in">
+    <>
+      <div className="space-y-8 animate-fade-in">
       {/* 1. HEADER & NEW PROJECT CTA */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-line pb-7">
         <div>
@@ -243,6 +257,14 @@ export default function StudioProjectsList({
           })
         )}
       </div>
-    </div>
+      </div>
+      {manualCopyLink && (
+        <ManualCopyDialog
+          title={manualCopyLink.title}
+          url={manualCopyLink.url}
+          onClose={() => setManualCopyLink(null)}
+        />
+      )}
+    </>
   );
 }
