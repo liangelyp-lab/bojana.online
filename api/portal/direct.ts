@@ -58,9 +58,15 @@ async function createLink(req: VercelRequest, res: VercelResponse) {
     const members = await memberResponse.json() as Array<{ studio_id: string; role: string }>;
     const member = members[0];
     if (!member || !['owner', 'admin', 'team'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para crear enlaces." });
-    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id,lifecycle_status,data&limit=100`, { headers });
-    const projects = await projectResponse.json() as Array<{ id: string; lifecycle_status: string; data?: { id?: string } }>;
-    const project = projects.find(candidate => candidate.id === projectId || candidate.data?.id === projectId);
+    let projectResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id,lifecycle_status,data&limit=100`, { headers });
+    let projects = await projectResponse.json() as Array<{ id: string; lifecycle_status: string; data?: { id?: string } }> | { error?: string };
+    if ((!projectResponse.ok || !Array.isArray(projects)) && sessionHeaders && adminHeaders) {
+      headers = adminHeaders;
+      projectResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id,lifecycle_status,data&limit=100`, { headers });
+      projects = await projectResponse.json() as Array<{ id: string; lifecycle_status: string; data?: { id?: string } }> | { error?: string };
+    }
+    const projectRows = Array.isArray(projects) ? projects : [];
+    const project = projectRows.find(candidate => candidate.id === projectId || candidate.data?.id === projectId);
     if (!projectResponse.ok || !project) return res.status(404).json({ error: "No encontramos el proyecto." });
     if (project.lifecycle_status !== 'ACTIVO') return res.status(409).json({ error: "Publicá el proyecto antes de crear el enlace." });
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
