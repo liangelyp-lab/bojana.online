@@ -16,11 +16,13 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { Button, InputControl, ModalTabs, TextAreaControl } from '../ui/DesignSystem';
+import { createSecureProjectLink } from '../../services/projectAccess';
 
 interface RequestClientActionModalProps {
   isOpen: boolean;
   task: ExecutionTask;
   projectName: string;
+  projectId: string;
   clientName: string;
   clientEmail: string;
   prefill?: {
@@ -83,6 +85,7 @@ export default function RequestClientActionModal({
   isOpen,
   task,
   projectName,
+  projectId,
   clientName,
   clientEmail,
   prefill,
@@ -141,6 +144,7 @@ export default function RequestClientActionModal({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
 
   if (!isOpen) return null;
 
@@ -179,7 +183,8 @@ export default function RequestClientActionModal({
     ]);
   };
 
-  const handleSave = (sendEmail: boolean) => {
+  const handleSave = async (sendEmail: boolean) => {
+    setSendError('');
     const actionData: ClientActionRequired = {
       id: existing?.id || `ca-${Date.now()}`,
       activa: true,
@@ -202,11 +207,31 @@ export default function RequestClientActionModal({
     };
 
     if (sendEmail) {
+      if (!clientEmail.trim()) {
+        setSendError('El proyecto no tiene un email de cliente configurado.');
+        return;
+      }
       setIsSending(true);
-      setTimeout(() => {
+      try {
+        const url = await createSecureProjectLink(projectId);
+        const response = await fetch('/api/mail/send', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: clientEmail.trim(),
+            subject: `Acción requerida · ${projectName}`,
+            text: `Hola ${clientName || 'Comitente'},\n\nBojana Estudio necesita una acción para tu proyecto "${projectName}".\n\n${actionData.titulo}\n${actionData.mensaje}\n\nAcción requerida: ${actionData.accionRequeridaTexto}${actionData.fechaLimite ? `\nFecha límite: ${actionData.fechaLimite}` : ''}\n\nAccedé al portal seguro para responder:\n${url}\n\nSi tenés alguna consulta, respondé a este correo.\n\nBojana Estudio\ninfo@bojana.com.ar`
+          })
+        });
+        const data = await response.json() as { message?: string };
+        if (!response.ok) throw new Error(data.message || 'No pudimos enviar el email.');
         setIsSending(false);
         onSaveAction(actionData, true);
-      }, 500);
+      } catch (error) {
+        setIsSending(false);
+        setSendError(error instanceof Error ? error.message : 'No pudimos enviar el email.');
+      }
     } else {
       onSaveAction(actionData, false);
     }
@@ -555,6 +580,7 @@ export default function RequestClientActionModal({
 
         {/* Modal Footer */}
         <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
+          {sendError && <p role="alert" className="w-full text-xs text-bojana-error sm:absolute sm:bottom-20 sm:left-5">{sendError}</p>}
           <button
             type="button"
             onClick={onClose}

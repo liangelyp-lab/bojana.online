@@ -5,6 +5,7 @@ import { publishStorageProject } from '../../services/driveStorageService';
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   ProjectData,
+  ProjectInvitationLog,
   OperationalDiscipline,
   OperationalNeed,
   ExecutionTask,
@@ -568,12 +569,25 @@ export default function OperationalExecutionPanel({
       descripcion: `Correo enviado al cliente: ${project.cliente?.email || 'el cliente'} · Solicitud: "${actionData.titulo}".`,
       autor: 'Bojana Estudio'
     } : null;
+    const emailHistoryEntry: ProjectInvitationLog | null = sendEmailImmediately ? {
+      id: `email-${Date.now()}`,
+      fecha: `${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()} · ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`,
+      destinatario: project.cliente?.nombre || 'Comitente',
+      email: project.cliente?.email || '',
+      enviadoPor: 'Bojana Estudio <info@bojana.com.ar>',
+      asunto: `Acción requerida · ${project.info?.nombre || projectTitle}`,
+      metodo: 'lark_smtp',
+      estado: 'entregado'
+    } : null;
 
     onUpdateProject({
       ...project,
       disciplinasOperativas: updatedDisciplines,
       progresoTotalCalculado: newProjectProgress,
       actividadReciente: [newActivity, ...(emailActivity ? [emailActivity] : []), ...(project.actividadReciente || [])],
+      historialInvitaciones: emailHistoryEntry
+        ? [emailHistoryEntry, ...(project.historialInvitaciones || [])]
+        : project.historialInvitaciones,
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
@@ -1719,7 +1733,7 @@ export default function OperationalExecutionPanel({
         </div>
       )}
       {taskError && !selected && <p role="alert" className="text-xs text-bojana-error">{taskError}</p>}
-      {selectedTaskForAction && <RequestClientActionModal isOpen task={selectedTaskForAction.task} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} prefill={selectedTaskForAction.prefill} onClose={() => setSelectedTaskForAction(null)} onSaveAction={handleSaveClientAction} />}
+      {selectedTaskForAction && <RequestClientActionModal isOpen task={selectedTaskForAction.task} projectId={project.id} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} prefill={selectedTaskForAction.prefill} onClose={() => setSelectedTaskForAction(null)} onSaveAction={handleSaveClientAction} />}
       <ClientAlertModal isOpen={Boolean(clientAlert)} projectName={projectTitle} clientName={project.cliente?.nombre || 'Comitente'} clientEmail={project.cliente?.email || ''} initialTitle={clientAlert?.title} initialMessage={clientAlert?.message} initialAction={clientAlert?.actionType} onClose={() => setClientAlert(null)} onSend={(title, message, actionType) => {
         const now = new Date().toISOString();
         const shouldRegisterDecision = actionType === 'revision' || actionType === 'informacion';
