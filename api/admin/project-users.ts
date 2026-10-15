@@ -55,7 +55,8 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
   if (!requester) return;
   const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
-  const sessionToken = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
+  const cookieAccess = String(req.headers?.cookie || "").split(';').map((part: string) => part.trim()).find((part: string) => part.startsWith('bojana_access='))?.slice('bojana_access='.length) || '';
+  const sessionToken = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "") || decodeURIComponent(cookieAccess);
   const sessionHeaders = anonKey && sessionToken
     ? { apikey: anonKey, authorization: `Bearer ${sessionToken}`, "content-type": "application/json" }
     : null;
