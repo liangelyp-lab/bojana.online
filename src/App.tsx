@@ -3231,7 +3231,15 @@ export default function App() {
       // A recovery link owns the screen until the new password is saved.
       // Do not let the regular session bootstrap replace it with sign in/admin.
       if (directToken || (recoveryParams.accessToken && recoveryParams.type === "recovery")) return
-      if (!user) return
+      if (!user) {
+        setActiveUser(null)
+        setAllProjects([])
+        setSelectedProjectId(null)
+        setClientProjectsLoading(false)
+        setClientProjectsError(null)
+        setScreen("signin")
+        return
+      }
       const role = user.role || "client"
       setActiveUser({ id: user.id, nombre: user.name || user.email || "Usuario", email: user.email, rol: role })
       if (["owner", "admin", "team"].includes(role)) {
