@@ -3,6 +3,12 @@ type VercelResponse = any;
 import crypto from 'node:crypto';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // This endpoint is user-specific. Prevent Vercel/browser revalidation from
+  // turning a valid session response into a 304 that the client treats as a
+  // logged-out state.
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   if (req.method === 'POST') {
     res.setHeader('Set-Cookie', [
       'bojana_access=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',

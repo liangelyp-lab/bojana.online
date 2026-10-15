@@ -33,7 +33,7 @@ export async function signInWithPassword(email: string, password: string): Promi
 }
 
 export async function restoreSession(): Promise<AuthUser | null> {
-  const response = await fetch("/api/auth/supabase/session", { credentials: "include" });
+  const response = await fetch("/api/auth/supabase/session", { credentials: "include", cache: "no-store" });
   if (!response.ok) return null;
   const data = await response.json() as { user: AuthSessionResponse["user"]; access_token: string };
   currentSession = { ...data, refresh_token: "" };

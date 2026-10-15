@@ -9,6 +9,7 @@ export async function listRemoteProjects(): Promise<ProjectData[]> {
   const accessToken = getAccessToken();
   const response = await fetch("/api/admin/project-users?resource=projects", {
     credentials: "include",
+    cache: "no-store",
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
     signal: AbortSignal.timeout(15000),
   });

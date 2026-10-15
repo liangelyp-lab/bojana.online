@@ -8,6 +8,7 @@ import {
 } from '../../services/storageService';
 import { getClientProjectSequence } from '../../services/projectStructure';
 import { createSecureProjectLink } from '../../services/projectAccess';
+import { copyTextToClipboard } from '../../services/clipboard';
 import {
   X,
   Mail,
@@ -110,7 +111,7 @@ export default function PublishInviteModal({
     try {
       const url = dedicatedUrl || await createSecureProjectLink(project.id);
       setDedicatedUrl(url);
-      await navigator.clipboard.writeText(url);
+      await copyTextToClipboard(url);
       setCopiedLink(true);
       onToast('Enlace de acceso directo copiado. Vence en 7 días.');
       setTimeout(() => setCopiedLink(false), 2500);

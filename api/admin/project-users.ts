@@ -9,6 +9,10 @@ function randomPassword() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // Project visibility is scoped to the authenticated user/studio.
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   const isProjectsResource = String(req.query?.resource || '') === 'projects';
   if (isProjectsResource) return projectResourceHandler(req, res);
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });

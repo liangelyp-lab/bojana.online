@@ -5,6 +5,7 @@ import {
   getProjectStatusLabel
 } from '../../services/storageService';
 import { createSecureProjectLink } from '../../services/projectAccess';
+import { copyTextToClipboard } from '../../services/clipboard';
 import { EmptyState, Field } from '../ui/DesignSystem';
 import {
   Search,
@@ -58,7 +59,7 @@ export default function StudioProjectsList({
     e.stopPropagation();
     try {
       const url = await createSecureProjectLink(p.id);
-      await navigator.clipboard.writeText(url);
+      await copyTextToClipboard(url);
       setCopiedId(p.id);
       onToast(`Enlace directo de ${p.info?.nombre || 'proyecto'} copiado. Vence en 7 días.`);
       setTimeout(() => setCopiedId(null), 2500);
