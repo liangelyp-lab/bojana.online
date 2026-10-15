@@ -60,10 +60,13 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
     ? { apikey: anonKey, authorization: `Bearer ${sessionToken}`, "content-type": "application/json" }
     : null;
   try {
-    let queryHeaders = adminHeaders;
+    // Use the authenticated user's valid session for reads. A stale service
+    // key can be valid for another project and return an empty membership,
+    // which would incorrectly hide every project from the owner.
+    let queryHeaders = sessionHeaders || adminHeaders;
     let memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role&limit=1`, { headers: queryHeaders });
-    if (!memberResponse.ok && sessionHeaders) {
-      queryHeaders = sessionHeaders;
+    if (!memberResponse.ok && sessionHeaders && queryHeaders !== adminHeaders) {
+      queryHeaders = adminHeaders;
       memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=id,studio_id,role&limit=1`, { headers: queryHeaders });
     }
     const members = await memberResponse.json() as Array<{ id: string; studio_id: string; role: string }>;
