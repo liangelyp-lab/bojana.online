@@ -3154,14 +3154,15 @@ export default function App() {
     if (value === "lark_callback_failed") return "No pudimos completar el acceso con Lark. Verificá la configuración de la aplicación."
     return value ? "No pudimos iniciar sesión con Lark." : null
   }, [])
-  const [screen, setScreen] = useState<Screen | "reset">(recoveryParams.accessToken && recoveryParams.type === "recovery" ? "reset" : directToken ? "client" : "signin")
+  const isPasswordSetupLink = recoveryParams.accessToken && (recoveryParams.type === "recovery" || recoveryParams.type === "invite")
+  const [screen, setScreen] = useState<Screen | "reset">(isPasswordSetupLink ? "reset" : directToken ? "client" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => directToken ? [] : getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [forcedPasswordToken, setForcedPasswordToken] = useState<string | null>(null)
   const [clientProjectsLoading, setClientProjectsLoading] = useState(Boolean(directToken && directToken !== "portal-direct"))
   const [clientProjectsError, setClientProjectsError] = useState<string | null>(directToken === "portal-direct" ? "El enlace directo del portal no es válido o ya no está disponible." : null)
   const [projectsReloadKey, setProjectsReloadKey] = useState(0)
-  const [sessionReady, setSessionReady] = useState(Boolean(directToken || (recoveryParams.accessToken && recoveryParams.type === "recovery")))
+  const [sessionReady, setSessionReady] = useState(Boolean(directToken || isPasswordSetupLink))
 
   const currentProject = useMemo(() => {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
@@ -3232,7 +3233,7 @@ export default function App() {
     void restoreSession().then(user => {
       // A recovery link owns the screen until the new password is saved.
       // Do not let the regular session bootstrap replace it with sign in/admin.
-      if (directToken || (recoveryParams.accessToken && recoveryParams.type === "recovery")) return
+      if (directToken || isPasswordSetupLink) return
       if (!user) {
         setActiveUser(null)
         setAllProjects([])
@@ -3256,7 +3257,7 @@ export default function App() {
         setScreen("client")
       }
     }).catch(() => undefined).finally(() => setSessionReady(true))
-  }, [directToken, recoveryParams.accessToken, recoveryParams.type])
+  }, [directToken, isPasswordSetupLink, recoveryParams.accessToken, recoveryParams.type])
 
   useEffect(() => {
     if (!sessionReady || !activeUser?.id || directToken) return
