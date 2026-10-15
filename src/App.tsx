@@ -702,12 +702,14 @@ function AdminSidebar({
   projects,
   onOpenProject,
   activeUser,
+  canAccessSettings,
 }: {
   active: string
   setActive: (value: string) => void
   projects: ProjectData[]
   onOpenProject: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean; communication?: boolean }) => void
   activeUser?: { nombre: string; rol: string } | null
+  canAccessSettings: boolean
 }) {
   return (
     <aside className="sticky top-0 hidden h-screen max-h-screen w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex">
@@ -740,7 +742,7 @@ function AdminSidebar({
         ))}
       </nav>
 
-      <div className="mt-9 border-t border-white/10 pt-7">
+      {canAccessSettings && <div className="mt-9 border-t border-white/10 pt-7">
         <Eyebrow>Organizacion</Eyebrow>
         <div className="mt-4 space-y-1">
           <Button
@@ -755,7 +757,7 @@ function AdminSidebar({
             <Icon className="size-4.5" name="settings" /> Configuracion
           </Button>
         </div>
-      </div>
+      </div>}
 
       <div className="mt-auto rounded-2xl border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-3">
@@ -1419,6 +1421,7 @@ function AdminPortal({
   const [studioEmail, setStudioEmail] = useState(() => {
     try { return localStorage.getItem("bojana-studio-email") || "info@bojana.com.ar" } catch { return "info@bojana.com.ar" }
   })
+  const canAccessSettings = activeUser?.rol === "owner" || activeUser?.rol === "admin"
 
   const workspaceTasks = useMemo(
     () => selectedProjectId && currentProject ? getProjectTasks(currentProject) : tasks,
@@ -1520,6 +1523,7 @@ function AdminPortal({
         <AdminSidebar
           active={activeNav}
           setActive={(val) => {
+            if (val === "Configuracion" && !canAccessSettings) return
             setActiveNav(val)
             setNotificationTarget(undefined)
             if (val === "Proyectos") {
@@ -1528,6 +1532,7 @@ function AdminPortal({
           }}
           projects={allProjects}
           activeUser={activeUser}
+          canAccessSettings={canAccessSettings}
           onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen") }}
         />
         <div className="min-w-0 flex-1 lg:min-h-0 lg:overflow-y-auto">
@@ -1556,7 +1561,7 @@ function AdminPortal({
                   <Icon className="size-4" name={item.icon} /> {item.label}
                 </Button>
               ))}
-              <Button
+              {canAccessSettings && <Button
                 className={`!justify-start !rounded-xl col-span-2 ${
                   activeNav === "Configuracion" ? "!bg-stone !text-ink" : ""
                 }`}
@@ -1568,7 +1573,7 @@ function AdminPortal({
                 variant="ghost"
               >
                 <Icon className="size-4" name="settings" /> Configuracion
-              </Button>
+              </Button>}
               <div className="col-span-2">
                 <AdminNotificationsButton mobile projects={allProjects} onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen"); setMenuOpen(false) }} />
               </div>
@@ -1811,7 +1816,7 @@ function AdminPortal({
             )}
 
             {/* 7. CONFIGURACIÓN VIEW */}
-            {activeNav === "Configuracion" && (
+            {activeNav === "Configuracion" && canAccessSettings && (
               <StudioSettingsView
                 projects={allProjects}
                 onToast={onPublishToast}
