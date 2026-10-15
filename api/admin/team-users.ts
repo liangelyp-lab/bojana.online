@@ -34,8 +34,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         options: { redirectTo: origin, data: { name, must_change_password: true } },
       }),
     });
-    const inviteData = await inviteResponse.json() as { user?: { id?: string }; action_link?: string; msg?: string; message?: string };
-    if (!inviteResponse.ok || !inviteData.user?.id || !inviteData.action_link) return res.status(inviteResponse.status || 502).json({ error: inviteData.msg || inviteData.message || "No pudimos generar la invitación." });
+    const inviteData = await inviteResponse.json() as { user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string };
+    if (!inviteResponse.ok || !inviteData.user?.id || !inviteData.action_link) {
+      const reason = inviteData.msg || inviteData.message || inviteData.error_description || inviteData.error || "No pudimos generar la invitación.";
+      const alreadyExists = /already|registered|exists|duplicate|registrad/i.test(reason);
+      return res.status(inviteResponse.status || 502).json({ error: alreadyExists ? "Ese email ya tiene una cuenta en Supabase. Usá otro email o recuperá la cuenta existente." : reason });
+    }
 
     const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, {
       method: "POST",
