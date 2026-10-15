@@ -35,9 +35,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }),
     });
     const inviteText = await inviteResponse.text();
-    let inviteData: { user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string } = {};
+    let inviteData: { id?: string; user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string } = {};
     try { inviteData = JSON.parse(inviteText) as typeof inviteData; } catch { /* preserve the raw response below */ }
-    if (!inviteResponse.ok || !inviteData.user?.id || !inviteData.action_link) {
+    const invitedUserId = inviteData.user?.id || inviteData.id;
+    if (!inviteResponse.ok || !invitedUserId || !inviteData.action_link) {
       const rawReason = inviteText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       const reason = inviteData.msg || inviteData.message || inviteData.error_description || inviteData.error || rawReason || "No pudimos generar la invitación.";
       const alreadyExists = /already|registered|exists|duplicate|registrad/i.test(reason);
@@ -47,10 +48,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, {
       method: "POST",
       headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify({ id: inviteData.user.id, studio_id: requesterMember.studio_id, name, email, role }),
+      body: JSON.stringify({ id: invitedUserId, studio_id: requesterMember.studio_id, name, email, role }),
     });
     if (!userResponse.ok) return res.status(502).json({ error: "La invitación se creó, pero no pudimos vincularla al estudio." });
-    return res.status(200).json({ user: { id: inviteData.user.id, name, email, role }, actionLink: inviteData.action_link });
+    return res.status(200).json({ user: { id: invitedUserId, name, email, role }, actionLink: inviteData.action_link });
   } catch (error) {
     console.error("Team user invitation failed", error);
     return res.status(502).json({ error: "No pudimos conectar con Supabase." });
