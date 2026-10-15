@@ -1729,6 +1729,7 @@ function AdminPortal({
                 {activeTab === "Comunicación" && currentProject && (
                   <div className="mt-8">
                     <CommunicationPanel
+                      activeUser={activeUser || undefined}
                       onToast={onPublishToast}
                       onUpdateProject={onUpdateProject}
                       project={currentProject}

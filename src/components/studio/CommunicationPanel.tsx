@@ -6,6 +6,7 @@ type ReplyChannel = "portal" | "email"
 
 interface CommunicationPanelProps {
   project: ProjectData
+  activeUser?: { nombre: string }
   onToast: (message: string) => void
   onUpdateProject: (project: ProjectData) => void
 }
@@ -20,7 +21,8 @@ function messageText(activity: ProjectActivityLog) {
   return activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio|Correo enviado al cliente):\s*/, "")
 }
 
-export default function CommunicationPanel({ project, onToast, onUpdateProject }: CommunicationPanelProps) {
+export default function CommunicationPanel({ project, activeUser, onToast, onUpdateProject }: CommunicationPanelProps) {
+  const senderName = activeUser?.nombre?.trim() || "Bojana Estudio"
   const [channel, setChannel] = useState<ReplyChannel>("portal")
   const [reply, setReply] = useState("")
   const [sending, setSending] = useState(false)
@@ -34,7 +36,7 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
         id: invitation.id,
         fecha: invitation.fecha,
         descripcion: `Correo enviado al cliente: ${invitation.asunto} · ${invitation.email}`,
-        autor: "Bojana Estudio",
+        autor: invitation.enviadoPor.split(" <")[0] || "Bojana Estudio",
       }))
     return [...activityMessages, ...invitationMessages].slice().reverse()
   }, [project.actividadReciente, project.historialInvitaciones])
@@ -45,14 +47,14 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
       id: `communication-${Date.now()}`,
       fecha: "Ahora",
       descripcion: description,
-      autor: "Bojana Estudio",
+      autor: senderName,
     }
     const emailHistoryEntry: ProjectInvitationLog | null = emailSent ? {
       id: `email-${Date.now()}`,
       fecha: "Ahora",
       destinatario: project.cliente?.nombre || "Comitente",
       email: clientEmail,
-      enviadoPor: "Bojana Estudio <info@bojana.com.ar>",
+      enviadoPor: `${senderName} <info@bojana.com.ar>`,
       asunto: `Re: ${project.info?.nombre || "Bojana Estudio"} · Consulta del portal`,
       metodo: "lark_smtp",
       estado: "entregado",
@@ -128,7 +130,7 @@ export default function CommunicationPanel({ project, onToast, onUpdateProject }
               <article className={`flex ${fromClient ? "justify-start" : "justify-end"}`} key={activity.id}>
                 <div className={`w-full rounded-xl border p-3 ${fromClient ? "border-line bg-stone/45" : "max-w-[92%] border-mint/40 bg-mint-pale/40"}`}>
                   <div className="flex items-center justify-between gap-4 text-[11px]">
-                    <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? "Bojana Estudio · Email" : "Bojana Estudio"}</span>
+                    <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? `${activity.autor || senderName} · Email` : activity.autor || senderName}</span>
                     <time className="shrink-0 text-ink-faint">{activity.fecha}</time>
                   </div>
                   <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{messageText(activity)}</p>
