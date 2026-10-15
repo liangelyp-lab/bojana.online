@@ -493,7 +493,7 @@ export default function RequestClientActionModal({
                 <div className="flex items-center justify-between text-bojana-muted pb-2 border-b border-bojana-line">
                   <div>
                     <span className="text-bojana-muted font-medium">De:</span>{' '}
-                    <strong>Bojana Estudio</strong> &lt;proyectos@bojana.com.ar&gt;
+                    <strong>Bojana Estudio</strong> &lt;info@bojana.com.ar&gt;
                   </div>
                   <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium">
                     Lark Suite SMTP ✓
@@ -545,7 +545,7 @@ export default function RequestClientActionModal({
 
                 <div className="border-t border-bojana-line pt-4 text-xs font-sans text-bojana-muted flex items-center justify-between">
                   <span>Fecha límite: {fechaLimite}</span>
-                  <span>proyectos@bojana.com.ar</span>
+                  <span>info@bojana.com.ar</span>
                 </div>
               </div>
             </div>

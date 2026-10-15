@@ -44,7 +44,7 @@ export interface ProjectInvitationLog {
   fecha: string;               // e.g. "03 OCT 2026 · 10:42"
   destinatario: string;        // Client name
   email: string;               // Client email
-  enviadoPor: string;          // e.g. "Bojana Estudio <proyectos@bojana.com.ar>"
+  enviadoPor: string;          // e.g. "Bojana Estudio <info@bojana.com.ar>"
   asunto: string;              // Email subject
   metodo: 'lark_smtp' | 'resend_api' | 'manual_link';
   estado: 'entregado' | 'abierto' | 'pendiente';

@@ -7,14 +7,27 @@ export default async function handler(req: any, res: any) {
   const { to, subject, text, inReplyTo } = req.body || {}
   if (!to || !subject || !text) return res.status(400).json({ message: "to, subject y text son obligatorios" })
   try {
+    const host = String(process.env.SMTP_HOST || "").trim()
+    const user = String(process.env.MAIL_USER || "").trim()
+    const password = String(process.env.MAIL_PASSWORD || "")
+    const port = Number(process.env.SMTP_PORT || 465)
+    const secure = process.env.SMTP_SECURE
+      ? process.env.SMTP_SECURE === "true"
+      : port === 465
+
+    if (!host || !user || !password || !Number.isFinite(port)) {
+      return res.status(503).json({ message: "El servicio de correo no está configurado en el servidor" })
+    }
+
     const transport = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 465),
-      secure: true,
-      auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASSWORD },
+      host,
+      port,
+      secure,
+      requireTLS: !secure,
+      auth: { user, pass: password },
     })
     const info = await transport.sendMail({
-      from: process.env.MAIL_USER,
+      from: user,
       to,
       subject,
       text,
