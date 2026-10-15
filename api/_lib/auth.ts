@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 
 export async function requireSupabaseUser(req: any, res: any): Promise<{ id: string; email?: string } | null> {
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   const cookies = Object.fromEntries(String(req.headers.cookie || '').split(';').map((part: string) => {
     const separator = part.indexOf('=');
     return separator >= 0 ? [part.slice(0, separator).trim(), part.slice(separator + 1).trim()] : ['', ''];

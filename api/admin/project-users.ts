@@ -54,7 +54,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
   const requester = await requireSupabaseUser(req, res);
   if (!requester) return;
   const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
-  const anonKey = process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   const sessionToken = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "");
   const sessionHeaders = anonKey && sessionToken
     ? { apikey: anonKey, authorization: `Bearer ${sessionToken}`, "content-type": "application/json" }
