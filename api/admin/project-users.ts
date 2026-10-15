@@ -50,10 +50,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!baseUrl || !serviceKey) return res.status(503).json({ error: "Supabase no está configurado." });
+  if (!baseUrl) return res.status(503).json({ error: "Supabase no está configurado." });
   const requester = await requireSupabaseUser(req, res);
   if (!requester) return;
-  const adminHeaders = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
+  const adminHeaders = serviceKey
+    ? { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" }
+    : null;
   const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   const cookieAccess = String(req.headers?.cookie || "").split(';').map((part: string) => part.trim()).find((part: string) => part.startsWith('bojana_access='))?.slice('bojana_access='.length) || '';
   const sessionToken = String(req.headers?.authorization || "").replace(/^Bearer\s+/i, "") || decodeURIComponent(cookieAccess);
@@ -67,7 +69,10 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       if (sessionProjects.ok) {
         return res.status(200).json({ projects: (sessionRows as Array<{ id: string; data: Record<string, unknown> | null }>).map(row => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
       }
+      console.error("Authenticated project lookup failed", sessionProjects.status, sessionRows);
+      return res.status(502).json({ error: "No pudimos cargar los proyectos." });
     }
+    if (!adminHeaders) return res.status(503).json({ error: "Supabase no está configurado." });
     // Use the authenticated user's valid session for reads. A stale service
     // key can be valid for another project and return an empty membership,
     // which would incorrectly hide every project from the owner.
