@@ -34,9 +34,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         options: { redirectTo: origin, data: { name, must_change_password: true } },
       }),
     });
-    const inviteData = await inviteResponse.json() as { user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string };
+    const inviteText = await inviteResponse.text();
+    let inviteData: { user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string } = {};
+    try { inviteData = JSON.parse(inviteText) as typeof inviteData; } catch { /* preserve the raw response below */ }
     if (!inviteResponse.ok || !inviteData.user?.id || !inviteData.action_link) {
-      const reason = inviteData.msg || inviteData.message || inviteData.error_description || inviteData.error || "No pudimos generar la invitación.";
+      const rawReason = inviteText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      const reason = inviteData.msg || inviteData.message || inviteData.error_description || inviteData.error || rawReason || "No pudimos generar la invitación.";
       const alreadyExists = /already|registered|exists|duplicate|registrad/i.test(reason);
       return res.status(inviteResponse.status || 502).json({ error: alreadyExists ? "Ese email ya tiene una cuenta en Supabase. Usá otro email o recuperá la cuenta existente." : reason });
     }
