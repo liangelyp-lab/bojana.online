@@ -30,6 +30,21 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
   const [editingProjects, setEditingProjects] = useState<string[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/admin/team-users", { credentials: "include" })
+      .then(response => response.ok ? response.json() : Promise.reject(new Error("No pudimos cargar los usuarios.")))
+      .then(data => {
+        if (cancelled || !Array.isArray(data.users)) return;
+        const remoteUsers = (data.users as Array<{ id: string; name: string; email: string; role: string }>).map(user => ({ id: user.id, nombre: user.name, email: user.email, rol: user.role }));
+        const merged = [...remoteUsers, ...teamUsers.filter(local => !remoteUsers.some(remote => remote.id === local.id || remote.email.toLowerCase() === local.email.toLowerCase()))];
+        setTeamUsers(merged);
+        localStorage.setItem("bojana-studio-users", JSON.stringify(merged));
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
     if (!projects.length) {
       setProjectId("");
       return;

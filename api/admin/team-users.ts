@@ -4,12 +4,23 @@ type VercelRequest = any;
 type VercelResponse = any;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
+  if (!["GET", "POST"].includes(req.method)) return res.status(405).json({ error: "Method not allowed" });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!baseUrl || !serviceKey) return res.status(503).json({ error: "Falta configurar Supabase en Vercel." });
   const requester = await requireSupabaseUser(req, res);
   if (!requester) return;
+  const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
+  const requesterResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=studio_id,role&limit=1`, { headers });
+  const requesterRows = await requesterResponse.json() as Array<{ studio_id: string; role: string }>;
+  const requesterMember = requesterRows[0];
+  if (!requesterMember || !["owner", "admin"].includes(requesterMember.role)) return res.status(403).json({ error: "Sólo owner o admin pueden administrar integrantes." });
+  if (req.method === "GET") {
+    const usersResponse = await fetch(`${baseUrl}/rest/v1/studio_users?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&role=in.(team,admin)&select=id,name,email,role&order=name.asc`, { headers });
+    const users = await usersResponse.json();
+    if (!usersResponse.ok) return res.status(502).json({ error: "No pudimos cargar los usuarios del estudio." });
+    return res.status(200).json({ users });
+  }
   const name = String(req.body?.name || "").trim();
   const email = String(req.body?.email || "").trim().toLowerCase();
   const role = String(req.body?.role || "team").trim();
@@ -18,13 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!/^\S+@\S+\.\S+$/.test(email)) return res.status(400).json({ error: "Ingresá un email válido." });
   if (!["team", "admin"].includes(role)) return res.status(400).json({ error: "Rol inválido." });
 
-  const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}`, "content-type": "application/json" };
   try {
-    const requesterResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=studio_id,role&limit=1`, { headers });
-    const requesterRows = await requesterResponse.json() as Array<{ studio_id: string; role: string }>;
-    const requesterMember = requesterRows[0];
-    if (!requesterMember || !["owner", "admin"].includes(requesterMember.role)) return res.status(403).json({ error: "Sólo owner o admin pueden invitar integrantes." });
-
     const origin = `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host || "www.bojana.online"}`;
     const inviteResponse = await fetch(`${baseUrl}/auth/v1/admin/generate_link`, {
       method: "POST",
