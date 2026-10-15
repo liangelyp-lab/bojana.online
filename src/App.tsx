@@ -1828,6 +1828,7 @@ function AdminPortal({
             onPublishToast("Solicitud de decisión enviada al comitente.")
           }}
           projectName={currentProject?.info?.nombre || activeProject.name}
+          projectId={currentProject.id}
           task={actionModalTask}
         />
       )}
