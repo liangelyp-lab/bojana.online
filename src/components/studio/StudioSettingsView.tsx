@@ -40,10 +40,14 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
     setCreateError(""); setCreating(true);
     try {
       const userResponse = await fetch("/api/admin/team-users", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newUser.nombre.trim(), email: newUser.email.trim(), role: newUser.rol }) });
-      const data = await userResponse.json() as { user?: { id: string; name: string; email: string; role: string }; actionLink?: string; error?: string };
+      const responseText = await userResponse.text();
+      let data: { user?: { id: string; name: string; email: string; role: string }; actionLink?: string; error?: string } = {};
+      try { data = JSON.parse(responseText) as typeof data; } catch { data = { error: responseText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() }; }
       if (!userResponse.ok || !data.user || !data.actionLink) throw new Error(data.error || "No pudimos crear la invitación.");
       const mailResponse = await fetch("/api/mail/send", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ to: data.user.email, subject: "Invitación al equipo de Bojana Estudio", text: `Hola ${data.user.name},\n\nTe invitaron a formar parte del equipo de Bojana Estudio.\n\nIngresá desde este enlace para activar tu cuenta y crear tu contraseña:\n${data.actionLink}\n\nEl enlace es personal.\n\nBojana Estudio\ninfo@bojana.com.ar` }) });
-      const mailData = await mailResponse.json() as { message?: string };
+      const mailText = await mailResponse.text();
+      let mailData: { message?: string } = {};
+      try { mailData = JSON.parse(mailText) as typeof mailData; } catch { mailData = { message: mailText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() }; }
       if (!mailResponse.ok) throw new Error(mailData.message || "La cuenta se creó, pero no pudimos enviar el email.");
       const user = { id: data.user.id, nombre: data.user.name, email: data.user.email, rol: data.user.role };
       const next = [...teamUsers.filter(existing => existing.email !== user.email), user]; setTeamUsers(next); localStorage.setItem("bojana-studio-users", JSON.stringify(next)); setNewUser({ nombre: "", email: "", rol: "team" }); onToast(`Invitación enviada a ${user.email}.`);
