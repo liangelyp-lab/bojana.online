@@ -58,12 +58,13 @@ async function createLink(req: VercelRequest, res: VercelResponse) {
     const members = await memberResponse.json() as Array<{ studio_id: string; role: string }>;
     const member = members[0];
     if (!member || !['owner', 'admin', 'team'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para crear enlaces." });
-    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id,lifecycle_status&limit=1`, { headers });
-    const projects = await projectResponse.json() as Array<{ id: string; lifecycle_status: string }>;
-    if (!projectResponse.ok || !projects[0]) return res.status(404).json({ error: "No encontramos el proyecto." });
-    if (projects[0].lifecycle_status !== 'ACTIVO') return res.status(409).json({ error: "Publicá el proyecto antes de crear el enlace." });
+    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id,lifecycle_status,data&limit=100`, { headers });
+    const projects = await projectResponse.json() as Array<{ id: string; lifecycle_status: string; data?: { id?: string } }>;
+    const project = projects.find(candidate => candidate.id === projectId || candidate.data?.id === projectId);
+    if (!projectResponse.ok || !project) return res.status(404).json({ error: "No encontramos el proyecto." });
+    if (project.lifecycle_status !== 'ACTIVO') return res.status(409).json({ error: "Publicá el proyecto antes de crear el enlace." });
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-    const payload = Buffer.from(JSON.stringify({ projectId, exp: expiresAt, nonce: crypto.randomBytes(12).toString('base64url') })).toString('base64url');
+    const payload = Buffer.from(JSON.stringify({ projectId: project.id, exp: expiresAt, nonce: crypto.randomBytes(12).toString('base64url') })).toString('base64url');
     const signature = crypto.createHmac('sha256', secret).update(payload).digest('base64url');
     const origin = `${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host || 'www.bojana.online'}`;
     return res.status(200).json({ url: `${origin}/?portal=${payload}.${signature}`, expiresAt: new Date(expiresAt).toISOString() });
