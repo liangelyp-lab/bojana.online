@@ -4,7 +4,7 @@ type VercelResponse = any;
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   const { password, accessToken, refreshToken } = req.body || {};
   if (!baseUrl || !anonKey) return res.status(500).json({ error: "Supabase is not configured" });
   if (!accessToken || typeof password !== "string" || password.length < 8) {

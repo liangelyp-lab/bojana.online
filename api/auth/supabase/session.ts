@@ -13,7 +13,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
   const cookies = parseCookies(req.headers.cookie || '');
   if (cookies.bojana_lark_session) {
     const larkUser = verifyLarkSession(cookies.bojana_lark_session);
