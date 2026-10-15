@@ -18,7 +18,7 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
   const [studioName, setStudioName] = useState("Bojana Estudio");
   const [studioPhone, setStudioPhone] = useState("+54 9 11 4589-2230");
   const [studioCity, setStudioCity] = useState("Buenos Aires, Argentina");
-  const [teamUsers, setTeamUsers] = useState<TeamUser[]>(() => { try { return JSON.parse(localStorage.getItem("bojana-studio-users") || "[]"); } catch { return []; } });
+  const [teamUsers, setTeamUsers] = useState<TeamUser[]>([]);
   const [newUser, setNewUser] = useState({ nombre: "", email: "", rol: "team" });
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const [projectId, setProjectId] = useState(projects[0]?.id || "");
@@ -36,9 +36,7 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
       .then(data => {
         if (cancelled || !Array.isArray(data.users)) return;
         const remoteUsers = (data.users as Array<{ id: string; name: string; email: string; role: string }>).map(user => ({ id: user.id, nombre: user.name, email: user.email, rol: user.role }));
-        const merged = [...remoteUsers, ...teamUsers.filter(local => !remoteUsers.some(remote => remote.id === local.id || remote.email.toLowerCase() === local.email.toLowerCase()))];
-        setTeamUsers(merged);
-        localStorage.setItem("bojana-studio-users", JSON.stringify(merged));
+        setTeamUsers(remoteUsers);
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
@@ -69,7 +67,7 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
       try { mailData = JSON.parse(mailText) as typeof mailData; } catch { mailData = { message: mailText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() }; }
       if (!mailResponse.ok) throw new Error(mailData.message || "La cuenta se creó, pero no pudimos enviar el email.");
       const user = { id: data.user.id, nombre: data.user.name, email: data.user.email, rol: data.user.role };
-      const next = [...teamUsers.filter(existing => existing.email !== user.email), user]; setTeamUsers(next); localStorage.setItem("bojana-studio-users", JSON.stringify(next)); setNewUser({ nombre: "", email: "", rol: "team" }); setSelectedProjectIds([]); onToast(`Invitación enviada a ${user.email}.`);
+      setTeamUsers(current => [...current.filter(existing => existing.email !== user.email), user]); setNewUser({ nombre: "", email: "", rol: "team" }); setSelectedProjectIds([]); onToast(`Invitación enviada a ${user.email}.`);
     } catch (error) { setCreateError(error instanceof Error ? error.message : "No pudimos enviar la invitación."); }
     finally { setCreating(false); }
   };
@@ -81,7 +79,7 @@ export default function StudioSettingsView({ projects, onToast, onActiveUserChan
       const data = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) throw new Error(data.error || "No pudimos eliminar el usuario.");
       const next = teamUsers.filter(existing => existing.id !== user.id);
-      setTeamUsers(next); localStorage.setItem("bojana-studio-users", JSON.stringify(next));
+      setTeamUsers(next);
       onToast(`${user.nombre} fue eliminado del equipo y de Supabase.`);
     } catch (error) { setCreateError(error instanceof Error ? error.message : "No pudimos eliminar el usuario."); }
   };
