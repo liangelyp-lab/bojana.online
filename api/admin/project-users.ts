@@ -63,15 +63,6 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
     ? { apikey: anonKey, authorization: `Bearer ${sessionToken}`, "content-type": "application/json" }
     : null;
   try {
-    if (req.method === 'GET' && sessionHeaders) {
-      const sessionProjects = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&order=updated_at.desc`, { headers: sessionHeaders });
-      const sessionRows = await sessionProjects.json();
-      if (sessionProjects.ok) {
-        return res.status(200).json({ projects: (sessionRows as Array<{ id: string; data: Record<string, unknown> | null }>).map(row => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
-      }
-      console.error("Authenticated project lookup failed", sessionProjects.status, sessionRows);
-      return res.status(502).json({ error: "No pudimos cargar los proyectos." });
-    }
     if (!adminHeaders) return res.status(503).json({ error: "Supabase no está configurado." });
     // Use the authenticated user's valid session for reads. A stale service
     // key can be valid for another project and return an empty membership,
@@ -106,6 +97,8 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
         if (sessionProjects.ok) {
           return res.status(200).json({ projects: (sessionRows as Array<{ id: string; data: Record<string, unknown> | null }>).map(row => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
         }
+        console.error("Authenticated project lookup failed", sessionProjects.status, sessionRows);
+        queryHeaders = adminHeaders;
       }
       let projectsUrl = `${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`;
 
