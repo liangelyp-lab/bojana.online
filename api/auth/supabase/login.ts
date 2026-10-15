@@ -21,8 +21,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 async function attachStudioRole(data: any) {
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!baseUrl || !serviceKey || !data?.user?.id) return;
-  const response = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(data.user.id)}&select=role&limit=1`, { headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } });
+  const anonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+  if (!baseUrl || !data?.user?.id) return;
+  const sessionHeaders = anonKey && data.access_token
+    ? { apikey: anonKey, authorization: `Bearer ${data.access_token}` }
+    : null;
+  const adminHeaders = serviceKey ? { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } : null;
+  const response = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(data.user.id)}&select=role&limit=1`, { headers: sessionHeaders || adminHeaders || {} });
   const rows = await response.json() as Array<{ role: string }>;
   if (response.ok && rows[0]) data.user.app_metadata = { ...(data.user.app_metadata || {}), role: rows[0].role };
 }
