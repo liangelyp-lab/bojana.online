@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const requesterMember = requesterRows[0];
   if (!requesterMember || !["owner", "admin"].includes(requesterMember.role)) return res.status(403).json({ error: "Sólo owner o admin pueden administrar integrantes." });
   if (req.method === "GET") {
-    const usersResponse = await fetch(`${baseUrl}/rest/v1/studio_users?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&role=in.(team,admin)&select=id,name,email,role&order=name.asc`, { headers });
+    const usersResponse = await fetch(`${baseUrl}/rest/v1/studio_users?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&role=neq.owner&select=id,name,email,role&order=name.asc`, { headers });
     const users = await usersResponse.json();
     if (!usersResponse.ok) return res.status(502).json({ error: "No pudimos cargar los usuarios del estudio." });
     return res.status(200).json({ users });
