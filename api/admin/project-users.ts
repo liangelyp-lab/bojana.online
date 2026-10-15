@@ -60,6 +60,13 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
     ? { apikey: anonKey, authorization: `Bearer ${sessionToken}`, "content-type": "application/json" }
     : null;
   try {
+    if (req.method === 'GET' && sessionHeaders) {
+      const sessionProjects = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&order=updated_at.desc`, { headers: sessionHeaders });
+      const sessionRows = await sessionProjects.json();
+      if (sessionProjects.ok) {
+        return res.status(200).json({ projects: (sessionRows as Array<{ id: string; data: Record<string, unknown> | null }>).map(row => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
+      }
+    }
     // Use the authenticated user's valid session for reads. A stale service
     // key can be valid for another project and return an empty membership,
     // which would incorrectly hide every project from the owner.
@@ -85,6 +92,15 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
     const isStaff = ["owner", "admin", "team"].includes(member.role);
 
     if (req.method === 'GET') {
+      // Prefer the authenticated session for reads. Supabase RLS already
+      // scopes staff to their studio and clients to assigned projects.
+      if (sessionHeaders) {
+        const sessionProjects = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&order=updated_at.desc`, { headers: sessionHeaders });
+        const sessionRows = await sessionProjects.json();
+        if (sessionProjects.ok) {
+          return res.status(200).json({ projects: (sessionRows as Array<{ id: string; data: Record<string, unknown> | null }>).map(row => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
+        }
+      }
       let projectsUrl = `${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`;
 
       // Staff can see every project in the studio. Clients only receive the
