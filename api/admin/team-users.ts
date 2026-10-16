@@ -8,6 +8,25 @@ function randomPassword() {
   return `Bojana-${randomBytes(6).toString("base64url")}!`;
 }
 
+async function replaceProjectMemberships(baseUrl: string, headers: Record<string, string>, studioId: string, userId: string, requestedProjectIds: string[], role: string) {
+  const requested = [...new Set(requestedProjectIds)];
+  const projectsResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(studioId)}&select=id`, { headers });
+  const projects = await projectsResponse.json() as Array<{ id: string }>;
+  if (!projectsResponse.ok) throw new Error("No pudimos validar los proyectos del estudio.");
+  const allowed = new Set(projects.map(project => project.id));
+  const selected = requested.filter(projectId => allowed.has(projectId));
+  if (selected.length !== requested.length) return [];
+  const removed = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(userId)}`, { method: "DELETE", headers });
+  if (!removed.ok) throw new Error("No pudimos limpiar los accesos anteriores.");
+  const rows = selected.map(projectId => ({ project_id: projectId, user_id: userId, role: role === "client" ? "client" : "editor" }));
+  const added = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) });
+  if (!added.ok) throw new Error("No pudimos guardar los proyectos seleccionados.");
+  const verify = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(userId)}&select=project_id`, { headers });
+  const memberships = await verify.json() as Array<{ project_id: string }>;
+  const actual = new Set(memberships.map(row => row.project_id));
+  return selected.filter(projectId => actual.has(projectId)).length === selected.length && actual.size === selected.length ? selected : [];
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!["GET", "POST"].includes(req.method)) return res.status(405).json({ error: "Method not allowed" });
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -121,13 +140,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!authResponse.ok) return res.status(authResponse.status).json({ error: authData.msg || authData.message || "No pudimos crear el usuario." });
       const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, { method: "POST", headers: { ...headers, Prefer: "return=minimal" }, body: JSON.stringify({ id: authData.id, studio_id: requesterMember.studio_id, name, email, role }) });
       if (!userResponse.ok) return res.status(502).json({ error: "El usuario se creó, pero no pudimos vincularlo al estudio." });
-      const projectRowsResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&select=id`, { headers });
-      const projectRows = await projectRowsResponse.json() as Array<{ id: string }>;
-      const allowedProjectIds = new Set(projectRows.map(project => project.id));
-      const rows = projectIds.filter(projectId => allowedProjectIds.has(projectId)).map(projectId => ({ project_id: projectId, user_id: authData.id, role: role === "client" ? "client" : "editor" }));
-      if (!rows.length) return res.status(400).json({ error: "Seleccioná al menos un proyecto válido." });
-      const memberResponse = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) });
-      if (!memberResponse.ok) return res.status(502).json({ error: "El usuario se creó, pero no pudimos guardar sus proyectos." });
+      const savedProjectIds = await replaceProjectMemberships(baseUrl, headers, requesterMember.studio_id, authData.id, projectIds, role);
+      if (!savedProjectIds.length) return res.status(400).json({ error: "Seleccioná al menos un proyecto válido." });
       return res.status(200).json({ user: { id: authData.id, name, email, role }, password: temporaryPassword });
     }
     const inviteText = await inviteResponse.text();
@@ -147,16 +161,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       body: JSON.stringify({ id: invitedUserId, studio_id: requesterMember.studio_id, name, email, role }),
     });
     if (!userResponse.ok) return res.status(502).json({ error: "La invitación se creó, pero no pudimos vincularla al estudio." });
-    if (projectIds.length > 0) {
-      const projectRowsResponse = await fetch(`${baseUrl}/rest/v1/projects?studio_id=eq.${encodeURIComponent(requesterMember.studio_id)}&select=id`, { headers });
-      const projectRows = await projectRowsResponse.json() as Array<{ id: string }>;
-      const allowedProjectIds = new Set(projectRows.map(project => project.id));
-      const rows = projectIds.filter(projectId => allowedProjectIds.has(projectId)).map(projectId => ({ project_id: projectId, user_id: invitedUserId, role: "editor" }));
-      if (rows.length > 0) {
-        const memberResponse = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) });
-        if (!memberResponse.ok) return res.status(502).json({ error: "El usuario se creó, pero no pudimos guardar sus proyectos." });
-      }
-    }
+    const savedProjectIds = await replaceProjectMemberships(baseUrl, headers, requesterMember.studio_id, invitedUserId, projectIds, role);
+    if (!savedProjectIds.length) return res.status(400).json({ error: "Seleccioná al menos un proyecto válido." });
     return res.status(200).json({ user: { id: invitedUserId, name, email, role }, actionLink: inviteData.action_link });
   } catch (error) {
     console.error("Team user invitation failed", error);

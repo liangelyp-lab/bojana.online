@@ -331,7 +331,8 @@ export default function StudioSettingsView({
       const response = await fetch("/api/admin/team-user-access", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "credentials", userId: user.id }) })
       const data = (await response.json()) as { password?: string; error?: string }
       if (!response.ok || !data.password) throw new Error(data.error || "No pudimos generar la contraseña.")
-      setCredentials({ name: user.nombre, email: user.email, password: data.password, projectName: "Acceso actualizado" })
+      setCredentials({ id: user.id, name: user.nombre, email: user.email, role: user.rol, password: data.password, projectName: "Acceso actualizado" })
+      setEditingUser(null)
       onToast(`Contraseña temporal generada para ${user.email}.`)
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : "No pudimos generar la contraseña.")
@@ -342,6 +343,12 @@ export default function StudioSettingsView({
     if (!credentials?.id) return
     await resendTeamInvite({ id: credentials.id, nombre: credentials.name, email: credentials.email, rol: credentials.role || "client" })
     setCredentials(null)
+  }
+
+  const createNewAccessFromEdit = async (user: TeamUser) => {
+    const updatedUser = { ...user, nombre: editingName, email: editingEmail, rol: editingRole }
+    const saved = await saveTeamProjects()
+    if (saved) await generateTeamCredentials(updatedUser)
   }
 
   const editTeamProjects = async (user: TeamUser) => {
@@ -372,8 +379,8 @@ export default function StudioSettingsView({
       )
     }
   }
-  const saveTeamProjects = async () => {
-    if (!editingUser) return
+  const saveTeamProjects = async (): Promise<boolean> => {
+    if (!editingUser) return false
     const response = await fetch("/api/admin/team-user-access", {
       method: "POST",
       credentials: "include",
@@ -390,10 +397,12 @@ export default function StudioSettingsView({
     if (!response.ok) {
       const data = await response.json().catch(() => ({}))
       setCreateError(data.error || "No pudimos guardar los proyectos.")
-      return
+      return false
     }
     onToast(`Proyectos actualizados para ${editingUser.nombre}.`)
+    setTeamUsers((current) => current.map((user) => user.id === editingUser.id ? { ...user, nombre: editingName, email: editingEmail, rol: editingRole } : user))
     setEditingUser(null)
+    return true
   }
   const handleSave = (event: React.FormEvent) => {
     event.preventDefault()
@@ -674,20 +683,8 @@ export default function StudioSettingsView({
               </Select>
               <ProjectMultiSelect projects={projects} selectedProjectIds={selectedProjectIds} onChange={setSelectedProjectIds} />
             </div>
-            <div className="flex justify-end"><Button variant="primary" ariaLabel="Guardar" type="submit" onClick={() => setAccessMode("save")} disabled={creating}><Save className="size-4" /> Guardar</Button></div>
+            <div className="flex justify-end"><Button variant="primary" ariaLabel="Crear usuario" type="submit" onClick={() => setAccessMode("save")} disabled={creating}><Save className="size-4" /> {creating ? "Creando..." : "Crear usuario"}</Button></div>
           </form>}
-          {credentials && (
-            <div className="mt-5 rounded-2xl border border-mint bg-mint-pale p-5">
-              <p className="text-xs font-bold uppercase tracking-widest text-forest">Acceso creado</p>
-              <p className="mt-1 font-semibold text-ink">{credentials.name} · {credentials.projectName}</p>
-              <p className="mt-2 text-sm text-ink-muted">Email: <span className="font-semibold text-ink">{credentials.email}</span></p>
-              <p className="text-sm text-ink-muted">Contraseña temporal: <span className="font-mono font-semibold text-ink">{credentials.password}</span></p>
-            <div className="mt-4 flex justify-end gap-2">
-                <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(`Bojana Estudio\nEmail: ${credentials.email}\nContraseña: ${credentials.password}`); onToast("Credenciales copiadas."); setCredentials(null) }}><Copy className="size-4" /> Copiar credenciales</Button>
-                <Button variant="secondary" onClick={() => void sendCreatedCredentialsLink()}><Send className="size-4" /> Enviar enlace</Button>
-              </div>
-            </div>
-          )}
           {createError && (
             <p className="rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark">
               {createError}
@@ -703,24 +700,17 @@ export default function StudioSettingsView({
                   <form onSubmit={(event) => { event.preventDefault(); void saveTeamProjects() }} className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <h4 className="font-display text-2xl font-normal text-ink">Editar usuario</h4>
-                        <p className="mt-1 font-semibold text-ink">{user.nombre}</p>
+                        <p className="font-semibold text-ink">{user.nombre}</p>
                         <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
                       </div>
                       <Button variant="icon" tooltip="Cerrar edición" ariaLabel="Cerrar edición" onClick={() => setEditingUser(null)}>
                         <X className="size-4" />
                       </Button>
                     </div>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <Field label="Nombre completo" value={editingName} onChange={(event) => setEditingName(event.target.value)} />
-                      <Field label="Email de acceso" type="email" value={editingEmail} onChange={(event) => setEditingEmail(event.target.value)} />
-                      <Select label="Permiso" className="bg-white text-xs" value={editingRole} onChange={(event) => setEditingRole(event.target.value)}><option value="client">Cliente</option><option value="team">Equipo</option><option value="admin">Administrador</option></Select>
-                    </div>
                     <ProjectMultiSelect projects={projects} selectedProjectIds={editingProjects} onChange={setEditingProjects} />
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button variant="icon" tooltip="Eliminar miembro" ariaLabel={`Eliminar a ${user.nombre}`} type="button" onClick={() => void removeTeamUser(user)}><Trash2 className="size-4" /></Button>
-                      <Button variant="icon" tooltip="Guardar cambios" ariaLabel="Guardar cambios" type="submit"><Save className="size-4" /></Button>
-                      <Button variant="secondary" type="button" onClick={() => void resendTeamInvite(user)}>Reenviar acceso</Button>
+                      <Button variant="primary" type="button" onClick={() => void createNewAccessFromEdit(user)}><KeyRound className="size-4" /> Nuevo acceso</Button>
                     </div>
                   </form>
                 ) : (
@@ -734,6 +724,17 @@ export default function StudioSettingsView({
                       {!isOwner && <>
                         <Button variant="icon" tooltip="Editar acceso" ariaLabel={`Editar acceso de ${user.nombre}`} onClick={() => void editTeamProjects(user)}><Pencil className="size-4" /></Button>
                       </>}
+                    </div>
+                  </div>
+                )}
+                {!isEditing && credentials?.id === user.id && (
+                  <div className="mt-4 rounded-xl border border-mint bg-mint-pale p-4">
+                    <p className="text-xs font-bold uppercase tracking-widest text-forest">Acceso creado</p>
+                    <p className="mt-1 text-sm text-ink">Email: <span className="font-semibold">{credentials.email}</span></p>
+                    <p className="text-sm text-ink">Contraseña temporal: <span className="font-mono font-semibold">{credentials.password}</span></p>
+                    <div className="mt-3 flex justify-end gap-2">
+                      <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(`Bojana Estudio\nEmail: ${credentials.email}\nContraseña: ${credentials.password}`); onToast("Credenciales copiadas."); setCredentials(null) }}><Copy className="size-4" /> Copiar credenciales</Button>
+                      <Button variant="secondary" onClick={() => void sendCreatedCredentialsLink()}><Send className="size-4" /> Enviar enlace</Button>
                     </div>
                   </div>
                 )}
