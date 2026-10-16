@@ -90,25 +90,16 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       member = emailMembers[0];
     }
     if (!member) return res.status(403).json({ error: "No tenés permiso para acceder a los proyectos." });
-    const isStaff = ["owner", "admin"].includes(member.role);
+    // Only the owner has unrestricted project visibility. Every other role,
+    // including admin and team, must be scoped through project_members.
+    const isOwner = member.role === "owner";
 
     if (req.method === 'GET') {
-      // Prefer the authenticated session for reads. Supabase RLS already
-      // scopes staff to their studio and clients to assigned projects.
-      if (sessionHeaders) {
-        const sessionProjects = await fetch(`${baseUrl}/rest/v1/projects?select=id,data&order=updated_at.desc`, { headers: sessionHeaders });
-        const sessionRows = await sessionProjects.json();
-        if (sessionProjects.ok) {
-          return res.status(200).json({ projects: (sessionRows as Array<{ id: string; data: Record<string, unknown> | null }>).map(row => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
-        }
-        console.error("Authenticated project lookup failed", sessionProjects.status, sessionRows);
-        queryHeaders = adminHeaders;
-      }
       let projectsUrl = `${baseUrl}/rest/v1/projects?select=id,data&studio_id=eq.${encodeURIComponent(member.studio_id)}&order=updated_at.desc`;
 
-      // Staff can see every project in the studio. Clients only receive the
-      // projects explicitly assigned to their user through project_members.
-      if (!isStaff) {
+      // Every non-owner receives only projects explicitly assigned through
+      // project_members.
+      if (!isOwner) {
         const accessResponse = await fetch(`${baseUrl}/rest/v1/project_members?user_id=eq.${encodeURIComponent(member.id)}&select=project_id`, { headers: queryHeaders });
         const accessRows = await accessResponse.json() as Array<{ project_id: string }>;
         if (!accessResponse.ok) return res.status(502).json({ error: "No pudimos validar tus proyectos." });
@@ -123,7 +114,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
-    if (!isStaff) return res.status(403).json({ error: "No tenés permiso para guardar proyectos." });
+    if (!isOwner) return res.status(403).json({ error: "No tenés permiso para guardar proyectos." });
     const project = req.body?.project;
     if (!project?.id || (!project.info && !project.brief)) return res.status(400).json({ error: "Proyecto inválido." });
     const response = await fetch(`${baseUrl}/rest/v1/projects?on_conflict=id`, { method: 'POST', headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: project.id, studio_id: member.studio_id, name: project.info?.nombre || project.brief?.nombre || project.id, lifecycle_status: project.lifecycleStatus || 'BORRADOR', data: project, updated_at: new Date().toISOString() }) });
