@@ -651,43 +651,43 @@ export default function StudioSettingsView({
             {teamUsers.length === 0 && <p className="p-6 text-center text-sm text-ink-muted">Todavía no hay usuarios registrados.</p>}
             {teamUsers.map((user) => {
               const isOwner = user.rol === "owner"
-              return <div key={user.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-semibold text-ink">{user.nombre}</p>
-                  <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
-                </div>
-                <div className="flex items-center justify-end gap-2">
-                  {currentUserRole === "owner" && <Button variant="secondary" onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} está siendo impersonado.`) }}>Impersonate</Button>}
-                  {!isOwner && <>
-                    <Button variant="icon" tooltip="Editar acceso" ariaLabel={`Editar acceso de ${user.nombre}`} onClick={() => void editTeamProjects(user)}><Pencil className="size-4" /></Button>
-                    <Button variant="icon" tooltip="Eliminar miembro" ariaLabel={`Eliminar a ${user.nombre}`} onClick={() => void removeTeamUser(user)}><Trash2 className="size-4" /></Button>
-                  </>}
-                </div>
+              const isEditing = editingUser?.id === user.id
+              return <div key={user.id} className="p-4">
+                {isEditing ? (
+                  <form onSubmit={(event) => { event.preventDefault(); void saveTeamProjects() }} className="space-y-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="font-semibold text-ink">{user.nombre}</p>
+                        <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
+                      </div>
+                      <Button variant="icon" tooltip="Cerrar edición" ariaLabel="Cerrar edición" onClick={() => setEditingUser(null)}>
+                        <X className="size-4" />
+                      </Button>
+                    </div>
+                    <ProjectMultiSelect projects={projects} selectedProjectIds={editingProjects} onChange={setEditingProjects} />
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button type="submit">Guardar cambios</Button>
+                      <Button variant="secondary" type="button" onClick={() => void resendTeamInvite(user)}>Reenviar acceso</Button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-semibold text-ink">{user.nombre}</p>
+                      <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                      {currentUserRole === "owner" && <Button variant="secondary" onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} está siendo impersonado.`) }}>Impersonate</Button>}
+                      {!isOwner && <>
+                        <Button variant="icon" tooltip="Editar acceso" ariaLabel={`Editar acceso de ${user.nombre}`} onClick={() => void editTeamProjects(user)}><Pencil className="size-4" /></Button>
+                        <Button variant="icon" tooltip="Eliminar miembro" ariaLabel={`Eliminar a ${user.nombre}`} onClick={() => void removeTeamUser(user)}><Trash2 className="size-4" /></Button>
+                      </>}
+                    </div>
+                  </div>
+                )}
               </div>
             })}
           </div>
-          {editingUser && (
-            <form onSubmit={(event) => { event.preventDefault(); void saveTeamProjects() }} className="space-y-5 rounded-2xl border border-line bg-canvas/50 p-5">
-              <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-                  Editar acceso
-                </p>
-                <h3 className="mt-1 font-display text-xl text-ink">
-                  Proyectos de {editingUser.nombre}
-                </h3>
-              </div>
-              <Button variant="icon" tooltip="Cerrar edición" ariaLabel="Cerrar edición" onClick={() => setEditingUser(null)}>
-                <X className="size-4" />
-              </Button>
-            </div>
-              <ProjectMultiSelect projects={projects} selectedProjectIds={editingProjects} onChange={setEditingProjects} />
-              <div className="flex flex-wrap justify-end gap-2">
-                <Button type="submit">Guardar cambios</Button>
-                <Button variant="secondary" type="button" onClick={() => void resendTeamInvite(editingUser)}>Reenviar acceso</Button>
-              </div>
-            </form>
-          )}
         </div>
       </div>
     </div>
