@@ -116,7 +116,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         options: { redirectTo: origin, data: { name, must_change_password: true } },
       }),
     });
-    if (mode === "credentials") {
+    if (mode !== "invite") {
       const authData = await authResponse.json();
       if (!authResponse.ok) return res.status(authResponse.status).json({ error: authData.msg || authData.message || "No pudimos crear el usuario." });
       const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, { method: "POST", headers: { ...headers, Prefer: "return=minimal" }, body: JSON.stringify({ id: authData.id, studio_id: requesterMember.studio_id, name, email, role }) });
