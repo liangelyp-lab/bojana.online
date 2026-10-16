@@ -21,6 +21,42 @@ interface StudioSettingsViewProps {
   onActiveUserChange?: (user: TeamUser | null) => void
   studioEmail: string
   onStudioEmailChange: (email: string) => void
+  currentUserRole?: string
+}
+
+function ProjectMultiSelect({
+  projects,
+  selectedProjectIds,
+  onChange,
+}: {
+  projects: ProjectData[]
+  selectedProjectIds: string[]
+  onChange: (ids: string[]) => void
+}) {
+  return (
+    <div className="max-w-xl">
+      <p className="text-xs font-semibold text-ink">Proyectos permitidos</p>
+      <details className="group relative mt-2">
+        <summary className="bojana-control flex cursor-pointer list-none items-center justify-between bg-white px-3.5 py-2.5 text-xs text-ink [&::-webkit-details-marker]:hidden">
+          <span>{selectedProjectIds.length ? `${selectedProjectIds.length} proyecto(s) seleccionado(s)` : "Seleccionar proyectos"}</span>
+          <span className="text-ink-faint transition group-open:rotate-180">⌄</span>
+        </summary>
+        <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-line bg-white p-2 shadow-lg">
+          {projects.length === 0 ? <p className="p-3 text-xs text-ink-muted">Todavía no hay proyectos.</p> : projects.map((project) => {
+            const checked = selectedProjectIds.includes(project.id)
+            return <label key={project.id} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-ink hover:bg-stone">
+              <span className={`flex size-4 items-center justify-center rounded border ${checked ? "border-forest bg-forest text-white" : "border-line-strong"}`}>
+                {checked && <Check className="size-3" />}
+              </span>
+              <input className="sr-only" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked ? [...selectedProjectIds, project.id] : selectedProjectIds.filter((id) => id !== project.id))} />
+              <span>{project.info?.nombre || project.id}</span>
+            </label>
+          })}
+        </div>
+      </details>
+      <p className="mt-2 text-xs text-ink-muted">Seleccioná uno o más proyectos para limitar su acceso.</p>
+    </div>
+  )
 }
 
 export default function StudioSettingsView({
@@ -29,6 +65,7 @@ export default function StudioSettingsView({
   onActiveUserChange,
   studioEmail,
   onStudioEmailChange,
+  currentUserRole,
 }: StudioSettingsViewProps) {
   const [studioName, setStudioName] = useState("Bojana Estudio")
   const [studioPhone, setStudioPhone] = useState("+54 9 11 4589-2230")
@@ -602,30 +639,7 @@ export default function StudioSettingsView({
               </Button>
             </div>
             {newUser.rol === "team" && (
-              <div className="max-w-xl">
-                <p className="text-xs font-semibold text-ink">
-                  Proyectos permitidos
-                </p>
-                <details className="group relative mt-2">
-                  <summary className="bojana-control flex cursor-pointer list-none items-center justify-between bg-white px-3.5 py-2.5 text-xs text-ink [&::-webkit-details-marker]:hidden">
-                    <span>{selectedProjectIds.length ? `${selectedProjectIds.length} proyecto(s) seleccionado(s)` : "Seleccionar proyectos"}</span>
-                    <span className="text-ink-faint transition group-open:rotate-180">⌄</span>
-                  </summary>
-                  <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-line bg-white p-2 shadow-lg">
-                    {projects.length === 0 ? <p className="p-3 text-xs text-ink-muted">Todavía no hay proyectos.</p> : projects.map((project) => {
-                      const checked = selectedProjectIds.includes(project.id)
-                      return <label key={project.id} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-ink hover:bg-stone">
-                        <span className={`flex size-4 items-center justify-center rounded border ${checked ? "border-forest bg-forest text-white" : "border-line-strong"}`}>
-                          {checked && <Check className="size-3" />}
-                        </span>
-                        <input className="sr-only" type="checkbox" checked={checked} onChange={(event) => setSelectedProjectIds((current) => event.target.checked ? [...current, project.id] : current.filter((id) => id !== project.id))} />
-                        <span>{project.info?.nombre || project.id}</span>
-                      </label>
-                    })}
-                  </div>
-                </details>
-                <p className="mt-2 text-xs text-ink-muted">Seleccioná uno o más proyectos para limitar su acceso.</p>
-              </div>
+              <ProjectMultiSelect projects={projects} selectedProjectIds={selectedProjectIds} onChange={setSelectedProjectIds} />
             )}
           </form>}
           {createError && (
@@ -633,50 +647,28 @@ export default function StudioSettingsView({
               {createError}
             </p>
           )}
-          {teamUsers.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-line bg-canvas/50 p-6 text-center text-sm text-ink-muted">
-              Todavía no hay usuarios registrados.
-            </div>
-          ) : (
-            <div className="divide-y divide-line rounded-2xl border border-line">
-              {teamUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex flex-col justify-between gap-3 p-4 sm:flex-row sm:items-center"
-                >
-                  <div>
-                    <p className="font-semibold text-ink">{user.nombre}</p>
-                    <p className="text-xs text-ink-muted">
-                      {user.email} · {user.rol}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => {
-                        onActiveUserChange?.(user)
-                        onToast(`${user.nombre} es ahora el usuario visible.`)
-                      }}
-                    >
-                      Usar en navegación
-                    </Button>
-                    <Button
-                      variant="icon"
-                      tooltip="Eliminar miembro"
-                      ariaLabel={`Eliminar a ${user.nombre}`}
-                      onClick={() => void removeTeamUser(user)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </div>
+          <div className="divide-y divide-line rounded-2xl border border-line">
+            {teamUsers.length === 0 && <p className="p-6 text-center text-sm text-ink-muted">Todavía no hay usuarios registrados.</p>}
+            {teamUsers.map((user) => {
+              const isOwner = user.rol === "owner"
+              return <div key={user.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold text-ink">{user.nombre}</p>
+                  <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-        {editingUser && (
-          <div className="space-y-4 rounded-2xl border border-line bg-canvas/50 p-5 lg:col-span-12">
-            <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center justify-end gap-2">
+                  {currentUserRole === "owner" && <Button variant="secondary" onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} está siendo impersonado.`) }}>Impersonate</Button>}
+                  {!isOwner && <>
+                    <Button variant="icon" tooltip="Editar acceso" ariaLabel={`Editar acceso de ${user.nombre}`} onClick={() => void editTeamProjects(user)}><Pencil className="size-4" /></Button>
+                    <Button variant="icon" tooltip="Eliminar miembro" ariaLabel={`Eliminar a ${user.nombre}`} onClick={() => void removeTeamUser(user)}><Trash2 className="size-4" /></Button>
+                  </>}
+                </div>
+              </div>
+            })}
+          </div>
+          {editingUser && (
+            <form onSubmit={(event) => { event.preventDefault(); void saveTeamProjects() }} className="space-y-5 rounded-2xl border border-line bg-canvas/50 p-5">
+              <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
                   Editar acceso
@@ -689,72 +681,14 @@ export default function StudioSettingsView({
                 <X className="size-4" />
               </Button>
             </div>
-            <label className="block max-w-xl text-xs font-semibold text-ink">
-              Proyectos permitidos
-              <select
-                multiple
-                className="bojana-control mt-2 min-h-36 w-full bg-white px-3.5 py-2.5 text-xs font-normal text-ink"
-                value={editingProjects}
-                onChange={(event) =>
-                  setEditingProjects(
-                    Array.from(
-                      event.target.selectedOptions,
-                      (option) => option.value,
-                    ),
-                  )
-                }
-              >
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.info?.nombre || project.id}
-                  </option>
-                ))}
-              </select>
-              <span className="mt-2 block font-normal text-ink-muted">
-                Mantené presionada la tecla Command/Ctrl para elegir varios.
-              </span>
-            </label>
-            <Button onClick={() => void saveTeamProjects()}>
-              Guardar proyectos
-            </Button>
-          </div>
-        )}
-        {teamUsers.length > 0 && (
-          <div className="space-y-3 rounded-2xl border border-line bg-white p-5 lg:col-span-12">
-            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-              Gestionar accesos existentes
-            </p>
-            {teamUsers.map((user) => (
-              <div
-                key={`manage-${user.id}`}
-                className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3 last:border-0"
-              >
-                <div>
-                  <p className="font-semibold text-ink">{user.nombre}</p>
-                  <p className="text-xs text-ink-muted">
-                    {user.email} · {user.rol}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="icon"
-                    tooltip="Editar proyectos"
-                    ariaLabel={`Editar proyectos de ${user.nombre}`}
-                    onClick={() => void editTeamProjects(user)}
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => void resendTeamInvite(user)}
-                  >
-                    Reenviar acceso
-                  </Button>
-                </div>
+              <ProjectMultiSelect projects={projects} selectedProjectIds={editingProjects} onChange={setEditingProjects} />
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button type="submit">Guardar cambios</Button>
+                <Button variant="secondary" type="button" onClick={() => void resendTeamInvite(editingUser)}>Reenviar acceso</Button>
               </div>
-            ))}
-          </div>
-        )}
+            </form>
+          )}
+        </div>
       </div>
     </div>
   )

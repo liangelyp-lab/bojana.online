@@ -1821,6 +1821,7 @@ function AdminPortal({
                 projects={allProjects}
                 onToast={onPublishToast}
                 onActiveUserChange={user => setActiveUser?.(user)}
+                currentUserRole={activeUser?.rol}
                 studioEmail={studioEmail}
                 onStudioEmailChange={setStudioEmail}
               />
