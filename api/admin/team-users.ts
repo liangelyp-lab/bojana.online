@@ -128,7 +128,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!rows.length) return res.status(400).json({ error: "Seleccioná al menos un proyecto válido." });
       const memberResponse = await fetch(`${baseUrl}/rest/v1/project_members`, { method: "POST", headers: { ...headers, Prefer: "resolution=merge-duplicates,return=minimal" }, body: JSON.stringify(rows) });
       if (!memberResponse.ok) return res.status(502).json({ error: "El usuario se creó, pero no pudimos guardar sus proyectos." });
-      return res.status(200).json({ user: { id: authData.id, name, email, role }, ...(mode === "credentials" ? { password: temporaryPassword } : {}) });
+      return res.status(200).json({ user: { id: authData.id, name, email, role }, password: temporaryPassword });
     }
     const inviteText = await inviteResponse.text();
     let inviteData: { id?: string; user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string } = {};

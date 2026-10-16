@@ -11,6 +11,7 @@ interface TeamUser {
   rol: string
 }
 interface CreatedCredentials {
+  id?: string
   name: string
   email: string
   role?: string
@@ -196,21 +197,13 @@ export default function StudioSettingsView({
       }
       if (!userResponse.ok || !data.user || (requestedMode === "invite" && !data.actionLink))
         throw new Error(data.error || "No pudimos crear la invitación.")
-      if (requestedMode === "credentials") {
-        setCredentials({ name: data.user.name, email: data.user.email, password: data.password || "", projectName: `${selectedProjectIds.length} proyecto(s)` })
+      if (requestedMode === "credentials" || requestedMode === "save") {
+        setCredentials({ id: data.user.id, name: data.user.name, email: data.user.email, password: data.password || "", projectName: `${selectedProjectIds.length} proyecto(s)` })
         setTeamUsers((current) => [...current.filter((existing) => existing.email !== data.user!.email), { id: data.user!.id, nombre: data.user!.name, email: data.user!.email, rol: data.user!.role }])
         setNewUser({ nombre: "", email: "", rol: "client" })
         setSelectedProjectIds([])
         setIsAddMemberOpen(false)
         onToast(`Usuario creado para ${data.user.email}.`)
-        return
-      }
-      if (requestedMode === "save") {
-        setTeamUsers((current) => [...current.filter((existing) => existing.email !== data.user!.email), { id: data.user!.id, nombre: data.user!.name, email: data.user!.email, rol: data.user!.role }])
-        setNewUser({ nombre: "", email: "", rol: "client" })
-        setSelectedProjectIds([])
-        setIsAddMemberOpen(false)
-        onToast(`Usuario guardado para ${data.user.email}.`)
         return
       }
       const mailResponse = await fetch("/api/mail/send", {
@@ -343,6 +336,12 @@ export default function StudioSettingsView({
     } catch (error) {
       setCreateError(error instanceof Error ? error.message : "No pudimos generar la contraseña.")
     }
+  }
+
+  const sendCreatedCredentialsLink = async () => {
+    if (!credentials?.id) return
+    await resendTeamInvite({ id: credentials.id, nombre: credentials.name, email: credentials.email, rol: credentials.role || "client" })
+    setCredentials(null)
   }
 
   const editTeamProjects = async (user: TeamUser) => {
@@ -683,8 +682,9 @@ export default function StudioSettingsView({
               <p className="mt-1 font-semibold text-ink">{credentials.name} · {credentials.projectName}</p>
               <p className="mt-2 text-sm text-ink-muted">Email: <span className="font-semibold text-ink">{credentials.email}</span></p>
               <p className="text-sm text-ink-muted">Contraseña temporal: <span className="font-mono font-semibold text-ink">{credentials.password}</span></p>
-              <div className="mt-4 flex justify-end">
-                <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(`Bojana Estudio\nEmail: ${credentials.email}\nContraseña: ${credentials.password}`); onToast("Credenciales copiadas.") }}><Copy className="size-4" /> Copiar credenciales</Button>
+            <div className="mt-4 flex justify-end gap-2">
+                <Button variant="secondary" onClick={() => { void navigator.clipboard.writeText(`Bojana Estudio\nEmail: ${credentials.email}\nContraseña: ${credentials.password}`); onToast("Credenciales copiadas."); setCredentials(null) }}><Copy className="size-4" /> Copiar credenciales</Button>
+                <Button variant="secondary" onClick={() => void sendCreatedCredentialsLink()}><Send className="size-4" /> Enviar enlace</Button>
               </div>
             </div>
           )}
@@ -733,9 +733,6 @@ export default function StudioSettingsView({
                       {currentUserRole === "owner" && <Button variant="icon" tooltip="Impersonate" ariaLabel={`Impersonar a ${user.nombre}`} onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} está siendo impersonado.`) }}><UserRoundCog className="size-4" /></Button>}
                       {!isOwner && <>
                         <Button variant="icon" tooltip="Editar acceso" ariaLabel={`Editar acceso de ${user.nombre}`} onClick={() => void editTeamProjects(user)}><Pencil className="size-4" /></Button>
-                        <Button variant="icon" tooltip="Generar contraseña" ariaLabel={`Generar contraseña para ${user.nombre}`} onClick={() => void generateTeamCredentials(user)}><KeyRound className="size-4" /></Button>
-                        <Button variant="icon" tooltip="Enviar enlace" ariaLabel={`Enviar enlace a ${user.nombre}`} onClick={() => void resendTeamInvite(user)}><Send className="size-4" /></Button>
-                        <Button variant="icon" tooltip="Eliminar miembro" ariaLabel={`Eliminar a ${user.nombre}`} onClick={() => void removeTeamUser(user)}><Trash2 className="size-4" /></Button>
                       </>}
                     </div>
                   </div>
