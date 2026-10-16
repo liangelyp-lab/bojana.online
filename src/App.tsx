@@ -1913,6 +1913,9 @@ function ClientSidebar({
   notificationCount,
   recentNotifications,
   onOpenNotification,
+  projects,
+  selectedProjectId,
+  onProjectChange,
 }: {
   active: string
   setActive: (item: string) => void
@@ -1921,6 +1924,9 @@ function ClientSidebar({
   notificationCount: number
   recentNotifications: Array<{ id: string; descripcion: string; fecha: string; taskId?: string; updateId?: string }>
   onOpenNotification: (notification: { taskId?: string; updateId?: string }) => void
+  projects: ProjectData[]
+  selectedProjectId: string | null
+  onProjectChange: (id: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -1934,6 +1940,7 @@ function ClientSidebar({
       </div>
 
       <nav aria-label="Navegación cliente" className={`flex w-full flex-col ${expanded ? "mt-5 items-stretch gap-2" : "mt-4 items-center gap-1"}`}>
+        {expanded && projects.length > 1 && <label className="mb-2 block px-2 text-xs font-semibold text-ink-muted">Proyecto<select className="bojana-control mt-1 w-full bg-white text-xs" value={selectedProjectId || ""} onChange={(event) => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</select></label>}
         <Button
           ariaLabel="Notificaciones"
           className={`${expanded ? "!justify-start !px-3" : "!size-11 !justify-center !px-0"} !relative !rounded-2xl`}
@@ -2676,6 +2683,9 @@ function ClientPortal({
   showAdminLink,
   onUpdateProject,
   onToast,
+  availableProjects,
+  selectedProjectId,
+  onProjectChange,
 }: {
   activeProject: { name: string; code: string; desc: string }
   currentProject: ProjectData
@@ -2684,6 +2694,9 @@ function ClientPortal({
   showAdminLink: boolean
   onUpdateProject: (updated: ProjectData) => void
   onToast: (msg: string) => void
+  availableProjects: ProjectData[]
+  selectedProjectId: string | null
+  onProjectChange: (id: string) => void
 }) {
   const [active, setActive] = useState("Resumen")
   const [expandedClientTaskId, setExpandedClientTaskId] = useState<string | null>(null)
@@ -2961,6 +2974,9 @@ function ClientPortal({
             setHighlightedTaskId(taskId || null)
             if (taskId) setExpandedClientTaskId(taskId)
           }}
+          projects={availableProjects}
+          selectedProjectId={selectedProjectId}
+          onProjectChange={onProjectChange}
           setActive={next => {
             setActive(next)
             if (next !== "Resumen") {
@@ -3161,6 +3177,7 @@ export default function App() {
     }
   }, [])
   const directToken = useMemo(() => new URLSearchParams(window.location.search).get("portal"), [])
+  const localPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).get("preview") === "admin"
   const authError = useMemo(() => {
     const value = new URLSearchParams(window.location.search).get("auth_error")
     if (value === "lark_user_not_authorized") return "Tu cuenta de Lark todavía no está autorizada en el estudio. Pedí que te agreguen desde Configuración."
@@ -3168,14 +3185,14 @@ export default function App() {
     return value ? "No pudimos iniciar sesión con Lark." : null
   }, [])
   const isPasswordSetupLink = recoveryParams.accessToken && (recoveryParams.type === "recovery" || recoveryParams.type === "invite")
-  const [screen, setScreen] = useState<Screen | "reset">(isPasswordSetupLink ? "reset" : directToken ? "client" : "signin")
+  const [screen, setScreen] = useState<Screen | "reset">(isPasswordSetupLink ? "reset" : directToken ? "client" : localPreview ? "admin" : "signin")
   const [allProjects, setAllProjects] = useState<ProjectData[]>(() => directToken ? [] : getAllProjects())
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [forcedPasswordToken, setForcedPasswordToken] = useState<string | null>(null)
   const [clientProjectsLoading, setClientProjectsLoading] = useState(Boolean(directToken && directToken !== "portal-direct"))
   const [clientProjectsError, setClientProjectsError] = useState<string | null>(directToken === "portal-direct" ? "El enlace directo del portal no es válido o ya no está disponible." : null)
   const [projectsReloadKey, setProjectsReloadKey] = useState(0)
-  const [sessionReady, setSessionReady] = useState(Boolean(directToken || isPasswordSetupLink))
+  const [sessionReady, setSessionReady] = useState(Boolean(directToken || isPasswordSetupLink || localPreview))
 
   const currentProject = useMemo(() => {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
@@ -3183,6 +3200,7 @@ export default function App() {
 
   const [activeProject, setActiveProject] = useState({ name: "Sin proyecto seleccionado", code: "—", desc: "Creá un proyecto para comenzar." })
   const [activeUser, setActiveUserState] = useState<{ id?: string; nombre: string; email?: string; rol: string } | null>(() => {
+    if (localPreview) return { id: "local-preview-owner", nombre: "Owner de revisión", email: "preview@bojana.local", rol: "owner" }
     const authUser = getAuthUser()
     if (authUser) return { id: authUser.id, nombre: authUser.name || authUser.email || "Usuario", email: authUser.email, rol: authUser.role || "client" }
     try { return JSON.parse(localStorage.getItem("bojana-active-user") || "null") } catch { return null }
@@ -3243,6 +3261,7 @@ export default function App() {
   }, [directToken])
 
   useEffect(() => {
+    if (localPreview) return
     void restoreSession().then(user => {
       // A recovery link owns the screen until the new password is saved.
       // Do not let the regular session bootstrap replace it with sign in/admin.
@@ -3270,7 +3289,7 @@ export default function App() {
         setScreen("client")
       }
     }).catch(() => undefined).finally(() => setSessionReady(true))
-  }, [directToken, isPasswordSetupLink, recoveryParams.accessToken, recoveryParams.type])
+  }, [directToken, isPasswordSetupLink, localPreview, recoveryParams.accessToken, recoveryParams.type])
 
   useEffect(() => {
     if (!sessionReady || !activeUser?.id || directToken) return
@@ -3442,6 +3461,9 @@ export default function App() {
           showAdminLink={!directToken && ["owner", "admin", "team"].includes(activeUser?.rol || "")}
           onToast={showToast}
           onUpdateProject={handleUpdateProject}
+          availableProjects={allProjects}
+          selectedProjectId={selectedProjectId}
+          onProjectChange={setSelectedProjectId}
         />
       )}
 

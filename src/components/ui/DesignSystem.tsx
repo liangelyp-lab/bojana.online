@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, LoaderCircle, LucideIcon } from 'lucide-react';
+import { X, LoaderCircle, ChevronDown, LucideIcon } from 'lucide-react';
 import { EstadoEtapa } from '../../types';
 import { taskStateLabel, taskStateBadgeClasses } from '../../design/status';
 
@@ -76,7 +76,7 @@ export function Button({
       title={title}
       data-channel={dataChannel}
       disabled={disabled}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${variants[variant]} ${className}`}
+      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${className}`}
       onClick={onClick}
       type={type}
     >
@@ -172,7 +172,7 @@ export function TextAreaControl({ className = '', ...props }: React.TextareaHTML
 }
 
 export function SelectControl({ className = '', children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...props} className={`bojana-control ${className}`}>{children}</select>;
+  return <div className="relative"><select {...props} className={`bojana-control appearance-none pr-9 ${className}`}>{children}</select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" /></div>;
 }
 
 export function TextArea({
@@ -205,9 +205,7 @@ export function Select({
   return (
     <label className="block">
       {label && <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{label}</span>}
-      <select {...props} className={`bojana-control ${className}`}>
-        {children}
-      </select>
+      <span className="relative block"><select {...props} className={`bojana-control appearance-none pr-9 ${className}`}>{children}</select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" /></span>
     </label>
   );
 }
@@ -303,12 +301,14 @@ export function Drawer({
   title,
   side = 'right',
   onClose,
+  headerActions,
   children
 }: {
   open: boolean;
   title: string;
   side?: 'left' | 'right';
   onClose: () => void;
+  headerActions?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -366,6 +366,7 @@ export function Drawer({
       >
         <div className="bojana-drawer-heading">
           <h2 className="bojana-heading-component">{title}</h2>
+          <div className="ml-auto mr-2">{headerActions}</div>
           <button
             type="button"
             className="bojana-icon-button"
