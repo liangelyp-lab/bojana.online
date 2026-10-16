@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { Check, Copy, KeyRound, Pencil, Plus, Save, Trash2, X } from "lucide-react"
+import { Check, Copy, KeyRound, Pencil, Plus, Save, Trash2, UserRoundCog, X } from "lucide-react"
 import type { ProjectData } from "../../types"
 import { Brand, Button, Field } from "../ui/DesignSystem"
 import DriveConnectionSettings from "../storage/DriveConnectionSettings"
@@ -408,7 +408,7 @@ export default function StudioSettingsView({
         </p>
       </div>
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
-        <div className="lg:col-span-7">
+        {currentUserRole === "owner" ? <div className="lg:col-span-7">
           <form
             onSubmit={handleSave}
             className="space-y-6 rounded-3xl border border-line bg-white p-7 shadow-sm"
@@ -457,12 +457,16 @@ export default function StudioSettingsView({
               </Button>
             </div>
           </form>
-        </div>
+        </div> : <div className="lg:col-span-7 px-1 py-2">
+          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Datos del estudio</p>
+          <p className="mt-3 text-sm text-ink-muted">{studioName} · {studioEmail} · {studioPhone} · {studioCity}</p>
+        </div>}
         <div className="space-y-6 lg:col-span-5">
           <DriveConnectionSettings />
         </div>
-        <div className="space-y-6 rounded-3xl border border-line bg-white p-7 shadow-sm lg:col-span-12">
-          <div>
+        <div className="lg:col-span-12">
+          <div className="flex items-end justify-between gap-5">
+            <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
               Accesos por proyecto
             </p>
@@ -473,7 +477,9 @@ export default function StudioSettingsView({
               Cada persona recibe un correo y una contraseña, y queda vinculada
               únicamente al proyecto elegido. No usamos username.
             </p>
+            </div>
           </div>
+          <div className="mt-5 rounded-3xl border border-line bg-white p-7 shadow-sm">
           <form
             onSubmit={createProjectUser}
             className="grid grid-cols-1 items-end gap-4 md:grid-cols-[1.2fr_1fr_1fr_0.8fr_auto]"
@@ -563,24 +569,27 @@ export default function StudioSettingsView({
                 </div>
                 <KeyRound className="size-5 text-forest" />
               </div>
-              <Button
-                variant="secondary"
-                className="mt-4"
-                onClick={() => {
-                  void navigator.clipboard.writeText(
-                    `Bojana Estudio\nProyecto: ${credentials.projectName}\nEmail: ${credentials.email}\nContraseña: ${credentials.password}`,
-                  )
-                  onToast("Credenciales copiadas.")
-                }}
-              >
-                <Copy className="size-4" />
-                Copiar credenciales
-              </Button>
+              <div className="mt-4 flex justify-end">
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(
+                      `Bojana Estudio\nProyecto: ${credentials.projectName}\nEmail: ${credentials.email}\nContraseña: ${credentials.password}`,
+                    )
+                    onToast("Credenciales copiadas.")
+                  }}
+                >
+                  <Copy className="size-4" />
+                  Copiar credenciales
+                </Button>
+              </div>
             </div>
           )}
+          </div>
         </div>
-        <div className="space-y-6 rounded-3xl border border-line bg-white p-7 shadow-sm lg:col-span-12">
-          <div>
+        <div className="lg:col-span-12">
+          <div className="flex items-end justify-between gap-5">
+            <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
               Accesos internos
             </p>
@@ -591,16 +600,17 @@ export default function StudioSettingsView({
               Creá el usuario real, elegí sus proyectos y enviá un enlace para
               que defina su contraseña.
             </p>
-          </div>
-          <Button
+            </div>
+            <Button
             variant="secondary"
             onClick={() => setIsAddMemberOpen((open) => !open)}
             ariaLabel={isAddMemberOpen ? "Cerrar formulario de miembro" : "Agregar miembro"}
           >
             {isAddMemberOpen ? <X className="size-4" /> : <Plus className="size-4" />}
             {isAddMemberOpen ? "Cerrar" : "Add miembro"}
-          </Button>
-          {isAddMemberOpen && <form onSubmit={addTeamUser} className="space-y-5 rounded-2xl border border-line bg-canvas/50 p-5">
+            </Button>
+          </div>
+          {isAddMemberOpen && <form onSubmit={addTeamUser} className="mt-5 space-y-5 rounded-3xl border border-line bg-white p-7">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
               <Field
                 label="Nombre completo"
@@ -647,12 +657,12 @@ export default function StudioSettingsView({
               {createError}
             </p>
           )}
-          <div className="divide-y divide-line rounded-2xl border border-line">
+          <div className="mt-5 space-y-3">
             {teamUsers.length === 0 && <p className="p-6 text-center text-sm text-ink-muted">Todavía no hay usuarios registrados.</p>}
             {teamUsers.map((user) => {
               const isOwner = user.rol === "owner"
               const isEditing = editingUser?.id === user.id
-              return <div key={user.id} className="p-4">
+              return <div key={user.id} className="rounded-2xl border border-line bg-white p-4 shadow-sm">
                 {isEditing ? (
                   <form onSubmit={(event) => { event.preventDefault(); void saveTeamProjects() }} className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
@@ -677,7 +687,7 @@ export default function StudioSettingsView({
                       <p className="text-xs text-ink-muted">{user.email} · {user.rol}</p>
                     </div>
                     <div className="flex items-center justify-end gap-2">
-                      {currentUserRole === "owner" && <Button variant="secondary" onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} está siendo impersonado.`) }}>Impersonate</Button>}
+                      {currentUserRole === "owner" && <Button variant="icon" tooltip="Impersonate" ariaLabel={`Impersonar a ${user.nombre}`} onClick={() => { onActiveUserChange?.(user); onToast(`${user.nombre} está siendo impersonado.`) }}><UserRoundCog className="size-4" /></Button>}
                       {!isOwner && <>
                         <Button variant="icon" tooltip="Editar acceso" ariaLabel={`Editar acceso de ${user.nombre}`} onClick={() => void editTeamProjects(user)}><Pencil className="size-4" /></Button>
                         <Button variant="icon" tooltip="Eliminar miembro" ariaLabel={`Eliminar a ${user.nombre}`} onClick={() => void removeTeamUser(user)}><Trash2 className="size-4" /></Button>
