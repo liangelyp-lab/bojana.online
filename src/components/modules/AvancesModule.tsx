@@ -173,13 +173,13 @@ export default function AvancesModule({
                 </div>
 
                 {isAdmin && (
-                  <Button variant="secondary"
+                  <Button variant="icon" size="s"
                     type="button"
                     onClick={() => handleDeletePost(post.id)}
-                    className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-stone hover:text-clay transition cursor-pointer"
+                    ariaLabel="Eliminar publicación"
                     title="Eliminar publicación"
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 className="size-3.5" aria-hidden="true" />
                   </Button>
                 )}
               </div>

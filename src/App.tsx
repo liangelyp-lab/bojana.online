@@ -6,6 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
+import { ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, Share2, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { getAllProjects, saveProjectData, getEffectiveProgress, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
@@ -32,7 +33,7 @@ import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, sign
 
 // ─── Icon ────────────────────────────────────────────────────────────────────
 
-type IconName =
+export type IconName =
   | "arrow"
   | "bell"
   | "calendar"
@@ -58,157 +59,18 @@ type IconName =
   | "tasks"
   | "timeline"
 
-function Icon({
-  name,
-  className = "size-5",
-}: {
-  name: IconName
-  className?: string
-}) {
-  const paths: Record<IconName, ReactNode> = {
-    arrow: (
-      <>
-        <path d="M5 12h14" />
-        <path d="m13 6 6 6-6 6" />
-      </>
-    ),
-    bell: (
-      <>
-        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
-        <path d="M10 21h4" />
-      </>
-    ),
-    calendar: (
-      <>
-        <rect x="3" y="5" width="18" height="16" rx="2" />
-        <path d="M16 3v4M8 3v4M3 10h18" />
-      </>
-    ),
-    check: <path d="m5 12 4 4L19 6" />,
-    chevron: <path d="m9 18 6-6-6-6" />,
-    clock: (
-      <>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 2" />
-      </>
-    ),
-    dashboard: (
-      <>
-        <rect x="3" y="3" width="7" height="7" rx="1" />
-        <rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" />
-        <rect x="14" y="14" width="7" height="7" rx="1" />
-      </>
-    ),
-    download: (
-      <>
-        <path d="M12 3v12" />
-        <path d="m7 10 5 5 5-5" />
-        <path d="M5 21h14" />
-      </>
-    ),
-    eye: (
-      <>
-        <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-        <circle cx="12" cy="12" r="2.5" />
-      </>
-    ),
-    file: (
-      <>
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-        <path d="M14 2v6h6" />
-      </>
-    ),
-    folder: (
-      <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
-    ),
-    home: (
-      <>
-        <path d="m3 11 9-8 9 8" />
-        <path d="M5 10v10h14V10" />
-      </>
-    ),
-    lock: (
-      <>
-        <rect x="4" y="10" width="16" height="11" rx="2" />
-        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
-      </>
-    ),
-    mail: (
-      <>
-        <rect x="3" y="5" width="18" height="14" rx="2" />
-        <path d="m3 7 9 6 9-6" />
-      </>
-    ),
-    menu: (
-      <>
-        <path d="M4 7h16M4 12h16M4 17h16" />
-      </>
-    ),
-    message: (
-      <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z" />
-    ),
-    more: (
-      <>
-        <circle cx="5" cy="12" r="1" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-        <circle cx="19" cy="12" r="1" fill="currentColor" stroke="none" />
-      </>
-    ),
-    people: (
-      <>
-        <circle cx="9" cy="8" r="4" />
-        <path d="M3 21v-2a6 6 0 0 1 12 0v2M16 4.5a4 4 0 0 1 0 7M18 14a5 5 0 0 1 3 4.6V21" />
-      </>
-    ),
-    plus: <path d="M12 5v14M5 12h14" />,
-    publish: (
-      <>
-        <path d="M12 16V4M7 9l5-5 5 5" />
-        <path d="M5 14v6h14v-6" />
-      </>
-    ),
-    search: (
-      <>
-        <circle cx="11" cy="11" r="7" />
-        <path d="m20 20-4-4" />
-      </>
-    ),
-    settings: (
-      <>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" />
-      </>
-    ),
-    tasks: (
-      <>
-        <path d="m4 6 2 2 4-4M4 13l2 2 4-4M13 6h7M13 13h7M4 20h16" />
-      </>
-    ),
-    timeline: (
-      <>
-        <circle cx="6" cy="6" r="2" />
-        <circle cx="18" cy="12" r="2" />
-        <circle cx="8" cy="19" r="2" />
-        <path d="m8 7 8 4M16 13l-6 5" />
-      </>
-    ),
-  }
+const icons: Record<IconName, React.ElementType> = {
+  arrow: ArrowRight, bell: Bell, calendar: Calendar, check: Check,
+  chevron: ChevronRight, clock: Clock, dashboard: LayoutGrid, download: Download,
+  eye: Eye, file: FileText, folder: Folder, home: Home, lock: LockKeyhole,
+  mail: Mail, menu: Menu, message: MessageSquare, more: MoreHorizontal,
+  people: Users, plus: Plus, publish: Upload, search: Search, settings: Settings,
+  tasks: ListChecks, timeline: Share2,
+}
 
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="1.7"
-      viewBox="0 0 24 24"
-    >
-      {paths[name]}
-    </svg>
-  )
+function Icon({ name, className = "size-5" }: { name: IconName; className?: string }) {
+  const Component = icons[name]
+  return <Component aria-hidden="true" className={className} strokeWidth={1.7} />
 }
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
@@ -523,7 +385,7 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
                 />
                 Mantener la sesion iniciada
               </label>
-              <Button className="!px-3" variant="ghost" onClick={() => void handleRecovery()} type="button">
+              <Button className="!px-3" variant="tertiary" onClick={() => void handleRecovery()} type="button">
                 {recoveryLoading ? "Enviando..." : "Olvidaste tu contrasena?"}
               </Button>
             </div>
@@ -651,18 +513,18 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
     })
   }
   return (
-    <div className="relative">
+    <div className="group relative">
       <Button
         ariaLabel="Notificaciones"
-        className={compact ? "!size-10 !rounded-xl !p-0 !text-white/65 hover:!bg-white/10 hover:!text-white" : mobile ? "!justify-start !rounded-xl !px-3" : "w-full !justify-start !rounded-xl !px-3"}
+        className={compact ? "hover:!bg-white/5" : undefined}
         onClick={() => setNotificationsOpen((open) => !open)}
-        variant="ghost"
+        variant="icon"
+        size="m"
       >
         <span className="relative">
-          <Icon className="size-4.5" name="bell" />
+          <Icon className={compact ? "text-white/55 group-hover:text-white" : undefined} name="bell" />
           <span className="absolute -right-1 -top-1 size-1.5 rounded-full bg-clay" />
         </span>
-        {!compact && "Notificaciones"}
       </Button>
       {notificationsOpen && (
         <div className={`${mobile ? "left-0 top-12" : "left-full top-0 ml-2"} absolute z-50 w-72 rounded-2xl border border-line bg-white p-4 text-ink shadow-xl`}>
@@ -670,11 +532,11 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
             <p className="text-sm font-semibold">Notificaciones</p>
             <Button
               variant="icon"
-              size="xs"
+              size="s"
               ariaLabel="Cerrar notificaciones"
               onClick={() => setNotificationsOpen(false)}
             >
-              ×
+              <X aria-hidden="true" />
             </Button>
           </div>
           {notifications.length === 0 ? (
@@ -712,7 +574,7 @@ function AdminSidebar({
   canAccessSettings: boolean
 }) {
   return (
-    <aside className="sticky top-0 hidden h-screen max-h-screen w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex">
+    <aside className="sticky top-0 hidden h-full max-h-full w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex">
       <div className="flex items-center justify-between gap-3 px-2">
         <div className="min-w-0 flex-1">
           <img
@@ -727,14 +589,14 @@ function AdminSidebar({
       <nav aria-label="Navegacion principal" className="mt-10 space-y-1">
         {mainNav.map((item) => (
           <Button
-            className={`w-full !justify-start !rounded-xl !px-3 ${
+            className={`w-full !justify-start !px-3 ${
               active === item.label
                 ? "!bg-white/10 !text-white"
                 : "!text-white/55 hover:!bg-white/5 hover:!text-white"
             }`}
             key={item.label}
             onClick={() => setActive(item.label)}
-            variant="ghost"
+            variant="tertiary"
           >
             <Icon className="size-4.5" name={item.icon} />
             {item.label}
@@ -746,13 +608,13 @@ function AdminSidebar({
         <Eyebrow>Organizacion</Eyebrow>
         <div className="mt-4 space-y-1">
           <Button
-            className={`w-full !justify-start !rounded-xl !px-3 ${
+            className={`w-full !justify-start !px-3 ${
               active === "Configuracion"
                 ? "!bg-white/10 !text-white"
                 : "!text-white/55 hover:!bg-white/5 hover:!text-white"
             }`}
             onClick={() => setActive("Configuracion")}
-            variant="ghost"
+            variant="tertiary"
           >
             <Icon className="size-4.5" name="settings" /> Configuracion
           </Button>
@@ -821,7 +683,7 @@ function ProjectExecutionSummary({
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
       <nav aria-label="Ruta de navegación" className="mb-7 flex flex-wrap items-center gap-2 text-sm font-medium text-ink-muted">
-        <Button variant="tertiary" onClick={onBack}>
+        <Button variant="link" size="l" onClick={onBack}>
           Proyectos
         </Button>
         <Icon className="size-3.5" name="chevron" />
@@ -845,8 +707,8 @@ function ProjectExecutionSummary({
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
-          <Button ariaLabel="Configurar proyecto" className="!size-10 !p-0" onClick={onEditProject} tooltip="Configurar proyecto" variant="icon">
-            <Icon className="size-4" name="settings" />
+          <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="l" tooltip="Configurar proyecto" variant="icon">
+            <Icon name="settings" />
           </Button>
           <Button ariaLabel="Ver sitio publicado" className="!size-10 !p-0" onClick={onViewClientPortal} tooltip="Ver sitio publicado" variant="icon">
             <Icon className="size-5" name="eye" />
@@ -1104,7 +966,7 @@ function ClientActions({
                 </p>
               </div>
             </div>
-            <Button className="mt-3 !px-0 !text-forest hover:!bg-transparent" onClick={onReviewDecision} variant="ghost">
+            <Button className="mt-3 !px-0 !text-forest hover:!bg-transparent" onClick={onReviewDecision} variant="tertiary">
               Ver detalle aprobado <Icon className="size-4" name="arrow" />
             </Button>
           </article>
@@ -1507,7 +1369,7 @@ function AdminPortal({
   const nextMilestone = currentProject?.info?.proximoHito || workspaceMilestones[0]?.nombre || "Sin próximo hito"
 
   return (
-    <div className="min-h-screen bg-canvas text-ink lg:h-screen lg:overflow-hidden">
+    <div className="min-h-screen bg-canvas text-ink lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden">
       <div className="flex lg:h-full lg:min-h-0">
         <AdminSidebar
           active={activeNav}
@@ -1545,7 +1407,7 @@ function AdminPortal({
                     if (item.label === "Proyectos") setSelectedProjectId(null)
                     setMenuOpen(false)
                   }}
-                  variant="ghost"
+                  variant="tertiary"
                 >
                   <Icon className="size-4" name={item.icon} /> {item.label}
                 </Button>
@@ -1559,7 +1421,7 @@ function AdminPortal({
                   setNotificationTarget(undefined)
                   setMenuOpen(false)
                 }}
-                variant="ghost"
+                variant="tertiary"
               >
                 <Icon className="size-4" name="settings" /> Configuracion
               </Button>}
@@ -1569,7 +1431,7 @@ function AdminPortal({
               <Button
                 className="!justify-start !rounded-xl col-span-2"
                 onClick={onSignOut}
-                variant="ghost"
+                variant="tertiary"
               >
                 Cerrar sesion
               </Button>
@@ -1910,31 +1772,32 @@ function ClientSidebar({
         {expanded && <div className="w-36 rounded-xl px-2 py-2" title="Bojana Estudio">
           <img src={bojanaLogoWhite} alt="Bojana Estudio" className="h-auto w-full brightness-0 opacity-70" />
         </div>}
+        <div className="relative">
+        <Button
+          ariaLabel="Notificaciones"
+          title="Notificaciones"
+          onClick={() => setNotificationsOpen(value => !value)}
+          variant="icon"
+          size="m"
+        >
+          <Icon name="bell" />
+          {notificationCount > 0 && <Badge tone="danger" className="!absolute !-right-1 !-top-2 !size-4 !justify-center !border-0 !px-0 !py-0 !text-[9px]">{notificationCount}</Badge>}
+        </Button>
+        </div>
       </div>
 
       <nav aria-label="Navegación cliente" className={`flex w-full flex-col ${expanded ? "mt-5 items-stretch gap-2" : "mt-4 items-center gap-1"}`}>
         {expanded && projects.length > 1 && <label className="mb-2 block px-2 text-xs font-semibold text-ink-muted">Proyecto<select className="bojana-control mt-1 w-full bg-white text-xs" value={selectedProjectId || ""} onChange={(event) => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</select></label>}
-        <Button
-          ariaLabel="Notificaciones"
-          className={`${expanded ? "!justify-start !px-3" : "!size-11 !justify-center !px-0"} !relative !rounded-2xl`}
-          title="Notificaciones"
-          onClick={() => setNotificationsOpen(value => !value)}
-          variant="ghost"
-        >
-          <Icon className="size-4.5" name="bell" />
-          {expanded && <span>Notificaciones</span>}
-          {notificationCount > 0 && <Badge tone="danger" className="!absolute !-right-1 !-top-2 !size-4 !justify-center !border-0 !px-0 !py-0 !text-[9px]">{notificationCount}</Badge>}
-        </Button>
         {clientNavItems.map((item) => (
           <Button
             ariaLabel={item.label}
-            className={`relative ${expanded ? "!justify-start !px-3" : "!size-11 !justify-center !px-0"} !rounded-2xl ${
+            className={`relative ${expanded ? "!justify-start !px-3" : "!size-11 !justify-center !px-0"} ${
               active === item.label ? "!bg-stone !text-ink" : ""
             }`}
             key={item.label}
             onClick={() => setActive(item.label)}
             title={item.label}
-            variant="ghost"
+            variant="tertiary"
           >
             <Icon className="size-4.5" name={item.icon} />
             {expanded && <span>{item.label}</span>}
@@ -1948,12 +1811,12 @@ function ClientSidebar({
             <p className="text-sm font-semibold text-ink">Notificaciones recientes</p>
             <Button
               variant="icon"
-              className="size-8 text-base"
+              size="xs"
               onClick={() => setNotificationsOpen(false)}
               ariaLabel="Cerrar notificaciones"
               title="Cerrar notificaciones"
             >
-              ×
+              <X className="size-3" aria-hidden="true" />
             </Button>
           </div>
           <div className="mt-3 max-h-72 divide-y divide-line overflow-y-auto rounded-xl border border-line bg-canvas">
@@ -1970,8 +1833,8 @@ function ClientSidebar({
 
       <div className="mt-5 border-t border-line pt-4" />
 
-      {showAdminLink && expanded && <Button ariaLabel="Volver al administrador" className="mt-2 w-full !justify-start !rounded-2xl !px-3" onClick={onBackToAdmin} title="Volver al administrador" variant="ghost"><Icon className="size-4.5" name="dashboard" /> Volver al admin</Button>}
-      {showAdminLink && !expanded && <Button ariaLabel="Volver al administrador" className="mt-2 !size-11 !justify-center !rounded-2xl !px-0" onClick={onBackToAdmin} title="Volver al administrador" variant="ghost"><Icon className="size-4.5" name="dashboard" /></Button>}
+      {showAdminLink && expanded && <Button ariaLabel="Volver al administrador" className="mt-2 w-full !justify-start !rounded-2xl !px-3" onClick={onBackToAdmin} title="Volver al administrador" variant="tertiary"><Icon className="size-4.5" name="dashboard" /> Volver al admin</Button>}
+      {showAdminLink && !expanded && <Button ariaLabel="Volver al administrador" className="mt-2 !size-11 !justify-center !rounded-2xl !px-0" onClick={onBackToAdmin} title="Volver al administrador" variant="tertiary"><Icon className="size-4.5" name="dashboard" /></Button>}
 
       <div className="mt-auto flex flex-col items-center" title="Elena Marquez · Arquitecta responsable">
         <Button
@@ -1979,7 +1842,7 @@ function ClientSidebar({
           className={`${expanded ? "!w-full !justify-start !px-3" : "!size-11 !justify-center !px-0"} !rounded-2xl`}
           onClick={() => setActive("Conversaciones")}
           title="Escribir mensaje a Elena Marquez"
-          variant="ghost"
+          variant="tertiary"
         >
           <Icon className="size-4" name="message" />
           {expanded && <span>Mensaje al arquitecto</span>}
@@ -2101,14 +1964,13 @@ function ActionCard({
         }`}
       >
         {isApproved && (
-          <Button variant="secondary"
+          <div className="absolute right-4 top-4"><Button variant="icon" size="s"
             type="button"
             aria-label="Cerrar aviso de decisión registrada"
-            className="absolute right-4 top-4 grid size-8 place-items-center rounded-full text-xl leading-none text-ink-muted transition hover:bg-white/60 hover:text-ink"
             onClick={() => setDismissed(true)}
           >
-            ×
-          </Button>
+            <X aria-hidden="true" />
+          </Button></div>
         )}
         <div className="grid gap-6 md:grid-cols-action md:items-center">
           <div className="flex gap-4">
@@ -2209,7 +2071,7 @@ function ActionCard({
             </label>
 
             <div className="mt-7 flex items-center justify-end gap-3 border-t border-line pt-5">
-              <Button variant="ghost" onClick={() => setShowModal(false)}>
+              <Button variant="tertiary" onClick={() => setShowModal(false)}>
                 Cancelar
               </Button>
               <Button variant="secondary" onClick={() => { setShowModal(false); onRequestChanges(comment) }}>
@@ -3138,7 +3000,7 @@ function ClientProjectsState({
         {!loading && (
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <Button onClick={onRetry} variant="secondary">Volver a intentar</Button>
-            <Button onClick={onSignOut} variant="ghost">Cerrar sesión</Button>
+            <Button onClick={onSignOut} variant="tertiary">Cerrar sesión</Button>
           </div>
         )}
       </section>

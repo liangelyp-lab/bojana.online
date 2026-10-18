@@ -75,7 +75,7 @@ export default function ClientAlertModal({
           <TextArea label="Mensaje" rows={4} value={message} onChange={event => setMessage(event.target.value)} placeholder="Escribí un mensaje breve para el cliente..." />
       </div>
       <div className="mt-5 flex justify-end gap-2">
-          <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+          <Button variant="tertiary" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" disabled={!title.trim() || !message.trim()} onClick={() => onSend(title.trim(), message.trim(), actionType)}>
             <Mail className="size-4" aria-hidden="true" />
             Enviar alerta

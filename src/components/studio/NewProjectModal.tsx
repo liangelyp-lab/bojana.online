@@ -1106,7 +1106,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                   );
                 })}
                 <Button
-                  variant="ghost"
+                  variant="tertiary"
                   className="!min-h-8 !px-2 text-xs"
                   onClick={() =>
                     updateNeed(need.id, {

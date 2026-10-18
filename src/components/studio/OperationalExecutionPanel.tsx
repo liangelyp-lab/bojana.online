@@ -1,4 +1,4 @@
-import { Badge, Button, Field, InputControl, Select, SelectControl, StatusBadge, TextArea, TextAreaControl } from '../ui/DesignSystem';
+import { Badge, Button, Field, InputControl, PortalIcon, Select, SelectControl, StatusBadge, TextArea, TextAreaControl } from '../ui/DesignSystem';
 import { getPendingTaskDependencies } from '../../services/projectStructure';
 import TaskDeliverables from '../storage/TaskDeliverables';
 import { publishStorageProject } from '../../services/driveStorageService';
@@ -36,6 +36,8 @@ import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } 
 import ClientUpdatePreviewModal from './ClientUpdatePreviewModal';
 import {
   CheckCircle2,
+  ArrowRight,
+  Circle,
   Clock,
   ChevronRight,
   ChevronDown,
@@ -715,7 +717,7 @@ export default function OperationalExecutionPanel({
       {latestUpdate && (latestUpdate.estado === 'aprobada' || latestUpdate.estado === 'cambios_solicitados' || latestUpdate.respuesta) && <div className="mt-3 rounded-xl border border-line bg-stone/40 px-3 py-2 text-xs"><span className="bojana-label">Respuesta del cliente</span><div className="mt-2 flex flex-wrap items-center gap-2"><span className="font-semibold text-ink">v{latestUpdate.version} · {latestUpdate.titulo}</span>{latestUpdate.respuesta && <span className="text-ink-muted">💬 {latestUpdate.respuesta}</span>}</div></div>}
       {approvedUpdate && <p className="rounded-xl bg-mint-pale px-3 py-2 text-xs text-forest">Esta actualización ya fue aprobada. No requiere volver a publicar ni marcar la tarea como terminada.</p>}
       {approvedUpdate && task.estado !== 'Completado' && <Button variant="secondary" type="button" className="bojana-button bojana-button-secondary text-xs" onClick={() => changeTask(task, { estado: 'Completado' })}>Marcar tarea como terminada</Button>}
-      {!updateDraftOpen && latestUpdate?.estado === 'cambios_solicitados' && <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => { setEditingUpdateId(null); setResourcesOpen(false); setUpdateDraft({ titulo: `${latestUpdate.titulo} · Seguimiento`, descripcion: '', recursos: '', accion: 'revision', opciones: emptyUpdateOptions() }); setUpdateDraftOpen(true); }}><Plus className="size-3.5" /> Nueva actualización en este hilo</Button>}
+      {!updateDraftOpen && latestUpdate?.estado === 'cambios_solicitados' && <Button variant="tertiary" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => { setEditingUpdateId(null); setResourcesOpen(false); setUpdateDraft({ titulo: `${latestUpdate.titulo} · Seguimiento`, descripcion: '', recursos: '', accion: 'revision', opciones: emptyUpdateOptions() }); setUpdateDraftOpen(true); }}><Plus className="size-3.5" /> Nueva actualización en este hilo</Button>}
       {updateDraftOpen && <div className="mt-2 grid gap-3 sm:grid-cols-2">
         <Field label="Título de la actualización" className="w-full" value={updateDraft.titulo} onChange={e => setUpdateDraft({ ...updateDraft, titulo: e.target.value })} placeholder={`Versión ${(task.actualizaciones || []).length + 1}`} />
         <Select label="Acción" className="w-full" value={updateDraft.accion} onChange={e => setUpdateDraft({ ...updateDraft, accion: e.target.value as TaskUpdateAction })}>
@@ -723,13 +725,13 @@ export default function OperationalExecutionPanel({
         </Select>
         <div className="sm:col-span-2 space-y-2">
           <TextArea label="Mensaje para el cliente" autoGrow className="!min-h-0 resize-none" rows={2} value={updateDraft.descripcion} onChange={e => setUpdateDraft({ ...updateDraft, descripcion: e.target.value })} placeholder="Qué entregás, qué cambió o qué necesitás..." />
-          <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setResourcesOpen(open => !open)}><Plus className="size-3.5" /> {resourcesOpen ? 'Ocultar link o recurso' : 'Agregar link o recurso'}</Button>
+          <Button variant="tertiary" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setResourcesOpen(open => !open)}><Plus className="size-3.5" /> {resourcesOpen ? 'Ocultar link o recurso' : 'Agregar link o recurso'}</Button>
           {resourcesOpen && <div className="rounded-xl border border-bojana-line bg-bojana-surface/50 p-2"><TextArea autoGrow className="!min-h-0 resize-none" label="Link o recurso dentro del mensaje" rows={1} value={updateDraft.recursos} onChange={e => setUpdateDraft({ ...updateDraft, recursos: e.target.value })} placeholder="Pegá o copiá un hipervínculo" /><p className="mt-1 text-[11px] text-bojana-muted">Se mostrará como un enlace clickeable para el cliente.</p></div>}
         </div>
         {updateDraft.accion === 'revision' && <div className="sm:col-span-2 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <span className="bojana-label">Opciones para aprobar · opcional</span>
-            <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setUpdateDraft({ ...updateDraft, opciones: [...updateDraft.opciones, { id: `option-${Date.now()}`, titulo: '', descripcion: '', imagenUrl: '' }] })}><Plus className="size-3.5" /> Agregar opción</Button>
+            <Button variant="tertiary" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setUpdateDraft({ ...updateDraft, opciones: [...updateDraft.opciones, { id: `option-${Date.now()}`, titulo: '', descripcion: '', imagenUrl: '' }] })}><Plus className="size-3.5" /> Agregar opción</Button>
           </div>
           {updateDraft.opciones.length > 0 && <div className="grid gap-3 sm:grid-cols-2">{updateDraft.opciones.map((option, index) => <div key={option.id} className="space-y-2 rounded-bojana-widget border border-bojana-line bg-bojana-surface/50 p-3"><div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-bojana-muted">Opción {String.fromCharCode(65 + index)}</span><Button variant="secondary" type="button" aria-label={`Quitar opción ${String.fromCharCode(65 + index)}`} className="bojana-icon-button !size-7" onClick={() => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.filter(item => item.id !== option.id) })}><X className="size-3.5" /></Button></div><Field label="Título" value={option.titulo} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, titulo: e.target.value } : item) })} placeholder={`Opción ${String.fromCharCode(65 + index)}`} /><TextArea label="Descripción" rows={2} value={option.descripcion} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, descripcion: e.target.value } : item) })} placeholder="Detalle breve" /><Field label="Imagen (URL opcional)" value={option.imagenUrl} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, imagenUrl: e.target.value } : item) })} placeholder="https://..." /></div>)}</div>}
         </div>}
@@ -760,8 +762,8 @@ export default function OperationalExecutionPanel({
         <div className="sm:col-span-2 flex flex-col gap-3 border-t border-bojana-line pt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-1">
-              <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setUpdatePreviewOpen(true)}><Eye className="size-3.5" /> Vista previa</Button>
-              <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={resetUpdateDraft}>Cancelar</Button>
+              <Button variant="tertiary" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setUpdatePreviewOpen(true)}><Eye className="size-3.5" /> Vista previa</Button>
+              <Button variant="tertiary" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={resetUpdateDraft}>Cancelar</Button>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="secondary" className="!min-h-9 !px-3 text-xs" disabled={!updateDraft.titulo.trim()} onClick={() => saveTaskUpdate(task, 'borrador')}>Guardar borrador</Button>
@@ -784,7 +786,7 @@ export default function OperationalExecutionPanel({
           </div>
         </div>
       </div>}
-      {!updateDraftOpen && latestUpdate?.estado !== 'cambios_solicitados' && <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 mt-2 self-start text-xs" onClick={() => { setEditingUpdateId(null); setResourcesOpen(false); setUpdateDraft({ titulo: '', descripcion: '', recursos: '', accion: 'revision', opciones: emptyUpdateOptions() }); setUpdateDraftOpen(true); }}><Plus className="size-3.5" /> Nueva actualización</Button>}
+      {!updateDraftOpen && latestUpdate?.estado !== 'cambios_solicitados' && <Button variant="tertiary" className="!min-h-9 !rounded-full !px-3 mt-2 self-start text-xs" onClick={() => { setEditingUpdateId(null); setResourcesOpen(false); setUpdateDraft({ titulo: '', descripcion: '', recursos: '', accion: 'revision', opciones: emptyUpdateOptions() }); setUpdateDraftOpen(true); }}><Plus className="size-3.5" /> Nueva actualización</Button>}
     {false && <div className="space-y-2 border-t border-bojana-line pt-2">
       <div className="flex items-center justify-between gap-2">
         <div><p className="bojana-label">Entregables</p><p className="text-[11px] text-bojana-muted">Resultados esperados y archivos asociados.</p></div>
@@ -1354,11 +1356,7 @@ export default function OperationalExecutionPanel({
                                     : "text-bojana-ink hover:bg-bojana-surface"
                               }`}
                             >
-                              <span className={`w-4 h-4 rounded-bojana-badge flex items-center justify-center text-xs font-medium ${
-                                sub.completada ? "bg-bojana-success text-bojana-inverse" : isNext ? "border border-bojana-line text-bojana-ink" : "border border-bojana-line text-bojana-muted"
-                              }`}>
-                                {sub.completada ? '✓' : isNext ? '→' : '○'}
-                              </span>
+                              <PortalIcon icon={sub.completada ? Check : isNext ? ArrowRight : Circle} size="xs" filled={sub.completada} />
                               <span>{sub.label}</span>
                             </div>
                           );
@@ -1568,7 +1566,7 @@ export default function OperationalExecutionPanel({
                                   <span className={`w-4 h-4 rounded-bojana-badge flex items-center justify-center text-xs font-medium ${
                                     isFullyDone ? "text-bojana-success" : isStarted ? "text-bojana-ink" : "text-bojana-muted"
                                   }`}>
-                                    {isNeedExpanded ? <ChevronDown className="size-4" /> : isFullyDone ? '✓' : isStarted ? <ChevronRight className="size-4" /> : '○'}
+                                    {isNeedExpanded ? <ChevronDown className="size-3" aria-hidden="true" /> : isFullyDone ? <Check className="size-3" aria-hidden="true" /> : isStarted ? <ChevronRight className="size-3" aria-hidden="true" /> : <Circle className="size-3" aria-hidden="true" />}
                                   </span>
                                   <span className="text-xs font-medium text-bojana-ink capitalize truncate">
                                     {need.nombre}
@@ -1580,10 +1578,11 @@ export default function OperationalExecutionPanel({
                                     ariaLabel={(need.visibleCliente !== false) ? `Ocultar ${need.nombre} completo para el cliente` : `Mostrar ${need.nombre} completo para el cliente`}
                                     tooltip={(need.visibleCliente !== false) ? `Ocultar ${need.nombre} completo para el cliente` : `Mostrar ${need.nombre} completo para el cliente`}
                                     variant="icon"
-                                    className={`!size-8 !rounded-full !p-0 ${(need.visibleCliente !== false) ? '!text-bojana-success' : ''}`}
+                                    size="s"
+                                    className={(need.visibleCliente !== false) ? '!text-bojana-success' : ''}
                                     onClick={(event) => { event.stopPropagation(); handleToggleNeedVisibility(disc.id, need.id, need.visibleCliente !== false); }}
                                   >
-                                    {(need.visibleCliente !== false) ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+                                    {(need.visibleCliente !== false) ? <Eye /> : <EyeOff />}
                                   </Button>
                                   <div className="w-28 sm:w-36 bg-bojana-soft rounded-bojana-widget h-1.5 overflow-hidden hidden sm:block border border-bojana-line">
                                     <div
@@ -1630,11 +1629,7 @@ export default function OperationalExecutionPanel({
                                             onClick={() => { const close = activeTaskMode === 'update'; setTaskPanel(close ? null : { id: task.id, mode: 'update' }); setExpandedTaskId(close ? null : task.id); setUpdateDraftOpen(false); }}
                                           >
                                             <div className="flex items-center gap-bojana-inside flex-1 min-w-0">
-                                              <span className={`w-4 h-4 rounded-bojana-badge flex items-center justify-center text-xs font-medium shrink-0 ${
-                                                isDone ? "bg-bojana-success text-bojana-inverse" : isInProg ? "border border-bojana-line text-bojana-ink" : "border border-bojana-line text-bojana-muted"
-                                              }`}>
-                                                {isDone ? '✓' : isInProg ? '→' : '○'}
-                                              </span>
+                                              <PortalIcon icon={isDone ? Check : isInProg ? ArrowRight : Circle} size="xs" filled={isDone} />
                                               <div className="space-y-0.5 truncate">
                                                 <h4 className={`bojana-task-title text-xs font-medium font-sans ${isDone ? "text-bojana-muted line-through" : "text-bojana-ink"}`}>
                                                   {task.titulo}
@@ -1681,7 +1676,7 @@ export default function OperationalExecutionPanel({
                                     <Button
                                       className="!min-h-9 !rounded-full !px-3 mt-2 self-start text-xs"
                                       onClick={() => openProjectUpdate(`${disc.id} · ${need.nombre}`)}
-                                      variant="ghost"
+                                      variant="tertiary"
                                     >
                                       <Plus className="size-3.5" /> Nueva actualización
                                     </Button>
@@ -1716,13 +1711,13 @@ export default function OperationalExecutionPanel({
                 <h2 className="mt-2 font-display text-3xl font-normal text-ink">Nueva actualización</h2>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">Podés publicarla aunque todavía no haya tareas cargadas.</p>
               </div>
-              <Button variant="icon" type="button" aria-label="Cerrar nueva actualización" className="grid size-8 place-items-center rounded-full text-xl text-ink-muted hover:bg-stone hover:text-ink" onClick={() => setShowProjectUpdateModal(false)}>×</Button>
+              <Button variant="icon" size="s" type="button" aria-label="Cerrar nueva actualización" onClick={() => setShowProjectUpdateModal(false)}><X aria-hidden="true" /></Button>
             </div>
             <Field label="Título" value={projectUpdateDraft.titulo} onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, titulo: event.target.value })} placeholder="Ej.: Inicio de obra" autoFocus />
             <Field label="Categoría" value={projectUpdateDraft.categoria} onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, categoria: event.target.value })} placeholder="General" />
             <TextAreaControl aria-label="Mensaje de la actualización" className="min-h-32" onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, texto: event.target.value })} placeholder="Contá qué querés comunicar al cliente..." value={projectUpdateDraft.texto} />
             <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">
-              <Button onClick={() => setShowProjectUpdateModal(false)} variant="ghost">Cancelar</Button>
+              <Button onClick={() => setShowProjectUpdateModal(false)} variant="tertiary">Cancelar</Button>
               <Button disabled={!projectUpdateDraft.titulo.trim() || !projectUpdateDraft.texto.trim()} type="submit">Crear actualización</Button>
             </div>
           </form>

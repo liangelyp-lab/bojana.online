@@ -86,7 +86,7 @@ export default function StudioProjectsList({
         eyebrow="Portafolio del estudio"
         title="Proyectos"
         description="Supervisión integral de obras, licitaciones y desarrollos de Bojana Estudio."
-        actions={<Button onClick={onNewProject}><Plus className="size-4" />Nuevo proyecto</Button>}
+        actions={<Button size="l" onClick={onNewProject}><Plus className="size-4.5" />Nuevo proyecto</Button>}
       />
 
       {/* 2. FILTERS & SEARCH ROW */}
@@ -199,13 +199,13 @@ export default function StudioProjectsList({
                   </div>
 
                   {/* Quick Copy Link */}
-                  <Button variant="secondary"
+                  <Button variant="icon" size="l"
                     type="button"
                     onClick={(e) => handleCopyLink(e, p)}
-                    className="grid size-10 place-items-center rounded-full border border-line bg-white text-ink-muted hover:bg-stone hover:text-ink active:scale-95 transition cursor-pointer"
+                    ariaLabel={isCopied ? "Enlace copiado" : "Copiar enlace de acceso del cliente"}
                     title="Copiar enlace de acceso del cliente"
                   >
-                    {isCopied ? <Check className="size-4 text-forest" /> : <Copy className="size-4" />}
+                    {isCopied ? <Check /> : <Copy />}
                   </Button>
                 </div>
               </div>

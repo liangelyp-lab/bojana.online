@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { FolderOpen, Plus, Search } from 'lucide-react';
-import { Badge, Brand, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, ModalTabs, PageHeader, Select, Skeleton, Spinner, Tabs, TextArea } from './DesignSystem';
+import { lucideIcons } from './storybookIcons';
+import { Badge, Brand, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, ModalTabs, PageHeader, PortalIcon, Select, Skeleton, Spinner, Tabs, TextArea } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Base de componentes',
@@ -16,6 +17,8 @@ export const Buttons: Story = {
     variant: "primary",
     size: "m",
     showIcon: true,
+    icon: 'Search',
+    iconFilled: false,
     iconPosition: 'left',
     disabled: false,
     loading: false,
@@ -23,17 +26,19 @@ export const Buttons: Story = {
   },
   argTypes: {
     label: { control: 'text', description: 'Visible button label' },
-    variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger', 'icon'], description: 'Visual button variant' },
+    variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger', 'icon', 'link'], description: 'Visual button variant (link for actions styled as a link)' },
     size: { control: 'select', options: ['xs', 's', 'm', 'l'], description: 'Button size' },
     showIcon: { control: 'boolean', description: 'Show an icon in the button' },
+    icon: { control: 'select', options: Object.keys(lucideIcons), description: 'Icono Lucide del botón' },
+    iconFilled: { control: 'boolean', description: 'Mostrar el icono sobre un círculo relleno' },
     iconPosition: { control: 'select', options: ['left', 'right'], description: 'Icon position' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
     pressed: { control: 'boolean', description: 'Sets aria-pressed and shows the pressed state' },
   },
-  render: ({ label, variant, size, showIcon, iconPosition, disabled, loading, pressed }) => {
-    const iconSizes = { xs: 'size-3', s: 'size-3.5', m: 'size-4', l: 'size-4.5' } as const;
-    const icon = <Search className={iconSizes[size]} aria-hidden="true" />;
+  render: ({ label, variant, size, showIcon, icon: iconName, iconFilled, iconPosition, disabled, loading, pressed }) => {
+    const Icon = lucideIcons[iconName as keyof typeof lucideIcons] ?? Search;
+    const icon = <PortalIcon icon={Icon} size={size} filled={iconFilled} />;
     const content = variant === 'icon'
       ? icon
       : showIcon

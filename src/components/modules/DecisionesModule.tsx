@@ -286,13 +286,13 @@ export default function DecisionesModule({
                   </div>
 
                   {isAdmin && (
-                    <Button variant="secondary"
+                    <Button variant="icon" size="s"
                       type="button"
                       onClick={() => handleDeleteDecision(item.id)}
-                      className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-stone hover:text-clay transition cursor-pointer self-end sm:self-start shrink-0"
+                      ariaLabel="Eliminar ítem"
                       title="Eliminar ítem"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 />
                     </Button>
                   )}
                 </div>
@@ -463,7 +463,6 @@ export default function DecisionesModule({
                       <Button variant="tertiary"
                         type="button"
                         onClick={() => handleAddComment(item.id)}
-                        className="bojana-button bojana-button-text px-3 py-2 rounded-full bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
                       >
                         Enviar
                       </Button>
@@ -472,7 +471,6 @@ export default function DecisionesModule({
                         <Button variant="tertiary"
                           type="button"
                           onClick={() => handleRequestChanges(item.id)}
-                          className="bojana-button bojana-button-text px-3 py-2 rounded-full bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink text-xs font-sans font-medium transition cursor-pointer whitespace-nowrap"
                         >
                           Solicitar Cambios
                         </Button>

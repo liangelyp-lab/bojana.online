@@ -554,11 +554,6 @@
   /* ── Inline filter tabs ──────────────────────────────── */
   .bojana-filter-tablist { display: flex; align-items: center; gap: 0.25rem; overflow-x: auto; scrollbar-width: none; }
   .bojana-filter-tablist::-webkit-scrollbar { display: none; }
-  .bojana-filter-tab { flex-shrink: 0; border: 1px solid transparent; border-radius: 999px; padding: 0.5rem 0.875rem; color: var(--color-bojana-muted); font-size: 0.75rem; font-family: var(--font-sans); font-weight: 600; line-height: 1.25; white-space: nowrap; cursor: pointer; transition: color var(--bojana-transition), background var(--bojana-transition), border-color var(--bojana-transition), transform var(--bojana-transition); }
-  .bojana-filter-tab:hover:not([aria-selected="true"]) { background: var(--color-bojana-soft); color: var(--color-bojana-ink); }
-  .bojana-filter-tab[aria-selected="true"] { background: var(--color-bojana-primary); color: var(--color-bojana-inverse); border-color: var(--color-bojana-primary); }
-  .bojana-filter-tab:active { transform: scale(0.98); }
-  .bojana-filter-tab:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: 2px; }
 
   /* ── Form Controls ───────────────────────────────────── */
   .bojana-input {

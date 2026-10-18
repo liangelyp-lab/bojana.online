@@ -85,7 +85,7 @@ export default function ClientUpdatePreviewModal({
 
             <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-5">
               {action === 'revision' && <Button variant="secondary"><Check className="size-4" /> Aprobar</Button>}
-              {action === 'revision' && <Button variant="ghost"><MessageSquare className="size-4" /> Solicitar cambios</Button>}
+              {action === 'revision' && <Button variant="tertiary"><MessageSquare className="size-4" /> Solicitar cambios</Button>}
               {action !== 'revision' && <Button><ArrowRight className="size-4" /> {actionButtonLabel(action)}</Button>}
             </div>
           </article>

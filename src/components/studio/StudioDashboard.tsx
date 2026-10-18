@@ -124,7 +124,7 @@ export default function StudioDashboard({
         <PageHeader
           eyebrow="Obras en curso"
           title={`Proyectos activos (${activeProjects.length})`}
-          actions={<Button onClick={onNewProject}><Plus className="size-4" />Nuevo proyecto</Button>}
+          actions={<Button size="l" onClick={onNewProject}><Plus className="size-4.5" />Nuevo proyecto</Button>}
         />
 
         {/* Project Cards Grid */}

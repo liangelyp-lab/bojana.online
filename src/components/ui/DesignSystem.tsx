@@ -13,8 +13,15 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'ghost' | 'danger' | 'icon';
+export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'icon' | 'link';
 export type ButtonSize = 'xs' | 's' | 'm' | 'l';
+export const buttonIconPixels: Record<ButtonSize, number> = { xs: 14, s: 16, m: 18, l: 20 };
+export const iconButtonPixels: Record<ButtonSize, number> = { xs: 24, s: 32, m: 36, l: 40 };
+
+export function PortalIcon({ icon: Icon, size = 'm', filled = false }: { icon: LucideIcon; size?: ButtonSize; filled?: boolean }) {
+  const pixels = buttonIconPixels[size];
+  return <span className={`inline-flex shrink-0 items-center justify-center rounded-full ${filled ? 'bg-ink text-white' : ''}`} style={{ width: iconButtonPixels[size], height: iconButtonPixels[size] }}><Icon size={pixels} aria-hidden="true" /></span>;
+}
 
 export function Button({
   children,
@@ -53,9 +60,9 @@ export function Button({
     primary: 'bg-forest text-white hover:bg-[#1c2b24] shadow-sm active:scale-[0.98] focus-visible:ring-forest/30',
     secondary: 'border border-line bg-white text-ink hover:border-line-strong hover:bg-stone active:scale-[0.98] focus-visible:ring-forest/30',
     tertiary: 'text-ink-muted hover:bg-stone hover:text-ink active:scale-[0.98] focus-visible:ring-forest/30',
-    ghost: 'text-ink-muted hover:bg-stone hover:text-ink active:scale-[0.98] focus-visible:ring-forest/30',
     danger: 'border border-clay/30 bg-clay-pale text-clay-dark hover:bg-clay hover:text-white active:scale-[0.98] focus-visible:ring-clay/30',
-    icon: 'aspect-square rounded-full text-ink-muted hover:bg-stone hover:text-ink active:scale-95 focus-visible:ring-forest/30'
+    icon: 'aspect-square rounded-full text-ink-muted hover:bg-stone hover:text-ink active:scale-95 focus-visible:ring-forest/30',
+    link: 'text-forest underline-offset-4 hover:underline hover:text-ink focus-visible:ring-forest/30'
   };
 
   const updateTooltipPosition = () => {
@@ -81,16 +88,22 @@ export function Button({
   }, [tooltipOpen]);
 
   const sizes = {
-    xs: 'min-h-8 px-2.5 text-[10px] gap-1.5',
-    s: 'min-h-9 px-3 text-[11px] gap-1.5',
-    m: 'min-h-10 px-3.5 text-xs gap-2',
-    l: 'min-h-11 px-4 text-xs gap-2'
+    xs: 'px-2.5 py-[5px] text-[10px] gap-1.5',
+    s: 'px-3 py-1.5 text-[11px] gap-1.5',
+    m: 'px-3.5 py-[7px] text-xs gap-2',
+    l: 'px-4 py-2 text-xs gap-2'
   };
   const iconSizes = {
     xs: 'size-6 !min-h-0 !p-0',
     s: 'size-8 !min-h-0 !p-0',
     m: 'size-9 !min-h-0 !p-0',
     l: 'size-10 !min-h-0 !p-0'
+  };
+  const contentIconSizes = {
+    xs: '[&_svg]:size-3.5',
+    s: '[&_svg]:size-4',
+    m: '[&_svg]:size-4.5',
+    l: '[&_svg]:size-5'
   };
   const button = (
     <button
@@ -102,7 +115,7 @@ export function Button({
       aria-pressed={ariaPressed ?? buttonProps['aria-pressed']}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${sizes[size]} ${variant === 'icon' ? iconSizes[size] : ''} ${className}`}
+      className={`inline-flex items-center justify-center rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${sizes[size]} ${contentIconSizes[size]} ${variant === 'icon' ? iconSizes[size] : ''} ${variant === 'link' ? '!min-h-0 !px-0 !py-0' : ''} ${className}`}
       onClick={onClick}
       type={type}
     >
@@ -658,9 +671,9 @@ export function FilterTabs({
   return (
     <div role="tablist" aria-label={ariaLabel} className={`bojana-filter-tablist ${className}`}>
       {tabs.map(({ id, label }, index) => (
-        <button key={id} type="button" role="tab" tabIndex={activeTab === id ? 0 : -1} aria-selected={activeTab === id} onClick={() => onChange(id)} onKeyDown={(event) => handleKeyDown(event, index)} className="bojana-filter-tab">
+        <Button key={id} variant={activeTab === id ? 'primary' : 'tertiary'} size="xs" type="button" role="tab" tabIndex={activeTab === id ? 0 : -1} aria-selected={activeTab === id} onClick={() => onChange(id)} onKeyDown={(event) => handleKeyDown(event, index)} className="shrink-0 whitespace-nowrap">
           {label}
-        </button>
+        </Button>
       ))}
     </div>
   );
