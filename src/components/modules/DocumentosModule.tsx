@@ -232,52 +232,52 @@ export default function DocumentosModule({
 
                   {/* Actions */}
                   <div className="flex flex-wrap items-center gap-bojana-inside pt-2 lg:pt-0 shrink-0 border-t lg:border-t-0 border-bojana-line">
-                    <button
+                    <Button variant="primary"
                       type="button"
                       onClick={() => {
                         if (currentRev?.url) window.open(currentRev.url, '_blank', 'noopener,noreferrer');
                         onToast(currentRev?.url ? `Abriendo ${doc.titulo} (${currentRev.numeroRevision}).` : `No hay un archivo descargable asociado a ${doc.titulo}.`);
                       }}
-                      className="bojana-button bojana-button-primary px-3.5 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+                      className="bojana-button bojana-button-primary px-3.5 py-2 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                     >
                       <Download className="w-3.5 h-3.5 text-bojana-ink" />
                       <span>Descargar ({doc.formato})</span>
-                    </button>
+                    </Button>
 
                     {previousRevs.length > 0 && (
-                      <button
+                      <Button variant="tertiary"
                         type="button"
                         onClick={() => toggleExpandHistory(doc.id)}
-                        className="bojana-button bojana-button-text px-3 py-2 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
+                        className="bojana-button bojana-button-text px-3 py-2 rounded-full bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
                       >
                         <History className="w-3.5 h-3.5 text-bojana-muted" />
                         <span>Historial ({previousRevs.length})</span>
                         {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                      </button>
+                      </Button>
                     )}
 
                     {isAdmin && (
                       <div className="flex items-center gap-bojana-inside pl-2 border-l border-bojana-line">
-                        <button
+                        <Button variant="secondary"
                           type="button"
                           onClick={() => {
                             setShowAddRevisionModal(doc.id);
                             setRevisionNumber(`Revisión 0${doc.revisiones.length + 1}`);
                           }}
-                          className="bojana-button bojana-button-secondary px-2.5 py-2 rounded-bojana-widget bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink border border-bojana-line text-xs font-sans font-medium flex items-center gap-bojana-inside transition"
+                          className="bojana-button bojana-button-secondary px-2.5 py-2 rounded-full bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink border border-bojana-line text-xs font-sans font-medium flex items-center gap-bojana-inside transition"
                           title="Subir nueva revisión"
                         >
                           <UploadCloud className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">+ Nueva Rev.</span>
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="icon"
                           type="button"
                           onClick={() => handleDeleteDoc(doc.id)}
                           className="bojana-icon-button p-2 rounded-bojana-widget text-bojana-muted hover:text-bojana-error transition"
                           title="Eliminar documento"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -303,17 +303,17 @@ export default function DocumentosModule({
                             )}
                           </div>
 
-                          <button
+                          <Button variant="secondary"
                             type="button"
                             onClick={() => {
                               if (rev.url) window.open(rev.url, '_blank', 'noopener,noreferrer');
                               onToast(rev.url ? `Abriendo versión histórica ${rev.numeroRevision}.` : 'No hay un archivo asociado a esta revisión.');
                             }}
-                            className="bojana-button bojana-button-text px-2.5 py-1 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink font-sans text-xs font-medium flex items-center gap-bojana-inside transition"
+                            className="bojana-button bojana-button-text px-2.5 py-1 rounded-full bg-bojana-soft hover:bg-bojana-soft text-bojana-ink font-sans text-xs font-medium flex items-center gap-bojana-inside transition"
                           >
                             <Download className="w-3 h-3" />
                             <span>Descargar</span>
-                          </button>
+                          </Button>
                         </div>
                       ))}
                     </div>
@@ -400,19 +400,19 @@ export default function DocumentosModule({
               </div>
 
               <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setShowAddDocModal(false)}
-                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget border border-bojana-line text-bojana-ink font-sans"
+                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-full border border-bojana-line text-bojana-ink font-sans"
                 >
                   Cancelar
-                </button>
-                <button
+                </Button>
+                <Button variant="primary"
                   type="submit"
-                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans font-medium"
+                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-full bg-bojana-ink text-bojana-inverse font-sans font-medium"
                 >
                   Registrar Documento
-                </button>
+                </Button>
               </div>
             </form>
         </Modal>

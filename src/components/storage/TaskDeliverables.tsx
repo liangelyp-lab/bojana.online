@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Paperclip, Upload, FolderOpen } from 'lucide-react';
 import type { ProjectData, DisciplinaType, TaskContentType } from '../../types';
 import { fileSize, getStorageStatus, getDeliverables, prepareProjectStorage, openGooglePicker, selectDriveFile, uploadDriveFile, storageRequest, type StorageStatus, type StoredDeliverable, type ProjectStorage } from '../../services/driveStorageService';
-const button = "bojana-button bojana-button-secondary min-h-11 px-3 border border-bojana-line rounded-bojana-widget text-sm text-bojana-ink hover:bg-bojana-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bojana-ink disabled:opacity-50 flex items-center gap-bojana-inside";
+const button = "bojana-button bojana-button-secondary min-h-11 px-3 border border-bojana-line rounded-full text-sm text-bojana-ink hover:bg-bojana-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bojana-ink disabled:opacity-50 flex items-center gap-bojana-inside";
 export default function TaskDeliverables({ project, taskId, discipline, onChange, compact = false, allowedContentTypes = ['archivo'] }: { project: ProjectData; taskId: string; discipline: DisciplinaType; onChange: (storage: ProjectStorage, file?: StoredDeliverable) => void; compact?: boolean; allowedContentTypes?: TaskContentType[] }) {
   const [status, setStatus] = useState<StorageStatus | null>(null);
   const [files, setFiles] = useState<StoredDeliverable[]>([]);
@@ -66,13 +66,13 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
       <p className="text-sm text-bojana-ink">Archivos de {discipline} en este proyecto</p>
       <form className="flex gap-bojana-inside" onSubmit={e => { e.preventDefault(); void run(async () => { await listChoices(); }); }}>
         <Field aria-label="Buscar archivos por nombre" type="search" value={search} onChange={e => setSearch(e.target.value)} className="min-h-11 min-w-0 flex-1 text-sm" placeholder="Buscar archivos" />
-        <button className={button} disabled={busy}>Buscar</button>
+        <Button variant="tertiary" type="submit" disabled={busy}>Buscar</Button>
       </form>
-      {choices.length ? <ul className="space-y-bojana-inside">{choices.map(f => <li key={f.id}><button type="button" className={button + " bojana-button bojana-button-text w-full text-left justify-between"} disabled={busy} onClick={() => void run(() => selectDriveFile(project, taskId, discipline, f.id))}><span className="break-all">{f.name}</span><span className="shrink-0 text-xs">{fileSize(f.size)}</span></button></li>)}</ul> : <p className="text-sm text-bojana-muted">Todavía no hay archivos en esta carpeta. Subí uno o elegí un archivo de otra carpeta de Drive.</p>}
+      {choices.length ? <ul className="space-y-bojana-inside">{choices.map(f => <li key={f.id}><Button variant="tertiary" className="w-full justify-between text-left" disabled={busy} onClick={() => void run(() => selectDriveFile(project, taskId, discipline, f.id))}><span className="break-all">{f.name}</span><span className="shrink-0 text-xs">{fileSize(f.size)}</span></Button></li>)}</ul> : <p className="text-sm text-bojana-muted">Todavía no hay archivos en esta carpeta. Subí uno o elegí un archivo de otra carpeta de Drive.</p>}
       <div className="flex gap-bojana-inside flex-wrap">
-        {nextPage && <button type="button" className={button} disabled={busy} onClick={() => void run(async () => { await listChoices(nextPage); })}>Ver más archivos</button>}
-        <button type="button" className={button} disabled={busy || !status?.picker?.apiKey || !status?.picker?.appId} onClick={() => void run(async () => { const id = await openGooglePicker(status!); if (id) return selectDriveFile(project, taskId, discipline, id); })}>Elegir de otra carpeta</button>
-        <button type="button" className={button} disabled={busy} onClick={() => setSelecting(false)}>Cerrar selector</button>
+        {nextPage && <Button variant="tertiary" type="button" className={button} disabled={busy} onClick={() => void run(async () => { await listChoices(nextPage); })}>Ver más archivos</Button>}
+        <Button variant="tertiary" type="button" className={button} disabled={busy || !status?.picker?.apiKey || !status?.picker?.appId} onClick={() => void run(async () => { const id = await openGooglePicker(status!); if (id) return selectDriveFile(project, taskId, discipline, id); })}>Elegir de otra carpeta</Button>
+        <Button variant="tertiary" type="button" disabled={busy} onClick={() => setSelecting(false)}>Cerrar selector</Button>
       </div>
       <p className="text-sm text-bojana-muted">Se conserva una copia como versión del entregable. El archivo original permanece en su carpeta.</p>
     </div>}

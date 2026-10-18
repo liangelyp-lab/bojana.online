@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   Info
 } from 'lucide-react';
-import { Field, ModalTabs } from '../ui/DesignSystem';
+import { Button, Field, ModalTabs } from '../ui/DesignSystem';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 
 interface PublishInviteModalProps {
@@ -184,14 +184,14 @@ export default function PublishInviteModal({
             </p>
           </div>
 
-          <button
+          <Button variant="icon"
             type="button"
             onClick={onClose}
             aria-label="Cerrar modal"
             className="bojana-icon-button"
           >
             <X className="size-4" />
-          </button>
+          </Button>
         </div>
 
         {/* 2. TABS SELECTOR */}
@@ -347,15 +347,15 @@ export default function PublishInviteModal({
               </div>
 
               <div className="flex justify-end">
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => void handleSendEmail()}
                   disabled={!isAlreadyActive || !recipientEmail.trim() || isSending}
-                  className="bojana-button bojana-button-secondary px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft disabled:opacity-50 disabled:cursor-not-allowed text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
+                  className="bojana-button bojana-button-secondary px-4 py-2.5 rounded-full border border-bojana-line hover:bg-bojana-soft disabled:opacity-50 disabled:cursor-not-allowed text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>{isSending ? 'Enviando email...' : 'Enviar email de bienvenida'}</span>
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -577,30 +577,30 @@ export default function PublishInviteModal({
         {/* 4. MODAL FOOTER */}
         <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
           {/* Quick Copy Direct Link */}
-          <button
+          <Button variant="secondary"
             type="button"
             onClick={handleCopyLink}
-            className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer"
+            className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-full border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copiedLink ? '¡Enlace copiado!' : 'Copiar acceso directo'}</span>
-          </button>
+          </Button>
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-bojana-inside w-full sm:w-auto justify-end">
-            <button
+            <Button variant="tertiary"
               type="button"
               onClick={onClose}
-              className="bojana-button bojana-button-text px-4 py-2.5 rounded-bojana-widget text-bojana-muted hover:text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
+              className="bojana-button bojana-button-text px-4 py-2.5 rounded-full text-bojana-muted hover:text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
             >
               Cancelar
-            </button>
+            </Button>
 
-            <button
+            <Button variant="primary"
               type="button"
               onClick={handlePublish}
               disabled={isPublishing}
-              className="bojana-button bojana-button-primary w-full sm:w-auto px-6 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+              className="bojana-button bojana-button-primary w-full sm:w-auto px-6 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
             >
               {isPublishing ? (
                 <>
@@ -613,7 +613,7 @@ export default function PublishInviteModal({
                   <span>{isAlreadyActive ? 'Publicar cambios' : 'Publicar portal'}</span>
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
 

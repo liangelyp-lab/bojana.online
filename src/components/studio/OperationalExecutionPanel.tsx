@@ -714,7 +714,7 @@ export default function OperationalExecutionPanel({
       {latestUpdate && <div className="mt-2 space-y-1">{[latestUpdate].map(update => { const visible = update.visibleCliente !== false && update.visibilidad !== 'interna'; const statusLabel = update.estado === 'cambios_solicitados' ? 'Cambios solicitados' : update.estado === 'aprobada' ? 'Aprobada' : update.accion === 'publicar_terminar' ? 'Publicada y terminada' : update.accion === 'publicar_avance' ? 'Avance publicado' : update.accion === 'revision' ? 'En revisión' : update.accion === 'solicitud_informacion' ? 'Solicitud de información' : 'Borrador interno'; const statusTone = update.estado === 'cambios_solicitados' ? 'danger' : update.estado === 'aprobada' ? 'active' : update.accion === 'revision' || update.accion === 'solicitud_informacion' ? 'waiting' : update.accion === 'borrador' ? 'neutral' : 'active'; return <div key={update.id} className={`flex cursor-pointer flex-wrap items-center gap-2 py-2 text-xs ${editingUpdateId === update.id ? 'rounded-lg bg-stone/40 px-2' : ''}`} onClick={() => { setEditingUpdateId(update.id); setUpdateDraftOpen(false); }}><span className="font-semibold">v{update.version} · {update.titulo}</span><Badge tone={statusTone}>{statusLabel}</Badge><span className="text-bojana-muted">{update.autor || 'Bojana Estudio'} · {new Date(update.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}</span><span className="text-bojana-muted">· {visible ? 'Visible para cliente' : 'Oculta para cliente'}</span><Button variant="icon" className="!size-7" ariaLabel={`Ver historial de ${update.titulo}`} tooltip={`Ver historial de ${update.titulo}`} onClick={(event) => { event.stopPropagation(); setEditingUpdateId(update.id); setUpdateDraftOpen(false); }}><Clock className="size-3.5" /></Button><Button variant="icon" className="!size-7" ariaLabel={`${visible ? 'Ocultar' : 'Mostrar'} actualización ${update.titulo}`} tooltip={`${visible ? 'Ocultar' : 'Mostrar'} actualización ${update.titulo}`} onClick={(event) => { event.stopPropagation(); changeTask(task, { actualizaciones: (task.actualizaciones || []).map(item => item.id === update.id ? { ...item, visibleCliente: !visible, visibilidad: !visible ? 'publicada' : 'interna' } : item) }); }}>{visible ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}</Button><Button variant="icon" className="!size-7" ariaLabel={`Avisar al cliente sobre ${update.titulo}`} tooltip={`Avisar al cliente sobre ${update.titulo}`} onClick={(event) => { event.stopPropagation(); const kind = taskUpdateNotificationLabel(update.accion); const actionType: ClientAlertActionType = update.accion === 'revision' ? 'revision' : update.accion === 'solicitud_informacion' ? 'informacion' : update.accion === 'publicar_terminar' ? 'entrega' : update.accion === 'borrador' ? 'borrador' : 'avance'; setClientAlert({ title: `${kind} · ${update.titulo}`, message: update.descripcion || `${kind}: ya está disponible en el portal del proyecto. ${update.accion === 'revision' ? 'Podés revisarla y responder desde el portal.' : update.accion === 'solicitud_informacion' ? 'Necesitamos la información indicada para continuar.' : 'Podés consultar el contenido actualizado en el portal.'}`, actionType }); }}><Bell className="size-3.5" /></Button></div>})}</div>}
       {latestUpdate && (latestUpdate.estado === 'aprobada' || latestUpdate.estado === 'cambios_solicitados' || latestUpdate.respuesta) && <div className="mt-3 rounded-xl border border-line bg-stone/40 px-3 py-2 text-xs"><span className="bojana-label">Respuesta del cliente</span><div className="mt-2 flex flex-wrap items-center gap-2"><span className="font-semibold text-ink">v{latestUpdate.version} · {latestUpdate.titulo}</span>{latestUpdate.respuesta && <span className="text-ink-muted">💬 {latestUpdate.respuesta}</span>}</div></div>}
       {approvedUpdate && <p className="rounded-xl bg-mint-pale px-3 py-2 text-xs text-forest">Esta actualización ya fue aprobada. No requiere volver a publicar ni marcar la tarea como terminada.</p>}
-      {approvedUpdate && task.estado !== 'Completado' && <button type="button" className="bojana-button bojana-button-secondary text-xs" onClick={() => changeTask(task, { estado: 'Completado' })}>Marcar tarea como terminada</button>}
+      {approvedUpdate && task.estado !== 'Completado' && <Button variant="secondary" type="button" className="bojana-button bojana-button-secondary text-xs" onClick={() => changeTask(task, { estado: 'Completado' })}>Marcar tarea como terminada</Button>}
       {!updateDraftOpen && latestUpdate?.estado === 'cambios_solicitados' && <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => { setEditingUpdateId(null); setResourcesOpen(false); setUpdateDraft({ titulo: `${latestUpdate.titulo} · Seguimiento`, descripcion: '', recursos: '', accion: 'revision', opciones: emptyUpdateOptions() }); setUpdateDraftOpen(true); }}><Plus className="size-3.5" /> Nueva actualización en este hilo</Button>}
       {updateDraftOpen && <div className="mt-2 grid gap-3 sm:grid-cols-2">
         <Field label="Título de la actualización" className="w-full" value={updateDraft.titulo} onChange={e => setUpdateDraft({ ...updateDraft, titulo: e.target.value })} placeholder={`Versión ${(task.actualizaciones || []).length + 1}`} />
@@ -731,7 +731,7 @@ export default function OperationalExecutionPanel({
             <span className="bojana-label">Opciones para aprobar · opcional</span>
             <Button variant="ghost" className="!min-h-9 !rounded-full !px-3 text-xs" onClick={() => setUpdateDraft({ ...updateDraft, opciones: [...updateDraft.opciones, { id: `option-${Date.now()}`, titulo: '', descripcion: '', imagenUrl: '' }] })}><Plus className="size-3.5" /> Agregar opción</Button>
           </div>
-          {updateDraft.opciones.length > 0 && <div className="grid gap-3 sm:grid-cols-2">{updateDraft.opciones.map((option, index) => <div key={option.id} className="space-y-2 rounded-bojana-widget border border-bojana-line bg-bojana-surface/50 p-3"><div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-bojana-muted">Opción {String.fromCharCode(65 + index)}</span><button type="button" aria-label={`Quitar opción ${String.fromCharCode(65 + index)}`} className="bojana-icon-button !size-7" onClick={() => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.filter(item => item.id !== option.id) })}><X className="size-3.5" /></button></div><Field label="Título" value={option.titulo} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, titulo: e.target.value } : item) })} placeholder={`Opción ${String.fromCharCode(65 + index)}`} /><TextArea label="Descripción" rows={2} value={option.descripcion} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, descripcion: e.target.value } : item) })} placeholder="Detalle breve" /><Field label="Imagen (URL opcional)" value={option.imagenUrl} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, imagenUrl: e.target.value } : item) })} placeholder="https://..." /></div>)}</div>}
+          {updateDraft.opciones.length > 0 && <div className="grid gap-3 sm:grid-cols-2">{updateDraft.opciones.map((option, index) => <div key={option.id} className="space-y-2 rounded-bojana-widget border border-bojana-line bg-bojana-surface/50 p-3"><div className="flex items-center justify-between gap-2"><span className="text-xs font-semibold text-bojana-muted">Opción {String.fromCharCode(65 + index)}</span><Button variant="secondary" type="button" aria-label={`Quitar opción ${String.fromCharCode(65 + index)}`} className="bojana-icon-button !size-7" onClick={() => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.filter(item => item.id !== option.id) })}><X className="size-3.5" /></Button></div><Field label="Título" value={option.titulo} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, titulo: e.target.value } : item) })} placeholder={`Opción ${String.fromCharCode(65 + index)}`} /><TextArea label="Descripción" rows={2} value={option.descripcion} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, descripcion: e.target.value } : item) })} placeholder="Detalle breve" /><Field label="Imagen (URL opcional)" value={option.imagenUrl} onChange={e => setUpdateDraft({ ...updateDraft, opciones: updateDraft.opciones.map(item => item.id === option.id ? { ...item, imagenUrl: e.target.value } : item) })} placeholder="https://..." /></div>)}</div>}
         </div>}
         <div className="sm:col-span-2 space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -801,15 +801,15 @@ export default function OperationalExecutionPanel({
             <SelectControl aria-label={`Tipo de ${deliverable.nombre}`} className="min-h-8 w-auto py-0 text-[11px]" value={deliverable.tipo || 'entrega_final'} onChange={e => changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).map(item => item.id === deliverable.id ? { ...item, tipo: e.target.value as DeliverableInteractionType } : item) })}>
               {(Object.keys(deliverableTypeLabels) as DeliverableInteractionType[]).map(key => <option key={key} value={key}>{deliverableTypeLabels[key]}</option>)}
             </SelectControl>
-            <button type="button" className="bojana-button bojana-button-text text-[11px]" onClick={() => changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).map(item => item.id === deliverable.id ? { ...item, publicadoCliente: !item.publicadoCliente } : item) })}>{deliverable.publicadoCliente ? 'Publicado' : 'Interno'}</button>
-            {deliverable.tipo === 'para_revision' && deliverable.estado !== 'aprobado' && <button type="button" className="bojana-button bojana-button-text text-[11px]" onClick={() => { changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).map(item => item.id === deliverable.id ? { ...item, publicadoCliente: true, estado: 'publicado' } : item) }); onToast('Entregable publicado y listo para aprobación del cliente.'); }}>Enviar a aprobación</button>}
-            <button type="button" aria-label={`Quitar entregable ${deliverable.nombre}`} className="bojana-icon-button" onClick={() => changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).filter(item => item.id !== deliverable.id) })}><X className="size-3" /></button>
+            <Button variant="secondary" type="button" className="bojana-button bojana-button-text text-[11px]" onClick={() => changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).map(item => item.id === deliverable.id ? { ...item, publicadoCliente: !item.publicadoCliente } : item) })}>{deliverable.publicadoCliente ? 'Publicado' : 'Interno'}</Button>
+            {deliverable.tipo === 'para_revision' && deliverable.estado !== 'aprobado' && <Button variant="secondary" type="button" className="bojana-button bojana-button-text text-[11px]" onClick={() => { changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).map(item => item.id === deliverable.id ? { ...item, publicadoCliente: true, estado: 'publicado' } : item) }); onToast('Entregable publicado y listo para aprobación del cliente.'); }}>Enviar a aprobación</Button>}
+            <Button variant="secondary" type="button" aria-label={`Quitar entregable ${deliverable.nombre}`} className="bojana-icon-button" onClick={() => changeTask(task, { entregablesEsperados: (task.entregablesEsperados || []).filter(item => item.id !== deliverable.id) })}><X className="size-3" /></Button>
           </div>
         ))}
       </div>
       <div className="flex gap-2">
         <InputControl type="text" value={newExpectedDeliverable} onChange={e => setNewExpectedDeliverable(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addExpectedDeliverable(task); } }} placeholder="Ej.: Plano de distribución" className="min-w-0 flex-1" />
-        <button type="button" className="bojana-button bojana-button-secondary shrink-0" onClick={() => addExpectedDeliverable(task)} disabled={!newExpectedDeliverable.trim()}><Plus className="size-3.5" /> Agregar</button>
+        <Button variant="secondary" type="button" className="bojana-button bojana-button-secondary shrink-0" onClick={() => addExpectedDeliverable(task)} disabled={!newExpectedDeliverable.trim()}><Plus className="size-3.5" /> Agregar</Button>
       </div>
     </div>}
       </div>
@@ -907,7 +907,7 @@ export default function OperationalExecutionPanel({
                                               </div>}
   </section>;
   };
-  const inspector = <div className="space-y-3">{selected ? <><div className="flex justify-end"><button type="button" className="bojana-button bojana-button-text" onClick={() => setExpandedTaskId(null)}>Deseleccionar tarea</button></div>{renderTaskInspector(selected.task, selected.disc, selected.need)}</> : null}
+  const inspector = <div className="space-y-3">{selected ? <><div className="flex justify-end"><Button variant="tertiary" type="button" className="bojana-button bojana-button-text" onClick={() => setExpandedTaskId(null)}>Deseleccionar tarea</Button></div>{renderTaskInspector(selected.task, selected.disc, selected.need)}</> : null}
 <div className="hidden" aria-hidden="true">
 
           {/* 1. PUBLICACIÓN CARD */}
@@ -936,14 +936,14 @@ export default function OperationalExecutionPanel({
                   </p>
                 </div>
 
-                <button
+                <Button variant="primary"
                   type="button"
                   onClick={() => setIsPublishModalOpen(true)}
-                  className="bojana-button bojana-button-primary w-full py-2.5 px-4 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+                  className="bojana-button bojana-button-primary w-full py-2.5 px-4 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                 >
                   <Check className="w-3.5 h-3.5" />
                   <span>Publicar cambios</span>
-                </button>
+                </Button>
               </div>
             ) : pendingChanges > 0 ? (
               <div className="space-y-3">
@@ -956,14 +956,14 @@ export default function OperationalExecutionPanel({
                   </p>
                 </div>
 
-                <button
+                <Button variant="primary"
                   type="button"
                   onClick={handlePublishChanges}
-                  className="bojana-button bojana-button-primary w-full py-2.5 px-4 rounded-bojana-widget bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+                  className="bojana-button bojana-button-primary w-full py-2.5 px-4 rounded-full bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-bojana-ink" />
                   <span>Revisar y publicar</span>
-                </button>
+                </Button>
               </div>
             ) : !hasPublishableContent ? (
               <div className="space-y-3">
@@ -986,14 +986,14 @@ export default function OperationalExecutionPanel({
                   {project.info?.ultimaPublicacion ? `Última: ${project.info.ultimaPublicacion}` : 'Portal al día'}
                 </p>
 
-                <button
+                <Button variant="secondary"
                   type="button"
                   onClick={() => setIsPublishModalOpen(true)}
                   className="inline-flex items-center justify-center gap-2 rounded-full border border-line bg-white w-full py-2.5 text-xs font-semibold text-ink hover:bg-stone hover:border-line-strong active:scale-[0.98] transition cursor-pointer shadow-2xs"
                 >
                   <Mail className="size-3.5 text-ink-muted" />
                   <span>Gestionar invitación (Lark)</span>
-                </button>
+                </Button>
               </div>
             )}
 
@@ -1055,14 +1055,14 @@ export default function OperationalExecutionPanel({
 
             {/* Client Portal Link */}
             {onViewStory && (
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={onViewStory}
-                className="bojana-button bojana-button-secondary w-full py-2 px-3 rounded-bojana-widget border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition"
+                className="bojana-button bojana-button-secondary w-full py-2 px-3 rounded-full border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition"
               >
                 <span>Ver Portal & Story</span>
                 <ExternalLink className="w-3 h-3 text-bojana-muted" />
-              </button>
+              </Button>
             )}
           </div>
 
@@ -1109,22 +1109,22 @@ export default function OperationalExecutionPanel({
                 }}
                 className="bojana-field flex-1 bg-bojana-surface border border-bojana-line rounded-bojana-widget px-2.5 py-1.5 text-xs text-bojana-ink focus:outline-none focus:border-bojana-line"
               />
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={handleAddActivityLog}
                 disabled={!newActivityText.trim()}
-                className="bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium disabled:opacity-40"
+                className="bojana-button bojana-button-primary px-3 py-1.5 rounded-full bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium disabled:opacity-40"
               >
                 +
-              </button>
+              </Button>
             </div>
           </div>
 
         </div>
   </div>;
   const projectIndex = <div className="space-y-3"><h2 className="bojana-heading-section bojana-heading-component">Índice del proyecto</h2><label className="block"><span className="bojana-label">Buscar</span><InputControl type="search" className="w-full" value={indexSearch} placeholder="Ej.: renders del SUM" onChange={e => setIndexSearch(e.target.value)} /></label>
-    <nav aria-label="Estructura del proyecto">{disciplines.map(disc => <div key={disc.id}><p className="bojana-label">{disc.id}</p>{disc.necesidades.filter(need => `${disc.id} ${need.nombre} ${need.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(need => <div key={need.id}><button className="bojana-index-link text-sm" type="button" onClick={() => { setCollapsedDisciplines(prev=>({...prev,[disc.id]:false})); setExpandedNeeds(prev=>({...prev,[need.id]:true})); requestAnimationFrame(()=>document.getElementById(`workspace-need-${disc.id}-${need.id}`)?.scrollIntoView({behavior:'smooth',block:'center'})); }}>{need.nombre} · {need.tareas.length}</button>{need.tareas.filter(t=>!indexSearch || t.titulo.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(task=><button type="button" className="bojana-index-link text-xs text-bojana-muted" aria-current={task.id === expandedTaskId} key={task.id} onClick={()=>{setExpandedTaskId(task.id);setTaskPanel({ id: task.id, mode: 'update' });}}>{task.titulo}</button>)}</div>)}</div>)}</nav>
-    {indexSearch && !disciplines.some(d=>d.necesidades.some(n=>`${d.id} ${n.nombre} ${n.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase()))) && <div className="text-xs"><p>No hay resultados para esa búsqueda.</p><button type="button" className="bojana-button bojana-button-text" onClick={()=>setIndexSearch('')}>Limpiar búsqueda</button></div>}
+    <nav aria-label="Estructura del proyecto">{disciplines.map(disc => <div key={disc.id}><p className="bojana-label">{disc.id}</p>{disc.necesidades.filter(need => `${disc.id} ${need.nombre} ${need.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(need => <div key={need.id}><Button variant="tertiary" className="w-full justify-start text-sm" type="button" onClick={() => { setCollapsedDisciplines(prev=>({...prev,[disc.id]:false})); setExpandedNeeds(prev=>({...prev,[need.id]:true})); requestAnimationFrame(()=>document.getElementById(`workspace-need-${disc.id}-${need.id}`)?.scrollIntoView({behavior:'smooth',block:'center'})); }}>{need.nombre} · {need.tareas.length}</Button>{need.tareas.filter(t=>!indexSearch || t.titulo.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase())).map(task=><Button variant="tertiary" type="button" className="w-full justify-start text-xs" aria-current={task.id === expandedTaskId} key={task.id} onClick={()=>{setExpandedTaskId(task.id);setTaskPanel({ id: task.id, mode: 'update' });}}>{task.titulo}</Button>)}</div>)}</div>)}</nav>
+    {indexSearch && !disciplines.some(d=>d.necesidades.some(n=>`${d.id} ${n.nombre} ${n.tareas.map(t=>t.titulo).join(' ')}`.toLocaleLowerCase().includes(indexSearch.toLocaleLowerCase()))) && <div className="text-xs"><p>No hay resultados para esa búsqueda.</p><Button variant="tertiary" onClick={()=>setIndexSearch('')}>Limpiar búsqueda</Button></div>}
   </div>;
 
   return (
@@ -1135,13 +1135,13 @@ export default function OperationalExecutionPanel({
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-bojana-block">
           <div className="space-y-bojana-inside">
             {onBackToProjects && (
-              <button
+              <Button variant="tertiary"
                 type="button"
                 onClick={onBackToProjects}
                 className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink transition flex items-center gap-bojana-inside font-medium mb-1"
               >
                 <span>&larr; Volver a Proyectos</span>
-              </button>
+              </Button>
             )}
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-normal text-ink tracking-tight">
@@ -1175,10 +1175,10 @@ export default function OperationalExecutionPanel({
           </div>
 
           <div className="flex items-center gap-3 shrink-0 flex-wrap">
-            <button
+            <Button variant="primary"
               type="button"
               onClick={() => setIsPublishModalOpen(true)}
-              className={`bojana-button bojana-button-primary px-4 py-2.5 rounded-bojana-widget text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget ${
+              className={`bojana-button bojana-button-primary px-4 py-2.5 rounded-full text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget ${
                 project.lifecycleStatus === "ACTIVO"
                   ? "bg-bojana-soft hover:bg-bojana-soft text-bojana-ink border border-bojana-line"
                   : "bg-bojana-success hover:bg-bojana-success text-bojana-inverse shadow-bojana-widget"
@@ -1186,17 +1186,17 @@ export default function OperationalExecutionPanel({
             >
               <Check className="w-3.5 h-3.5" />
               <span>{project.lifecycleStatus === 'ACTIVO' ? 'Publicación y acceso' : 'Publicar portal'}</span>
-            </button>
+            </Button>
 
             {onViewStory && (
-              <button
+              <Button variant="primary"
                 type="button"
                 onClick={onViewStory}
-                className="bojana-button bojana-button-primary px-5 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget group"
+                className="bojana-button bojana-button-primary px-5 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget group"
               >
                 <span>Ver como cliente</span>
                 <ExternalLink className="w-3.5 h-3.5 text-bojana-ink group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -1225,13 +1225,13 @@ export default function OperationalExecutionPanel({
                 <strong>Cálculo en cascada:</strong> {recalcEvent.taskTitle} ✓ &rarr; {recalcEvent.needName}: <strong>{recalcEvent.oldNeedProg}% &rarr; {recalcEvent.newNeedProg}%</strong> &bull; {recalcEvent.discName}: <strong>{recalcEvent.oldDiscProg}% &rarr; {recalcEvent.newDiscProg}%</strong> &bull; {projectTitle}: <strong>{recalcEvent.oldProjProg}% &rarr; {recalcEvent.newProjProg}%</strong>
               </span>
             </div>
-            <button
+            <Button variant="icon"
               type="button"
               onClick={() => setRecalcEvent(null)}
               className="bojana-icon-button text-bojana-success hover:text-bojana-success p-1"
             >
               <X className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -1256,14 +1256,14 @@ export default function OperationalExecutionPanel({
             </p>
           </div>
 
-          <button
+          <Button variant="primary"
             type="button"
             onClick={() => setIsPublishModalOpen(true)}
-            className="bojana-button bojana-button-primary px-5 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0 self-start sm:self-auto"
+            className="bojana-button bojana-button-primary px-5 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0 self-start sm:self-auto"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Publicar cambios</span>
-          </button>
+          </Button>
         </div>
       )}
 
@@ -1367,7 +1367,7 @@ export default function OperationalExecutionPanel({
                     )}
 
                     <div className="flex flex-wrap items-center justify-between gap-bojana-inside pt-1">
-                      <button
+                      <Button variant="tertiary"
                         type="button"
                         onClick={() => setSelectedTaskForAction({
                           task: nextPriorityTask.task,
@@ -1378,16 +1378,16 @@ export default function OperationalExecutionPanel({
                       >
                         <AlertCircle className="w-3.5 h-3.5 text-bojana-ink" />
                         <span>Requiere acción del cliente</span>
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button variant="primary"
                         type="button"
                         onClick={() => handleCompleteTask(nextPriorityTask.task.id, nextPriorityTask.task.estado)}
-                        className="bojana-button bojana-button-primary px-4 py-2 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside shadow-bojana-widget cursor-pointer"
+                        className="bojana-button bojana-button-primary px-4 py-2 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside shadow-bojana-widget cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5 text-bojana-success" />
                         <span>{nextPriorityTask.task.estado === 'Completado' ? 'Marcar pendiente' : 'Completar tarea'}</span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -1480,23 +1480,23 @@ export default function OperationalExecutionPanel({
 
                           {/* Actions: [ Ver solicitud ] [ Reenviar email ] */}
                           <div className="flex flex-wrap items-center justify-end gap-bojana-inside pt-1">
-                            <button
+                            <Button variant="secondary"
                               type="button"
                               onClick={() => handleResendEmail(action?.titulo || task.titulo)}
-                              className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
+                              className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-full border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
                             >
                               <Mail className="w-3.5 h-3.5 text-bojana-muted" />
                               <span>Reenviar email</span>
-                            </button>
+                            </Button>
 
-                            <button
+                            <Button variant="tertiary"
                               type="button"
                               onClick={() => setSelectedTaskForAction({ task, discId: disc.id, needId: need.id })}
-                              className="bojana-button bojana-button-text px-4 py-1.5 rounded-bojana-widget bg-bojana-waiting hover:bg-bojana-waiting text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
+                              className="bojana-button bojana-button-text px-4 py-1.5 rounded-full bg-bojana-waiting hover:bg-bojana-waiting text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
                             >
                               <ExternalLink className="w-3.5 h-3.5 text-bojana-ink" />
                               <span>Ver solicitud</span>
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       );
@@ -1716,7 +1716,7 @@ export default function OperationalExecutionPanel({
                 <h2 className="mt-2 font-display text-3xl font-normal text-ink">Nueva actualización</h2>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">Podés publicarla aunque todavía no haya tareas cargadas.</p>
               </div>
-              <button type="button" aria-label="Cerrar nueva actualización" className="grid size-8 place-items-center rounded-full text-xl text-ink-muted hover:bg-stone hover:text-ink" onClick={() => setShowProjectUpdateModal(false)}>×</button>
+              <Button variant="icon" type="button" aria-label="Cerrar nueva actualización" className="grid size-8 place-items-center rounded-full text-xl text-ink-muted hover:bg-stone hover:text-ink" onClick={() => setShowProjectUpdateModal(false)}>×</Button>
             </div>
             <Field label="Título" value={projectUpdateDraft.titulo} onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, titulo: event.target.value })} placeholder="Ej.: Inicio de obra" autoFocus />
             <Field label="Categoría" value={projectUpdateDraft.categoria} onChange={event => setProjectUpdateDraft({ ...projectUpdateDraft, categoria: event.target.value })} placeholder="General" />

@@ -6,7 +6,7 @@ import {
 } from '../../services/storageService';
 import { createSecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
-import { Button, EmptyState, Field, FilterBar, FilterTabs, PageHeader } from '../ui/DesignSystem';
+import { Badge, Button, EmptyState, Field, FilterBar, FilterTabs, PageHeader } from '../ui';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 import {
   Search,
@@ -157,9 +157,7 @@ export default function StudioProjectsList({
                       <span className="size-1.5 rounded-full bg-current opacity-70" />
                         <span>{progressStatus}</span>
                     </span>
-                    <span className="rounded-full bg-stone px-2.5 py-0.5 text-xs font-bold text-ink">
-                      {getEffectiveProgress(p)}%
-                    </span>
+                    <Badge className="border-transparent py-0.5 font-bold text-ink">{getEffectiveProgress(p)}%</Badge>
                     <span className="text-xs text-ink-faint">
                       {disciplines}
                     </span>
@@ -201,14 +199,14 @@ export default function StudioProjectsList({
                   </div>
 
                   {/* Quick Copy Link */}
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={(e) => handleCopyLink(e, p)}
                     className="grid size-10 place-items-center rounded-full border border-line bg-white text-ink-muted hover:bg-stone hover:text-ink active:scale-95 transition cursor-pointer"
                     title="Copiar enlace de acceso del cliente"
                   >
                     {isCopied ? <Check className="size-4 text-forest" /> : <Copy className="size-4" />}
-                  </button>
+                  </Button>
                 </div>
               </div>
             );

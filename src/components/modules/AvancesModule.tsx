@@ -173,14 +173,14 @@ export default function AvancesModule({
                 </div>
 
                 {isAdmin && (
-                  <button
+                  <Button variant="secondary"
                     type="button"
                     onClick={() => handleDeletePost(post.id)}
                     className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-stone hover:text-clay transition cursor-pointer"
                     title="Eliminar publicación"
                   >
                     <Trash2 className="size-4" />
-                  </button>
+                  </Button>
                 )}
               </div>
 
@@ -270,14 +270,14 @@ export default function AvancesModule({
                 Foto {lightboxData.currentIndex + 1} de {lightboxData.images.length}
               </p>
             </div>
-            <button
+            <Button variant="secondary"
               type="button"
               aria-label="Cerrar galería"
               onClick={() => setLightboxData(null)}
               className="bojana-icon-button bg-white/10 hover:bg-white/20 text-white"
             >
               <X className="size-4" />
-            </button>
+            </Button>
           </div>
 
           {/* Main Photo View */}
@@ -290,18 +290,18 @@ export default function AvancesModule({
 
             {lightboxData.images.length > 1 && (
               <>
-                <button
+                <Button variant="icon"
                   onClick={handlePrevPhoto}
                   className="bojana-icon-button absolute left-2 top-1/2 -translate-y-1/2 p-3 rounded-bojana-widget bg-black/50 hover:bg-black/80 text-bojana-inverse transition border border-white/10"
                 >
                   <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
+                </Button>
+                <Button variant="icon"
                   onClick={handleNextPhoto}
                   className="bojana-icon-button absolute right-2 top-1/2 -translate-y-1/2 p-3 rounded-bojana-widget bg-black/50 hover:bg-black/80 text-bojana-inverse transition border border-white/10"
                 >
                   <ChevronRight className="w-6 h-6" />
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -310,7 +310,7 @@ export default function AvancesModule({
           {lightboxData.images.length > 1 && (
             <div className="flex items-center justify-center gap-bojana-inside overflow-x-auto py-2">
               {lightboxData.images.map((img, i) => (
-                <button
+                <Button variant="icon"
                   key={i}
                   onClick={() => setLightboxData(prev => prev ? ({ ...prev, currentIndex: i }) : null)}
                   className={`bojana-icon-button w-12 h-12 rounded-bojana-widget overflow-hidden border transition shrink-0 ${
@@ -318,7 +318,7 @@ export default function AvancesModule({
                   }`}
                 >
                   <img src={img} alt="Miniatura" className="bojana-media w-full h-full object-contain" />
-                </button>
+                </Button>
               ))}
             </div>
           )}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProjectData } from '../../types';
 import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
-import { Button, EmptyState, PageHeader } from '../ui/DesignSystem';
+import { Badge, Button, EmptyState, PageHeader } from '../ui';
 import {
   Plus,
   FolderKanban
@@ -222,9 +222,7 @@ export default function StudioDashboard({
                     <strong className="text-sm font-semibold text-ink group-hover:text-forest transition">
                       {act.proyecto}
                     </strong>
-                    <span className="rounded-full bg-stone px-2.5 py-0.5 text-xs font-semibold text-ink-muted">
-                      {act.badge}
-                    </span>
+                    <Badge className="border-transparent py-0.5">{act.badge}</Badge>
                   </div>
                   <p className="text-xs leading-relaxed text-ink-muted">
                     {act.descripcion}
@@ -234,7 +232,7 @@ export default function StudioDashboard({
                 <div className="flex shrink-0 flex-col items-end gap-2 text-right text-xs">
                   <span className="text-ink-faint block">{act.fecha}</span>
                   {act.isCommunication ? (
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       className="rounded-full border border-line bg-white px-3 py-1.5 font-semibold text-forest opacity-0 shadow-sm transition hover:bg-stone group-hover:opacity-100"
                       onClick={(event) => {
@@ -243,7 +241,7 @@ export default function StudioDashboard({
                       }}
                     >
                       Responder
-                    </button>
+                    </Button>
                   ) : <span className="font-semibold text-forest opacity-0 transition group-hover:opacity-100">Ver &rarr;</span>}
                 </div>
               </div>

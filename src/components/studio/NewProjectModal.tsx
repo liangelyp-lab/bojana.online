@@ -536,14 +536,14 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
               {initialProject ? "Actualizá el alcance, los pesos y la estructura de trabajo." : "Configurá todo el ADN a partir del alcance aprobado."}
             </p>
           </div>
-          <button
+          <Button variant="icon"
             type="button"
             aria-label="Cerrar creación"
             onClick={onClose}
             className="bojana-icon-button"
           >
             <X className="size-4" />
-          </button>
+          </Button>
         </header>
         <ModalTabs
           ariaLabel="Secciones del ADN del proyecto"
@@ -891,7 +891,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                 <h4 className="bojana-heading-component">{disc}</h4>
                 <div className="flex flex-wrap gap-bojana-inside">
                   {DISCIPLINE_NEEDS_MAP[disc].map((p) => (
-                    <button
+                    <Button variant="secondary"
                       key={p.id}
                       type="button"
                       className={secondaryClass}
@@ -901,7 +901,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                       onClick={() => addNeed(disc, p)}
                     >
                       {p.label}
-                    </button>
+                    </Button>
                   ))}
                   <Add label="Necesidad propia" onClick={() => addNeed(disc)} />
                 </div>
@@ -1360,12 +1360,12 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
             {notice || "El proyecto comienza en 0%."}
           </p>
           {initialProject ? (
-            <button type="submit" className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-bojana-widget focus-visible:outline-2 focus-visible:outline-offset-2">
+            <Button variant="primary" type="submit" className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2">
               Guardar cambios
-            </button>
+            </Button>
           ) : (
             <>
-              <button
+              <Button variant="secondary"
                 type="button"
                 className={`${secondaryClass} min-h-11 px-5`}
                 onClick={() => {
@@ -1378,14 +1378,14 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                 }}
               >
                 Guardar borrador
-              </button>
-              <button
+              </Button>
+              <Button variant="primary"
                 type={isLastSection ? "submit" : "button"}
                 onClick={isLastSection ? undefined : goToNextSection}
-                className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-bojana-widget focus-visible:outline-2 focus-visible:outline-offset-2"
+                className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
               >
                 {isLastSection ? "Crear proyecto" : "Siguiente"}
-              </button>
+              </Button>
             </>
           )}
         </footer>
@@ -1467,21 +1467,21 @@ function Section({
 }
 function Add({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button type="button" className={secondaryClass} onClick={onClick}>
+    <Button variant="secondary" type="button" className={secondaryClass} onClick={onClick}>
       <Plus size={16} />
       {label}
-    </button>
+    </Button>
   );
 }
 function Remove({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <button
+    <Button variant="secondary"
       type="button"
       aria-label={label}
       className="inline-flex size-10 items-center justify-center rounded-full border-0 bg-transparent p-0 text-ink-faint transition hover:bg-transparent hover:text-ink active:scale-95"
       onClick={onClick}
     >
       <X size={18} strokeWidth={1.8} />
-    </button>
+    </Button>
   );
 }

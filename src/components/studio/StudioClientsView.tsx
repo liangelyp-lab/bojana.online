@@ -61,7 +61,7 @@ export default function StudioClientsView({
             ).length;
 
             return (
-              <button
+              <Button variant="secondary"
                 key={client.id}
                 type="button"
                 onClick={() => setSelectedClientId(client.id)}
@@ -88,7 +88,7 @@ export default function StudioClientsView({
                 }`}>
                   <ChevronRight className="size-4" />
                 </div>
-              </button>
+              </Button>
             );
           })}
         </div>}

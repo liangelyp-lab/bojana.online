@@ -254,14 +254,14 @@ export default function RequestClientActionModal({
             </p>
           </div>
 
-          <button
+          <Button variant="icon"
             type="button"
             onClick={onClose}
             aria-label="Cerrar modal"
             className="bojana-icon-button"
           >
             <X className="size-4" />
-          </button>
+          </Button>
         </div>
 
         {/* Tab selection */}
@@ -292,18 +292,18 @@ export default function RequestClientActionModal({
                     { id: 'subir_documento', label: 'Subir documento' },
                     { id: 'confirmar_decision', label: 'Confirmar decisión' },
                   ].map((t) => (
-                    <button
+                    <Button variant="primary"
                       key={t.id}
                       type="button"
                       onClick={() => handleTypeChange(t.id as ClientActionType)}
-                      className={`bojana-button bojana-button-primary p-3 rounded-bojana-widget border text-left transition cursor-pointer flex flex-col justify-between ${
+                      className={`bojana-button bojana-button-primary p-3 rounded-full border text-left transition cursor-pointer flex flex-col justify-between ${
                         tipo === t.id
                           ? "bg-bojana-ink text-bojana-inverse border-bojana-line shadow-bojana-widget"
                           : "bg-bojana-surface text-bojana-ink border-bojana-line hover:border-bojana-line"
                       }`}
                     >
                       <strong className="block text-xs font-medium">{t.label}</strong>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -373,14 +373,14 @@ export default function RequestClientActionModal({
                     <span className="font-sans text-xs uppercase font-medium text-bojana-ink">
                       Alternativas para que elija el cliente ({alternativas.length}) · opcional
                     </span>
-                    <button
+                    <Button variant="tertiary"
                       type="button"
                       onClick={handleAddAlternative}
                       className="bojana-button bojana-button-text text-xs font-sans font-medium text-bojana-ink hover:text-bojana-success flex items-center gap-bojana-inside cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Agregar alternativa</span>
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="space-y-bojana-inside">
@@ -391,13 +391,14 @@ export default function RequestClientActionModal({
                             {alt.letra || `Opción ${idx + 1}`}
                           </span>
                           {alternativas.length > 1 && (
-                            <button
+                            <Button variant="icon"
                               type="button"
                               onClick={() => handleRemoveAlternative(alt.id)}
+                              aria-label={`Eliminar alternativa ${alt.letra || idx + 1}`}
                               className="bojana-icon-button text-bojana-muted hover:text-bojana-error p-1"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            </Button>
                           )}
                         </div>
                         <InputControl
@@ -439,13 +440,14 @@ export default function RequestClientActionModal({
                     <div key={att.id || idx} className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget px-3 py-1.5 flex items-center gap-bojana-inside text-bojana-ink text-xs">
                       <Paperclip className="w-3 h-3 text-bojana-muted" />
                       <span className="font-medium truncate max-w-xs">{att.nombre}</span>
-                      <button
+                      <Button variant="icon"
                         type="button"
                         onClick={() => setAdjuntos(adjuntos.filter((_, i) => i !== idx))}
+                        aria-label={`Quitar adjunto ${att.nombre}`}
                         className="bojana-icon-button text-bojana-muted hover:text-bojana-error ml-1"
                       >
                         <X className="w-3 h-3" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -581,28 +583,28 @@ export default function RequestClientActionModal({
         {/* Modal Footer */}
         <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
           {sendError && <p role="alert" className="w-full text-xs text-bojana-error sm:absolute sm:bottom-20 sm:left-5">{sendError}</p>}
-          <button
+          <Button variant="tertiary"
             type="button"
             onClick={onClose}
-            className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink px-3 py-2 rounded-bojana-widget transition cursor-pointer"
+            className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink px-3 py-2 rounded-full transition cursor-pointer"
           >
             Cancelar
-          </button>
+          </Button>
 
           <div className="flex items-center gap-bojana-inside w-full sm:w-auto justify-end">
-            <button
+            <Button variant="secondary"
               type="button"
               onClick={() => handleSave(false)}
-              className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-bojana-widget border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
+              className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-full border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
             >
               Publicar en el sitio
-            </button>
+            </Button>
 
-            <button
+            <Button variant="primary"
               type="button"
               onClick={() => handleSave(true)}
               disabled={isSending || !titulo.trim()}
-              className="bojana-button bojana-button-primary w-full sm:w-auto px-5 py-2.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+              className="bojana-button bojana-button-primary w-full sm:w-auto px-5 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
             >
               {isSending ? (
                 <>
@@ -615,7 +617,7 @@ export default function RequestClientActionModal({
                   <span>Publicar y enviar email</span>
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
 

@@ -668,24 +668,24 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
         <div className={`${mobile ? "left-0 top-12" : "left-full top-0 ml-2"} absolute z-50 w-72 rounded-2xl border border-line bg-white p-4 text-ink shadow-xl`}>
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-semibold">Notificaciones</p>
-            <button
-              type="button"
-              aria-label="Cerrar notificaciones"
-              className="grid size-7 place-items-center rounded-full text-lg leading-none text-ink-faint transition hover:bg-stone hover:text-ink"
+            <Button
+              variant="icon"
+              size="xs"
+              ariaLabel="Cerrar notificaciones"
               onClick={() => setNotificationsOpen(false)}
             >
               ×
-            </button>
+            </Button>
           </div>
           {notifications.length === 0 ? (
             <p className="mt-2 text-xs leading-relaxed text-ink-muted">No hay notificaciones nuevas.</p>
           ) : (
             <div className="mt-3 divide-y divide-line rounded-xl border border-line bg-canvas">
               {notifications.map(notification => (
-                <button key={notification.notificationKey} type="button" className={`w-full px-3 py-2.5 text-left hover:bg-stone ${reviewedIds.includes(notification.notificationKey) ? "opacity-60" : ""}`} onClick={() => { markAsReviewed(notification.notificationKey); onOpenProject?.(notification.projectId, { ...notification, decision: notification.isDecision, communication: notification.isCommunication }); setNotificationsOpen(false) }}>
+                <Button variant="tertiary" key={notification.notificationKey} type="button" className={`w-full px-3 py-2.5 text-left hover:bg-stone ${reviewedIds.includes(notification.notificationKey) ? "opacity-60" : ""}`} onClick={() => { markAsReviewed(notification.notificationKey); onOpenProject?.(notification.projectId, { ...notification, decision: notification.isDecision, communication: notification.isCommunication }); setNotificationsOpen(false) }}>
                   <span className="flex items-center justify-between gap-2 text-xs font-semibold text-ink"><span>{notification.projectName}</span>{reviewedIds.includes(notification.notificationKey) && <span className="text-[10px] font-medium text-ink-faint">Revisado</span>}</span>
                   <span className="mt-0.5 block truncate text-[11px] text-ink-muted">{notification.descripcion}</span>
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -821,9 +821,9 @@ function ProjectExecutionSummary({
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
       <nav aria-label="Ruta de navegación" className="mb-7 flex flex-wrap items-center gap-2 text-sm font-medium text-ink-muted">
-        <button type="button" className="rounded-sm text-inherit hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest" onClick={onBack}>
+        <Button variant="tertiary" onClick={onBack}>
           Proyectos
-        </button>
+        </Button>
         <Icon className="size-3.5" name="chevron" />
         <span className="truncate" aria-current="page">
           {project.info?.nombre || "Proyecto"}
@@ -960,7 +960,7 @@ function TasksPanel({
                 className="truncate text-sm font-semibold text-ink"
               >
                 {onOpenTask && task.projectId ? (
-                  <button type="button" className="text-left hover:text-forest" onClick={(event) => { event.stopPropagation(); onOpenTask(task) }}>{task.title}</button>
+                  <Button variant="tertiary" type="button" className="text-left hover:text-forest" onClick={(event) => { event.stopPropagation(); onOpenTask(task) }}>{task.title}</Button>
                 ) : task.title}
               </Heading>
               <p className="mt-1 text-xs text-ink-faint">{task.area}</p>
@@ -979,14 +979,14 @@ function TasksPanel({
               {task.due}
             </div>
             <div className="flex items-center justify-between gap-2">
-              <button
+              <Button variant="secondary"
                 type="button"
                 onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}
                 title="Clic para cambiar estado"
                 className={`rounded-full px-3 py-1.5 text-xs font-semibold cursor-pointer transition hover:opacity-85 ${statusStyles[task.status]}`}
               >
                 {task.status === "Completado" ? "✓ Completada" : task.status}
-              </button>
+              </Button>
               <Button
                 ariaLabel={`Mas opciones para ${task.title}`}
                 className="!size-9 !p-0"
@@ -1946,18 +1946,25 @@ function ClientSidebar({
         <div className="absolute left-full top-12 z-[100] ml-3 w-72 rounded-2xl border border-line bg-white p-4 text-left shadow-xl">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm font-semibold text-ink">Notificaciones recientes</p>
-            <button type="button" className="text-lg leading-none text-ink-faint hover:text-ink" onClick={() => setNotificationsOpen(false)} aria-label="Cerrar notificaciones">×</button>
+            <Button
+              variant="icon"
+              className="size-8 text-base"
+              onClick={() => setNotificationsOpen(false)}
+              ariaLabel="Cerrar notificaciones"
+              title="Cerrar notificaciones"
+            >
+              ×
+            </Button>
           </div>
           <div className="mt-3 max-h-72 divide-y divide-line overflow-y-auto rounded-xl border border-line bg-canvas">
             {recentNotifications.map(notification => (
-              <button key={notification.id} type="button" className="w-full px-3 py-2.5 text-left hover:bg-stone" onClick={() => { onOpenNotification(notification); setNotificationsOpen(false) }}>
+              <Button variant="tertiary" key={notification.id} type="button" className="w-full px-3 py-2.5 text-left hover:bg-stone" onClick={() => { onOpenNotification(notification); setNotificationsOpen(false) }}>
                 <span className="block text-xs font-semibold text-ink">{notification.descripcion}</span>
                 <span className="mt-0.5 block text-[11px] text-ink-muted">{notification.fecha}</span>
-              </button>
+              </Button>
             ))}
             {recentNotifications.length === 0 && <p className="px-3 py-3 text-xs text-ink-muted">No hay notificaciones recientes.</p>}
           </div>
-          <button type="button" className="mt-3 w-full rounded-xl px-3 py-2 text-xs font-semibold text-ink-muted hover:bg-stone" onClick={() => setNotificationsOpen(false)}>Cerrar</button>
         </div>
       )}
 
@@ -2094,14 +2101,14 @@ function ActionCard({
         }`}
       >
         {isApproved && (
-          <button
+          <Button variant="secondary"
             type="button"
             aria-label="Cerrar aviso de decisión registrada"
             className="absolute right-4 top-4 grid size-8 place-items-center rounded-full text-xl leading-none text-ink-muted transition hover:bg-white/60 hover:text-ink"
             onClick={() => setDismissed(true)}
           >
             ×
-          </button>
+          </Button>
         )}
         <div className="grid gap-6 md:grid-cols-action md:items-center">
           <div className="flex gap-4">
@@ -2295,7 +2302,7 @@ function ProgressSection({
               </div>
             </div>
             <div className="mt-2 flex w-full flex-wrap gap-y-1">
-              {allNeeds.map(need => <button key={`label-${need.id}`} type="button" onClick={() => setExpandedNeedId(current => current === need.id ? null : need.id)} onMouseEnter={() => setHoveredNeedId(need.id)} onMouseLeave={() => setHoveredNeedId(null)} className={`min-w-0 flex-none whitespace-normal break-words px-1 text-center text-[11px] font-semibold leading-4 transition ${hoveredNeedId === need.id ? "text-clay-dark" : "text-ink"}`} style={{ width: `${need.projectWeight}%` }} title={`${need.name}: ${need.projectWeight.toFixed(1)}% del proyecto`}>{need.name}</button>)}
+              {allNeeds.map(need => <Button variant="secondary" key={`label-${need.id}`} type="button" onClick={() => setExpandedNeedId(current => current === need.id ? null : need.id)} onMouseEnter={() => setHoveredNeedId(need.id)} onMouseLeave={() => setHoveredNeedId(null)} className={`min-w-0 flex-none whitespace-normal break-words px-1 text-center text-[11px] font-semibold leading-4 transition ${hoveredNeedId === need.id ? "text-clay-dark" : "text-ink"}`} style={{ width: `${need.projectWeight}%` }} title={`${need.name}: ${need.projectWeight.toFixed(1)}% del proyecto`}>{need.name}</Button>)}
             </div>
           </div>
         <div className="mt-8 border-t border-line pt-7">

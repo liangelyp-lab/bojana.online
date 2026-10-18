@@ -1,3 +1,4 @@
+import { Button } from './components/ui/DesignSystem';
 import React, { Component, type ErrorInfo, type ReactNode } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
@@ -22,7 +23,7 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error
             <p style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#687266', fontWeight: 700 }}>Bojana Estudio</p>
             <h1 style={{ fontSize: 28, fontWeight: 500, margin: '10px 0' }}>No pudimos cargar esta vista</h1>
             <p style={{ color: '#687266', lineHeight: 1.5 }}>El proyecto tiene un dato que necesita ser actualizado. Recargá la página para continuar.</p>
-            <button type="button" onClick={() => window.location.reload()} style={{ marginTop: 18, border: 0, borderRadius: 999, padding: '12px 20px', background: '#20231f', color: '#fff', cursor: 'pointer' }}>Recargar portal</button>
+            <Button variant="primary" type="button" onClick={() => window.location.reload()} style={{ marginTop: 18, border: 0, borderRadius: 999, padding: '12px 20px', background: '#20231f', color: '#fff', cursor: 'pointer' }}>Recargar portal</Button>
             <details open style={{ marginTop: 20, color: '#687266', fontSize: 12 }}><summary>Detalle técnico</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre></details>
           </section>
         </main>

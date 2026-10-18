@@ -286,14 +286,14 @@ export default function DecisionesModule({
                   </div>
 
                   {isAdmin && (
-                    <button
+                    <Button variant="secondary"
                       type="button"
                       onClick={() => handleDeleteDecision(item.id)}
                       className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-stone hover:text-clay transition cursor-pointer self-end sm:self-start shrink-0"
                       title="Eliminar ítem"
                     >
                       <Trash2 className="w-4 h-4" />
-                    </button>
+                    </Button>
                   )}
                 </div>
 
@@ -380,14 +380,14 @@ export default function DecisionesModule({
 
                               {/* Action buttons if not yet approved */}
                               {!isApproved && (
-                                <button
+                                <Button variant="primary"
                                   type="button"
                                   onClick={() => handleApproveOption(item.id, opt.id, `${opt.letra}: ${opt.titulo}`)}
-                                  className="bojana-button bojana-button-primary px-3 py-1.5 rounded-bojana-widget bg-bojana-ink hover:bg-bojana-success text-bojana-inverse font-sans text-xs font-medium transition cursor-pointer flex items-center gap-bojana-inside shadow-bojana-widget"
+                                  className="bojana-button bojana-button-primary px-3 py-1.5 rounded-full bg-bojana-ink hover:bg-bojana-success text-bojana-inverse font-sans text-xs font-medium transition cursor-pointer flex items-center gap-bojana-inside shadow-bojana-widget"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   <span>Aprobar {opt.letra}</span>
-                                </button>
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -406,11 +406,11 @@ export default function DecisionesModule({
 
                     <div className="flex items-center gap-bojana-inside">
                       {(['Pendiente', 'Aprobado', 'Requiere cambios'] as DecisionStatus[]).map((st) => (
-                        <button
+                        <Button variant="secondary"
                           key={st}
                           type="button"
                           onClick={() => handleSetStatus(item.id, st)}
-                          className={`bojana-button bojana-button-secondary px-3 py-1.5 rounded-bojana-widget font-sans text-xs font-medium transition border cursor-pointer ${
+                          className={`bojana-button bojana-button-secondary px-3 py-1.5 rounded-full font-sans text-xs font-medium transition border cursor-pointer ${
                             item.estado === st
                               ? getStatusBadge(st) + "shadow-bojana-widget"
                               : "bg-bojana-surface text-bojana-muted border-bojana-line hover:bg-bojana-soft"
@@ -418,7 +418,7 @@ export default function DecisionesModule({
                         >
                           {st === 'Aprobado' && <Check className="w-3 h-3 inline mr-1" />}
                           {st}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </div>
@@ -460,22 +460,22 @@ export default function DecisionesModule({
                         }}
                         className="bojana-field flex-1 bg-bojana-surface border border-bojana-line rounded-bojana-widget px-3 py-2 text-xs text-bojana-ink focus:bg-bojana-surface focus:outline-hidden focus:border-bojana-line"
                       />
-                      <button
+                      <Button variant="tertiary"
                         type="button"
                         onClick={() => handleAddComment(item.id)}
-                        className="bojana-button bojana-button-text px-3 py-2 rounded-bojana-widget bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
+                        className="bojana-button bojana-button-text px-3 py-2 rounded-full bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
                       >
                         Enviar
-                      </button>
+                      </Button>
 
                       {!isApproved && (
-                        <button
+                        <Button variant="tertiary"
                           type="button"
                           onClick={() => handleRequestChanges(item.id)}
-                          className="bojana-button bojana-button-text px-3 py-2 rounded-bojana-widget bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink text-xs font-sans font-medium transition cursor-pointer whitespace-nowrap"
+                          className="bojana-button bojana-button-text px-3 py-2 rounded-full bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink text-xs font-sans font-medium transition cursor-pointer whitespace-nowrap"
                         >
                           Solicitar Cambios
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
@@ -494,28 +494,28 @@ export default function DecisionesModule({
               <div>
                 <label className="font-sans text-bojana-muted font-medium block mb-1">Tipo de Solicitud</label>
                 <div className="grid grid-cols-2 gap-bojana-inside font-sans">
-                  <button
+                  <Button variant="primary"
                     type="button"
                     onClick={() => setNewType('decision_diseno')}
-                    className={`bojana-button bojana-button-primary p-2 rounded-bojana-widget border font-medium text-left ${
+                    className={`bojana-button bojana-button-primary p-2 rounded-full border font-medium text-left ${
                       newType === "decision_diseno"
                         ? "bg-bojana-ink text-bojana-inverse border-bojana-line"
                         : "bg-bojana-surface text-bojana-ink border-bojana-line"
                     }`}
                   >
                     <span>Decisión con Opciones (A / B)</span>
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="primary"
                     type="button"
                     onClick={() => setNewType('revision_tecnica')}
-                    className={`bojana-button bojana-button-primary p-2 rounded-bojana-widget border font-medium text-left ${
+                    className={`bojana-button bojana-button-primary p-2 rounded-full border font-medium text-left ${
                       newType === "revision_tecnica"
                         ? "bg-bojana-ink text-bojana-inverse border-bojana-line"
                         : "bg-bojana-surface text-bojana-ink border-bojana-line"
                     }`}
                   >
                     <span>Revisión Técnica / Plano</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
