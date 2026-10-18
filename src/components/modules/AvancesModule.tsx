@@ -13,7 +13,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { Badge, Button, InputControl, TextAreaControl } from '../ui/DesignSystem';
+import { Badge, Button, EmptyState, InputControl, Modal, TextAreaControl } from '../ui/DesignSystem';
 
 interface AvancesModuleProps {
   project: ProjectData;
@@ -38,15 +38,14 @@ export default function AvancesModule({
   } | null>(null);
 
   useEffect(() => {
-    if (!showCreateModal && !lightboxData) return;
+    if (!lightboxData) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (lightboxData) setLightboxData(null);
-      else setShowCreateModal(false);
+      setLightboxData(null);
     };
     document.addEventListener('keydown', closeOnEscape);
     return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [showCreateModal, lightboxData]);
+  }, [lightboxData]);
 
   // New Avance form state
   const [newTitle, setNewTitle] = useState('');
@@ -138,23 +137,12 @@ export default function AvancesModule({
 
       {/* CHRONOLOGICAL FEED OF POSTS */}
       {posts.length === 0 ? (
-        <div className="rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
-          <Camera className="size-10 text-ink-faint opacity-40 mx-auto" />
-          <h3 className="font-display text-xl text-ink">Aún no hay avances publicados</h3>
-          <p className="text-xs text-ink-muted max-w-md mx-auto">
-            Bojana Estudio publicará aquí las actualizaciones fotográficas del proyecto a medida que se ejecuten las tareas.
-          </p>
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setShowCreateModal(true)}
-              className="mx-auto mt-3 inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-xs font-semibold text-white cursor-pointer"
-            >
-              <Plus className="size-4 text-white" />
-              Publicar nuevo avance
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={Camera}
+          title="Aún no hay avances publicados"
+          description="Bojana Estudio publicará aquí las actualizaciones fotográficas del proyecto a medida que se ejecuten las tareas."
+          action={isAdmin ? { label: 'Publicar nuevo avance', onClick: () => setShowCreateModal(true), icon: Plus } : undefined}
+        />
       ) : (
         <div className="space-y-6">
           {posts.map((post) => (
@@ -339,15 +327,7 @@ export default function AvancesModule({
 
       {/* 4. MODAL: PUBLICAR NUEVO AVANCE (ADMIN) */}
       {showCreateModal && (
-        <div className="bojana-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="bojana-modal w-full max-w-2xl max-h-[90dvh] overflow-y-auto p-5 sm:p-6 space-y-5 animate-scale-up" role="dialog" aria-modal="true" aria-labelledby="avance-modal-title" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
-              <h3 id="avance-modal-title" className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
-                Publicar Nuevo Avance de Obra
-              </h3>
-              <Button variant="icon" ariaLabel="Cerrar modal" onClick={() => setShowCreateModal(false)}>×</Button>
-            </div>
-
+        <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Publicar nuevo avance de obra" maxWidth="max-w-2xl">
             <form onSubmit={handleCreatePost} className="space-y-4 text-xs">
               <div>
                 <label className="font-sans text-bojana-muted font-medium block mb-1">Título del Avance</label>
@@ -441,8 +421,7 @@ export default function AvancesModule({
                 <Button type="submit">Publicar Avance</Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
     </div>

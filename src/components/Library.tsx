@@ -1,12 +1,24 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { LibraryItem } from '../types';
-import { Search, Download, CheckCircle, Inbox, FileText } from 'lucide-react';
-import { Field } from './ui/DesignSystem';
+import { Search, Download, CheckCircle, Inbox, Info } from 'lucide-react';
+import { Button, Card, EmptyState, Field, FilterBar, FilterTabs } from './ui/DesignSystem';
 
 interface LibraryProps {
   items: LibraryItem[];
   reportes?: any[];
   onToast?: (message: string) => void;
+}
+
+function RevisionIndicator({ revision }: { revision: string }) {
+  const tooltipId = useId();
+  return (
+    <span className="group relative inline-flex shrink-0 rounded focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-forest" tabIndex={0} aria-label="Estado del documento" aria-describedby={tooltipId}>
+      <Info className="size-5 text-ink-muted" aria-hidden="true" />
+      <span id={tooltipId} role="tooltip" className="pointer-events-none absolute right-0 top-full z-10 mt-2 w-max max-w-56 rounded-lg bg-ink px-3 py-2 text-left text-xs font-medium text-white opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus:opacity-100">
+        {revision}
+      </span>
+    </span>
+  );
 }
 
 export default function Library({ items, reportes, onToast }: LibraryProps) {
@@ -61,70 +73,46 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
   return (
     <div id="library-main-container" className="space-y-6 animate-fade-in">
       {/* FILTER BUTTONS AND SEARCH BAR HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
+      <FilterBar>
         {/* Category buttons */}
-        <div className="flex items-center gap-2 overflow-x-auto text-xs font-semibold">
-          {categoryOptions.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`rounded-full px-4 py-2 transition cursor-pointer whitespace-nowrap ${
-                selectedCategory === cat
-                  ? 'bg-forest text-white'
-                  : 'text-ink-muted hover:bg-stone'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
+        <FilterTabs ariaLabel="Categorías de biblioteca" activeTab={selectedCategory} onChange={setSelectedCategory} tabs={categoryOptions.map((category) => ({ id: category, label: category === 'TODOS' ? 'Todos' : category }))} />
 
         {/* Search bar inputs */}
-        <div className="relative w-full sm:w-80">
+        <div className="relative w-full sm:w-80 sm:shrink-0">
           <Search className="size-4 text-ink-faint absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Field
             type="text"
+            aria-label="Buscar en la biblioteca"
             placeholder="Buscar por nombre, proyecto o código..."
             value={searchWord}
             onChange={(e) => setSearchWord(e.target.value)}
             className="rounded-full bg-canvas/50 pl-10 pr-4 py-2 text-xs"
           />
         </div>
-      </div>
+      </FilterBar>
 
       {/* CORE GRID FILE FOLDERS: 3 columns with uniform gap-6 matching the whole app */}
       <div id="library-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.length === 0 ? (
-          <div className="col-span-full rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
-            <Inbox className="size-10 text-ink-faint opacity-40 mx-auto" />
-            <h3 className="font-display text-xl text-ink">La biblioteca está vacía</h3>
-            <p className="text-xs text-ink-muted max-w-sm mx-auto">
-              Los documentos, planos, imágenes y entregables del estudio aparecerán acá.
-            </p>
-          </div>
+          <div className="col-span-full"><EmptyState icon={Inbox} title="La biblioteca está vacía" description="Los documentos, planos, imágenes y entregables del estudio aparecerán acá." /></div>
         ) : (
           filteredItems.map((item) => {
             const isDownloading = downloadingId === item.id;
             const isCompleted = completedId === item.id;
 
             return (
-              <div
+              <Card
                 key={item.id}
-                className="flex flex-col justify-between rounded-3xl border border-line bg-white p-6 shadow-sm transition hover:border-line-strong hover:shadow-md"
+                className="bojana-interactive-hover flex flex-col justify-between"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-stone px-2.5 py-0.5 font-bold text-ink-muted">
-                      <FileText className="size-3" />
-                      {item.categoria}
-                    </span>
-                    <span className="text-xs font-semibold text-ink-faint">{item.revision}</span>
-                  </div>
-
                   <div>
-                    <h5 className="font-display text-xl font-semibold text-ink line-clamp-2">
-                      {item.titulo}
-                    </h5>
+                    <div className="flex items-start justify-between gap-3">
+                      <h5 className="min-w-0 font-sans text-base font-normal text-ink line-clamp-2">
+                        {item.titulo}
+                      </h5>
+                      <RevisionIndicator revision={item.revision} />
+                    </div>
                     <span className="text-xs text-ink-faint block mt-1 font-mono">{item.codigo}</span>
                     {item.proyecto && (
                       <span className="text-xs text-ink-muted block mt-2">{item.proyecto}</span>
@@ -140,31 +128,23 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
                     <span>{item.tamano}</span>
                   </div>
 
-                  <button
+                  <Button
                     onClick={() => startDownloadSim(item.id)}
                     disabled={isDownloading}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
-                      isCompleted
-                        ? 'bg-mint-pale text-forest'
-                        : isDownloading
-                        ? 'bg-stone text-ink-faint animate-pulse'
-                        : 'border border-line bg-white text-ink hover:bg-stone'
-                    }`}
+                    loading={isDownloading}
+                    variant="icon"
+                    ariaLabel={`${isCompleted ? 'Listo' : isDownloading ? 'Descargando' : 'Descargar'} ${item.titulo}`}
+                    title={isCompleted ? 'Listo' : isDownloading ? 'Descargando' : 'Descargar'}
+                    className={isCompleted ? '!size-11 !bg-mint-pale !p-0 !text-forest' : '!size-11 !p-0'}
                   >
                     {isCompleted ? (
-                      <>
-                        <CheckCircle className="size-3.5 text-forest" />
-                        <span>Listo</span>
-                      </>
-                    ) : (
-                      <>
-                        <Download className="size-3.5" />
-                        <span>{isDownloading ? 'Bajando...' : 'Descargar'}</span>
-                      </>
-                    )}
-                  </button>
+                      <CheckCircle className="size-4 text-forest" aria-hidden="true" />
+                    ) : !isDownloading ? (
+                      <Download className="size-4" aria-hidden="true" />
+                    ) : null}
+                  </Button>
                 </div>
-              </div>
+              </Card>
             );
           })
         )}

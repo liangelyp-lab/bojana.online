@@ -13,6 +13,8 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   );
 }
 
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon';
+
 export function Button({
   children,
   variant = 'primary',
@@ -23,10 +25,11 @@ export function Button({
   tooltip,
   dataChannel,
   disabled = false,
+  loading = false,
   type = 'button'
 }: {
   children: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'icon';
+  variant?: ButtonVariant;
   className?: string;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   ariaLabel?: string;
@@ -34,6 +37,7 @@ export function Button({
   tooltip?: string;
   dataChannel?: string;
   disabled?: boolean;
+  loading?: boolean;
   type?: 'button' | 'submit';
 }) {
   const tooltipId = useId();
@@ -44,6 +48,7 @@ export function Button({
     primary: 'bg-forest text-white hover:bg-[#1c2b24] shadow-sm active:scale-[0.98] focus-visible:ring-forest/30',
     secondary: 'border border-line bg-white text-ink hover:border-line-strong hover:bg-stone active:scale-[0.98] focus-visible:ring-forest/30',
     ghost: 'text-ink-muted hover:bg-stone hover:text-ink active:scale-[0.98] focus-visible:ring-forest/30',
+    danger: 'border border-clay/30 bg-clay-pale text-clay-dark hover:bg-clay hover:text-white active:scale-[0.98] focus-visible:ring-clay/30',
     icon: 'size-10 !min-h-0 !p-0 aspect-square rounded-full text-ink-muted hover:bg-stone hover:text-ink active:scale-95 focus-visible:ring-forest/30'
   };
 
@@ -75,11 +80,13 @@ export function Button({
       aria-describedby={tooltip ? tooltipId : undefined}
       title={title}
       data-channel={dataChannel}
-      disabled={disabled}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${className}`}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${className}`}
       onClick={onClick}
       type={type}
     >
+      {loading && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
       {children}
     </button>
   );
@@ -147,7 +154,32 @@ export function Card({
     dark: 'border-white/10 bg-forest text-white'
   };
 
-  return <div className={`rounded-3xl border p-6 ${variants[variant]} ${className}`}>{children}</div>;
+  return <div className={`bojana-card rounded-3xl border p-6 ${variants[variant]} ${className}`}>{children}</div>;
+}
+
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+  as: Heading = 'h1'
+}: {
+  eyebrow?: React.ReactNode;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  actions?: React.ReactNode;
+  as?: 'h1' | 'h2';
+}) {
+  return (
+    <header className="bojana-page-header">
+      <div className="min-w-0">
+        {eyebrow && <p className="bojana-label">{eyebrow}</p>}
+        <Heading className="bojana-heading-page mt-2">{title}</Heading>
+        {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">{description}</p>}
+      </div>
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </header>
+  );
 }
 
 export function Field({
@@ -283,14 +315,10 @@ export function EmptyState({
         <p className="text-xs text-ink-muted leading-relaxed">{description}</p>
       </div>
       {action && (
-        <button
-          type="button"
-          onClick={action.onClick}
-          className="mt-2 inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-forest/90 active:scale-[0.98] cursor-pointer"
-        >
+        <Button type="button" className="mt-2" onClick={action.onClick}>
           {action.icon && <action.icon className="size-4" />}
           <span>{action.label}</span>
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -396,14 +424,40 @@ export function Modal({
   children: React.ReactNode;
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
 
   useEffect(() => {
     if (!open) return;
+    const previous = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    modalRef.current?.querySelector<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')?.focus();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const focusable = Array.from(modalRef.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex="0"]') || [])
+        .filter((element) => element.getClientRects().length > 0);
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = overflow;
+      document.removeEventListener('keydown', handleKeyDown);
+      previous?.focus();
+    };
   }, [open, onClose]);
 
   if (!open) return null;
@@ -416,17 +470,13 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
       >
         <div className="flex items-center justify-between border-b border-line pb-4 mb-5">
-          <h3 className="font-display text-xl text-ink">{title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="bojana-icon-button"
-            aria-label="Cerrar modal"
-          >
+          <h3 id={titleId} className="font-display text-xl text-ink">{title}</h3>
+          <Button type="button" variant="icon" onClick={onClose} ariaLabel="Cerrar modal">
             <X className="size-4" />
-          </button>
+          </Button>
         </div>
         {children}
       </div>
@@ -496,16 +546,26 @@ export function Tabs({
   ariaLabel?: string;
   className?: string;
 }) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (currentIndex + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+    onChange(nextTab.id);
+    requestAnimationFrame(() => document.getElementById(`bojana-tab-${nextTab.id}`)?.focus());
+  };
   return (
     <nav role="tablist" aria-label={ariaLabel} className={`bojana-studio-tabs ${className}`}>
-      {tabs.map(({ id, label, marker }) => (
+      {tabs.map(({ id, label, marker }, index) => (
         <button
           key={id}
+          id={`bojana-tab-${id}`}
           type="button"
           role="tab"
           aria-selected={activeTab === id}
           tabIndex={activeTab === id ? 0 : -1}
           onClick={() => onChange(id)}
+          onKeyDown={(event) => handleKeyDown(event, index)}
           className="bojana-project-tab"
         >
           {label}
@@ -513,5 +573,41 @@ export function Tabs({
         </button>
       ))}
     </nav>
+  );
+}
+
+export function FilterBar({ children }: { children: React.ReactNode }) {
+  return <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm sm:flex-row sm:items-center">{children}</div>;
+}
+
+export function FilterTabs({
+  tabs,
+  activeTab,
+  onChange,
+  ariaLabel = 'Filtros',
+  className = ''
+}: {
+  tabs: Array<{ id: string; label: React.ReactNode }>;
+  activeTab: string;
+  onChange: (id: string) => void;
+  ariaLabel?: string;
+  className?: string;
+}) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (currentIndex + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+    onChange(nextTab.id);
+    requestAnimationFrame(() => document.getElementById(`bojana-filter-tab-${nextTab.id}`)?.focus());
+  };
+  return (
+    <div role="tablist" aria-label={ariaLabel} className={`bojana-filter-tablist ${className}`}>
+      {tabs.map(({ id, label }, index) => (
+        <button id={`bojana-filter-tab-${id}`} key={id} type="button" role="tab" tabIndex={activeTab === id ? 0 : -1} aria-selected={activeTab === id} onClick={() => onChange(id)} onKeyDown={(event) => handleKeyDown(event, index)} className="bojana-filter-tab">
+          {label}
+        </button>
+      ))}
+    </div>
   );
 }

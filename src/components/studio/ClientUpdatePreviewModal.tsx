@@ -1,5 +1,5 @@
-import { ArrowRight, Bell, Check, ExternalLink, MessageSquare, X } from 'lucide-react';
-import { Badge, Button } from '../ui/DesignSystem';
+import { ArrowRight, Bell, Check, ExternalLink, MessageSquare } from 'lucide-react';
+import { Badge, Button, Modal } from '../ui/DesignSystem';
 import type { TaskUpdateAction } from '../../types';
 
 type PreviewOption = {
@@ -54,24 +54,16 @@ export default function ClientUpdatePreviewModal({
   options,
   onClose
 }: ClientUpdatePreviewModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-line bg-canvas shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="client-update-preview-title">
-        <header className="flex items-start justify-between gap-4 border-b border-line bg-white px-5 py-4 sm:px-7">
-          <div className="flex items-start gap-3">
+    <Modal open={isOpen} onClose={onClose} title="Nueva actualización" maxWidth="max-w-2xl">
+        <div className="max-h-[70dvh] overflow-y-auto pr-1">
+          <div className="mb-5 flex items-start gap-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-stone text-ink-muted"><Bell className="size-5" aria-hidden="true" /></span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-faint">Vista previa del portal cliente</p>
-              <h2 id="client-update-preview-title" className="mt-1 font-display text-2xl text-ink">Nueva actualización</h2>
+              <p className="bojana-label">Vista previa del portal cliente</p>
               <p className="mt-1 text-xs text-ink-muted">Así verá el cliente la notificación de {projectName}.</p>
             </div>
           </div>
-          <Button variant="icon" ariaLabel="Cerrar vista previa" onClick={onClose}><X className="size-4" /></Button>
-        </header>
-
-        <div className="overflow-y-auto p-5 sm:p-7">
           <article className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -98,7 +90,6 @@ export default function ClientUpdatePreviewModal({
             </div>
           </article>
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

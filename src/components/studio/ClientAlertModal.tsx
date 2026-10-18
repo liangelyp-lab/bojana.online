@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Bell, Mail, X } from 'lucide-react';
-import { Button, Field, TextArea } from '../ui/DesignSystem';
+import { Bell, Mail } from 'lucide-react';
+import { Button, Field, Modal, TextArea } from '../ui/DesignSystem';
 
 export type ClientAlertActionType = 'revision' | 'informacion' | 'avance' | 'entrega' | 'borrador';
 
@@ -50,36 +50,13 @@ export default function ClientAlertModal({
     setActionType(initialAction);
   }, [initialAction, initialMessage, initialTitle, isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div className="w-full max-w-lg rounded-3xl border border-line bg-white p-5 shadow-2xl" onClick={(event) => event.stopPropagation()}>
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-stone text-ink-muted">
-              <Bell className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="font-display text-2xl text-ink">Avisar al cliente</h2>
-              <p className="mt-1 text-xs text-ink-muted">Publicá una alerta sobre la actualización del portal.</p>
-            </div>
-          </div>
-          <Button variant="icon" ariaLabel="Cerrar alerta" onClick={onClose}>
-            <X className="size-4" />
-          </Button>
+    <Modal open={isOpen} onClose={onClose} title="Avisar al cliente" maxWidth="max-w-lg">
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-stone text-ink-muted"><Bell className="size-5" aria-hidden="true" /></span>
+          <p className="text-xs text-ink-muted">Publicá una alerta sobre la actualización del portal.</p>
         </div>
-
-        <div className="mt-5 space-y-3">
           <div className="flex items-center gap-2 rounded-2xl bg-stone px-3 py-2 text-xs text-ink-muted">
             <Mail className="size-4" aria-hidden="true" />
             <span>{clientName} · {clientEmail || 'Email no configurado'}</span>
@@ -96,16 +73,14 @@ export default function ClientAlertModal({
             </select>
           </label>
           <TextArea label="Mensaje" rows={4} value={message} onChange={event => setMessage(event.target.value)} placeholder="Escribí un mensaje breve para el cliente..." />
-        </div>
-
-        <div className="mt-5 flex justify-end gap-2">
+      </div>
+      <div className="mt-5 flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>Cancelar</Button>
           <Button variant="primary" disabled={!title.trim() || !message.trim()} onClick={() => onSend(title.trim(), message.trim(), actionType)}>
             <Mail className="size-4" aria-hidden="true" />
             Enviar alerta
           </Button>
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 }

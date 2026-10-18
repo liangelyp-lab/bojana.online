@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ProjectData,
   DocumentoEntregable,
@@ -15,7 +15,7 @@ import {
   Search,
   UploadCloud
 } from 'lucide-react';
-import { Badge, Button, Field, InputControl, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
+import { Badge, Button, EmptyState, FilterTabs, Field, InputControl, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
 
 interface DocumentosModuleProps {
   project: ProjectData;
@@ -37,17 +37,6 @@ export default function DocumentosModule({
   // Modal states
   const [showAddDocModal, setShowAddDocModal] = useState(false);
   const [showAddRevisionModal, setShowAddRevisionModal] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!showAddDocModal && !showAddRevisionModal) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      if (showAddRevisionModal) setShowAddRevisionModal(null);
-      else setShowAddDocModal(false);
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [showAddDocModal, showAddRevisionModal]);
 
   // New Doc Form
   const [newTitle, setNewTitle] = useState('');
@@ -164,20 +153,13 @@ export default function DocumentosModule({
       {/* CATEGORIES FILTER & SEARCH BAR */}
       {docs.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
         {/* Category Tabs */}
-        <div role="tablist" aria-label="Categorías de documentos" className="bojana-filter-tablist w-full sm:w-auto">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              role="tab"
-              aria-selected={selectedCategory === cat}
-              onClick={() => setSelectedCategory(cat)}
-              className="bojana-filter-tab"
-            >
-              {cat === 'todos' ? 'Todos los Documentos' : cat}
-            </button>
-          ))}
-        </div>
+        <FilterTabs
+          ariaLabel="Categorías de documentos"
+          className="w-full sm:w-auto"
+          activeTab={selectedCategory}
+          onChange={setSelectedCategory}
+          tabs={categories.map((cat) => ({ id: cat, label: cat === 'todos' ? 'Todos los documentos' : cat }))}
+        />
 
         {/* Search Input */}
         <div className="relative w-full sm:w-72">
@@ -195,23 +177,12 @@ export default function DocumentosModule({
       {/* 3. DOCUMENTS LIST WITH VISIBLE VERSIONING */}
       <div className="space-y-bojana-block">
         {filteredDocs.length === 0 ? (
-          <div className="rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
-            <FileText className="size-10 text-ink-faint opacity-40 mx-auto" />
-            <h4 className="font-display text-xl text-ink">Aún no hay documentos publicados</h4>
-            <p className="text-xs text-ink-muted max-w-md mx-auto">
-              Los planos, memorias y entregables aparecerán aquí cuando se publiquen.
-            </p>
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowAddDocModal(true)}
-                className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-forest/90"
-              >
-                <span className="text-sm leading-none">+</span>
-                Agregar documento
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={FileText}
+            title="Aún no hay documentos publicados"
+            description="Los planos, memorias y entregables aparecerán aquí cuando se publiquen."
+            action={isAdmin ? { label: 'Agregar documento', onClick: () => setShowAddDocModal(true), icon: UploadCloud } : undefined}
+          />
         ) : (
           filteredDocs.map((doc) => {
             const currentRev = doc.revisiones.find(r => r.esActual) || doc.revisiones[0];
@@ -356,17 +327,7 @@ export default function DocumentosModule({
 
       {/* 4. MODAL: AGREGAR NUEVO DOCUMENTO (ADMIN) */}
       {showAddDocModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50" onClick={(event) => { if (event.target === event.currentTarget) setShowAddDocModal(false); }}>
-          <div className="bojana-modal bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget max-w-bojana-modal w-full p-6 shadow-bojana-widget space-y-bojana-block animate-scale-up" onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
-              <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
-                Registrar Nuevo Documento o Plano
-              </h3>
-              <button onClick={() => setShowAddDocModal(false)} className="bojana-button bojana-button-text text-bojana-muted hover:text-bojana-ink">
-                &times;
-              </button>
-            </div>
-
+        <Modal open={showAddDocModal} onClose={() => setShowAddDocModal(false)} title="Registrar nuevo documento o plano" maxWidth="max-w-2xl">
             <form onSubmit={handleAddDoc} className="space-y-bojana-block text-xs">
               <div>
                 <label className="font-sans text-bojana-muted font-medium block mb-1">Título del Documento</label>
@@ -454,21 +415,12 @@ export default function DocumentosModule({
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* 5. MODAL: SUBIR NUEVA REVISIÓN (ADMIN) */}
       {showAddRevisionModal && (
-        <div className="bojana-overlay" onClick={() => setShowAddRevisionModal(null)}>
-          <div className="bojana-modal bojana-widget max-w-bojana-modal w-full p-6 space-y-bojana-block animate-scale-up" role="dialog" aria-modal="true" aria-labelledby="revision-modal-title" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
-              <h3 id="revision-modal-title" className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
-                Subir Nueva Revisión Técnica
-              </h3>
-              <Button variant="icon" ariaLabel="Cerrar modal" onClick={() => setShowAddRevisionModal(null)}>×</Button>
-            </div>
-
+        <Modal open={Boolean(showAddRevisionModal)} onClose={() => setShowAddRevisionModal(null)} title="Subir nueva revisión técnica" maxWidth="max-w-2xl">
             <form onSubmit={handleAddRevision} className="space-y-bojana-block text-xs">
               <div>
                 <Field
@@ -491,7 +443,7 @@ export default function DocumentosModule({
                   required
                   placeholder="ej: Ajuste de cotas perimetrales y reubicación de conductos..."
                   value={revisionChanges}
-                  onChange={(e) => setNewRevChanges(e.target.value)}
+                  onChange={(e) => setRevisionChanges(e.target.value)}
                   className="text-xs"
               />
 
@@ -500,8 +452,7 @@ export default function DocumentosModule({
                 <Button type="submit">Publicar Revisión</Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { Button, Modal } from './DesignSystem';
 
 interface ManualCopyDialogProps {
   title: string;
@@ -16,35 +17,9 @@ export default function ManualCopyDialog({ title, url, onClose }: ManualCopyDial
   }, []);
 
   return (
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-bojana-ink/60 p-4 backdrop-blur-xs"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="manual-copy-dialog-title"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-    >
-      <div
-        className="w-full max-w-xl space-y-5 rounded-3xl border border-line bg-canvas p-6 shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Enlace listo</p>
-            <h2 id="manual-copy-dialog-title" className="mt-2 font-display text-2xl text-ink">
-              Acceso a {title}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            className="grid size-9 shrink-0 place-items-center rounded-full border border-line text-ink-muted transition hover:bg-stone hover:text-ink"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
+    <Modal open onClose={onClose} title={`Acceso a ${title}`} maxWidth="max-w-xl">
+      <div className="space-y-5">
+        <p className="bojana-label">Enlace listo</p>
 
         <p className="text-sm leading-relaxed text-ink-muted">
           El navegador bloqueó la copia automática. Seleccioná el enlace y copiá con ⌘C/Ctrl+C, o abrilo directamente.
@@ -61,16 +36,16 @@ export default function ManualCopyDialog({ title, url, onClose }: ManualCopyDial
         />
 
         <div className="flex flex-col-reverse items-stretch justify-end gap-3 sm:flex-row sm:items-center">
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => {
               inputRef.current?.focus();
               inputRef.current?.select();
             }}
-            className="rounded-full border border-line px-5 py-3 text-xs font-semibold text-ink transition hover:bg-stone"
           >
             Seleccionar enlace
-          </button>
+          </Button>
           <a
             href={url}
             target="_blank"
@@ -82,6 +57,6 @@ export default function ManualCopyDialog({ title, url, onClose }: ManualCopyDial
           </a>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

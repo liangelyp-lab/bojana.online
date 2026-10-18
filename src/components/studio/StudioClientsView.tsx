@@ -9,7 +9,7 @@ import {
   X,
   ChevronRight
 } from 'lucide-react';
-import { EmptyState } from '../ui/DesignSystem';
+import { Button, EmptyState, PageHeader } from '../ui/DesignSystem';
 
 interface StudioClientsViewProps {
   projects: ProjectData[];
@@ -37,21 +37,15 @@ export default function StudioClientsView({
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="border-b border-line pb-7">
-        <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-          Directorio de comitentes
-        </p>
-        <h1 className="mt-2 font-display text-4xl leading-tight font-normal text-ink">
-          Clientes
-        </h1>
-        <p className="mt-2 text-sm text-ink-muted leading-relaxed">
-          Relación de comitentes, empresas y promotores con proyectos activos en Bojana Estudio.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Directorio de comitentes"
+        title="Clientes"
+        description="Relación de comitentes, empresas y promotores con proyectos activos en Bojana Estudio."
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {/* Left: Clients List (Column 1 of 2) */}
-        <div className="space-y-4">
+      <div className="space-y-4">
+        {/* The directory and the selected record share the same area. */}
+        {!selectedClient && <div className="space-y-4">
           {clients.length === 0 ? (
             <EmptyState
               icon={Users2}
@@ -67,10 +61,11 @@ export default function StudioClientsView({
             ).length;
 
             return (
-              <div
+              <button
                 key={client.id}
+                type="button"
                 onClick={() => setSelectedClientId(client.id)}
-                className={`flex items-center justify-between gap-4 rounded-3xl border p-6 transition cursor-pointer shadow-sm ${
+                className={`flex w-full items-center justify-between gap-4 rounded-3xl border p-6 text-left transition cursor-pointer shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest ${
                   isSelected
                     ? 'border-forest bg-mint-pale/30 ring-2 ring-forest/20'
                     : 'border-line bg-white hover:border-line-strong hover:shadow-md'
@@ -93,14 +88,12 @@ export default function StudioClientsView({
                 }`}>
                   <ChevronRight className="size-4" />
                 </div>
-              </div>
+              </button>
             );
           })}
-        </div>
+        </div>}
 
-        {/* Right: Client Details & Projects Card (Column 2 of 2) */}
-        <div>
-          {selectedClient ? (
+        {selectedClient && (
             <div className="rounded-3xl border border-line bg-white p-7 shadow-sm space-y-6 animate-fade-in">
               <div className="flex items-start justify-between border-b border-line pb-5">
                 <div>
@@ -115,14 +108,9 @@ export default function StudioClientsView({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setSelectedClientId(null)}
-                  className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-stone hover:text-ink transition cursor-pointer active:scale-95"
-                  aria-label="Cerrar ficha"
-                >
+                <Button type="button" variant="icon" className="!size-8" onClick={() => setSelectedClientId(null)} ariaLabel="Cerrar ficha">
                   <X className="size-4" />
-                </button>
+                </Button>
               </div>
 
               {/* Contact Info */}
@@ -187,16 +175,7 @@ export default function StudioClientsView({
                 )}
               </div>
             </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-line bg-white/50 p-12 text-center text-xs text-ink-muted space-y-2">
-              <Users2 className="size-8 mx-auto text-ink-faint opacity-60 mb-2" />
-              <p className="font-medium text-ink">Selecciona un comitente</p>
-              <p className="text-ink-muted max-w-xs mx-auto">
-                Haz clic en cualquier cliente de la lista para ver su información de contacto y obras asociadas.
-              </p>
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );

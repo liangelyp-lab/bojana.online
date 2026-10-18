@@ -1,7 +1,7 @@
 import { MediaComparison } from '../ui/Media';
 import { decisionStateBadgeClasses } from '../../design/status';
-import { Badge, Button, InputControl, TextAreaControl } from '../ui/DesignSystem';
-import React, { useEffect, useState } from 'react';
+import { Badge, Button, EmptyState, FilterTabs, InputControl, Modal, TextAreaControl } from '../ui/DesignSystem';
+import React, { useState } from 'react';
 import {
   ProjectData,
   DecisionItem,
@@ -33,15 +33,6 @@ export default function DecisionesModule({
 }: DecisionesModuleProps) {
   const [filterStatus, setFilterStatus] = useState<string>('todos');
   const [showCreateModal, setShowCreateModal] = useState(false);
-
-  useEffect(() => {
-    if (!showCreateModal) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setShowCreateModal(false);
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [showCreateModal]);
 
   // Comment input per decision
   const [commentInputs, setCommentInputs] = useState<Record<string, string>>({});
@@ -240,22 +231,12 @@ export default function DecisionesModule({
 
       {/* FILTER TABS */}
       {decisiones.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
-        <div className="flex items-center gap-2 overflow-x-auto text-xs font-semibold">
-          {['todos', 'Pendiente', 'Aprobado', 'Requiere cambios'].map((st) => (
-            <button
-              key={st}
-              type="button"
-              onClick={() => setFilterStatus(st)}
-              className={`rounded-full px-4 py-2 transition cursor-pointer whitespace-nowrap ${
-                filterStatus === st
-                  ? 'bg-forest text-white'
-                  : 'text-ink-muted hover:bg-stone'
-              }`}
-            >
-              {st === 'todos' ? 'Todas las decisiones' : st}
-            </button>
-          ))}
-        </div>
+        <FilterTabs
+          ariaLabel="Estados de decisiones"
+          activeTab={filterStatus}
+          onChange={setFilterStatus}
+          tabs={['todos', 'Pendiente', 'Aprobado', 'Requiere cambios'].map((status) => ({ id: status, label: status === 'todos' ? 'Todas las decisiones' : status }))}
+        />
 
         <span className="text-xs text-ink-faint pr-2">
           {filteredDecisiones.length} solicitudes registradas
@@ -265,23 +246,12 @@ export default function DecisionesModule({
       {/* 3. DECISIONS FEED */}
       <div className="space-y-6">
         {filteredDecisiones.length === 0 ? (
-          <div className="rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-3">
-            <CheckSquare className="size-10 text-ink-faint opacity-40 mx-auto" />
-            <h4 className="font-display text-xl text-ink">No hay decisiones en este estado</h4>
-            <p className="text-xs text-ink-muted max-w-sm mx-auto">
-              Todas las consultas han sido procesadas o no hay solicitudes pendientes.
-            </p>
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowCreateModal(true)}
-                className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-forest/90"
-              >
-                <Plus className="size-3.5" />
-                Nueva solicitud
-              </button>
-            )}
-          </div>
+          <EmptyState
+            icon={CheckSquare}
+            title="No hay decisiones en este estado"
+            description="Todas las consultas han sido procesadas o no hay solicitudes pendientes."
+            action={isAdmin ? { label: 'Nueva solicitud', onClick: () => setShowCreateModal(true), icon: Plus } : undefined}
+          />
         ) : (
           filteredDecisiones.map((item) => {
             const isApproved = item.estado === 'Aprobado';
@@ -519,15 +489,7 @@ export default function DecisionesModule({
 
       {/* 5. MODAL: NUEVA SOLICITUD DE DECISIÓN (ADMIN) */}
       {showCreateModal && (
-        <div className="bojana-overlay" onClick={() => setShowCreateModal(false)}>
-          <div className="bojana-modal w-full max-w-2xl max-h-[90dvh] overflow-y-auto p-5 sm:p-6 space-y-5 animate-scale-up" role="dialog" aria-modal="true" aria-labelledby="decision-modal-title" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-bojana-line pb-3">
-              <h3 id="decision-modal-title" className="bojana-heading-component text-sm font-medium text-bojana-ink font-sans">
-                Crear Solicitud de Decisión o Revisión
-              </h3>
-              <Button variant="icon" ariaLabel="Cerrar modal" onClick={() => setShowCreateModal(false)}>×</Button>
-            </div>
-
+        <Modal open={showCreateModal} onClose={() => setShowCreateModal(false)} title="Crear solicitud de decisión o revisión" maxWidth="max-w-2xl">
             <form onSubmit={handleCreateDecision} className="space-y-4 text-xs">
               <div>
                 <label className="font-sans text-bojana-muted font-medium block mb-1">Tipo de Solicitud</label>
@@ -630,8 +592,7 @@ export default function DecisionesModule({
                 <Button type="submit">Publicar Solicitud</Button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
     </div>

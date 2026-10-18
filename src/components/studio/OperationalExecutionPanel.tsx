@@ -1523,12 +1523,12 @@ export default function OperationalExecutionPanel({
                 return (
                   <div
                     key={disc.id}
-                    className="border border-bojana-line rounded-bojana-widget overflow-hidden bg-bojana-surface shadow-bojana-widget"
+                    className="bojana-discipline-card border border-bojana-line rounded-bojana-widget overflow-hidden bg-bojana-surface shadow-bojana-widget"
                   >
                     {/* Discipline Header Bar */}
                     <div
                       onClick={() => toggleDiscipline(disc.id)}
-                      className="px-5 py-4 bg-bojana-surface/90 border-b border-bojana-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer hover:bg-bojana-soft/70 transition"
+                      className="bojana-discipline-header px-5 py-4 bg-bojana-surface/90 border-b border-bojana-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
                         {disc.id === 'Arquitectura' ? (
@@ -1562,9 +1562,7 @@ export default function OperationalExecutionPanel({
                               {/* Need Row */}
                               <div
                                 onClick={() => toggleNeed(need.id)}
-                                className={`px-5 py-3.5 flex items-center justify-between gap-3 cursor-pointer hover:bg-bojana-surface transition ${
-                                  isNeedExpanded ? "bg-bojana-surface/50" : ""
-                                }`}
+                                className="bojana-row-hover px-5 py-3.5 flex items-center justify-between gap-3 cursor-pointer"
                               >
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                   <span className={`w-4 h-4 rounded-bojana-badge flex items-center justify-center text-xs font-medium ${
@@ -1582,7 +1580,7 @@ export default function OperationalExecutionPanel({
                                     ariaLabel={(need.visibleCliente !== false) ? `Ocultar ${need.nombre} completo para el cliente` : `Mostrar ${need.nombre} completo para el cliente`}
                                     tooltip={(need.visibleCliente !== false) ? `Ocultar ${need.nombre} completo para el cliente` : `Mostrar ${need.nombre} completo para el cliente`}
                                     variant="icon"
-                                    className={`!size-8 !rounded-full !p-0 ${(need.visibleCliente !== false) ? '!bg-bojana-soft !text-bojana-success' : ''}`}
+                                    className={`!size-8 !rounded-full !p-0 ${(need.visibleCliente !== false) ? '!text-bojana-success' : ''}`}
                                     onClick={(event) => { event.stopPropagation(); handleToggleNeedVisibility(disc.id, need.id, need.visibleCliente !== false); }}
                                   >
                                     {(need.visibleCliente !== false) ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
@@ -1598,15 +1596,12 @@ export default function OperationalExecutionPanel({
                                   <span className="text-xs font-sans font-medium text-bojana-ink w-10 text-right">
                                     {needProg}%
                                   </span>
-                                  <span className="text-bojana-muted text-xs" aria-hidden="true">
-                                    {isNeedExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-                                  </span>
                                 </div>
                               </div>
 
                               {/* INLINE EXPANSION: 3 LAYERS OF INFORMATION */}
                               {isNeedExpanded && (
-                                <div className="bg-bojana-surface/70 p-4 sm:p-5 space-y-3 animate-fade-in">
+                                <div className="bojana-expanded-panel p-4 sm:p-5 space-y-3 animate-fade-in">
                                   {/* Layer 2 & 3: Items and Inline Details */}
                                   <div className="space-y-bojana-inside">
                                     {need.tareas.map((task) => {
@@ -1627,11 +1622,11 @@ export default function OperationalExecutionPanel({
                                           className={`rounded-bojana-widget border-[0.5px] border-bojana-line bg-bojana-surface overflow-hidden transition ${
                                             focusTaskId === task.id ? "focused-notification-task" : ""
                                           } ${
-                                            isTaskExpanded ? "border-bojana-line shadow-bojana-widget" : "border-bojana-line hover:border-bojana-line"
+                                            isTaskExpanded ? "bojana-task-expanded border-bojana-line shadow-bojana-widget" : "border-bojana-line hover:border-bojana-line"
                                           }`}
                                         >
                                           {/* Item Title Row */}
-                                          <div className="bojana-task-row flex cursor-pointer items-start sm:items-center justify-between gap-3"
+                                          <div className="bojana-task-row bojana-row-hover flex cursor-pointer items-start sm:items-center justify-between gap-3"
                                             onClick={() => { const close = activeTaskMode === 'update'; setTaskPanel(close ? null : { id: task.id, mode: 'update' }); setExpandedTaskId(close ? null : task.id); setUpdateDraftOpen(false); }}
                                           >
                                             <div className="flex items-center gap-bojana-inside flex-1 min-w-0">

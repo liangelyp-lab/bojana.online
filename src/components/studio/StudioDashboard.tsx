@@ -1,10 +1,9 @@
 import React from 'react';
 import { ProjectData } from '../../types';
 import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
-import { EmptyState } from '../ui/DesignSystem';
+import { Button, EmptyState, PageHeader } from '../ui/DesignSystem';
 import {
   Plus,
-  ChevronRight,
   FolderKanban
 } from 'lucide-react';
 
@@ -122,17 +121,11 @@ export default function StudioDashboard({
     <div className="space-y-6 animate-fade-in">
       {/* 1. PROYECTOS ACTIVOS */}
       <section className="space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-              Obras en curso
-            </p>
-            <h2 className="mt-1 font-display text-2xl text-ink">
-              Proyectos activos ({activeProjects.length})
-            </h2>
-          </div>
-
-        </div>
+        <PageHeader
+          eyebrow="Obras en curso"
+          title={`Proyectos activos (${activeProjects.length})`}
+          actions={<Button onClick={onNewProject}><Plus className="size-4" />Nuevo proyecto</Button>}
+        />
 
         {/* Project Cards Grid */}
         {activeProjects.length === 0 ? (
@@ -166,7 +159,7 @@ export default function StudioDashboard({
                 <div
                   key={p.id}
                   onClick={() => onSelectProject(p.id)}
-                  className="group flex flex-col justify-between rounded-3xl border border-line bg-white p-7 shadow-sm transition hover:border-line-strong hover:shadow-md cursor-pointer space-y-6"
+                  className="bojana-interactive-hover group flex flex-col justify-between rounded-3xl border border-line bg-white p-7 shadow-sm cursor-pointer space-y-6"
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs">
@@ -192,9 +185,6 @@ export default function StudioDashboard({
 
                   <div className="flex items-center justify-between border-t border-line pt-4 text-xs text-ink-muted">
                     <span>Actualizado {updateDate}</span>
-                    <span className="inline-flex items-center gap-1 font-semibold text-forest transition group-hover:translate-x-1">
-                      <ChevronRight className="size-5" aria-hidden="true" />
-                    </span>
                   </div>
                 </div>
               );

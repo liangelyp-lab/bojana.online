@@ -24,7 +24,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, EmptyState, InputControl, Tabs, TextAreaControl } from "./components/ui/DesignSystem";
+import { Badge, Button, Card, EmptyState, FilterBar, FilterTabs, InputControl, PageHeader, Tabs, TextAreaControl } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -820,19 +820,19 @@ function ProjectExecutionSummary({
 
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
-      <div className="mb-7 flex flex-wrap items-center gap-2 text-sm text-ink-faint">
-        <Button className="!h-auto !min-h-0 !px-0 !py-0 text-sm text-ink-muted hover:text-ink" onClick={onBack} variant="ghost">
+      <nav aria-label="Ruta de navegación" className="mb-7 flex flex-wrap items-center gap-2 text-sm font-medium text-ink-muted">
+        <button type="button" className="rounded-sm text-inherit hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest" onClick={onBack}>
           Proyectos
-        </Button>
+        </button>
         <Icon className="size-3.5" name="chevron" />
-        <span className="truncate text-ink-muted" aria-current="page">
+        <span className="truncate" aria-current="page">
           {project.info?.nombre || "Proyecto"}
         </span>
-      </div>
+      </nav>
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <Heading as="h1" className="font-display text-4xl font-normal leading-tight text-ink">
+            <Heading as="h1" className="bojana-heading-page">
               {project.info?.nombre || "Proyecto"}
             </Heading>
             <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold ${statusClasses}`}>
@@ -888,23 +888,19 @@ function StatCard({
   accent?: boolean
 }) {
   return (
-    <article
-      className={`rounded-2xl border p-5 ${
-        accent ? "border-clay/20 bg-clay-pale" : "border-line bg-white"
-      }`}
-    >
-      <p className="text-sm font-medium text-ink-muted">{label}</p>
-      <div className="mt-5 flex items-end justify-between gap-3">
-        <p className="font-display text-4xl leading-none text-ink">{value}</p>
+    <Card variant={accent ? "waiting" : "default"} className="min-w-0 !p-4">
+      <p className="text-xs font-medium leading-5 text-ink-muted">{label}</p>
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
+        <p className="font-display text-3xl leading-none text-ink">{value}</p>
         <p
-          className={`text-right text-xs leading-5 ${
+          className={`min-w-0 break-words text-xs leading-4 ${
             accent ? "font-semibold text-clay-dark" : "text-ink-faint"
           }`}
         >
           {detail}
         </p>
       </div>
-    </article>
+    </Card>
   )
 }
 
@@ -926,43 +922,35 @@ function TasksPanel({
   onOpenTask?: (task: Task) => void
 }) {
   const [filter, setFilter] = useState("Todas")
+  const [search, setSearch] = useState("")
   const visibleTasks = useMemo(
-    () =>
-      filter === "Todas"
-        ? tasks
-        : tasks.filter((task) => task.status === filter),
-    [filter, tasks],
+    () => tasks.filter((task) => {
+      const matchesStatus = filter === "Todas" || task.status === filter
+      const query = search.trim().toLocaleLowerCase()
+      return matchesStatus && (!query || `${task.title} ${task.area} ${task.owner}`.toLocaleLowerCase().includes(query))
+    }),
+    [filter, search, tasks],
   )
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-line bg-white">
-      <div className="flex flex-col gap-5 border-b border-line p-6 md:flex-row md:items-center md:justify-between">
-        <div>
-          <Eyebrow>Operacion</Eyebrow>
-          <Heading as="h2" className="mt-2 font-display text-3xl text-ink">
-            Tareas prioritarias
-          </Heading>
+    <section aria-label="Tareas del estudio" className="space-y-8">
+      <FilterBar>
+        <FilterTabs
+          ariaLabel="Filtros de tareas"
+          activeTab={filter}
+          onChange={setFilter}
+          tabs={["Todas", "En curso", "En revision", "Esperando cliente"].map((item) => ({ id: item, label: `${item} (${item === "Todas" ? tasks.length : tasks.filter((task) => task.status === item).length})` }))}
+        />
+        <div className="relative w-full sm:w-80 sm:shrink-0">
+          <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
+          <InputControl aria-label="Buscar tareas" type="search" placeholder="Buscar por tarea, proyecto o responsable..." value={search} onChange={(event) => setSearch(event.target.value)} className="rounded-full bg-canvas/60 py-2 pl-10 pr-4 text-xs" />
         </div>
-        <div className="flex flex-wrap gap-2">
-          {["Todas", "En curso", "En revision", "Esperando cliente"].map(
-            (item) => (
-              <Button
-                className={filter === item ? "!bg-ink !text-white" : ""}
-                key={item}
-                onClick={() => setFilter(item)}
-                variant="ghost"
-              >
-                {item}
-              </Button>
-            ),
-          )}
-        </div>
-      </div>
+      </FilterBar>
 
-      <div>
+      <div className="overflow-hidden rounded-3xl border border-line bg-white">
         {visibleTasks.map((task) => (
           <article
-            className={`grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_auto] md:items-center md:px-6 ${onOpenTask && task.projectId ? "cursor-pointer transition hover:bg-canvas/60" : ""}`}
+            className={`grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_13rem] md:items-center md:px-6 ${onOpenTask && task.projectId ? "bojana-row-hover cursor-pointer" : ""}`}
             key={task.title}
             onClick={() => onOpenTask?.(task)}
           >
@@ -1012,7 +1000,7 @@ function TasksPanel({
         ))}
         {visibleTasks.length === 0 && (
           <p className="p-8 text-center text-sm text-ink-faint">
-            No hay tareas con este estado.
+            No hay tareas que coincidan con los filtros o la búsqueda.
           </p>
         )}
       </div>
@@ -1512,8 +1500,9 @@ function AdminPortal({
   const waitingClientCount = useMemo(() => workspaceDecision?.status === "pendiente" ? 1 : 0, [workspaceDecision])
   const progressPercent = workspaceTasks.length ? Math.round((completedCount / workspaceTasks.length) * 100) : 0
   const deliveryDate = currentProject?.info?.fechaFin
-  const deliveryDays = deliveryDate
-    ? Math.max(0, Math.ceil((new Date(`${deliveryDate}T00:00:00`).getTime() - Date.now()) / 86400000))
+  const deliveryTimestamp = deliveryDate ? new Date(`${deliveryDate}T00:00:00`).getTime() : Number.NaN
+  const deliveryDays = Number.isFinite(deliveryTimestamp)
+    ? Math.max(0, Math.ceil((deliveryTimestamp - Date.now()) / 86400000))
     : null
   const nextMilestone = currentProject?.info?.proximoHito || workspaceMilestones[0]?.nombre || "Sin próximo hito"
 
@@ -1535,7 +1524,7 @@ function AdminPortal({
           canAccessSettings={canAccessSettings}
           onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen") }}
         />
-        <div className="min-w-0 flex-1 lg:min-h-0 lg:overflow-y-auto">
+        <div className="min-w-0 flex-1 lg:min-h-0 lg:overflow-y-auto lg:[scrollbar-gutter:stable]">
           <AdminHeader
             openMenu={() => setMenuOpen(!menuOpen)}
           />
@@ -1661,7 +1650,7 @@ function AdminPortal({
                 {/* Sub-tab: Resumen */}
                 {activeTab === "Resumen" && (
                   <>
-                    <section className="mt-8 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                    <section className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
                       <StatCard
                         detail={`${completedCount} de ${workspaceTasks.length} tareas`}
                         label="Progreso general"
@@ -1754,15 +1743,7 @@ function AdminPortal({
             {/* 4. TAREAS VIEW (CROSS-PROJECT) */}
             {activeNav === "Tareas" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <div className="border-b border-line pb-7">
-                  <Eyebrow>Operación del estudio</Eyebrow>
-                  <Heading as="h1" className="mt-2 font-display text-4xl font-normal leading-tight text-ink">
-                    Todas las tareas del estudio
-                  </Heading>
-                  <p className="mt-2 text-sm text-ink-muted">
-                    Supervisión conjunta de las tareas y entregas de todos los proyectos.
-                  </p>
-                </div>
+                <PageHeader eyebrow="Operación del estudio" title="Todas las tareas del estudio" description="Supervisión conjunta de las tareas y entregas de todos los proyectos." />
                 {studyTasks.length === 0 ? (
                   <EmptyState
                     title="Todavía no hay tareas"
@@ -1802,15 +1783,7 @@ function AdminPortal({
             {/* 6. BIBLIOTECA VIEW */}
             {activeNav === "Biblioteca" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <div className="border-b border-line pb-7">
-                  <Eyebrow>Documentos del estudio</Eyebrow>
-                  <Heading as="h1" className="mt-2 font-display text-4xl font-normal leading-tight text-ink">
-                    Biblioteca de documentos
-                  </Heading>
-                  <p className="mt-2 text-sm text-ink-muted">
-                    Un solo lugar para consultar todos los archivos, documentos y entregables de Bojana Estudio.
-                  </p>
-                </div>
+                <PageHeader eyebrow="Documentos del estudio" title="Biblioteca de documentos" description="Un solo lugar para consultar todos los archivos, documentos y entregables de Bojana Estudio." />
                 <Library items={libraryItems} onToast={onPublishToast} />
               </div>
             )}

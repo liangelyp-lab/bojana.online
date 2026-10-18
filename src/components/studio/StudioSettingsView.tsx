@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Check, ChevronDown, Copy, Info, KeyRound, Pencil, Plus, Save, Send, Settings2, Trash2, UserRoundCog, X } from "lucide-react"
 import type { ProjectData } from "../../types"
-import { Brand, Button, Drawer, Field, Select } from "../ui/DesignSystem"
+import { Brand, Button, Drawer, EmptyState, Field, PageHeader, Select } from "../ui/DesignSystem"
 import DriveConnectionSettings from "../storage/DriveConnectionSettings"
 
 interface TeamUser {
@@ -106,6 +106,7 @@ export default function StudioSettingsView({
   const [editingEmail, setEditingEmail] = useState("")
   const [editingRole, setEditingRole] = useState("team")
   const [usersLoadError, setUsersLoadError] = useState("")
+  const [usersLoading, setUsersLoading] = useState(true)
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [ownerSettingsOpen, setOwnerSettingsOpen] = useState(false)
 
@@ -141,6 +142,7 @@ export default function StudioSettingsView({
               : "No pudimos cargar los usuarios de Supabase.",
           )
       })
+      .finally(() => { if (!cancelled) setUsersLoading(false) })
     return () => {
       cancelled = true
     }
@@ -460,19 +462,12 @@ export default function StudioSettingsView({
           {usersLoadError}
         </p>
       )}
-      <div className="border-b border-line pb-7">
-        <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-          Preferencias de la firma
-        </p>
-        <div className="flex items-start justify-between gap-5">
-          <h1 className="mt-2 font-display text-4xl leading-tight font-normal text-ink">Configuración del estudio</h1>
-          {currentUserRole === "owner" && <Button variant="icon" tooltip="Configuración del estudio" ariaLabel="Abrir configuración del estudio" onClick={() => setOwnerSettingsOpen(true)}><Settings2 className="size-4" /></Button>}
-        </div>
-        <p className="mt-2 text-sm leading-relaxed text-ink-muted">
-          Datos institucionales, accesos y parámetros aplicados por defecto a
-          los proyectos.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Preferencias de la firma"
+        title="Configuración del estudio"
+        description="Datos institucionales, accesos y parámetros aplicados por defecto a los proyectos."
+        actions={currentUserRole === "owner" ? <Button variant="icon" tooltip="Configuración del estudio" ariaLabel="Abrir configuración del estudio" onClick={() => setOwnerSettingsOpen(true)}><Settings2 className="size-4" /></Button> : undefined}
+      />
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
         {currentUserRole === "owner" ? <div className="hidden lg:col-span-7">
           <form
@@ -691,7 +686,7 @@ export default function StudioSettingsView({
             </p>
           )}
           <div className="mt-5 space-y-3">
-            {teamUsers.length === 0 && <p className="p-6 text-center text-sm text-ink-muted">Todavía no hay usuarios registrados.</p>}
+            {usersLoading ? <p role="status" className="p-6 text-center text-sm text-ink-muted">Cargando usuarios...</p> : !usersLoadError && teamUsers.length === 0 && <EmptyState icon={UserRoundCog} title="Todavía no hay usuarios registrados" description="Los usuarios con acceso al estudio aparecerán aquí." />}
             {teamUsers.map((user) => {
               const isOwner = user.rol === "owner"
               const isEditing = editingUser?.id === user.id
