@@ -144,15 +144,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!savedProjectIds.length) return res.status(400).json({ error: "Seleccioná al menos un proyecto válido." });
       return res.status(200).json({ user: { id: authData.id, name, email, role }, password: temporaryPassword });
     }
-    const inviteText = await inviteResponse.text();
+    const inviteText = await authResponse.text();
     let inviteData: { id?: string; user?: { id?: string }; action_link?: string; msg?: string; message?: string; error?: string; error_description?: string } = {};
     try { inviteData = JSON.parse(inviteText) as typeof inviteData; } catch { /* preserve the raw response below */ }
     const invitedUserId = inviteData.user?.id || inviteData.id;
-    if (!inviteResponse.ok || !invitedUserId || !inviteData.action_link) {
+    if (!authResponse.ok || !invitedUserId || !inviteData.action_link) {
       const rawReason = inviteText.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       const reason = inviteData.msg || inviteData.message || inviteData.error_description || inviteData.error || rawReason || "No pudimos generar la invitación.";
       const alreadyExists = /already|registered|exists|duplicate|registrad/i.test(reason);
-      return res.status(inviteResponse.status || 502).json({ error: alreadyExists ? "Ese email ya tiene una cuenta en Supabase. Usá otro email o recuperá la cuenta existente." : reason });
+      return res.status(authResponse.status || 502).json({ error: alreadyExists ? "Ese email ya tiene una cuenta en Supabase. Usá otro email o recuperá la cuenta existente." : reason });
     }
 
     const userResponse = await fetch(`${baseUrl}/rest/v1/studio_users`, {
