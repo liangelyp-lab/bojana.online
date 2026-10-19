@@ -265,16 +265,14 @@ export function PageHeader({
 }) {
   return (
     <header className={`bojana-page-header ${divider ? 'bojana-page-header-divider' : ''}`}>
-      <div className="flex min-w-0 items-center gap-3">
-        {leading && <span className="shrink-0">{leading}</span>}
-        <div className="min-w-0">
-          {eyebrow && <p className="bojana-label">{eyebrow}</p>}
-          <div className="flex flex-wrap items-center gap-3">
-            <Heading className={`bojana-heading-page ${eyebrow ? 'mt-2' : ''}`}>{title}</Heading>
-            {titleAccessory}
-          </div>
-        {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-muted">{description}</p>}
+      <div className="min-w-0">
+        {eyebrow && <p className="bojana-label">{eyebrow}</p>}
+        <div className={`flex flex-wrap items-center gap-1.5 ${eyebrow ? 'mt-2' : ''}`}>
+          {leading && <span className="shrink-0">{leading}</span>}
+          <Heading className="bojana-heading-page">{title}</Heading>
+          {titleAccessory}
         </div>
+        {description && <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-muted">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </header>

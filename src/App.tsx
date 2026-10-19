@@ -677,7 +677,7 @@ function ProjectExecutionSummary({
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
       <PageHeader
-        leading={<Button ariaLabel="Volver a proyectos" onClick={onBack} size="m" tooltip="Volver a proyectos" variant="tertiary"><ArrowLeft className="size-4" /></Button>}
+        leading={<Button ariaLabel="Volver a proyectos" className="!size-6 !min-h-0 !rounded-full !p-0" onClick={onBack} size="xs" tooltip="Volver a proyectos" variant="tertiary"><ArrowLeft className="size-3" /></Button>}
         title={project.info?.nombre || "Proyecto"}
         titleAccessory={<StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>}
         description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span></>}

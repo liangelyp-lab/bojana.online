@@ -179,7 +179,7 @@ export const HeaderAndBrand: Story = {
         ? <Button size="s" variant="secondary">Editar</Button>
         : undefined;
     const actions = <>{showIconButtons && <><Button ariaLabel="Configurar" size="m" tooltip="Configurar" variant="icon"><PortalIcon icon={Settings} size="m" /></Button><Button ariaLabel="Ver" size="m" tooltip="Ver" variant="icon"><PortalIcon icon={Eye} size="m" /></Button></>}{showSecondaryAction && <Button variant="secondary">Solicitar acción</Button>}<Button>New project</Button></>;
-    return <PageHeader eyebrow={showEyebrow ? eyebrow : undefined} title={title} description={showDescription ? description : undefined} leading={showBackButton ? <Button ariaLabel="Volver" size="s" variant="tertiary"><ArrowLeft className="size-4" /></Button> : undefined} titleAccessory={accessory} divider={showDivider} actions={actions} />;
+    return <PageHeader eyebrow={showEyebrow ? eyebrow : undefined} title={title} description={showDescription ? description : undefined} leading={showBackButton ? <Button ariaLabel="Volver" className="!size-6 !min-h-0 !rounded-full !p-0" size="xs" variant="tertiary"><ArrowLeft className="size-3" /></Button> : undefined} titleAccessory={accessory} divider={showDivider} actions={actions} />;
   },
 };
 
