@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Bell, Building2, CheckCircle2, CircleAlert, FolderOpen, Plus, Search } from 'lucide-react';
+import { ArrowLeft, Bell, Building2, CheckCircle2, CircleAlert, Eye, FolderOpen, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Brand, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TextArea } from './DesignSystem';
+import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TextArea } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Componentes',
@@ -147,13 +147,18 @@ function OverlayExample() {
 export const ModalAndPanel: Story = { render: () => <OverlayExample /> };
 
 export const HeaderAndBrand: Story = {
-  name: 'Header and Brand',
+  name: 'Header',
   args: {
     title: 'Projects',
     eyebrow: 'Studio',
     description: "An overview of the studio's projects.",
     showEyebrow: true,
     showDescription: true,
+    showBackButton: false,
+    showDivider: false,
+    titleAccessory: 'none',
+    showSecondaryAction: false,
+    showIconButtons: false,
   },
   argTypes: {
     title: { control: 'text', description: 'Título principal' },
@@ -161,8 +166,21 @@ export const HeaderAndBrand: Story = {
     description: { control: 'text', description: 'Texto bajo el título' },
     showEyebrow: { control: 'boolean', description: 'Mostrar el texto sobre el título' },
     showDescription: { control: 'boolean', description: 'Mostrar el texto bajo el título' },
+    showBackButton: { control: 'boolean', description: 'Mostrar botón de volver antes del título' },
+    showDivider: { control: 'boolean', description: 'Mostrar divisor inferior' },
+    titleAccessory: { control: 'select', options: ['none', 'badge', 'button'], description: 'Componente a la derecha del título' },
+    showSecondaryAction: { control: 'boolean', description: 'Mostrar botón secundario a la derecha' },
+    showIconButtons: { control: 'boolean', description: 'Mostrar icon-buttons a la derecha' },
   },
-  render: ({ title, eyebrow, description, showEyebrow, showDescription }) => <div className="space-y-8"><Brand /><PageHeader eyebrow={showEyebrow ? eyebrow : undefined} title={title} description={showDescription ? description : undefined} actions={<Button>New project</Button>} /></div>,
+  render: ({ title, eyebrow, description, showEyebrow, showDescription, showBackButton, showDivider, titleAccessory, showSecondaryAction, showIconButtons }) => {
+    const accessory = titleAccessory === 'badge'
+      ? <Badge tone="active">Activo</Badge>
+      : titleAccessory === 'button'
+        ? <Button size="s" variant="secondary">Editar</Button>
+        : undefined;
+    const actions = <>{showIconButtons && <><Button ariaLabel="Configurar" size="m" tooltip="Configurar" variant="icon"><PortalIcon icon={Settings} size="m" /></Button><Button ariaLabel="Ver" size="m" tooltip="Ver" variant="icon"><PortalIcon icon={Eye} size="m" /></Button></>}{showSecondaryAction && <Button variant="secondary">Solicitar acción</Button>}<Button>New project</Button></>;
+    return <PageHeader eyebrow={showEyebrow ? eyebrow : undefined} title={title} description={showDescription ? description : undefined} leading={showBackButton ? <Button ariaLabel="Volver" size="s" variant="tertiary"><ArrowLeft className="size-4" /></Button> : undefined} titleAccessory={accessory} divider={showDivider} actions={actions} />;
+  },
 };
 
 const paletteGroups = [

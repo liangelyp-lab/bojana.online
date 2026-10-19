@@ -685,19 +685,11 @@ function ProjectExecutionSummary({
           {project.info?.nombre || "Proyecto"}
         </span>
       </nav>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Heading as="h1" className="bojana-heading-page">
-              {project.info?.nombre || "Proyecto"}
-            </Heading>
-            <StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>
-          </div>
-          <p className="mt-1 text-xs text-ink-muted">
-            {project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span>
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2.5">
+      <PageHeader
+        title={project.info?.nombre || "Proyecto"}
+        titleAccessory={<StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>}
+        description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span></>}
+        actions={<>
           <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="m" tooltip="Configurar proyecto" variant="icon">
             <PortalIcon icon={Settings} size="m" />
           </Button>
@@ -706,8 +698,8 @@ function ProjectExecutionSummary({
           </Button>
           <Button onClick={onRequestAction} variant="secondary"><Icon className="size-4" name="message" /> Solicitar acción</Button>
           <Button onClick={onPublish} variant="primary"><Icon className="size-4" name="publish" /> Publicación y acceso</Button>
-        </div>
-      </div>
+        </>}
+      />
       <div className="mt-8">
         <ProjectProgressBar project={project} value={progress} />
       </div>

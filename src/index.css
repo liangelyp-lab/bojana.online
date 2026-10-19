@@ -304,6 +304,11 @@
     gap: 1.5rem;
   }
 
+  .bojana-page-header-divider {
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+
   @media (max-width: 639px) {
     .bojana-page-header { align-items: flex-start; flex-direction: column; }
   }
