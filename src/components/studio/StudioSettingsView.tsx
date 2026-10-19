@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
-import { Check, ChevronDown, Copy, Info, KeyRound, Pencil, Plus, Save, Send, Settings2, Trash2, UserRoundCog, X } from "lucide-react"
+import { ChevronDown, Copy, Info, KeyRound, Pencil, Plus, Save, Send, Settings2, Trash2, UserRoundCog, X } from "lucide-react"
 import type { ProjectData } from "../../types"
-import { Brand, Button, Drawer, EmptyState, Field, PageHeader, Select } from "../ui/DesignSystem"
+import { Brand, Button, Checkbox, Drawer, EmptyState, Field, PageHeader, Select } from "../ui/DesignSystem"
 import DriveConnectionSettings from "../storage/DriveConnectionSettings"
 
 interface TeamUser {
@@ -60,13 +60,7 @@ function ProjectMultiSelect({
         <div className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-2xl border border-line bg-white p-2 shadow-lg">
           {projects.length === 0 ? <p className="p-3 text-xs text-ink-muted">Todavía no hay proyectos.</p> : projects.map((project) => {
             const checked = selectedProjectIds.includes(project.id)
-            return <label key={project.id} className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-xs text-ink hover:bg-stone">
-              <span className={`flex size-4 items-center justify-center rounded border ${checked ? "border-forest bg-forest text-white" : "border-line-strong"}`}>
-                {checked && <Check className="size-3" />}
-              </span>
-              <input className="sr-only" type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked ? [...selectedProjectIds, project.id] : selectedProjectIds.filter((id) => id !== project.id))} />
-              <span>{project.info?.nombre || project.id}</span>
-            </label>
+            return <Checkbox key={project.id} label={project.info?.nombre || project.id} checked={checked} onChange={(isChecked) => onChange(isChecked ? [...selectedProjectIds, project.id] : selectedProjectIds.filter((id) => id !== project.id))} className="rounded-xl px-3 py-2.5 text-xs hover:bg-stone" />
           })}
         </div>
       </details>

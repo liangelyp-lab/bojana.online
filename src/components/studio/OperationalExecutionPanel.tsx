@@ -1,6 +1,7 @@
 import {
   Badge,
   Button,
+  Checkbox,
   Field,
   InputControl,
   SearchInput,
@@ -974,33 +975,7 @@ export default function OperationalExecutionPanel({
             </div>
             <div className="mt-2 grid gap-1.5 sm:grid-cols-2">
               {task.subetapas.map((stage) => (
-                <label
-                  key={stage.id}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs hover:bg-bojana-surface"
-                >
-                  <input
-                    type="checkbox"
-                    checked={stage.completada}
-                    onChange={() =>
-                      handleToggleSubtask(disc.id, need.id, task.id, stage.id)
-                    }
-                    className="size-3.5 accent-ink"
-                  />
-                  <span
-                    className={
-                      stage.completada
-                        ? "text-bojana-muted line-through"
-                        : "text-bojana-ink"
-                    }
-                  >
-                    {stage.label}
-                  </span>
-                  {stage.pesoPorcentaje !== undefined && (
-                    <span className="ml-auto text-[11px] text-bojana-muted">
-                      {stage.pesoPorcentaje}%
-                    </span>
-                  )}
-                </label>
+                <Checkbox key={stage.id} className="rounded-lg px-2 py-1.5 text-xs hover:bg-bojana-surface" checked={stage.completada} onChange={() => handleToggleSubtask(disc.id, need.id, task.id, stage.id)} label={<span className="flex min-w-0 flex-1 items-center"><span className={stage.completada ? "text-bojana-muted line-through" : "text-bojana-ink"}>{stage.label}</span>{stage.pesoPorcentaje !== undefined && <span className="ml-auto text-[11px] text-bojana-muted">{stage.pesoPorcentaje}%</span>}</span>} />
               ))}
             </div>
           </section>
@@ -1738,31 +1713,7 @@ export default function OperationalExecutionPanel({
                 </span>
                 <div className="space-y-bojana-inside">
                   {(task.subetapas || []).map((sub) => (
-                    <div
-                      key={sub.id}
-                      className="flex items-center gap-bojana-inside cursor-pointer p-1 rounded-bojana-widget hover:bg-bojana-surface transition"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={sub.completada}
-                        onChange={() =>
-                          handleToggleSubtask(disc.id, need.id, task.id, sub.id)
-                        }
-                        className="rounded-bojana-widget text-bojana-ink focus:ring-bojana-focus cursor-pointer"
-                      />
-                      <span
-                        className={
-                          sub.completada
-                            ? "text-bojana-muted line-through text-xs"
-                            : "text-bojana-ink text-xs"
-                        }
-                      >
-                        {sub.label}
-                      </span>
-                      <span className="text-xs font-sans text-bojana-muted ml-auto">
-                        {sub.pesoPorcentaje}%
-                      </span>
-                    </div>
+                    <Checkbox key={sub.id} className="rounded-bojana-widget p-1 hover:bg-bojana-surface" checked={sub.completada} onChange={() => handleToggleSubtask(disc.id, need.id, task.id, sub.id)} label={<span className="flex min-w-0 flex-1 items-center"><span className={sub.completada ? "text-bojana-muted line-through text-xs" : "text-bojana-ink text-xs"}>{sub.label}</span><span className="ml-auto text-xs font-sans text-bojana-muted">{sub.pesoPorcentaje}%</span></span>} />
                   ))}
                 </div>
               </div>

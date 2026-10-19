@@ -158,35 +158,58 @@ export function Button({
 }
 
 export function Checkbox({
+  id,
   label,
   description,
-  checked = false,
+  checked,
+  defaultChecked = false,
   disabled = false,
   indeterminate = false,
   onChange,
+  onClick,
+  ariaLabel,
+  className = '',
 }: {
+  id?: string;
   label?: React.ReactNode;
   description?: React.ReactNode;
   checked?: boolean;
+  defaultChecked?: boolean;
   disabled?: boolean;
   indeterminate?: boolean;
-  onChange?: (checked: boolean) => void;
+  onChange?: (checked: boolean, event: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick?: React.MouseEventHandler<HTMLInputElement>;
+  ariaLabel?: string;
+  className?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const generatedId = useId();
+  const inputId = id ?? `checkbox-${generatedId}`;
+  const descriptionId = description ? `${inputId}-description` : undefined;
+  const [uncontrolledChecked, setUncontrolledChecked] = useState(defaultChecked);
+  const isControlled = checked !== undefined;
+  const isChecked = isControlled ? checked : uncontrolledChecked;
   useEffect(() => {
     if (inputRef.current) inputRef.current.indeterminate = indeterminate;
   }, [indeterminate]);
-  return <label className={`flex cursor-pointer items-start gap-2.5 text-sm text-ink ${disabled ? 'cursor-not-allowed opacity-45' : ''}`}>
+  return <label htmlFor={inputId} className={`flex cursor-pointer items-start gap-2.5 text-sm text-ink ${disabled ? 'cursor-not-allowed opacity-45' : ''} ${className}`}>
     <input
+      id={inputId}
       ref={inputRef}
       type="checkbox"
-      checked={checked}
+      checked={isChecked}
       disabled={disabled}
-      aria-checked={indeterminate ? 'mixed' : checked}
-      onChange={(event) => onChange?.(event.target.checked)}
-      className="mt-0.5 size-4 rounded border-line accent-forest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-forest/30"
+      aria-label={ariaLabel}
+      aria-checked={indeterminate ? 'mixed' : isChecked}
+      aria-describedby={descriptionId}
+      onChange={(event) => {
+        if (!isControlled) setUncontrolledChecked(event.target.checked);
+        onChange?.(event.target.checked, event);
+      }}
+      onClick={onClick}
+      className="mt-0.5 size-4 shrink-0 rounded border-line accent-mint-strong checked:border-mint-strong checked:bg-mint-strong indeterminate:border-mint-strong indeterminate:bg-mint-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-mint-strong/30"
     />
-    <span className="min-w-0">{label && <span className="block">{label}</span>}{description && <span className="mt-0.5 block text-xs text-ink-muted">{description}</span>}</span>
+    <span className="min-w-0">{label && <span className="block leading-5">{label}</span>}{description && <span id={descriptionId} className="bojana-caption mt-0.5 block">{description}</span>}</span>
   </label>;
 }
 

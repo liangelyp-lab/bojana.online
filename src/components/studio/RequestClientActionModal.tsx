@@ -15,7 +15,7 @@ import {
   Calendar,
   ExternalLink
 } from 'lucide-react';
-import { StatusBadge, Button, InputControl, Tabs, TextAreaControl } from '../ui/DesignSystem';
+import { StatusBadge, Button, Checkbox, Tabs, TextAreaControl } from '../ui/DesignSystem';
 import { createSecureProjectLink } from '../../services/projectAccess';
 
 interface RequestClientActionModalProps {
@@ -480,22 +480,12 @@ export default function RequestClientActionModal({
 
               {/* Blocking & Weight Options */}
               <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3 font-sans text-xs">
-                <label className="flex items-start gap-bojana-inside cursor-pointer">
-                  <InputControl
-                    type="checkbox"
-                    checked={bloquear}
-                    onChange={(e) => setBloquear(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 rounded-bojana-widget text-bojana-ink border-bojana-line focus:ring-0"
-                  />
-                  <div>
-                    <strong className="text-bojana-ink font-sans block">
-                      Bloquear las siguientes etapas hasta recibir respuesta
-                    </strong>
-                    <span className="text-xs text-bojana-muted font-sans leading-tight block mt-0.5">
-                      Indica al sistema y al cliente que la continuación de la obra o documentación depende de esta decisión.
-                    </span>
-                  </div>
-                </label>
+                <Checkbox
+                  label={<><strong className="block font-sans text-bojana-ink">Bloquear las siguientes etapas hasta recibir respuesta</strong><span className="bojana-caption mt-0.5 block">Indica al sistema y al cliente que la continuación de la obra o documentación depende de esta decisión.</span></>}
+                  checked={bloquear}
+                  onChange={setBloquear}
+                  className="items-start"
+                />
 
                 <div className="pt-2 border-t border-bojana-line flex items-center justify-between text-bojana-muted">
                   <span>Porcentaje que desbloquea la aprobación:</span>

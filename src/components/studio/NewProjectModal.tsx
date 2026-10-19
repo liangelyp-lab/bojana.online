@@ -20,7 +20,7 @@ import {
   getClientProjectSequence,
   hasDependencyCycle,
 } from "../../services/projectStructure";
-import { Button, Field as DesignSystemField, SelectControl, Tabs } from "../ui/DesignSystem";
+import { Button, Checkbox, Field as DesignSystemField, SelectControl, Tabs } from "../ui/DesignSystem";
 
 interface Props {
   isOpen: boolean;
@@ -820,23 +820,16 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                     )
                   }
                 />
-                <label className="flex items-center min-h-11 gap-bojana-inside text-sm">
-                  <input
-                    type="checkbox"
-                    checked={c.accesoPortal}
-                    onChange={(e) =>
+                <Checkbox label="Acceso al portal" checked={c.accesoPortal} onChange={(isChecked) =>
                       set(
                         "contactos",
                         draft.contactos.map((x) =>
                           x.id === c.id
-                            ? { ...x, accesoPortal: e.target.checked }
+                            ? { ...x, accesoPortal: isChecked }
                             : x,
                         ),
                       )
-                    }
-                  />
-                  Acceso al portal
-                </label>
+                    } />
                 <Remove
                   label={`Quitar contacto ${c.nombre}`}
                   onClick={() =>
@@ -863,12 +856,10 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
               <legend className="mb-2 text-sm">Disciplinas participantes</legend>
               <div className="flex flex-wrap gap-bojana-inside">
                 {disciplines.map((disc) => (
-                  <label key={disc} className="flex min-h-11 items-center gap-bojana-inside rounded-bojana-widget border border-bojana-line px-3">
-                    <input
-                      type="checkbox"
+                  <Checkbox key={disc} className="min-h-11 rounded-bojana-widget border border-bojana-line px-3" label={disc === "Ingeniería" ? "Ingeniería Civil" : disc}
                       checked={draft.disciplinas.includes(disc)}
-                      onChange={(e) => {
-                        if (e.target.checked) set("disciplinas", [...draft.disciplinas, disc]);
+                      onChange={(isChecked) => {
+                        if (isChecked) set("disciplinas", [...draft.disciplinas, disc]);
                         else {
                           const removed = draft.necesidades.filter((n) => n.disciplina === disc).flatMap((n) => n.tareas.map((t) => t.id));
                           setDraft((prev) => ({
@@ -881,10 +872,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                             })),
                           }));
                         }
-                      }}
-                    />
-                    {disc === "Ingeniería" ? "Ingeniería Civil" : disc}
-                  </label>
+                      }} />
                 ))}
               </div>
             </fieldset>
@@ -945,21 +933,14 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                       {deliverableOptions.map(([type, label]) => {
                         const checked = (need.tiposContenido || ["archivo"]).includes(type);
                         return (
-                          <label key={type} className="inline-flex min-w-0 cursor-pointer items-center gap-1.5 whitespace-nowrap text-[11px] font-semibold text-ink-muted transition hover:text-ink">
-                            <input
-                              type="checkbox"
-                              className="size-3.5 accent-ink"
-                              checked={checked}
+                          <Checkbox key={type} className="min-w-0 whitespace-nowrap text-[11px] font-semibold text-ink-muted" label={label} checked={checked}
                               onChange={() => {
                                 const currentTypes = need.tiposContenido || ["archivo"];
                                 const nextTypes = checked
                                   ? currentTypes.filter((item) => item !== type)
                                   : [...currentTypes, type];
                                 updateNeed(need.id, { tiposContenido: nextTypes, tareas: need.tareas.map((task) => ({ ...task, tiposContenido: nextTypes })) });
-                              }}
-                            />
-                            {label}
-                          </label>
+                              }} />
                         );
                       })}
                     </div>
@@ -1040,12 +1021,10 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                       {(task.subetapas || []).map((stage, stageIndex) => (
                         editingStageId === `${task.id}:${stage.id}` ? (
                           <div key={stage.id} data-stage-editor="true" className="grid items-end gap-bojana-inside sm:grid-cols-[auto_minmax(0,1fr)]">
-                            <input
-                              type="checkbox"
-                              className="mb-2 size-4 accent-ink"
+                            <Checkbox className="mb-2"
                               checked={stage.completada || false}
-                              aria-label={`Completar ${stageIndex + 1}`}
-                              onChange={(event) => updateTask(need, task.id, { subetapas: (task.subetapas || []).map(item => item.id === stage.id ? { ...item, completada: event.target.checked } : item) })}
+                              ariaLabel={`Completar ${stageIndex + 1}`}
+                              onChange={(isChecked) => updateTask(need, task.id, { subetapas: (task.subetapas || []).map(item => item.id === stage.id ? { ...item, completada: isChecked } : item) })}
                             />
                             <Field compact label="" placeholder={`Etapa ${stageIndex + 1}`} value={stage.label} onChange={(v) => updateTask(need, task.id, { subetapas: (task.subetapas || []).map(item => item.id === stage.id ? { ...item, label: v } : item) })} />
                           </div>
@@ -1063,13 +1042,11 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                               }
                             }}
                           >
-                            <input
-                              type="checkbox"
-                              className="size-4 accent-ink"
+                            <Checkbox
                               checked={stage.completada || false}
-                              aria-label={`Completar ${stageIndex + 1}`}
+                              ariaLabel={`Completar ${stageIndex + 1}`}
                               onClick={(event) => event.stopPropagation()}
-                              onChange={(event) => updateTask(need, task.id, { subetapas: (task.subetapas || []).map(item => item.id === stage.id ? { ...item, completada: event.target.checked } : item) })}
+                              onChange={(isChecked) => updateTask(need, task.id, { subetapas: (task.subetapas || []).map(item => item.id === stage.id ? { ...item, completada: isChecked } : item) })}
                             />
                             <span className={`truncate ${stage.completada ? "text-ink-muted line-through" : ""}`}>
                               {stage.label || `Etapa ${stageIndex + 1}`}
@@ -1091,23 +1068,16 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                         {tasks
                           .filter((t) => t.id !== task.id)
                           .map((dep) => (
-                            <label
-                              key={dep.id}
-                              className="flex min-h-8 cursor-pointer items-center gap-bojana-inside rounded-lg px-2 text-xs text-ink hover:bg-stone"
-                            >
-                              <input
-                                type="checkbox"
+                            <Checkbox key={dep.id} className="min-h-8 rounded-lg px-2 text-xs hover:bg-stone" label={<span className="truncate">{dep.titulo || "Tarea sin título"}</span>}
                                 checked={task.dependencias?.includes(dep.id) || false}
-                                onChange={(e) =>
+                                onChange={(isChecked) =>
                                   updateTask(need, task.id, {
-                                    dependencias: e.target.checked
+                                    dependencias: isChecked
                                       ? [...(task.dependencias || []), dep.id]
                                       : task.dependencias?.filter((id) => id !== dep.id),
                                   })
                                 }
                               />
-                              <span className="truncate">{dep.titulo || "Tarea sin título"}</span>
-                            </label>
                           ))}
                       </div>
                     </details>
@@ -1271,23 +1241,18 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                     )
                   }
                 />
-                <label className="flex gap-bojana-inside items-center text-sm">
-                  <input
-                    type="checkbox"
+                <Checkbox label="Visible para el cliente"
                     checked={doc.visibleCliente !== false}
-                    onChange={(e) =>
+                    onChange={(isChecked) =>
                       set(
                         "documentos",
                         draft.documentos.map((x) =>
                           x.id === doc.id
-                            ? { ...x, visibleCliente: e.target.checked }
+                            ? { ...x, visibleCliente: isChecked }
                             : x,
                         ),
                       )
-                    }
-                  />
-                  Visible para el cliente
-                </label>
+                    } />
                 <Remove
                   label={`Quitar documento ${doc.nombre}`}
                   onClick={() =>
@@ -1345,14 +1310,9 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                 </dd>
               </div>
             </dl>
-            <label className="flex items-center gap-2 text-sm text-ink">
-              <input
-                type="checkbox"
+            <Checkbox label="Agrupar tareas por disciplina en el workspace"
                 checked={draft.groupTasksByDiscipline}
-                onChange={(event) => set("groupTasksByDiscipline", event.target.checked)}
-              />
-              Agrupar tareas por disciplina en el workspace
-            </label>
+                onChange={(isChecked) => set("groupTasksByDiscipline", isChecked)} />
             <p className="text-sm leading-6 text-bojana-muted">Secuencia para el cliente</p>
             {sequence.length ? (
               <ol className="space-y-bojana-inside text-sm">

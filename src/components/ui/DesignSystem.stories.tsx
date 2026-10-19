@@ -52,7 +52,7 @@ export const Buttons: Story = {
 
 export const Checkboxes: Story = {
   render: () => <div className="max-w-xl space-y-6">
-    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Selection</h3><Checkbox label="Unchecked" /><Checkbox label="Checked" checked onChange={() => {}} /><Checkbox label="Indeterminate" indeterminate onChange={() => {}} /></section>
+    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Selection</h3><Checkbox label="Unchecked" /><Checkbox label="Checked" defaultChecked /><Checkbox label="Indeterminate" indeterminate /></section>
     <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">States</h3><Checkbox label="Disabled unchecked" disabled /><Checkbox label="Disabled checked" checked disabled /><Checkbox label="With description" description="Additional context for the option." /></section>
     <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Portal patterns</h3><Checkbox label="Keep me signed in" /><Checkbox label="Portal access" description="Allow this contact to access the portal." /><Checkbox label="Visible to client" /><Checkbox label="Completed checklist item" checked /></section>
   </div>,

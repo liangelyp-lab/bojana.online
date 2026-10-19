@@ -379,13 +379,7 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
             />
 
             <div className="flex items-center justify-between gap-4">
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-ink-muted">
-                <input
-                  className="size-4 rounded border-line accent-forest"
-                  type="checkbox"
-                />
-                Mantener la sesion iniciada
-              </label>
+              <Checkbox label="Mantener la sesion iniciada" />
               <Button className="!px-3" variant="tertiary" onClick={() => void handleRecovery()} type="button">
                 {recoveryLoading ? "Enviando..." : "Olvidaste tu contrasena?"}
               </Button>
