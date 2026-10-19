@@ -11,6 +11,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === "POST") return createLink(req, res);
   if (req.method === "DELETE") return revokeLink(req, res);
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
+  if (req.query?.projectId) return listLinks(req, res);
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const token = String(req.query?.token || "");
@@ -47,6 +48,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     console.error("Direct portal lookup failed", error);
     return res.status(502).json({ error: "No pudimos cargar el portal." });
+  }
+}
+
+async function listLinks(req: VercelRequest, res: VercelResponse) {
+  const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const requester = await requireSupabaseUser(req, res);
+  const projectId = String(req.query?.projectId || '').trim();
+  if (!requester) return;
+  if (!baseUrl || !serviceKey) return res.status(503).json({ error: "Enlaces directos no configurados." });
+  if (!projectId) return res.status(400).json({ error: "Falta el proyecto." });
+  const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}` };
+  try {
+    const memberResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(requester.id)}&select=studio_id,role&limit=1`, { headers });
+    const members = await memberResponse.json() as Array<{ studio_id: string; role: string }>;
+    const member = members[0];
+    if (!memberResponse.ok || !member || !['owner', 'admin'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para ver enlaces." });
+    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id&limit=1`, { headers });
+    const projects = await projectResponse.json() as Array<{ id: string }>;
+    if (!projectResponse.ok || !projects[0]) return res.status(404).json({ error: "No encontramos ese proyecto." });
+    const response = await fetch(`${baseUrl}/rest/v1/direct_portal_links?project_id=eq.${encodeURIComponent(projectId)}&select=id,expires_at,revoked_at,created_at&order=created_at.desc`, { headers });
+    const links = await response.json() as Array<{ id: string; expires_at: string; revoked_at?: string; created_at: string }>;
+    if (!response.ok) return res.status(502).json({ error: "No pudimos cargar los enlaces." });
+    return res.status(200).json({ links: links.map(link => ({ id: link.id, expiresAt: link.expires_at, revokedAt: link.revoked_at, createdAt: link.created_at })) });
+  } catch (error) {
+    console.error('Direct link list failed', error);
+    return res.status(502).json({ error: "No pudimos cargar los enlaces." });
   }
 }
 

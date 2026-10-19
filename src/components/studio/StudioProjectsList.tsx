@@ -4,7 +4,7 @@ import {
   getEffectiveProgress,
   getProjectStatusLabel
 } from '../../services/storageService';
-import { createSecureProjectLink } from '../../services/projectAccess';
+import { issueSecureProjectLink, revokeSecureProjectLink, type SecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
 import { Badge, Button, EmptyState, FilterBar, FilterTabs, PageHeader, SearchInput, StatusBadge } from '../ui';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
@@ -13,6 +13,7 @@ import {
   FolderKanban,
   Check,
   Copy,
+  Ban,
 } from 'lucide-react';
 
 interface StudioProjectsListProps {
@@ -32,6 +33,8 @@ export default function StudioProjectsList({
   const [filterTab, setFilterTab] = useState<'todos' | 'activos' | 'finalizados'>('todos');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [manualCopyLink, setManualCopyLink] = useState<{ title: string; url: string } | null>(null);
+  const [issuedLinks, setIssuedLinks] = useState<Record<string, SecureProjectLink>>({});
+  const [revokingProjectId, setRevokingProjectId] = useState<string | null>(null);
 
   const filteredProjects = projects.filter((p) => {
     const title = p.info?.nombre || p.brief?.nombre || '';
@@ -60,7 +63,9 @@ export default function StudioProjectsList({
     const title = p.info?.nombre || 'proyecto';
     let url: string;
     try {
-      url = await createSecureProjectLink(p.id);
+      const link = await issueSecureProjectLink(p.id);
+      url = link.url;
+      setIssuedLinks(current => ({ ...current, [p.id]: link }));
     } catch (error) {
       onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.');
       return;
@@ -74,6 +79,27 @@ export default function StudioProjectsList({
     } catch {
       setManualCopyLink({ title, url });
       onToast('El navegador bloqueó la copia. Seleccioná el enlace para copiarlo manualmente.');
+    }
+  };
+
+  const handleRevokeLink = async (e: React.MouseEvent, p: ProjectData) => {
+    e.stopPropagation();
+    const link = issuedLinks[p.id];
+    if (!link) return;
+    if (!window.confirm('¿Revocar este enlace? Las personas que lo tengan dejarán de poder abrir el portal.')) return;
+    setRevokingProjectId(p.id);
+    try {
+      await revokeSecureProjectLink(link.id);
+      setIssuedLinks(current => {
+        const next = { ...current };
+        delete next[p.id];
+        return next;
+      });
+      onToast('Enlace directo revocado.');
+    } catch (error) {
+      onToast(error instanceof Error ? error.message : 'No pudimos revocar el enlace.');
+    } finally {
+      setRevokingProjectId(null);
     }
   };
 
@@ -129,6 +155,7 @@ export default function StudioProjectsList({
             const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
             const updateDate = p.info?.ultimaActualizacion || '02 Oct';
             const isCopied = copiedId === p.id;
+            const issuedLink = issuedLinks[p.id];
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
             const progressStatus = getProjectStatusLabel(p);
             const statusTone = progressStatus === 'Completado'
@@ -199,6 +226,19 @@ export default function StudioProjectsList({
                   >
                     {isCopied ? <Check /> : <Copy />}
                   </Button>
+                  {issuedLink && (
+                    <Button
+                      variant="icon"
+                      size="l"
+                      type="button"
+                      onClick={(e) => void handleRevokeLink(e, p)}
+                      disabled={revokingProjectId === p.id}
+                      ariaLabel="Revocar el último enlace emitido"
+                      title="Revocar el último enlace emitido"
+                    >
+                      <Ban />
+                    </Button>
+                  )}
                 </div>
               </div>
             );
