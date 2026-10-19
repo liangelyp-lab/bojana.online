@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
-import { ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, Share2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, Share2, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
@@ -676,16 +676,8 @@ function ProjectExecutionSummary({
 
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
-      <nav aria-label="Ruta de navegación" className="mb-7 flex flex-wrap items-center gap-2 text-sm font-medium text-ink-muted">
-        <Button variant="link" size="l" onClick={onBack}>
-          Proyectos
-        </Button>
-        <Icon className="size-3.5" name="chevron" />
-        <span className="truncate text-sm text-line-strong" aria-current="page">
-          {project.info?.nombre || "Proyecto"}
-        </span>
-      </nav>
       <PageHeader
+        leading={<Button ariaLabel="Volver a proyectos" onClick={onBack} size="m" tooltip="Volver a proyectos" variant="tertiary"><ArrowLeft className="size-4" /></Button>}
         title={project.info?.nombre || "Proyecto"}
         titleAccessory={<StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>}
         description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span></>}
