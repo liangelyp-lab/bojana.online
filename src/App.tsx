@@ -26,7 +26,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, Card, EmptyState, FilterBar, FilterTabs, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
