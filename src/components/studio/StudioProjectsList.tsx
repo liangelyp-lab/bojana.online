@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ProjectData } from '../../types';
 import {
   getEffectiveProgress,
   getProjectStatusLabel
 } from '../../services/storageService';
-import { issueSecureProjectLink, revokeSecureProjectLink, type SecureProjectLink } from '../../services/projectAccess';
+import { issueSecureProjectLink, listSecureProjectLinks, revokeSecureProjectLink, type DirectProjectLink, type SecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
 import { Badge, Button, EmptyState, FilterBar, FilterTabs, PageHeader, SearchInput, StatusBadge } from '../ui';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
@@ -34,7 +34,25 @@ export default function StudioProjectsList({
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [manualCopyLink, setManualCopyLink] = useState<{ title: string; url: string } | null>(null);
   const [issuedLinks, setIssuedLinks] = useState<Record<string, SecureProjectLink>>({});
+  const [activeLinks, setActiveLinks] = useState<Record<string, DirectProjectLink[]>>({});
   const [revokingProjectId, setRevokingProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadLinks = async () => {
+      const entries = await Promise.all(projects.map(async (project) => {
+        try {
+          const links = await listSecureProjectLinks(project.id);
+          return [project.id, links.filter((link) => !link.revokedAt && new Date(link.expiresAt).getTime() > Date.now())] as const;
+        } catch {
+          return [project.id, []] as const;
+        }
+      }));
+      if (!cancelled) setActiveLinks(Object.fromEntries(entries));
+    };
+    void loadLinks();
+    return () => { cancelled = true; };
+  }, [projects]);
 
   const filteredProjects = projects.filter((p) => {
     const title = p.info?.nombre || p.brief?.nombre || '';
@@ -66,6 +84,10 @@ export default function StudioProjectsList({
       const link = await issueSecureProjectLink(p.id);
       url = link.url;
       setIssuedLinks(current => ({ ...current, [p.id]: link }));
+      setActiveLinks(current => ({
+        ...current,
+        [p.id]: [{ id: link.id, expiresAt: link.expiresAt, createdAt: new Date().toISOString() }, ...(current[p.id] || [])],
+      }));
     } catch (error) {
       onToast(error instanceof Error ? error.message : 'No pudimos crear el enlace.');
       return;
@@ -84,7 +106,7 @@ export default function StudioProjectsList({
 
   const handleRevokeLink = async (e: React.MouseEvent, p: ProjectData) => {
     e.stopPropagation();
-    const link = issuedLinks[p.id];
+    const link = issuedLinks[p.id] || activeLinks[p.id]?.[0];
     if (!link) return;
     if (!window.confirm('¿Revocar este enlace? Las personas que lo tengan dejarán de poder abrir el portal.')) return;
     setRevokingProjectId(p.id);
@@ -95,6 +117,7 @@ export default function StudioProjectsList({
         delete next[p.id];
         return next;
       });
+      setActiveLinks(current => ({ ...current, [p.id]: (current[p.id] || []).filter((activeLink) => activeLink.id !== link.id) }));
       onToast('Enlace directo revocado.');
     } catch (error) {
       onToast(error instanceof Error ? error.message : 'No pudimos revocar el enlace.');
@@ -155,7 +178,8 @@ export default function StudioProjectsList({
             const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
             const updateDate = p.info?.ultimaActualizacion || '02 Oct';
             const isCopied = copiedId === p.id;
-            const issuedLink = issuedLinks[p.id];
+            const issuedLink = issuedLinks[p.id] || activeLinks[p.id]?.[0];
+            const activeLinkCount = activeLinks[p.id]?.length || 0;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
             const progressStatus = getProjectStatusLabel(p);
             const statusTone = progressStatus === 'Completado'
@@ -227,17 +251,20 @@ export default function StudioProjectsList({
                     {isCopied ? <Check /> : <Copy />}
                   </Button>
                   {issuedLink && (
-                    <Button
-                      variant="icon"
-                      size="l"
-                      type="button"
-                      onClick={(e) => void handleRevokeLink(e, p)}
-                      disabled={revokingProjectId === p.id}
-                      ariaLabel="Revocar el último enlace emitido"
-                      title="Revocar el último enlace emitido"
-                    >
-                      <Ban />
-                    </Button>
+                    <div className="flex items-center gap-1" title={`${activeLinkCount} enlace${activeLinkCount === 1 ? '' : 's'} directo${activeLinkCount === 1 ? '' : 's'} activo${activeLinkCount === 1 ? '' : 's'}`}>
+                      <span className="min-w-4 text-center text-[10px] font-bold text-ink-muted">{activeLinkCount}</span>
+                      <Button
+                        variant="icon"
+                        size="l"
+                        type="button"
+                        onClick={(e) => void handleRevokeLink(e, p)}
+                        disabled={revokingProjectId === p.id}
+                        ariaLabel={`Revocar el último enlace activo${activeLinkCount > 1 ? ` (${activeLinkCount} activos)` : ''}`}
+                        title={activeLinkCount > 1 ? `Revocar el más reciente de ${activeLinkCount} enlaces activos` : 'Revocar el enlace activo'}
+                      >
+                        <Ban />
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
