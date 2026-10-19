@@ -63,10 +63,23 @@ create table if not exists public.activity_log (
   created_at timestamptz not null default now()
 );
 
+-- One row per direct portal link makes a signed URL revocable without changing
+-- the signing secret or invalidating every other project link.
+create table if not exists public.direct_portal_links (
+  id uuid primary key default gen_random_uuid(),
+  project_id text not null references public.projects(id) on delete cascade,
+  nonce text not null unique,
+  expires_at timestamptz not null,
+  revoked_at timestamptz,
+  created_by uuid references public.studio_users(id) on delete set null,
+  created_at timestamptz not null default now()
+);
+
 create index if not exists projects_studio_updated_idx on public.projects(studio_id, updated_at desc);
 create index if not exists activity_project_created_idx on public.activity_log(project_id, created_at desc);
 create index if not exists project_members_user_idx on public.project_members(user_id, project_id);
 create index if not exists activity_actor_created_idx on public.activity_log(actor_id, created_at desc);
+create index if not exists direct_portal_links_lookup_idx on public.direct_portal_links(project_id, nonce, expires_at) where revoked_at is null;
 
 -- Authenticated studio-membership policies.
 alter table public.studios enable row level security;
@@ -75,6 +88,7 @@ alter table public.clients enable row level security;
 alter table public.projects enable row level security;
 alter table public.project_members enable row level security;
 alter table public.activity_log enable row level security;
+alter table public.direct_portal_links enable row level security;
 
 -- Keep this bootstrap script safe to re-run while iterating on the pilot.
 drop policy if exists "members can read own studio" on public.studios;

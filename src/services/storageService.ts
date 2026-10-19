@@ -18,6 +18,19 @@ import {
 import { getPendingTaskDependencies } from './projectStructure';
 import { isSupabaseConfigured, listRemoteProjects, saveRemoteProject } from './supabaseClient';
 
+export type ProjectSyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+type ProjectSyncListener = (status: ProjectSyncStatus) => void;
+const projectSyncListeners = new Set<ProjectSyncListener>();
+
+export function subscribeProjectSync(listener: ProjectSyncListener) {
+  projectSyncListeners.add(listener);
+  return () => projectSyncListeners.delete(listener);
+}
+
+function notifyProjectSync(status: ProjectSyncStatus) {
+  projectSyncListeners.forEach(listener => listener(status));
+}
+
 export {
   calculateTaskProgress,
   calculateNeedProgress,
@@ -1764,7 +1777,13 @@ export function saveProjectData(data: ProjectData): void {
   }
   saveAllProjects(projects);
   if (isSupabaseConfigured) {
-    void saveRemoteProject(updatedData).catch((error) => console.error('Error syncing project with Supabase:', error));
+    notifyProjectSync('syncing');
+    void saveRemoteProject(updatedData)
+      .then(() => notifyProjectSync('synced'))
+      .catch((error) => {
+        console.error('Error syncing project with Supabase:', error);
+        notifyProjectSync('error');
+      });
   }
 }
 

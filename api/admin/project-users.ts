@@ -114,9 +114,14 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
-    if (!isOwner) return res.status(403).json({ error: "No tenés permiso para guardar proyectos." });
+    if (!['owner', 'admin'].includes(member.role)) return res.status(403).json({ error: "Solo owners y administradores pueden guardar proyectos." });
     const project = req.body?.project;
     if (!project?.id || (!project.info && !project.brief)) return res.status(400).json({ error: "Proyecto inválido." });
+    if (!isOwner) {
+      const membershipResponse = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(project.id)}&user_id=eq.${encodeURIComponent(member.id)}&role=in.(owner,editor)&select=id&limit=1`, { headers: adminHeaders });
+      const memberships = await membershipResponse.json() as Array<{ id: string }>;
+      if (!membershipResponse.ok || !memberships[0]) return res.status(403).json({ error: "No tenés permiso para editar este proyecto." });
+    }
     const response = await fetch(`${baseUrl}/rest/v1/projects?on_conflict=id`, { method: 'POST', headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: project.id, studio_id: member.studio_id, name: project.info?.nombre || project.brief?.nombre || project.id, lifecycle_status: project.lifecycleStatus || 'BORRADOR', data: project, updated_at: new Date().toISOString() }) });
     if (!response.ok) return res.status(502).json({ error: "No pudimos guardar el proyecto." });
     return res.status(200).json({ ok: true });

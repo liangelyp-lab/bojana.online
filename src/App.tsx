@@ -8,7 +8,7 @@ import {
 } from "react"
 import { ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, Share2, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -3190,6 +3190,12 @@ export default function App() {
     setToastMessage(msg)
     setTimeout(() => setToastMessage(null), 3500)
   }
+
+  useEffect(() => subscribeProjectSync((status) => {
+    if (status === "syncing") setToastMessage("Guardando cambios…")
+    if (status === "synced") setToastMessage("Cambios guardados.")
+    if (status === "error") setToastMessage("Los cambios quedaron guardados localmente, pero no se sincronizaron.")
+  }), [])
 
   const handleToggleTask = (title: string) => {
     setTaskList((prev) =>
