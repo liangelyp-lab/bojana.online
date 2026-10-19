@@ -1591,7 +1591,7 @@ function AdminPortal({
             {/* 4. TAREAS VIEW (CROSS-PROJECT) */}
             {activeNav === "Tareas" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <PageHeader eyebrow="Operación del estudio" title="Todas las tareas del estudio" description="Supervisión conjunta de las tareas y entregas de todos los proyectos." />
+                <PageHeader title="Todas las tareas del estudio" />
                 {studyTasks.length === 0 ? (
                   <EmptyState
                     title="Todavía no hay tareas"
@@ -1631,7 +1631,7 @@ function AdminPortal({
             {/* 6. BIBLIOTECA VIEW */}
             {activeNav === "Biblioteca" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <PageHeader eyebrow="Documentos del estudio" title="Biblioteca de documentos" description="Un solo lugar para consultar todos los archivos, documentos y entregables de Bojana Estudio." />
+                <PageHeader title="Biblioteca de documentos" />
                 <Library items={libraryItems} onToast={onPublishToast} />
               </div>
             )}

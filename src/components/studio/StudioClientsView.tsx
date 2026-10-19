@@ -38,9 +38,7 @@ export default function StudioClientsView({
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <PageHeader
-        eyebrow="Directorio de comitentes"
         title="Clientes"
-        description="Relación de comitentes, empresas y promotores con proyectos activos en Bojana Estudio."
       />
 
       <div className="space-y-4">

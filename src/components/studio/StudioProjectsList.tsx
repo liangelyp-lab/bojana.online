@@ -131,9 +131,7 @@ export default function StudioProjectsList({
       <div className="space-y-8 animate-fade-in">
       {/* 1. HEADER & NEW PROJECT CTA */}
       <PageHeader
-        eyebrow="Portafolio del estudio"
         title="Proyectos"
-        description="Supervisión integral de obras, licitaciones y desarrollos de Bojana Estudio."
         actions={<Button size="l" onClick={onNewProject}><Plus className="size-4.5" />Nuevo proyecto</Button>}
       />
 

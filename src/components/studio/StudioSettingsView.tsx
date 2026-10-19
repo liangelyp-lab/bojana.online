@@ -457,9 +457,7 @@ export default function StudioSettingsView({
         </p>
       )}
       <PageHeader
-        eyebrow="Preferencias de la firma"
         title="Configuración del estudio"
-        description="Datos institucionales, accesos y parámetros aplicados por defecto a los proyectos."
         actions={currentUserRole === "owner" ? <Button variant="icon" tooltip="Configuración del estudio" ariaLabel="Abrir configuración del estudio" onClick={() => setOwnerSettingsOpen(true)}><Settings2 className="size-4" /></Button> : undefined}
       />
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">

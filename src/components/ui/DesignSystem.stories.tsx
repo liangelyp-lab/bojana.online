@@ -146,7 +146,24 @@ function OverlayExample() {
 }
 export const ModalAndPanel: Story = { render: () => <OverlayExample /> };
 
-export const HeaderAndBrand: Story = { render: () => <div className="space-y-8"><Brand /><PageHeader eyebrow="Studio" title="Projects" description="An overview of the studio's projects." actions={<Button>New project</Button>} /></div> };
+export const HeaderAndBrand: Story = {
+  name: 'Header and Brand',
+  args: {
+    title: 'Projects',
+    eyebrow: 'Studio',
+    description: "An overview of the studio's projects.",
+    showEyebrow: true,
+    showDescription: true,
+  },
+  argTypes: {
+    title: { control: 'text', description: 'Título principal' },
+    eyebrow: { control: 'text', description: 'Texto sobre el título' },
+    description: { control: 'text', description: 'Texto bajo el título' },
+    showEyebrow: { control: 'boolean', description: 'Mostrar el texto sobre el título' },
+    showDescription: { control: 'boolean', description: 'Mostrar el texto bajo el título' },
+  },
+  render: ({ title, eyebrow, description, showEyebrow, showDescription }) => <div className="space-y-8"><Brand /><PageHeader eyebrow={showEyebrow ? eyebrow : undefined} title={title} description={showDescription ? description : undefined} actions={<Button>New project</Button>} /></div>,
+};
 
 const paletteGroups = [
   {
