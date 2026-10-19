@@ -98,12 +98,12 @@ export const Forms: Story = {
   </form>,
 };
 
-function TabsExample() {
+function TabsExample({ divider = true }: { divider?: boolean }) {
   const [active, setActive] = useState('general');
   const tabs = [{ id: 'general', label: 'General' }, { id: 'detalles', label: 'Detalles' }, { id: 'archivos', label: 'Archivos' }];
-  return <div className="space-y-6"><Tabs tabs={tabs} activeTab={active} onChange={setActive} /><p>Selected section: {active}</p></div>;
+  return <div className="space-y-6"><Tabs tabs={tabs} activeTab={active} onChange={setActive} divider={divider} /><p>Selected section: {active}</p></div>;
 }
-export const TabsStory: Story = { render: () => <TabsExample /> };
+export const TabsStory: Story = { args: { divider: true }, argTypes: { divider: { control: 'boolean', description: 'Mostrar divisor bajo las pestañas' } }, render: ({ divider }) => <TabsExample divider={divider} /> };
 
 export const StatusBarStory: Story = {
   name: 'Status Bar',

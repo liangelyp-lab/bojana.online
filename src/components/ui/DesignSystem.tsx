@@ -673,7 +673,8 @@ export function Tabs({
   onChange,
   ariaLabel = 'Secciones',
   className = '',
-  panelIdPrefix
+  panelIdPrefix,
+  divider = true,
 }: {
   tabs: Array<{ id: string; label: string; marker?: React.ReactNode; icon?: LucideIcon }>;
   activeTab: string;
@@ -681,6 +682,7 @@ export function Tabs({
   ariaLabel?: string;
   className?: string;
   panelIdPrefix?: string;
+  divider?: boolean;
 }) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
@@ -692,7 +694,7 @@ export function Tabs({
     requestAnimationFrame(() => tablist?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus());
   };
   return (
-    <nav role="tablist" aria-label={ariaLabel} className={`bojana-studio-tabs ${className}`}>
+    <nav role="tablist" aria-label={ariaLabel} className={`bojana-studio-tabs ${divider ? 'bojana-studio-tabs-divider' : ''} ${className}`}>
       {tabs.map(({ id, label, marker, icon: Icon }, index) => (
         <button
           key={id}
