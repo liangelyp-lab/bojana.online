@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProjectData } from '../../types';
 import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
-import { Badge, Button, EmptyState, PageHeader } from '../ui';
+import { Badge, Button, EmptyState, PageHeader, StatusBadge } from '../ui';
 import {
   Plus,
   FolderKanban
@@ -145,13 +145,13 @@ export default function StudioDashboard({
               const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
               const status = getProjectStatus(p);
               const progress = getEffectiveProgress(p);
-              const statusClass = status === 'Completado'
-                ? 'bg-mint-pale border-mint/40 text-forest'
+              const statusTone = status === 'Completado'
+                ? 'active'
                 : status === 'Revisión'
-                  ? 'bg-clay-pale border-clay/30 text-clay-dark'
+                  ? 'waiting'
                   : status === 'Borrador'
-                    ? 'bg-stone border-line text-ink-faint'
-                    : 'bg-blue-50 border-blue-200 text-blue-800';
+                    ? 'gray'
+                    : 'info';
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
 
@@ -163,13 +163,10 @@ export default function StudioDashboard({
                 >
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-semibold ${statusClass}`}>
-                        <span className="size-1.5 rounded-full bg-current opacity-70" />
-                        <span>{status}</span>
-                      </span>
-                      <span className="rounded-full bg-stone px-2.5 py-1 font-bold text-ink">
+                      <StatusBadge tone={statusTone} size="s">{status}</StatusBadge>
+                      <StatusBadge size="s" showDot={false} className="font-bold">
                         {progress}%
-                      </span>
+                      </StatusBadge>
                     </div>
 
                     <div>

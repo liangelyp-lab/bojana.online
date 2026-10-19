@@ -20,7 +20,7 @@ import {
   getClientProjectSequence,
   hasDependencyCycle,
 } from "../../services/projectStructure";
-import { Button, Field as DesignSystemField, ModalTabs, SelectControl } from "../ui/DesignSystem";
+import { Button, Field as DesignSystemField, SelectControl, Tabs } from "../ui/DesignSystem";
 
 interface Props {
   isOpen: boolean;
@@ -53,6 +53,7 @@ interface Draft {
   inicio: string;
   fin: string;
   disciplinas: DisciplinaType[];
+  groupTasksByDiscipline: boolean;
   equipo: TeamMember[];
   contactos: ClientContactPerson[];
   necesidades: Need[];
@@ -94,6 +95,7 @@ const emptyDraft = (): Draft => ({
   inicio: "",
   fin: "",
   disciplinas: [],
+  groupTasksByDiscipline: false,
   equipo: [],
   contactos: [],
   necesidades: [],
@@ -126,6 +128,7 @@ const projectToDraft = (project: ProjectData): Draft => ({
   inicio: project.info?.fechaInicio || "",
   fin: project.info?.fechaFin || "",
   disciplinas: project.disciplinas || (project.disciplinasOperativas || []).map((discipline) => discipline.id),
+  groupTasksByDiscipline: project.groupTasksByDiscipline === true,
   equipo: project.equipo || [],
   contactos: project.cliente?.personas || [],
   necesidades: (project.disciplinasOperativas || []).flatMap((discipline) => discipline.necesidades.map((need) => ({
@@ -391,6 +394,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
         documentosBase: draft.documentos,
       },
       disciplinas: draft.disciplinas,
+      groupTasksByDiscipline: draft.groupTasksByDiscipline,
       disciplinasOperativas: operational,
       equipo: draft.equipo,
       cliente: {
@@ -545,11 +549,11 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
             <X className="size-4" />
           </Button>
         </header>
-        <ModalTabs
+        <Tabs
           ariaLabel="Secciones del ADN del proyecto"
+          panelIdPrefix="project-creation"
           activeTab={activeSection}
           onChange={(name) => {
-            if (!initialProject) return;
             setActiveSection(name);
             const sectionIndex = creationSections.indexOf(name);
             window.history.replaceState(null, "", `#creation-${sectionIndex}`);
@@ -557,7 +561,13 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
           }}
           tabs={creationSections.map((name) => ({ id: name, label: name }))}
         />
-        <div ref={contentRef} className="min-h-0 flex-1 overscroll-contain overflow-y-auto [overflow-anchor:none] p-5 sm:p-8 space-y-bojana-block">
+        <div
+          ref={contentRef}
+          id={`project-creation-panel-${activeSection}`}
+          role="tabpanel"
+          aria-labelledby={`project-creation-tab-${activeSection}`}
+          className="min-h-0 flex-1 overscroll-contain overflow-y-auto [overflow-anchor:none] p-5 sm:p-8 space-y-bojana-block"
+        >
           {activeSection === creationSections[0] && <Section index={0} title="Identidad y propósito">
             <div className="grid sm:grid-cols-2 gap-bojana-block">
               <Field
@@ -1335,6 +1345,14 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                 </dd>
               </div>
             </dl>
+            <label className="flex items-center gap-2 text-sm text-ink">
+              <input
+                type="checkbox"
+                checked={draft.groupTasksByDiscipline}
+                onChange={(event) => set("groupTasksByDiscipline", event.target.checked)}
+              />
+              Agrupar tareas por disciplina en el workspace
+            </label>
             <p className="text-sm leading-6 text-bojana-muted">Secuencia para el cliente</p>
             {sequence.length ? (
               <ol className="space-y-bojana-inside text-sm">

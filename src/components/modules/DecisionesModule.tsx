@@ -1,6 +1,6 @@
 import { MediaComparison } from '../ui/Media';
 import { decisionStateBadgeClasses } from '../../design/status';
-import { Badge, Button, EmptyState, FilterTabs, InputControl, Modal, TextAreaControl } from '../ui/DesignSystem';
+import { Badge, Button, EmptyState, FilterTabs, InputControl, Modal, StatusBadge, TextAreaControl } from '../ui/DesignSystem';
 import React, { useState } from 'react';
 import {
   ProjectData,
@@ -266,9 +266,7 @@ export default function DecisionesModule({
                 <div className="p-6 border-b border-line flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge tone={isApproved ? 'active' : requiresChanges ? 'waiting' : 'neutral'}>
-                        {item.estado}
-                      </Badge>
+                      <StatusBadge state={item.estado} kind="decision" />
                       <Badge>
                         {item.tipo === 'decision_diseno' ? 'Decisión de Diseño' : 'Revisión Técnica'}
                       </Badge>

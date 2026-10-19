@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   Info
 } from 'lucide-react';
-import { Button, Field, ModalTabs } from '../ui/DesignSystem';
+import { StatusBadge, Button, Field, Select, Tabs } from '../ui/DesignSystem';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 
 interface PublishInviteModalProps {
@@ -30,7 +30,7 @@ interface PublishInviteModalProps {
   project: ProjectData;
   studioEmail: string;
   onClose: () => void;
-  onPublish: () => void | Promise<void>;
+  onPublish: (project: ProjectData) => void | Promise<void>;
   onUpdateProject?: (project: ProjectData) => void;
   onToast: (msg: string) => void;
 }
@@ -90,11 +90,19 @@ export default function PublishInviteModal({
   const projectStages = getClientProjectSequence(project);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [focusTaskId, setFocusTaskId] = useState(project.tareaFocalPublicadaId || '');
 
   const title = project.info?.nombre || 'Proyecto';
   const subtitle = project.info?.subtitulo || project.disciplinas?.join(' · ') || '';
   const disciplines = project.disciplinas?.join(' + ') || 'Arquitectura';
   const isAlreadyActive = project.lifecycleStatus === 'ACTIVO';
+  const focusTasks = (project.disciplinasOperativas || []).flatMap(discipline =>
+    (discipline.necesidades || []).flatMap(need => need.visibleCliente === false ? [] : (need.tareas || []).filter(task => task.visibleCliente).map(task => ({ id: task.id, label: `${need.nombre} · ${task.titulo}` })))
+  );
+
+  useEffect(() => {
+    if (isOpen) setFocusTaskId(project.tareaFocalPublicadaId || '');
+  }, [isOpen, project.tareaFocalPublicadaId]);
 
   const [dedicatedUrl, setDedicatedUrl] = useState('');
   const [manualCopyUrl, setManualCopyUrl] = useState('');
@@ -132,7 +140,7 @@ export default function PublishInviteModal({
 
   const handlePublish = async () => {
     setIsPublishing(true); setPublishError('');
-    try { await onPublish(); }
+    try { await onPublish({ ...project, tareaFocalPublicadaId: focusTaskId || undefined }); }
     catch (error) { setPublishError((error as Error).message); }
     finally { setIsPublishing(false); }
   };
@@ -195,9 +203,10 @@ export default function PublishInviteModal({
         </div>
 
         {/* 2. TABS SELECTOR */}
-        <ModalTabs
+        <Tabs
           activeTab={activeTab}
           onChange={(id) => setActiveTab(id as typeof activeTab)}
+          panelIdPrefix="publish-invite"
           tabs={[
             { id: 'portal_preview', label: 'Revisión antes de publicar', icon: Eye },
             { id: 'email', label: 'Email posterior opcional', icon: Mail },
@@ -210,7 +219,7 @@ export default function PublishInviteModal({
 
           {/* TAB 1: EMAIL PREVIEW */}
           {activeTab === 'email' && (
-            <div className="space-y-bojana-block max-w-2xl mx-auto animate-fade-in">
+            <div id="publish-invite-panel-email" role="tabpanel" aria-labelledby="publish-invite-tab-email" className="space-y-bojana-block max-w-2xl mx-auto animate-fade-in">
               <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 text-xs text-bojana-muted leading-relaxed">
                 Esta comunicación no publica cambios. El email solo avisa que el portal tiene una actualización; la fuente de decisión y consulta sigue siendo el portal.
               </div>
@@ -223,10 +232,9 @@ export default function PublishInviteModal({
                     <strong className="text-bojana-ink font-sans">Bojana Estudio</strong>
                     <span className="text-bojana-muted">&lt;{senderEmail}&gt;</span>
                   </div>
-                  <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium flex items-center gap-bojana-inside self-start sm:self-auto">
+                  <StatusBadge tone="active" size="s" showDot={false} className="self-start sm:self-auto">
                     <ShieldCheck className="w-3 h-3 text-bojana-success" />
-                    <span>Lark Suite SMTP Empresarial</span>
-                  </span>
+                    <span>Lark Suite SMTP Empresarial</span></StatusBadge>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -301,9 +309,9 @@ export default function PublishInviteModal({
                         {subtitle}
                       </p>
                     </div>
-                    <span className="text-xs font-sans bg-bojana-surface px-2.5 py-1 rounded-bojana-badge border border-bojana-line text-bojana-ink font-medium">
+                    <StatusBadge tone="neutral" size="s" showDot={false}>
                       0% inicial
-                    </span>
+                    </StatusBadge>
                   </div>
 
                   <div className="grid grid-cols-2 gap-bojana-inside text-xs font-sans pt-1 text-bojana-muted border-t border-bojana-line/60">
@@ -362,7 +370,7 @@ export default function PublishInviteModal({
 
           {/* TAB 2: PORTAL WELCOME MODE PREVIEW (0%) */}
           {activeTab === 'portal_preview' && (
-            <div className="space-y-bojana-block max-w-3xl mx-auto animate-fade-in font-sans">
+            <div id="publish-invite-panel-portal_preview" role="tabpanel" aria-labelledby="publish-invite-tab-portal_preview" className="space-y-bojana-block max-w-3xl mx-auto animate-fade-in font-sans">
 
               <div className="bojana-widget bg-bojana-waiting border border-bojana-line rounded-bojana-widget p-4 flex items-center gap-3 text-xs text-bojana-ink font-sans">
                 <Info className="w-4 h-4 text-bojana-ink shrink-0" />
@@ -370,6 +378,14 @@ export default function PublishInviteModal({
                   <strong>Previsualización comitente al 0%:</strong> Esto es exactamente lo que ve el cliente al abrir su enlace por primera vez. Muestra la base contractual y el roadmap de etapas antes de comenzar los avances de obra.
                 </span>
               </div>
+
+              {focusTasks.length > 0 && <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4">
+                <Select label="Tarea mostrada al abrir el progreso" value={focusTaskId} onChange={(event) => setFocusTaskId(event.target.value)}>
+                  <option value="">Última modificación publicada (automático)</option>
+                  {focusTasks.map(task => <option key={task.id} value={task.id}>{task.label}</option>)}
+                </Select>
+                <p className="mt-2 text-xs text-bojana-muted">Esta elección es opcional y se aplica al publicar. Se muestra igual en el estudio y en el portal del cliente.</p>
+              </div>}
 
               {/* Framed Preview Box */}
               <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-6 sm:p-8 shadow-bojana-widget space-y-bojana-block">
@@ -383,9 +399,9 @@ export default function PublishInviteModal({
                     <span className="text-bojana-line">&bull;</span>
                     <span className="font-sans text-xs text-bojana-muted">Portal de Proyecto</span>
                   </div>
-                  <span className="text-xs font-sans bg-bojana-soft text-bojana-success border border-bojana-success px-2 py-0.5 rounded-bojana-badge font-medium">
+                  <StatusBadge tone="active" size="s" showDot={false}>
                     Preparado para iniciar
-                  </span>
+                  </StatusBadge>
                 </div>
 
                 {/* Project Title Block */}
@@ -407,9 +423,9 @@ export default function PublishInviteModal({
                 <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-3">
                   <div className="flex items-center justify-between font-sans text-xs">
                     <span className="font-medium text-bojana-ink">Estado del proyecto</span>
-                    <span className="font-medium text-bojana-ink bg-bojana-surface px-2 py-0.5 rounded-bojana-badge border border-bojana-line">
+                    <StatusBadge tone="neutral" size="s" showDot={false}>
                       0% avance de ejecución
-                    </span>
+                    </StatusBadge>
                   </div>
                   <div className="w-full bg-bojana-soft h-2 rounded-bojana-widget overflow-hidden">
                     <div className="bg-bojana-ink h-full w-[2%]" />
@@ -487,9 +503,9 @@ export default function PublishInviteModal({
                           <div className="flex items-center gap-bojana-inside text-bojana-ink">
                             <FileText className="w-4 h-4 text-bojana-muted shrink-0" />
                             <span className="font-medium">{doc.nombre}</span>
-                            <span className="text-xs text-bojana-muted uppercase bg-bojana-soft px-2 py-0.5 rounded-bojana-badge">
+                            <StatusBadge tone="gray" size="s" showDot={false}>
                               {(doc.tipo || 'Documento').replace('_', ' ')}
-                            </span>
+                            </StatusBadge>
                           </div>
                           <span className="text-xs text-bojana-success font-medium">
                             Disponible ✓
@@ -506,7 +522,7 @@ export default function PublishInviteModal({
 
           {/* TAB 3: INVITATION LOG HISTORY */}
           {activeTab === 'historial' && (
-            <div className="space-y-bojana-block max-w-2xl mx-auto animate-fade-in font-sans">
+            <div id="publish-invite-panel-historial" role="tabpanel" aria-labelledby="publish-invite-tab-historial" className="space-y-bojana-block max-w-2xl mx-auto animate-fade-in font-sans">
               <div className="space-y-bojana-inside pb-2">
                 <h3 className="bojana-heading-component text-base font-medium text-bojana-ink">
                   Registro de envíos y accesos al portal
@@ -537,13 +553,9 @@ export default function PublishInviteModal({
                         <span className="font-medium text-bojana-ink">
                           {item.fecha}
                         </span>
-                        <span className={`text-xs uppercase px-2 py-0.5 rounded-bojana-badge font-medium ${
-                          item.estado === "abierto"
-                            ? "bg-bojana-soft text-bojana-success border border-bojana-success"
-                            : "bg-bojana-soft text-bojana-discipline border border-bojana-line"
-                        }`}>
+                        <StatusBadge tone={item.estado === "abierto" ? "active" : "gray"} size="s" showDot={false} className="uppercase">
                           {item.estado === 'abierto' ? 'Abierto por el cliente ✓' : 'Entregado ✓'}
-                        </span>
+                        </StatusBadge>
                       </div>
 
                       <div className="bojana-widget grid grid-cols-1 sm:grid-cols-2 gap-bojana-inside text-xs text-bojana-muted bg-bojana-surface p-3 rounded-bojana-widget border border-bojana-line/60">

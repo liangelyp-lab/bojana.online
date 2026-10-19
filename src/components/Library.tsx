@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { LibraryItem } from '../types';
-import { Search, Download, CheckCircle, Inbox, Info } from 'lucide-react';
-import { Button, Card, EmptyState, Field, FilterBar, FilterTabs } from './ui/DesignSystem';
+import { Download, CheckCircle, Inbox, Info } from 'lucide-react';
+import { Button, Card, EmptyState, SearchInput, FilterBar, FilterTabs } from './ui/DesignSystem';
 
 interface LibraryProps {
   items: LibraryItem[];
@@ -78,17 +78,7 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
         <FilterTabs ariaLabel="Categorías de biblioteca" activeTab={selectedCategory} onChange={setSelectedCategory} tabs={categoryOptions.map((category) => ({ id: category, label: category === 'TODOS' ? 'Todos' : category }))} />
 
         {/* Search bar inputs */}
-        <div className="relative w-full sm:w-80 sm:shrink-0">
-          <Search className="size-4 text-ink-faint absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <Field
-            type="text"
-            aria-label="Buscar en la biblioteca"
-            placeholder="Buscar por nombre, proyecto o código..."
-            value={searchWord}
-            onChange={(e) => setSearchWord(e.target.value)}
-            className="rounded-full bg-canvas/50 pl-10 pr-4 py-2 text-xs"
-          />
-        </div>
+        <SearchInput size="s" aria-label="Buscar en la biblioteca" value={searchWord} onChange={(e) => setSearchWord(e.target.value)} />
       </FilterBar>
 
       {/* CORE GRID FILE FOLDERS: 3 columns with uniform gap-6 matching the whole app */}

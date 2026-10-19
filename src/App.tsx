@@ -8,7 +8,7 @@ import {
 } from "react"
 import { ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, Share2, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
+import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -18,6 +18,7 @@ import StudioSettingsView from "./components/studio/StudioSettingsView";
 import EmailInboxView from "./components/studio/EmailInboxView";
 import CommunicationPanel from "./components/studio/CommunicationPanel";
 import OperationalExecutionPanel from "./components/studio/OperationalExecutionPanel";
+import ProjectProgressBar from "./components/studio/ProjectProgressBar";
 import DecisionesModule from "./components/modules/DecisionesModule";
 import DocumentosModule from "./components/modules/DocumentosModule";
 import AvancesModule from "./components/modules/AvancesModule";
@@ -25,7 +26,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, Card, EmptyState, FilterBar, FilterTabs, InputControl, PageHeader, Tabs, TextAreaControl } from "./components/ui/DesignSystem";
+import { Badge, Button, Card, EmptyState, FilterBar, FilterTabs, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -514,6 +515,7 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
   }
   return (
     <div className="group relative">
+      <NotificationAnchor count={notifications.filter(notification => !reviewedIds.includes(notification.notificationKey)).length} size="s">
       <Button
         ariaLabel="Notificaciones"
         className={compact ? "hover:!bg-white/5" : undefined}
@@ -521,11 +523,9 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
         variant="icon"
         size="m"
       >
-        <span className="relative">
-          <Icon className={compact ? "text-white/55 group-hover:text-white" : undefined} name="bell" />
-          <span className="absolute -right-1 -top-1 size-1.5 rounded-full bg-clay" />
-        </span>
+        <Icon className={compact ? "text-white/55 group-hover:text-white" : undefined} name="bell" />
       </Button>
+      </NotificationAnchor>
       {notificationsOpen && (
         <div className={`${mobile ? "left-0 top-12" : "left-full top-0 ml-2"} absolute z-50 w-72 rounded-2xl border border-line bg-white p-4 text-ink shadow-xl`}>
           <div className="flex items-center justify-between gap-3">
@@ -672,13 +672,13 @@ function ProjectExecutionSummary({
 }) {
   const progress = getEffectiveProgress(project)
   const projectStatus = getProjectStatusLabel(project)
-  const statusClasses = projectStatus === "Completado"
-    ? "border-mint/40 bg-mint-pale text-forest"
+  const statusTone = projectStatus === "Completado"
+    ? "active"
     : projectStatus === "Revisión"
-      ? "border-clay/30 bg-clay-pale text-clay-dark"
+      ? "waiting"
       : projectStatus === "En progreso"
-        ? "border-blue-200 bg-blue-50 text-blue-800"
-        : "border-line bg-stone text-ink-faint"
+        ? "info"
+        : "gray"
 
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
@@ -687,7 +687,7 @@ function ProjectExecutionSummary({
           Proyectos
         </Button>
         <Icon className="size-3.5" name="chevron" />
-        <span className="truncate" aria-current="page">
+        <span className="truncate text-sm text-line-strong" aria-current="page">
           {project.info?.nombre || "Proyecto"}
         </span>
       </nav>
@@ -697,34 +697,25 @@ function ProjectExecutionSummary({
             <Heading as="h1" className="bojana-heading-page">
               {project.info?.nombre || "Proyecto"}
             </Heading>
-            <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold ${statusClasses}`}>
-              <span className="size-1.5 rounded-full bg-current opacity-70" />
-              {projectStatus}
-            </span>
+            <StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>
           </div>
-          <p className="mt-4 text-sm text-ink-muted md:text-base">
-            {project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"}
+          <p className="mt-1 text-xs text-ink-muted">
+            {project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2.5">
-          <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="l" tooltip="Configurar proyecto" variant="icon">
-            <Icon name="settings" />
+          <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="m" tooltip="Configurar proyecto" variant="icon">
+            <PortalIcon icon={Settings} size="m" />
           </Button>
-          <Button ariaLabel="Ver sitio publicado" className="!size-10 !p-0" onClick={onViewClientPortal} tooltip="Ver sitio publicado" variant="icon">
-            <Icon className="size-5" name="eye" />
+          <Button ariaLabel="Ver sitio publicado" onClick={onViewClientPortal} size="m" tooltip="Ver sitio publicado" variant="icon">
+            <PortalIcon icon={Eye} size="m" />
           </Button>
           <Button onClick={onRequestAction} variant="secondary"><Icon className="size-4" name="message" /> Solicitar acción</Button>
           <Button onClick={onPublish} variant="primary"><Icon className="size-4" name="publish" /> Publicación y acceso</Button>
         </div>
       </div>
-      <div className="mt-8 space-y-2">
-        <div className="h-2 overflow-hidden rounded-full bg-stone">
-          <div className="h-full rounded-full bg-forest transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-        <div className="flex items-center justify-between text-sm text-ink-muted">
-          <span>En curso · Última actualización {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span>
-          <span className="font-semibold text-ink">{progress}% acumulado en ADN</span>
-        </div>
+      <div className="mt-8">
+        <ProjectProgressBar project={project} value={progress} />
       </div>
     </section>
   )
@@ -766,12 +757,12 @@ function StatCard({
   )
 }
 
-const statusStyles: Record<TaskStatus, string> = {
-  "En curso": "bg-sand/55 text-ink",
-  "En revision": "bg-stone text-ink-muted",
-  "Esperando cliente": "bg-clay-pale text-clay-dark",
-  Pendiente: "bg-stone text-ink-faint",
-  Completado: "bg-mint-pale text-forest",
+const taskStatusBadge: Record<TaskStatus, { tone: "active" | "gray" | "info" | "neutral" | "waiting"; label: string }> = {
+  "En curso": { tone: "info", label: "En curso" },
+  "En revision": { tone: "neutral", label: "En revisión" },
+  "Esperando cliente": { tone: "waiting", label: "Esperando cliente" },
+  Pendiente: { tone: "gray", label: "Pendiente" },
+  Completado: { tone: "active", label: "Completada" },
 }
 
 function TasksPanel({
@@ -803,9 +794,8 @@ function TasksPanel({
           onChange={setFilter}
           tabs={["Todas", "En curso", "En revision", "Esperando cliente"].map((item) => ({ id: item, label: `${item} (${item === "Todas" ? tasks.length : tasks.filter((task) => task.status === item).length})` }))}
         />
-        <div className="relative w-full sm:w-80 sm:shrink-0">
-          <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-ink-faint" />
-          <InputControl aria-label="Buscar tareas" type="search" placeholder="Buscar por tarea, proyecto o responsable..." value={search} onChange={(event) => setSearch(event.target.value)} className="rounded-full bg-canvas/60 py-2 pl-10 pr-4 text-xs" />
+        <div>
+          <SearchInput size="s" aria-label="Buscar tareas" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
       </FilterBar>
 
@@ -841,13 +831,15 @@ function TasksPanel({
               {task.due}
             </div>
             <div className="flex items-center justify-between gap-2">
-              <Button variant="secondary"
+              <Button variant="link"
                 type="button"
                 onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}
                 title="Clic para cambiar estado"
-                className={`rounded-full px-3 py-1.5 text-xs font-semibold cursor-pointer transition hover:opacity-85 ${statusStyles[task.status]}`}
+                className="!min-h-0"
               >
-                {task.status === "Completado" ? "✓ Completada" : task.status}
+                <StatusBadge tone={taskStatusBadge[task.status].tone} size="s">
+                  {taskStatusBadge[task.status].label}
+                </StatusBadge>
               </Button>
               <Button
                 ariaLabel={`Mas opciones para ${task.title}`}
@@ -944,11 +936,11 @@ function ClientActions({
             Acciones y respuestas
           </Heading>
         </div>
-        <span className={`grid size-8 place-items-center rounded-full text-xs font-bold text-white ${
-          isApproved ? "bg-forest" : "bg-clay"
-        }`}>
-          {isApproved ? "✓" : "1"}
-        </span>
+        {isApproved ? (
+          <PortalIcon icon={Check} size="xs" filled />
+        ) : (
+          <span className="grid size-8 place-items-center rounded-full bg-clay text-xs font-bold text-white">1</span>
+        )}
       </div>
 
       <div className="mt-6 space-y-3">
@@ -1687,8 +1679,8 @@ function AdminPortal({
         <PublishInviteModal
           isOpen={isPublishModalOpen}
           onClose={() => setIsPublishModalOpen(false)}
-          onPublish={() => {
-            const published = publishAndActivateProject(currentProject)
+          onPublish={(projectToPublish) => {
+            const published = publishAndActivateProject(projectToPublish)
             onUpdateProject(published)
             setIsPublishModalOpen(false)
             onPublishToast("Portal del comitente sincronizado y publicado.")
@@ -1772,7 +1764,7 @@ function ClientSidebar({
         {expanded && <div className="w-36 rounded-xl px-2 py-2" title="Bojana Estudio">
           <img src={bojanaLogoWhite} alt="Bojana Estudio" className="h-auto w-full brightness-0 opacity-70" />
         </div>}
-        <div className="relative">
+        <NotificationAnchor count={notificationCount}>
         <Button
           ariaLabel="Notificaciones"
           title="Notificaciones"
@@ -1781,9 +1773,8 @@ function ClientSidebar({
           size="m"
         >
           <Icon name="bell" />
-          {notificationCount > 0 && <Badge tone="danger" className="!absolute !-right-1 !-top-2 !size-4 !justify-center !border-0 !px-0 !py-0 !text-[9px]">{notificationCount}</Badge>}
         </Button>
-        </div>
+        </NotificationAnchor>
       </div>
 
       <nav aria-label="Navegación cliente" className={`flex w-full flex-col ${expanded ? "mt-5 items-stretch gap-2" : "mt-4 items-center gap-1"}`}>
@@ -2099,6 +2090,7 @@ function ProgressSection({
   totalCount,
   progressGroups,
   expandedTaskId,
+  featuredTaskId,
   onTaskToggle,
 }: {
   progressPercent: number
@@ -2125,11 +2117,26 @@ function ProgressSection({
     }[]
   }[]
   expandedTaskId: string | null
+  featuredTaskId?: string
   onTaskToggle: (taskId: string) => void
 }) {
   const [hoveredNeedId, setHoveredNeedId] = useState<string | null>(null)
   const [expandedNeedId, setExpandedNeedId] = useState<string | null>(null)
+  const [granular, setGranular] = useState(true)
   const allNeeds = progressGroups.flatMap(group => group.needs)
+  const featuredNeedId = featuredTaskId ? allNeeds.find(need => need.tasks.some(task => task.task.id === featuredTaskId))?.id : undefined
+  const taskStatusCounts = allNeeds.flatMap(need => need.tasks).reduce<StatusBarTaskStatusCounts>((counts, item) => {
+    const stateMap = { Pendiente: 'pending', 'En curso': 'in-progress', 'En revisión': 'review', 'Esperando al cliente': 'waiting', 'Requiere ajustes': 'adjustments', Completado: 'completed', Pausada: 'paused', 'Fuera de alcance': 'out-of-scope' } as const
+    const state = stateMap[item.task.estado]
+    if (state) counts[state] = (counts[state] || 0) + 1
+    return counts
+  }, {})
+
+  useEffect(() => {
+    if (!featuredNeedId) return
+    setGranular(true)
+    setExpandedNeedId(featuredNeedId)
+  }, [featuredNeedId])
 
   return (
     <section>
@@ -2137,35 +2144,16 @@ function ProgressSection({
         Avanzamos segun lo previsto
       </SectionTitle>
       <div className="rounded-3xl border border-line bg-white p-7 md:p-8">
-          <div className="flex items-end justify-between gap-4">
+          <div>
             <div>
               <p className="font-display text-5xl text-ink">{progressPercent}%</p>
               <p className="mt-2 text-sm text-ink-muted">
                 {completedCount} de {totalCount} tareas completadas
               </p>
             </div>
-            <span className="rounded-full bg-mint-pale px-3 py-1.5 text-xs font-bold text-forest">
-              En tiempo
-            </span>
           </div>
           <div className="mt-7">
-            <div
-              aria-label={`Progreso del proyecto: ${progressPercent} por ciento`}
-              aria-valuemax={100}
-              aria-valuemin={0}
-              aria-valuenow={progressPercent}
-              className="h-5 w-full overflow-hidden rounded-full bg-stone"
-              role="progressbar"
-            >
-              <div className="flex h-full w-full gap-0.5 rounded-full bg-stone p-0.5">
-                {allNeeds.map(need => <div key={`global-${need.id}`} role="button" tabIndex={0} onClick={() => setExpandedNeedId(current => current === need.id ? null : need.id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setExpandedNeedId(current => current === need.id ? null : need.id) } }} onMouseEnter={() => setHoveredNeedId(need.id)} onMouseLeave={() => setHoveredNeedId(null)} className={`relative h-full cursor-pointer transition ${hoveredNeedId === need.id ? "z-10 bg-clay-dark ring-2 ring-clay" : "bg-clay"}`} style={{ width: `${need.projectWeight}%` }} title={`${need.name}: ${need.projectWeight.toFixed(1)}% del proyecto`}>
-                  <div className="h-full bg-forest/70" style={{ width: `${need.progress}%` }} />
-                </div>)}
-              </div>
-            </div>
-            <div className="mt-2 flex w-full flex-wrap gap-y-1">
-              {allNeeds.map(need => <Button variant="secondary" key={`label-${need.id}`} type="button" onClick={() => setExpandedNeedId(current => current === need.id ? null : need.id)} onMouseEnter={() => setHoveredNeedId(need.id)} onMouseLeave={() => setHoveredNeedId(null)} className={`min-w-0 flex-none whitespace-normal break-words px-1 text-center text-[11px] font-semibold leading-4 transition ${hoveredNeedId === need.id ? "text-clay-dark" : "text-ink"}`} style={{ width: `${need.projectWeight}%` }} title={`${need.name}: ${need.projectWeight.toFixed(1)}% del proyecto`}>{need.name}</Button>)}
-            </div>
+              <StatusBar value={progressPercent} mode={granular ? "granular" : "completo"} taskCount={totalCount} completedTaskCount={completedCount} taskStatusCounts={taskStatusCounts} segments={allNeeds.map(need => ({ id: need.id, label: need.name, weight: need.projectWeight, progress: need.progress, taskCount: need.tasks.length, completedTaskCount: need.tasks.filter(task => task.status === "Completada").length }))} activeSegment={hoveredNeedId} expandedSegment={expandedNeedId} onSegmentClick={id => setExpandedNeedId(current => current === id ? null : id)} onSegmentHover={setHoveredNeedId} ariaLabel={`Progreso del proyecto: ${progressPercent} por ciento`} projectStatus={<StatusBadge tone="active" size="s" showDot={false}>En tiempo</StatusBadge>} onModeChange={next => { setGranular(next === "granular"); setExpandedNeedId(null); setHoveredNeedId(null) }} />
           </div>
         <div className="mt-8 border-t border-line pt-7">
           <div className="space-y-3">
@@ -2236,9 +2224,9 @@ function StorySection({ updates }: { updates: { date: string; title: string; des
               </p>
             </div>
             <div>
-              <span className="rounded-full bg-stone px-3 py-1 text-xs font-semibold text-ink-muted">
+              <StatusBadge tone="gray" size="s" showDot={false}>
                 {update.tag}
-              </span>
+              </StatusBadge>
               <Heading
                 as="h3"
                 className="mt-3 text-base font-semibold text-ink"
@@ -2298,15 +2286,7 @@ function DocumentsSection({ documents }: { documents: { name: string; meta: stri
               </Heading>
               <p className="mt-1 text-xs text-ink-faint">{document.meta}</p>
             </div>
-            <span
-              className={`hidden rounded-full px-3 py-1.5 text-xs font-semibold sm:block ${
-                document.status === "Para revisar"
-                  ? "bg-clay-pale text-clay-dark"
-                  : "bg-mint-pale text-forest"
-              }`}
-            >
-              {document.status}
-            </span>
+            <StatusBadge tone={document.status === "Para revisar" ? "waiting" : "active"} size="s" showDot={false} className="hidden sm:inline-flex">{document.status}</StatusBadge>
             <Button ariaLabel={`Descargar ${document.name}`} className="!size-11 !p-0" variant="icon" onClick={() => document.url ? window.open(document.url, '_blank', 'noopener,noreferrer') : undefined}>
               <Icon className="size-5" name="download" />
             </Button>
@@ -2368,7 +2348,7 @@ function ClientDeliverableWidget({
           <Heading as="h3" className="mt-2 text-xl font-semibold text-ink">{deliverable.nombre}</Heading>
           {deliverable.descripcion && <p className="mt-2 text-sm leading-6 text-ink-muted">{deliverable.descripcion}</p>}
         </div>
-        <span className="rounded-full bg-stone px-3 py-1.5 text-xs font-semibold text-ink-muted">{statusLabels[deliverable.estado || "pendiente"]}</span>
+        <StatusBadge tone="gray" size="s" showDot={false}>{statusLabels[deliverable.estado || "pendiente"]}</StatusBadge>
       </div>
 
       {linkedFiles.length > 0 && (
@@ -2433,7 +2413,7 @@ function ClientTaskUpdateWidget({
           <Heading as="h3" className="mt-2 text-xl font-semibold text-ink">{update.titulo}</Heading>
           <p className="mt-1 text-xs text-ink-faint">{task.titulo} · Versión {update.version}</p>
         </div>
-        <span className="rounded-full bg-stone px-3 py-1.5 text-xs font-semibold text-ink-muted">{statusLabels[update.estado]}</span>
+        <StatusBadge tone="gray" size="s" showDot={false}>{statusLabels[update.estado]}</StatusBadge>
       </div>
       {update.descripcion && <p className="mt-4 text-sm leading-6 text-ink-muted">{update.descripcion}</p>}
       {(update.recursos || []).length > 0 && <div className="mt-4 space-y-2">{(update.recursos || []).map(resource => <div key={resource} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
@@ -2551,6 +2531,10 @@ function ClientPortal({
     .filter(activity => activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:"))
     .slice()
     .reverse()
+
+  useEffect(() => {
+    setExpandedClientTaskId(getProgressFocusTaskId(currentProject) || null)
+  }, [currentProject])
 
   useEffect(() => {
     if (active !== "Conversaciones") return
@@ -2850,6 +2834,7 @@ function ClientPortal({
                     progressGroups={progressGroups}
                     progressPercent={progressPercent}
                     expandedTaskId={expandedClientTaskId}
+                    featuredTaskId={getProgressFocusTaskId(currentProject)}
                     onTaskToggle={taskId => setExpandedClientTaskId(current => current === taskId ? null : taskId)}
                     totalCount={projectTasks.length}
                   />
@@ -2918,9 +2903,9 @@ function ClientPortal({
                         Conversación con el estudio
                       </Heading>
                     </div>
-                    <span className="rounded-full bg-stone px-2.5 py-1 text-[11px] font-semibold text-ink-muted">
+                    <StatusBadge tone="gray" size="s" showDot={false}>
                       {conversationMessages.length} {conversationMessages.length === 1 ? "mensaje" : "mensajes"}
-                    </span>
+                    </StatusBadge>
                   </div>
                   {conversationMessages.length > 0 && (
                     <div className="mt-4 space-y-2.5 border-t border-line pt-4">
@@ -3082,6 +3067,44 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!localPreview || allProjects.length === 0) return
+    const demoMarker = "status-demo-pendiente"
+    const target = allProjects[0]
+    if (target.disciplinasOperativas?.some(discipline => discipline.necesidades.some(need => need.tareas.some(task => task.id === demoMarker)))) return
+    const demoStates = [
+      ["Pendiente", "Demo · No iniciada"],
+      ["En curso", "Demo · En curso"],
+      ["En revisión", "Demo · En revisión"],
+      ["Esperando al cliente", "Demo · Esperando cliente"],
+      ["Requiere ajustes", "Demo · Requiere ajustes"],
+      ["Completado", "Demo · Completada"],
+      ["Pausada", "Demo · Pausada"],
+      ["Fuera de alcance", "Demo · Fuera de alcance"],
+    ] as const
+    const firstDiscipline = target.disciplinasOperativas?.[0]
+    const firstNeed = firstDiscipline?.necesidades?.[0]
+    if (!firstDiscipline || !firstNeed) return
+    const demoTasks = demoStates.map(([estado, titulo], index) => ({
+      id: index === 0 ? demoMarker : `status-demo-${index}`,
+      titulo,
+      pesoPorcentaje: 0,
+      estado,
+      tipoEtapa: "estado" as const,
+      visibleCliente: true,
+      descripcionTrabajo: "Tarea de demostración para revisar los estados del StatusBadge.",
+    }))
+    const updatedProject = {
+      ...target,
+      disciplinasOperativas: target.disciplinasOperativas!.map((discipline, disciplineIndex) => disciplineIndex !== 0 ? discipline : {
+        ...discipline,
+        necesidades: discipline.necesidades.map((need, needIndex) => needIndex !== 0 ? need : { ...need, tareas: [...need.tareas, ...demoTasks] }),
+      }),
+    }
+    saveProjectData(updatedProject)
+    setAllProjects(projects => projects.map(project => project.id === updatedProject.id ? updatedProject : project))
+  }, [localPreview])
+
+  useEffect(() => {
     if (!directToken || directToken === "portal-direct") return
     void fetch(`/api/portal/direct?token=${encodeURIComponent(directToken)}`)
       .then(response => response.ok ? response.json() : Promise.reject(new Error("No se pudo cargar el portal directo.")))
@@ -3134,7 +3157,10 @@ export default function App() {
   }, [directToken, isPasswordSetupLink, localPreview, recoveryParams.accessToken, recoveryParams.type])
 
   useEffect(() => {
-    if (!sessionReady || !activeUser?.id || directToken) return
+    // The local admin preview deliberately runs without Vercel API routes.
+    // Keep its seeded browser data intact instead of requesting `/api/*`,
+    // which Vite correctly falls back to the application HTML for.
+    if (!sessionReady || !activeUser?.id || directToken || localPreview) return
     const isStaff = ["owner", "admin", "team"].includes(activeUser.rol)
     if (!isStaff) {
       setClientProjectsLoading(true)
@@ -3157,7 +3183,7 @@ export default function App() {
     }).finally(() => {
       if (!isStaff) setClientProjectsLoading(false)
     })
-  }, [activeUser?.id, activeUser?.rol, directToken, projectsReloadKey, sessionReady])
+  }, [activeUser?.id, activeUser?.rol, directToken, localPreview, projectsReloadKey, sessionReady])
 
   const showToast = (msg?: string) => {
     if (!msg) return

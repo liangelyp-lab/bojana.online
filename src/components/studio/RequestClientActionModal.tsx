@@ -15,7 +15,7 @@ import {
   Calendar,
   ExternalLink
 } from 'lucide-react';
-import { Button, InputControl, ModalTabs, TextAreaControl } from '../ui/DesignSystem';
+import { StatusBadge, Button, InputControl, Tabs, TextAreaControl } from '../ui/DesignSystem';
 import { createSecureProjectLink } from '../../services/projectAccess';
 
 interface RequestClientActionModalProps {
@@ -265,7 +265,7 @@ export default function RequestClientActionModal({
         </div>
 
         {/* Tab selection */}
-        <ModalTabs
+        <Tabs
           activeTab={activeTab}
           onChange={(id) => setActiveTab(id as typeof activeTab)}
           tabs={[
@@ -522,9 +522,9 @@ export default function RequestClientActionModal({
                     <span className="text-bojana-muted font-medium">De:</span>{' '}
                     <strong>Bojana Estudio</strong> &lt;info@bojana.com.ar&gt;
                   </div>
-                  <span className="text-xs text-bojana-success bg-bojana-soft px-2 py-0.5 rounded-bojana-badge border border-bojana-success font-medium">
+                  <StatusBadge tone="active" size="s" showDot={false}>
                     Lark Suite SMTP ✓
-                  </span>
+                  </StatusBadge>
                 </div>
                 <div>
                   <span className="text-bojana-muted font-medium">Para:</span>{' '}
@@ -542,9 +542,9 @@ export default function RequestClientActionModal({
                   <span className="font-sans font-medium text-xs uppercase tracking-normal text-bojana-ink">
                     BOJANA ESTUDIO
                   </span>
-                  <span className="text-xs font-sans text-bojana-ink bg-bojana-waiting px-2 py-0.5 rounded-bojana-badge border border-bojana-line font-medium">
+                  <StatusBadge tone="neutral" size="s" showDot={false}>
                     {emailConfig.label}
-                  </span>
+                  </StatusBadge>
                 </div>
 
                 <div className="space-y-bojana-inside">

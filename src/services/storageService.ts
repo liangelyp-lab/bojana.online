@@ -73,6 +73,34 @@ export function getProjectStatusLabel(project: ProjectData): 'Borrador' | 'En pr
   return 'En progreso';
 }
 
+/** Returns the task represented by the progress bar when the project opens. */
+export function getProgressFocusTaskId(project: ProjectData): string | undefined {
+  const visibleTasks = (project.disciplinasOperativas || []).flatMap((discipline) =>
+    discipline.necesidades.flatMap((need) =>
+      need.visibleCliente === false ? [] : (need.tareas || []).filter((task) => task.visibleCliente)
+    )
+  );
+  if (project.tareaFocalPublicadaId && visibleTasks.some((task) => task.id === project.tareaFocalPublicadaId)) return project.tareaFocalPublicadaId;
+
+  let latestTaskId: string | undefined;
+  let latestTimestamp = -Infinity;
+  let latestOrder = -1;
+  let order = 0;
+  for (const task of visibleTasks) {
+    for (const update of task.actualizaciones || []) {
+      if (update.estado === 'borrador' || update.visibleCliente === false || update.visibilidad === 'interna') continue;
+      const timestamp = Number.isNaN(Date.parse(update.fecha)) ? -Infinity : Date.parse(update.fecha);
+      if (timestamp > latestTimestamp || (timestamp === latestTimestamp && order > latestOrder)) {
+        latestTaskId = task.id;
+        latestTimestamp = timestamp;
+        latestOrder = order;
+      }
+      order += 1;
+    }
+  }
+  return latestTaskId;
+}
+
 /**
  * Returns a human-readable label and color class for a lifecycle status.
  */

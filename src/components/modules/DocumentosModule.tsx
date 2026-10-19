@@ -12,10 +12,9 @@ import {
   History,
   ChevronDown,
   ChevronUp,
-  Search,
   UploadCloud
 } from 'lucide-react';
-import { Badge, Button, EmptyState, FilterTabs, Field, InputControl, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
+import { Badge, Button, EmptyState, FilterTabs, Field, InputControl, SearchInput, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
 
 interface DocumentosModuleProps {
   project: ProjectData;
@@ -162,16 +161,7 @@ export default function DocumentosModule({
         />
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-3.5 h-3.5 text-bojana-muted absolute left-3 top-2.5 pointer-events-none" />
-          <InputControl
-            type="text"
-            placeholder="Buscar por título o categoría..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-bojana-surface pl-8 pr-3 py-1.5 text-xs text-bojana-ink"
-          />
-        </div>
+        <SearchInput aria-label="Buscar documentos" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
       </div>}
 
       {/* 3. DOCUMENTS LIST WITH VISIBLE VERSIONING */}

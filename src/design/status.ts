@@ -31,12 +31,12 @@ export function taskStateBadgeClasses(state: EstadoEtapa, _audience: 'studio' | 
     case 'Completado':
       return 'bg-forest text-white border-transparent';
     case 'En curso':
-      return 'bg-mint-pale text-forest border-mint/40';
+      return 'bg-blue-50 text-blue-800 border-blue-200';
     case 'En revisión':
     case 'Requiere ajustes':
-      return 'bg-sand/30 text-ink border-sand-strong/40';
+      return 'bg-sand/30 text-ink border-current/30';
     case 'Esperando al cliente':
-      return 'bg-clay-pale text-clay-dark border-clay/40 font-semibold';
+      return 'bg-clay-pale text-clay-dark border-clay/40';
     case 'Pausada':
     case 'Fuera de alcance':
       return 'bg-stone text-ink-faint border-line';
@@ -49,11 +49,11 @@ export function taskStateBadgeClasses(state: EstadoEtapa, _audience: 'studio' | 
 export function decisionStateBadgeClasses(status: DecisionStatus): string {
   switch (status) {
     case 'Aprobado':
-      return 'bg-mint-pale text-forest border-mint/40 font-semibold';
+      return 'bg-mint-pale text-forest border-mint/40';
     case 'Requiere cambios':
-      return 'bg-clay-pale text-clay-dark border-clay/40 font-semibold';
+      return 'bg-clay-pale text-clay-dark border-clay/40';
     case 'Pendiente':
     default:
-      return 'bg-sand/30 text-ink border-sand-strong/40';
+      return 'bg-sand/30 text-ink border-current/30';
   }
 }

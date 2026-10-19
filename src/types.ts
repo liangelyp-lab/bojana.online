@@ -540,6 +540,7 @@ export interface ProjectData {
   // ─── GENERAL INFO ──────────────────────────────────────────────────────────
   info: ProjectGeneralInfo;
   disciplinas: DisciplinaType[]; // Metadata del proyecto
+  groupTasksByDiscipline?: boolean; // Preferencia visual del ADN para el espacio de tareas
   equipo: TeamMember[]; // Configuración de equipo
   cliente: ClientConfig; // Configuración de cliente y accesos
   modulos: PortalModuleConfig[]; // Lista de módulos activos y su orden
@@ -567,6 +568,7 @@ export interface ProjectData {
   // progresoTotalCalculado is ALWAYS 0 until lifecycleStatus === 'ACTIVO' | 'COMPLETADO'
   disciplinasOperativas?: OperationalDiscipline[];
   progresoTotalCalculado?: number;
+  tareaFocalPublicadaId?: string;
 
   hitosInternos?: InternalMilestone[];
   actividadReciente?: ProjectActivityLog[];

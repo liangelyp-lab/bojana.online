@@ -12,12 +12,13 @@ function IconGallery() {
   const [search, setSearch] = useState('');
   const [size, setSize] = useState<ButtonSize>('m');
   const [filled, setFilled] = useState(false);
+  const [framed, setFramed] = useState(false);
   const query = search.trim().toLowerCase();
   const lucide = Object.entries(lucideIcons).filter(([name]) => name.toLowerCase().includes(query));
   return <div className="max-w-5xl space-y-8 p-4">
     <div><h1 className="text-2xl font-semibold">Iconos del portal</h1><p className="mt-2 text-sm text-ink-muted">Iconos Lucide utilizados en el portal, con medidas según el tamaño del botón.</p><div className="mt-4 flex flex-wrap gap-3"><input className="w-full max-w-sm rounded-xl border border-line bg-white px-4 py-2 text-sm" aria-label="Buscar iconos" placeholder="Buscar por nombre" value={search} onChange={event => setSearch(event.target.value)} /><label className="flex items-center gap-2 text-sm">Tamaño <select className="rounded-xl border border-line bg-white px-3 py-2" value={size} onChange={event => setSize(event.target.value as ButtonSize)}>{(Object.keys(buttonIconPixels) as ButtonSize[]).map(option => <option key={option} value={option}>{option.toUpperCase()} · {buttonIconPixels[option]} px</option>)}</select></label></div></div>
-    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={filled} onChange={event => setFilled(event.target.checked)} /> Filled</label>
-    {([{ title: 'Lucide', items: lucide.map(([name, Component]) => ({ name, icon: <PortalIcon icon={Component} size={size} filled={filled} /> })) }]).map(group => <section key={group.title}><h2 className="mb-4 text-lg font-semibold">{group.title} <span className="text-sm text-ink-muted">({group.items.length})</span></h2><div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4 lg:grid-cols-6">{group.items.map(item => <div key={item.name} className="flex min-w-0 items-center gap-2 py-1 text-ink">{item.icon}<span className="min-w-0 break-words text-xs">{item.name}</span></div>)}</div></section>)}
+    <div className="flex items-center gap-4"><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={framed} onChange={event => setFramed(event.target.checked)} /> Framed</label><label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={filled} onChange={event => setFilled(event.target.checked)} /> Filled</label></div>
+    {([{ title: 'Lucide', items: lucide.map(([name, Component]) => ({ name, icon: <PortalIcon icon={Component} size={size} filled={filled} framed={framed} /> })) }]).map(group => <section key={group.title}><h2 className="mb-4 text-lg font-semibold">{group.title} <span className="text-sm text-ink-muted">({group.items.length})</span></h2><div className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-4 lg:grid-cols-6">{group.items.map(item => <div key={item.name} className="flex min-w-0 items-center gap-2 py-1 text-ink">{item.icon}<span className="min-w-0 break-words text-xs">{item.name}</span></div>)}</div></section>)}
     {lucide.length === 0 && <p className="text-sm text-ink-muted">No se encontraron iconos.</p>}
   </div>;
 }

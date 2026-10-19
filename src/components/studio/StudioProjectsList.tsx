@@ -6,10 +6,9 @@ import {
 } from '../../services/storageService';
 import { createSecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
-import { Badge, Button, EmptyState, Field, FilterBar, FilterTabs, PageHeader } from '../ui';
+import { Badge, Button, EmptyState, FilterBar, FilterTabs, PageHeader, SearchInput, StatusBadge } from '../ui';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 import {
-  Search,
   Plus,
   FolderKanban,
   Check,
@@ -104,14 +103,12 @@ export default function StudioProjectsList({
         />
 
         {/* Search Input */}
-        <div className="relative w-full sm:w-80">
-          <Search className="size-4 text-ink-faint absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-          <Field
-            type="text"
-            placeholder="Buscar por obra, cliente, ubicación..."
+        <div className="max-w-full">
+          <SearchInput
+            size="s"
+            aria-label="Buscar proyectos"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded-full bg-canvas/60 pl-10 pr-4 py-2 text-xs"
           />
         </div>
       </FilterBar>
@@ -134,13 +131,13 @@ export default function StudioProjectsList({
             const isCopied = copiedId === p.id;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
             const progressStatus = getProjectStatusLabel(p);
-            const statusClass = progressStatus === 'Completado'
-              ? 'bg-mint-pale border-mint/40 text-forest'
+            const statusTone = progressStatus === 'Completado'
+              ? 'active'
               : progressStatus === 'Revisión'
-                ? 'bg-clay-pale border-clay/30 text-clay-dark'
+                ? 'waiting'
                 : progressStatus === 'Borrador'
-                  ? 'bg-stone border-line text-ink-faint'
-                  : 'bg-blue-50 border-blue-200 text-blue-800';
+                  ? 'gray'
+                  : 'info';
 
             return (
               <div
@@ -151,12 +148,7 @@ export default function StudioProjectsList({
                 {/* Project Identity */}
                 <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-0.5 text-xs font-semibold border ${statusClass}`}
-                    >
-                      <span className="size-1.5 rounded-full bg-current opacity-70" />
-                        <span>{progressStatus}</span>
-                    </span>
+                    <StatusBadge tone={statusTone} size="s">{progressStatus}</StatusBadge>
                     <Badge className="border-transparent py-0.5 font-bold text-ink">{getEffectiveProgress(p)}%</Badge>
                     <span className="text-xs text-ink-faint">
                       {disciplines}

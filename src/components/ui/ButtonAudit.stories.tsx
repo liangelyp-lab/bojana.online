@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { Button } from './DesignSystem';
-const meta = { title: 'Bojana/Audits/Button audit', parameters: { layout: 'padded' } } satisfies Meta;
+const meta = { title: 'Bojana/Auditorías/Button audit', parameters: { layout: 'padded' } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 type AuditInstance = { id: string; file: string; line: number; kind: string; variant: string; snippet: string; label: string };

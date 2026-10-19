@@ -1,4 +1,4 @@
-import { Button, Field, Skeleton, Spinner } from '../ui/DesignSystem';
+import { Button, SearchInput, Skeleton, Spinner } from '../ui/DesignSystem';
 import { useEffect, useRef, useState } from 'react';
 import { Paperclip, Upload, FolderOpen } from 'lucide-react';
 import type { ProjectData, DisciplinaType, TaskContentType } from '../../types';
@@ -65,7 +65,7 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
     {selecting && <div className="bojana-widget border border-bojana-line bg-bojana-surface rounded-bojana-widget p-4 space-y-3">
       <p className="text-sm text-bojana-ink">Archivos de {discipline} en este proyecto</p>
       <form className="flex gap-bojana-inside" onSubmit={e => { e.preventDefault(); void run(async () => { await listChoices(); }); }}>
-        <Field aria-label="Buscar archivos por nombre" type="search" value={search} onChange={e => setSearch(e.target.value)} className="min-h-11 min-w-0 flex-1 text-sm" placeholder="Buscar archivos" />
+        <SearchInput aria-label="Buscar archivos por nombre" value={search} onChange={e => setSearch(e.target.value)} />
         <Button variant="tertiary" type="submit" disabled={busy}>Buscar</Button>
       </form>
       {choices.length ? <ul className="space-y-bojana-inside">{choices.map(f => <li key={f.id}><Button variant="tertiary" className="w-full justify-between text-left" disabled={busy} onClick={() => void run(() => selectDriveFile(project, taskId, discipline, f.id))}><span className="break-all">{f.name}</span><span className="shrink-0 text-xs">{fileSize(f.size)}</span></Button></li>)}</ul> : <p className="text-sm text-bojana-muted">Todavía no hay archivos en esta carpeta. Subí uno o elegí un archivo de otra carpeta de Drive.</p>}

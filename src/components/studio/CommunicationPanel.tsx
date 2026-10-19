@@ -1,6 +1,6 @@
 import { FormEvent, useMemo, useState } from "react"
 import type { ProjectActivityLog, ProjectData, ProjectInvitationLog } from "../../types"
-import { Button, TextAreaControl } from "../ui/DesignSystem"
+import { StatusBadge, Button, TextAreaControl } from "../ui/DesignSystem"
 
 type ReplyChannel = "portal" | "email"
 
@@ -118,7 +118,7 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Historial del portal</p>
             <h3 className="mt-0.5 font-display text-lg text-ink">Conversación con el cliente</h3>
           </div>
-          <span className="rounded-full bg-stone px-2.5 py-1 text-[11px] font-semibold text-ink-muted">{projectMessages.length} {projectMessages.length === 1 ? "mensaje" : "mensajes"}</span>
+          <StatusBadge tone="gray" size="s" showDot={false}>{projectMessages.length} {projectMessages.length === 1 ? "mensaje" : "mensajes"}</StatusBadge>
         </div>
         <div className="mt-4 space-y-2.5 border-t border-line pt-4">
           {projectMessages.length === 0 ? (

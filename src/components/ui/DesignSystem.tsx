@@ -1,8 +1,8 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, LoaderCircle, ChevronDown, LucideIcon } from 'lucide-react';
-import { EstadoEtapa } from '../../types';
-import { taskStateLabel, taskStateBadgeClasses } from '../../design/status';
+import { X, LoaderCircle, ChevronDown, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, Pause, Ban, LucideIcon } from 'lucide-react';
+import { DecisionStatus, EstadoEtapa } from '../../types';
+import { taskStateLabel } from '../../design/status';
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
@@ -15,12 +15,15 @@ export function Brand({ compact = false }: { compact?: boolean }) {
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'icon' | 'link';
 export type ButtonSize = 'xs' | 's' | 'm' | 'l';
-export const buttonIconPixels: Record<ButtonSize, number> = { xs: 14, s: 16, m: 18, l: 20 };
-export const iconButtonPixels: Record<ButtonSize, number> = { xs: 24, s: 32, m: 36, l: 40 };
+export const buttonIconPixels: Record<ButtonSize, number> = { xs: 12, s: 16, m: 18, l: 20 };
+export const iconButtonPixels: Record<ButtonSize, number> = { xs: 22, s: 32, m: 36, l: 40 };
 
-export function PortalIcon({ icon: Icon, size = 'm', filled = false }: { icon: LucideIcon; size?: ButtonSize; filled?: boolean }) {
+export function PortalIcon({ icon: Icon, size = 'm', filled = false, filledTone = 'ink', color = 'current', framed = false }: { icon: LucideIcon; size?: ButtonSize; filled?: boolean; filledTone?: 'ink' | 'success-soft'; color?: 'current' | 'success-strong' | 'info-surface' | 'info-border' | 'line'; framed?: boolean }) {
   const pixels = buttonIconPixels[size];
-  return <span className={`inline-flex shrink-0 items-center justify-center rounded-full ${filled ? 'bg-ink text-white' : ''}`} style={{ width: iconButtonPixels[size], height: iconButtonPixels[size] }}><Icon size={pixels} aria-hidden="true" /></span>;
+  const colorClass = color === 'success-strong' ? 'text-mint-strong' : color === 'info-surface' ? 'text-blue-50' : color === 'info-border' ? 'text-blue-200' : color === 'line' ? 'text-line' : '';
+  if (!filled && !framed) return <Icon size={pixels} aria-hidden="true" className={`shrink-0 ${colorClass}`} />;
+  const filledClasses = filledTone === 'success-soft' ? 'bg-mint-pale text-mint-strong' : 'bg-ink text-white';
+  return <span className={`inline-flex shrink-0 items-center justify-center rounded-full ${filled ? filledClasses : ''}`} style={{ width: iconButtonPixels[size], height: iconButtonPixels[size] }}><Icon size={pixels} aria-hidden="true" className={colorClass} /></span>;
 }
 
 export function Button({
@@ -34,6 +37,7 @@ export function Button({
   dataChannel,
   ariaPressed,
   disabled = false,
+  state = 'default',
   loading = false,
   size = 'm',
   type = 'button',
@@ -49,6 +53,7 @@ export function Button({
   dataChannel?: string;
   ariaPressed?: boolean;
   disabled?: boolean;
+  state?: 'default' | 'disabled';
   loading?: boolean;
   size?: ButtonSize;
 }) {
@@ -115,7 +120,7 @@ export function Button({
       aria-pressed={ariaPressed ?? buttonProps['aria-pressed']}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${sizes[size]} ${contentIconSizes[size]} ${variant === 'icon' ? iconSizes[size] : ''} ${variant === 'link' ? '!min-h-0 !px-0 !py-0' : ''} ${className}`}
+      className={`inline-flex items-center justify-center rounded-full font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-45 ${variants[variant]} ${sizes[size]} ${contentIconSizes[size]} ${variant === 'icon' ? iconSizes[size] : ''} ${variant === 'link' ? '!min-h-0 !px-0 !py-0' : ''} ${state === 'disabled' ? 'text-line hover:text-line hover:no-underline' : ''} ${className}`}
       onClick={onClick}
       type={type}
     >
@@ -191,17 +196,10 @@ export function Badge({
   className = ''
 }: {
   children: React.ReactNode;
-  tone?: 'neutral' | 'active' | 'waiting' | 'danger';
+  tone?: 'neutral' | 'active' | 'warning' | 'waiting' | 'danger' | 'info' | 'gray' | 'white' | 'black';
   className?: string;
 }) {
-  const tones = {
-    neutral: 'bg-stone text-ink-muted border-line',
-    active: 'bg-mint-pale text-forest border-mint/40',
-    waiting: 'bg-clay-pale text-clay-dark border-clay/30',
-    danger: 'bg-clay text-white border-clay'
-  };
-
-  return <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${tones[tone]} ${className}`}>{children}</span>;
+  return <StatusBadge tone={tone} size="s" showDot={false} className={className}>{children}</StatusBadge>;
 }
 
 export function Card({
@@ -263,6 +261,19 @@ export function Field({
 
 export function InputControl({ className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`bojana-control ${className}`} />;
+}
+
+export function SearchInput({ className = '', size = 'm', ...props }: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type' | 'size'> & { size?: 's' | 'm' | 'l' }) {
+  const sizes = {
+    s: { width: 'w-[150px]', input: 'h-7 pl-8 pr-3 text-xs', icon: 'xs' },
+    m: { width: 'w-[200px]', input: 'h-[34px] pl-10 pr-4 text-xs', icon: 's' },
+    l: { width: 'w-[280px]', input: 'h-10 pl-11 pr-4 text-sm', icon: 'm' },
+  } as const;
+  const selectedSize = sizes[size];
+  return <div className={`relative ${selectedSize.width} max-w-full shrink-0`}>
+    <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-faint"><PortalIcon icon={Search} size={selectedSize.icon} /></span>
+    <InputControl {...props} type="text" role="searchbox" className={`bojana-search rounded-full bg-white hover:bg-canvas-light ${selectedSize.input} ${className}`} />
+  </div>;
 }
 
 export function TextAreaControl({ className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
@@ -334,22 +345,91 @@ export function Skeleton({ rows = 3, label = 'Cargando contenido' }: { rows?: nu
 
 export function StatusBadge({
   state,
+  children,
+  kind = 'task',
+  tone,
+  filled = false,
   audience = 'studio',
+  showDot = true,
+  icon,
+  iconOnly = false,
+  size = 'm',
   className = ''
 }: {
-  state: EstadoEtapa;
+  state?: EstadoEtapa | DecisionStatus;
+  children?: React.ReactNode;
+  kind?: 'task' | 'decision';
+  tone?: 'neutral' | 'active' | 'warning' | 'waiting' | 'danger' | 'info' | 'gray' | 'white' | 'black';
+  filled?: boolean;
   audience?: 'studio' | 'client';
+  showDot?: boolean;
+  icon?: LucideIcon;
+  iconOnly?: boolean;
+  size?: ButtonSize;
   className?: string;
 }) {
-  const label = taskStateLabel(state, audience);
-  const colorClasses = taskStateBadgeClasses(state, audience);
+  const toneClasses = {
+    neutral: 'bg-stone text-ink [--badge-stroke:var(--color-line-strong)]',
+    active: 'bg-mint-pale text-mint-strong [--badge-stroke:var(--color-mint)]',
+    warning: 'bg-warning-pale text-warning-strong [--badge-stroke:var(--color-warning)]',
+    waiting: 'bg-clay-pale text-clay-dark [--badge-stroke:var(--color-clay)]',
+    danger: 'bg-clay text-white [--badge-stroke:var(--color-clay-dark)]',
+    info: 'bg-blue-50 text-blue-800 [--badge-stroke:var(--color-blue-200)]',
+    gray: 'bg-stone text-ink-muted [--badge-stroke:var(--color-line-strong)]',
+    white: 'bg-white text-ink [--badge-stroke:var(--color-line-strong)]',
+    black: 'bg-ink text-white [--badge-stroke:var(--color-ink-soft)]',
+  } as const;
+  const filledToneClasses = {
+    neutral: 'bg-ink text-stone border-transparent',
+    active: 'bg-mint-strong text-mint-pale border-transparent',
+    warning: 'bg-warning-strong text-warning-pale border-transparent',
+    waiting: 'bg-clay-dark text-clay-pale border-transparent',
+    danger: 'bg-white text-clay border-transparent',
+    info: 'bg-blue-800 text-blue-50 border-transparent',
+    gray: 'bg-ink-muted text-stone border-transparent',
+    white: 'bg-ink text-white border-transparent',
+    black: 'bg-white text-ink border-transparent',
+  } as const;
+  const sizes = {
+    xs: 'gap-1 px-[7px] py-[1.5px] text-[10px]',
+    s: 'gap-1.5 px-[9px] py-[3px] text-[11px]',
+    m: 'gap-1.5 px-[11px] py-[5px] text-xs',
+    l: 'gap-2 px-[13px] py-[7px] text-sm',
+  } as const;
+  const borderWidths = {
+    xs: 'shadow-[inset_0_0_0_0.25px_var(--badge-stroke),0_0_0_0.25px_var(--badge-stroke)]',
+    s: 'shadow-[inset_0_0_0_0.3335px_var(--badge-stroke),0_0_0_0.3335px_var(--badge-stroke)]',
+    m: 'shadow-[inset_0_0_0_0.4165px_var(--badge-stroke),0_0_0_0.4165px_var(--badge-stroke)]',
+    l: 'shadow-[inset_0_0_0_0.5px_var(--badge-stroke),0_0_0_0.5px_var(--badge-stroke)]',
+  } as const;
+  const label = state ? (kind === 'decision' ? state : taskStateLabel(state as EstadoEtapa, audience)) : '';
+  const stateTone = tone ?? (kind === 'decision'
+    ? state === 'Aprobado'
+      ? 'active'
+      : state === 'Requiere cambios'
+        ? 'waiting'
+        : 'neutral'
+    : state === 'Completado'
+      ? 'active'
+      : state === 'En curso'
+        ? 'info'
+        : state === 'Esperando al cliente'
+          ? 'waiting'
+          : state === 'En revisión' || state === 'Requiere ajustes'
+            ? 'neutral'
+            : 'gray');
+  const colorClasses = filled ? filledToneClasses[stateTone] : toneClasses[stateTone];
+  const Icon = icon;
+  const contentClasses = iconOnly
+    ? { xs: 'p-[3px]', s: 'p-[5px]', m: 'p-[7px]', l: 'p-[9px]' }[size]
+    : sizes[size];
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium border transition-colors ${colorClasses} ${className}`}
+      className={`inline-flex items-center rounded-full ${filled || stateTone === 'danger' ? '' : borderWidths[size]} font-semibold transition-colors ${contentClasses} ${colorClasses} ${className}`}
     >
-      <span className="size-1.5 rounded-full bg-current opacity-70" />
-      <span>{label}</span>
+      {Icon ? <Icon size={buttonIconPixels[size]} aria-hidden="true" /> : showDot && <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />}
+      {!iconOnly && <span>{children ?? label}</span>}
     </span>
   );
 }
@@ -552,65 +632,20 @@ export function Modal({
   );
 }
 
-export function ModalTabs({
-  tabs,
-  activeTab,
-  onChange,
-  ariaLabel = 'Secciones'
-}: {
-  tabs: Array<{ id: string; label: string; icon?: LucideIcon }>;
-  activeTab: string;
-  onChange: (id: string) => void;
-  ariaLabel?: string;
-}) {
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
-    if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
-
-    event.preventDefault();
-    const nextIndex = event.key === 'Home'
-      ? 0
-      : event.key === 'End'
-        ? tabs.length - 1
-        : (currentIndex + (event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : -1) + tabs.length) % tabs.length;
-    const nextTab = tabs[nextIndex];
-    onChange(nextTab.id);
-    const tablist = event.currentTarget.parentElement;
-    requestAnimationFrame(() => tablist?.querySelectorAll<HTMLButtonElement>('[role="tab"]')[nextIndex]?.focus());
-  };
-
-  return (
-    <div role="tablist" aria-label={ariaLabel} aria-orientation="horizontal" className="bojana-modal-tablist">
-      {tabs.map(({ id, label, icon: Icon }, index) => (
-        <button
-          key={id}
-          type="button"
-          role="tab"
-          aria-selected={activeTab === id}
-          tabIndex={activeTab === id ? 0 : -1}
-          onClick={() => onChange(id)}
-          onKeyDown={(event) => handleKeyDown(event, index)}
-          className={`bojana-modal-tab ${activeTab === id ? 'active' : ''}`}
-        >
-          {Icon && <Icon className="size-4" aria-hidden="true" />}
-          <span>{label}</span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export function Tabs({
   tabs,
   activeTab,
   onChange,
   ariaLabel = 'Secciones',
-  className = ''
+  className = '',
+  panelIdPrefix
 }: {
-  tabs: Array<{ id: string; label: string; marker?: React.ReactNode }>;
+  tabs: Array<{ id: string; label: string; marker?: React.ReactNode; icon?: LucideIcon }>;
   activeTab: string;
   onChange: (id: string) => void;
   ariaLabel?: string;
   className?: string;
+  panelIdPrefix?: string;
 }) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
@@ -623,17 +658,20 @@ export function Tabs({
   };
   return (
     <nav role="tablist" aria-label={ariaLabel} className={`bojana-studio-tabs ${className}`}>
-      {tabs.map(({ id, label, marker }, index) => (
+      {tabs.map(({ id, label, marker, icon: Icon }, index) => (
         <button
           key={id}
           type="button"
           role="tab"
+          id={panelIdPrefix ? `${panelIdPrefix}-tab-${id}` : undefined}
+          aria-controls={panelIdPrefix ? `${panelIdPrefix}-panel-${id}` : undefined}
           aria-selected={activeTab === id}
           tabIndex={activeTab === id ? 0 : -1}
           onClick={() => onChange(id)}
           onKeyDown={(event) => handleKeyDown(event, index)}
           className="bojana-project-tab"
         >
+          {Icon && <Icon className="size-4" aria-hidden="true" />}
           {label}
           {marker}
         </button>
@@ -642,8 +680,183 @@ export function Tabs({
   );
 }
 
-export function FilterBar({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm sm:flex-row sm:items-center">{children}</div>;
+export type StatusBarSegment = {
+  id: string;
+  label: string;
+  weight: number;
+  progress: number;
+  taskCount?: number;
+  completedTaskCount?: number;
+};
+
+export type StatusBarTaskState = 'pending' | 'in-progress' | 'review' | 'waiting' | 'adjustments' | 'completed' | 'paused' | 'out-of-scope';
+export type StatusBarTaskStatusCounts = Partial<Record<StatusBarTaskState, number>>;
+
+export function StatusBar({
+  value,
+  segments = [],
+  size = 'm',
+  mode = 'granular',
+  color = 'forest',
+  trackColor = 'white',
+  expandedSegment = null,
+  showLabels = true,
+  taskCount,
+  completedTaskCount,
+  taskStatusCounts,
+  activeSegment,
+  onSegmentClick,
+  onSegmentHover,
+  onModeChange,
+  projectStatus,
+  action,
+  ariaLabel = 'Progreso'
+}: {
+  value: number;
+  segments?: StatusBarSegment[];
+  size?: 's' | 'm' | 'l';
+  mode?: 'granular' | 'completo';
+  color?: 'forest' | 'clay' | 'mint' | 'warning' | 'ink' | 'stone';
+  trackColor?: 'same' | 'white';
+  expandedSegment?: string | null;
+  showLabels?: boolean;
+  taskCount?: number;
+  completedTaskCount?: number;
+  taskStatusCounts?: StatusBarTaskStatusCounts;
+  activeSegment?: string | null;
+  onSegmentClick?: (id: string) => void;
+  onSegmentHover?: (id: string | null) => void;
+  onModeChange?: (mode: 'granular' | 'completo') => void;
+  projectStatus?: React.ReactNode;
+  action?: React.ReactNode;
+  ariaLabel?: string;
+}) {
+  const trackHeight = size === 's' ? 'h-4' : size === 'l' ? 'h-6' : 'h-5';
+  const normalizedValue = Math.max(0, Math.min(100, value));
+  const colorClasses = {
+    forest: { solid: 'bg-forest', soft: 'bg-forest/50', granular: 'bg-forest/30', stroke: 'group-hover:border-forest', activeStroke: '!border-forest', text: 'text-forest' },
+    clay: { solid: 'bg-clay', soft: 'bg-clay/50', granular: 'bg-clay/30', stroke: 'group-hover:border-clay', activeStroke: '!border-clay', text: 'text-clay' },
+    mint: { solid: 'bg-mint-strong', soft: 'bg-mint-strong/50', granular: 'bg-mint-strong/30', stroke: 'group-hover:border-mint-strong', activeStroke: '!border-mint-strong', text: 'text-mint-strong' },
+    warning: { solid: 'bg-warning-strong', soft: 'bg-warning-strong/50', granular: 'bg-warning-strong/30', stroke: 'group-hover:border-warning-strong', activeStroke: '!border-warning-strong', text: 'text-warning-strong' },
+    ink: { solid: 'bg-ink', soft: 'bg-ink/50', granular: 'bg-ink/30', stroke: 'group-hover:border-ink', activeStroke: '!border-ink', text: 'text-ink' },
+    stone: { solid: 'bg-stone', soft: 'bg-stone/50', granular: 'bg-stone/30', stroke: 'group-hover:border-stone', activeStroke: '!border-stone', text: 'text-stone' },
+  }[color];
+  const trackClass = trackColor === 'white' ? 'bg-white' : colorClasses.soft;
+  const expanded = expandedSegment ? segments.find(segment => segment.id === expandedSegment) : undefined;
+  const displayedTaskCount = expanded ? expanded.taskCount : taskCount;
+  const displayedCompletedCount = expanded ? expanded.completedTaskCount : completedTaskCount;
+  const displayedValue = expanded ? Math.max(0, Math.min(100, expanded.progress)) : normalizedValue;
+  const statusChips: Array<{ state: StatusBarTaskState; tone: NonNullable<React.ComponentProps<typeof StatusBadge>['tone']>; icon: LucideIcon }> = [
+    { state: 'completed', tone: 'active', icon: Check },
+    { state: 'in-progress', tone: 'info', icon: LoaderCircle },
+    { state: 'review', tone: 'neutral', icon: Eye },
+    { state: 'waiting', tone: 'waiting', icon: Clock3 },
+    { state: 'adjustments', tone: 'warning', icon: CircleAlert },
+    { state: 'pending', tone: 'gray', icon: Circle },
+    { state: 'paused', tone: 'gray', icon: Pause },
+    { state: 'out-of-scope', tone: 'gray', icon: Ban },
+  ];
+  const statusBarRef = useRef<HTMLDivElement>(null);
+  const expandedBarRef = useRef<HTMLSpanElement>(null);
+  const segmentRefs = useRef(new Map<string, HTMLElement>());
+  const expansionOrigin = useRef<{ id: string; center: number; width: number } | null>(null);
+
+  const handleSegmentClick = (id: string) => {
+    if (!expanded) {
+      const rect = segmentRefs.current.get(id)?.getBoundingClientRect();
+      expansionOrigin.current = rect ? { id, center: rect.left + rect.width / 2, width: rect.width } : null;
+    }
+    onSegmentClick?.(id);
+  };
+
+  useLayoutEffect(() => {
+    const element = expandedBarRef.current;
+    const origin = expansionOrigin.current;
+    if (!expanded || !element || !origin || origin.id !== expanded.id) return;
+    expansionOrigin.current = null;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const target = element.getBoundingClientRect();
+    if (!target.width || !origin.width) return;
+    const offset = origin.center - (target.left + target.width / 2);
+    const animation = element.animate(
+      [{ transform: `translateX(${offset}px) scaleX(${origin.width / target.width})` }, { transform: 'translateX(0) scaleX(1)' }],
+      { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+    );
+    return () => animation.cancel();
+  }, [expanded?.id]);
+
+  useEffect(() => {
+    if (!expanded || !onSegmentClick) return;
+    const handleOutsideClick = (event: PointerEvent) => {
+      if (!statusBarRef.current?.contains(event.target as Node)) onSegmentClick(expanded.id);
+    };
+    document.addEventListener('pointerdown', handleOutsideClick);
+    return () => document.removeEventListener('pointerdown', handleOutsideClick);
+  }, [expanded, onSegmentClick]);
+  return (
+    <div ref={statusBarRef} className="flex w-full items-start gap-3">
+      <div className="min-w-0 flex-1 space-y-2">
+      {(taskCount !== undefined || onModeChange || expanded) && <div className="flex flex-wrap items-center gap-2">
+        {expanded ? <>
+          {onSegmentClick && <Button variant="icon" size="xs" ariaLabel="Volver al progreso granular" tooltip="Volver al progreso granular" onClick={() => handleSegmentClick(expanded.id)}><PortalIcon icon={ArrowLeft} size="xs" /></Button>}
+          {projectStatus}
+        </> : <>
+          {onModeChange && displayedTaskCount !== undefined ? <div className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por etapas' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${displayedValue}%` : `${displayedTaskCount} tareas`}</StatusBadge></button>
+            <ArrowLeftRight size={10} aria-hidden="true" className="shrink-0 text-ink" />
+            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por etapas' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${displayedTaskCount} tareas` : `${displayedValue}%`}</StatusBadge></button>
+          </div> : <>
+            <StatusBadge size="s" showDot={false}>{displayedValue}%</StatusBadge>
+            {displayedTaskCount !== undefined && <StatusBadge size="s" showDot={false}>{displayedCompletedCount !== undefined ? `${displayedCompletedCount}/${displayedTaskCount}` : displayedTaskCount} tareas</StatusBadge>}
+          </>}
+          {statusChips.map(({ state, tone, icon }) => {
+            const count = taskStatusCounts?.[state] || 0;
+            return count > 0 ? <StatusBadge key={state} size="s" showDot={false} tone={tone} icon={icon}>{count}</StatusBadge> : null;
+          })}
+        </>}
+      </div>}
+      <div className="flex items-center gap-2">
+      <div
+        key={expanded ? `expanded-${expanded.id}` : mode}
+        role="progressbar"
+        aria-label={ariaLabel}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={displayedValue}
+        className={`${trackHeight} relative flex min-w-0 flex-1 gap-0.5 ${expanded || mode === 'completo' ? 'overflow-hidden' : 'overflow-visible'} rounded-full border border-white ${trackClass} p-0.5`}
+      >
+        {mode === 'completo' || expanded ? <span ref={expandedBarRef} onClick={() => expanded && handleSegmentClick(expanded.id)} className={`relative block h-full w-full origin-center overflow-hidden rounded-full border border-transparent ${colorClasses.granular} ${expanded ? 'cursor-pointer' : ''}`}><span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${displayedValue}%` }} /></span> : segments.length > 0 ? segments.map((segment, index) => {
+          const edgeRadius = segments.length === 1 ? 'rounded-full' : index === 0 ? 'rounded-l-full' : index === segments.length - 1 ? 'rounded-r-full' : 'rounded-none';
+          const content = <span className={`relative block h-full w-full origin-center overflow-hidden ${edgeRadius} border border-transparent ${colorClasses.stroke} ${colorClasses.granular} transition duration-150 group-hover:z-10 group-hover:scale-y-110 group-hover:shadow-md ${activeSegment === segment.id ? `z-10 scale-y-110 shadow-md ${colorClasses.activeStroke}` : ''}`}>
+            <span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${Math.max(0, Math.min(100, segment.progress))}%` }} />
+          </span>;
+          return onSegmentClick ? <button key={segment.id} ref={node => { if (node) segmentRefs.current.set(segment.id, node); else segmentRefs.current.delete(segment.id); }} type="button" aria-label={`${segment.label}: ${segment.progress}%`} onClick={() => handleSegmentClick(segment.id)} onMouseEnter={() => onSegmentHover?.(segment.id)} onMouseLeave={() => onSegmentHover?.(null)} className="group h-full min-w-0 border-0 bg-transparent p-0" style={{ width: `${Math.max(0, segment.weight)}%` }}>{content}</button> : <span key={segment.id} className="group block h-full min-w-0" style={{ width: `${Math.max(0, segment.weight)}%` }}>{content}</span>;
+        }) : <span className="block h-full rounded-full bg-forest transition-[width] duration-500" style={{ width: `${normalizedValue}%` }} />}
+      </div>
+      {action}
+      </div>
+      {mode === 'granular' && showLabels && segments.length > 0 && <div className="flex w-full flex-wrap gap-y-1">
+        {(expanded ? [expanded] : segments).map(segment => <button key={segment.id} type="button" onClick={() => handleSegmentClick(segment.id)} onMouseEnter={() => onSegmentHover?.(segment.id)} onMouseLeave={() => onSegmentHover?.(null)} className={`min-w-0 flex-none whitespace-normal break-words px-1 text-center leading-4 transition ${expanded ? `text-xs font-bold ${colorClasses.text}` : `text-[11px] font-semibold ${activeSegment === segment.id ? colorClasses.text : 'text-ink'}`}`} style={{ width: `${expanded ? 100 : Math.max(0, segment.weight)}%` }}>{segment.label}</button>)}
+      </div>}
+      </div>
+    </div>
+  );
+}
+
+export function NotificationCount({ count, size = 'm', mode = 'count', className = '' }: { count: number; size?: 's' | 'm' | 'l'; mode?: 'count' | 'icon'; className?: string }) {
+  if (mode === 'count' && count <= 0) return null;
+  const sizes = { s: 'h-4 min-w-4 px-1 text-[9px]', m: 'h-5 min-w-5 px-1 text-[10px]', l: 'h-6 min-w-6 px-1.5 text-xs' };
+  const iconSizes = { s: 10, m: 12, l: 14 };
+  return <span aria-label={mode === 'icon' ? 'Notificaciones' : `${count} notificaciones`} className={`inline-flex items-center justify-center rounded-full bg-clay font-bold leading-none text-white ${sizes[size]} ${className}`}>{mode === 'icon' ? <Bell size={iconSizes[size]} strokeWidth={2} aria-hidden="true" /> : count}</span>;
+}
+
+export function NotificationAnchor({ count, size = 'm', mode = 'count', children }: { count: number; size?: 's' | 'm' | 'l'; mode?: 'count' | 'icon'; children: React.ReactNode }) {
+  return <span className="relative inline-flex align-middle">{children}<NotificationCount count={count} size={size} mode={mode} className="absolute right-0 top-0 translate-x-1/4 -translate-y-1/4" /></span>;
+}
+
+export function FilterBar({ children, background = 'stone' }: { children: React.ReactNode; background?: 'white' | 'canvas-light' | 'canvas' | 'stone' | 'transparent' }) {
+  const backgrounds = { white: 'bg-white', 'canvas-light': 'bg-canvas-light', canvas: 'bg-canvas', stone: 'bg-stone', transparent: 'bg-transparent' };
+  return <div className={`flex min-w-0 flex-col justify-between gap-4 rounded-full ${backgrounds[background]} px-3 py-2.5 sm:flex-row sm:items-center`}>{children}</div>;
 }
 
 export function FilterTabs({
