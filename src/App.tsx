@@ -2781,7 +2781,6 @@ function ClientPortal({
                       </div>
                     </section>
                   )}
-                  <DocumentsSection documents={projectDocuments} />
                 </div>
               </>
             )}
