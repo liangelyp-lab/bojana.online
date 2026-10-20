@@ -677,6 +677,7 @@ function ProjectExecutionSummary({
   return (
     <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
       <PageHeader
+        divider
         leading={<Button ariaLabel="Volver a proyectos" className="!size-6 !min-h-0 !rounded-full !p-0" onClick={onBack} size="xs" tooltip="Volver a proyectos" variant="tertiary"><ArrowLeft className="size-3" /></Button>}
         title={project.info?.nombre || "Proyecto"}
         titleAccessory={<StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>}
@@ -1575,7 +1576,7 @@ function AdminPortal({
             {/* 4. TAREAS VIEW (CROSS-PROJECT) */}
             {activeNav === "Tareas" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <PageHeader title="Todas las tareas del estudio" />
+                <PageHeader divider title="Todas las tareas del estudio" />
                 {studyTasks.length === 0 ? (
                   <EmptyState
                     title="Todavía no hay tareas"
@@ -1615,7 +1616,7 @@ function AdminPortal({
             {/* 6. BIBLIOTECA VIEW */}
             {activeNav === "Biblioteca" && (
               <div className="w-full space-y-8 animate-fade-in">
-                <PageHeader title="Biblioteca de documentos" />
+                <PageHeader divider title="Biblioteca de documentos" />
                 <Library items={libraryItems} onToast={onPublishToast} />
               </div>
             )}
