@@ -2133,12 +2133,13 @@ function ProgressSection({
   )
 }
 
-function StorySection({ updates }: { updates: { date: string; title: string; description: string; tag: string; color: string }[] }) {
+function StorySection({ updates, compact = false, onViewAll }: { updates: { date: string; title: string; description: string; tag: string; color: string }[]; compact?: boolean; onViewAll?: () => void }) {
+  const displayedUpdates = compact ? updates.slice(0, 4) : updates
   return (
     <section>
       <SectionTitle
         action={
-          <Button className="hidden sm:inline-flex" variant="secondary">
+          <Button className="hidden sm:inline-flex" variant="secondary" onClick={onViewAll}>
             Ver historia completa <Icon className="size-4" name="arrow" />
           </Button>
         }
@@ -2147,11 +2148,11 @@ function StorySection({ updates }: { updates: { date: string; title: string; des
         La historia del proyecto
       </SectionTitle>
       <div className="overflow-hidden rounded-3xl border border-line bg-white">
-        {updates.length === 0 && <p className="p-6 text-sm text-ink-muted">Todavía no hay avances publicados para este proyecto.</p>}
-        {updates.map((update, index) => (
+        {displayedUpdates.length === 0 && <p className="p-6 text-sm text-ink-muted">Todavía no hay avances publicados para este proyecto.</p>}
+        {displayedUpdates.map((update, index) => (
           <article
             className={`grid gap-4 p-6 md:grid-cols-story md:gap-8 md:p-8 ${
-              index < updates.length - 1 ? "border-b border-line" : ""
+              index < displayedUpdates.length - 1 ? "border-b border-line" : ""
             }`}
             key={update.title}
           >
@@ -2187,7 +2188,7 @@ function StorySection({ updates }: { updates: { date: string; title: string; des
           </article>
         ))}
       </div>
-      <Button className="mt-4 w-full sm:hidden" variant="secondary">
+      <Button className="mt-4 w-full sm:hidden" variant="secondary" onClick={onViewAll}>
         Ver historia completa <Icon className="size-4" name="arrow" />
       </Button>
     </section>
@@ -2317,63 +2318,14 @@ function ClientDeliverableWidget({
   )
 }
 
-function ClientTaskUpdateWidget({
-  task,
-  update,
-  onStatusChange,
-  highlighted = false,
-}: {
-  task: import("./types").ExecutionTask
-  update: import("./types").TaskUpdate
-  onStatusChange: (status: "aprobada" | "cambios_solicitados") => void
-  highlighted?: boolean
-}) {
-  const actionLabels = {
-    revision: "Para revisión",
-    solicitud_informacion: "Solicitud de información",
-    publicar_avance: "Avance publicado",
-    publicar_terminar: "Entrega final",
-    borrador: "Borrador interno",
-  }
-  const statusLabels = {
-    en_revision: "Esperando respuesta",
-    solicitud_enviada: "Esperando información",
-    publicada: "Publicada",
-    aprobada: "Aprobada",
-    cambios_solicitados: "Cambios solicitados",
-    borrador: "Borrador",
-  }
-  const files = task.archivos || []
-
-  return (
-    <article data-highlighted-update={highlighted ? "true" : undefined} className={`rounded-3xl border bg-white p-6 transition md:p-7 ${highlighted ? "border-clay outline outline-4 outline-clay/20" : "border-line"}`}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Eyebrow>{actionLabels[update.accion]}</Eyebrow>
-          <Heading as="h3" className="mt-2 text-xl font-semibold text-ink">{update.titulo}</Heading>
-          <p className="mt-1 text-xs text-ink-faint">{task.titulo} · Versión {update.version}</p>
-        </div>
-        <StatusBadge tone="gray" size="s" showDot={false}>{statusLabels[update.estado]}</StatusBadge>
-      </div>
-      {update.descripcion && <p className="mt-4 text-sm leading-6 text-ink-muted">{update.descripcion}</p>}
-      {(update.recursos || []).length > 0 && <div className="mt-4 space-y-2">{(update.recursos || []).map(resource => <div key={resource} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
-        {isImageResource(resource) && <img src={resource} alt="Recurso de la actualización" className="max-h-64 w-full object-cover" />}
-        <a className="block truncate p-3 text-sm font-semibold text-forest underline-offset-2 hover:underline" href={resource} rel="noreferrer" target="_blank">{resource}</a>
-      </div>)}</div>}
-      {(update.opciones || []).length > 0 && <div className="mt-4 grid gap-3 sm:grid-cols-2">{(update.opciones || []).map(option => <div key={option.id} className="overflow-hidden rounded-2xl border border-line bg-stone/50">{option.imagenUrl && <img src={option.imagenUrl} alt={option.titulo} className="max-h-48 w-full object-cover" />}<div className="p-3"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-faint">{option.letra || "Opción"}</p><p className="mt-1 font-semibold text-ink">{option.titulo}</p>{option.descripcion && <p className="mt-1 text-sm text-ink-muted">{option.descripcion}</p>}{option.costoEstimado && <p className="mt-2 text-xs font-semibold text-forest">{option.costoEstimado}</p>}</div></div>)}</div>}
-      {files.length > 0 && <div className="mt-4 space-y-2">{files.map(file => <ClientFileResource key={`${file.nombre}-${file.url}`} file={file} />)}</div>}
-      {update.accion === "revision" && update.estado === "en_revision" && <div className="mt-5 flex flex-wrap gap-2"><Button onClick={() => onStatusChange("aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button><Button onClick={() => onStatusChange("cambios_solicitados")} variant="secondary">Solicitar cambios</Button></div>}
-      {update.accion === "solicitud_informacion" && <p className="mt-5 rounded-2xl bg-stone/70 p-4 text-sm text-ink-muted">El estudio necesita esta información para continuar con la tarea.</p>}
-    </article>
-  )
-}
-
 function ClientTaskContentWidget({
   task,
   latestUpdate,
+  onStatusChange,
 }: {
   task: import("./types").ExecutionTask
   latestUpdate?: import("./types").TaskUpdate
+  onStatusChange?: (status: "aprobada" | "cambios_solicitados") => void
 }) {
   const typeLabels: Record<import("./types").TaskContentType, string> = {
     archivo: "Archivos",
@@ -2391,17 +2343,18 @@ function ClientTaskContentWidget({
     <article className="rounded-3xl border border-line bg-white p-6 md:p-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Eyebrow>{task.estado === "Completado" ? "Tarea finalizada" : "Contenido de la tarea"}</Eyebrow>
+          <Eyebrow>Tarea</Eyebrow>
           <Heading as="h3" className="mt-2 text-xl font-semibold text-ink">{task.titulo}</Heading>
           {task.estado === "Completado" && latestUpdate && (
             <p className="mt-1 text-sm text-ink-muted">
-              Entregable final · {latestUpdate.titulo}
+              Entregable publicado · {latestUpdate.titulo}
             </p>
           )}
         </div>
-        {task.estado === "Completado" ? <StatusBadge tone="active" size="s">Completada</StatusBadge> : types.length > 0 && <div className="flex flex-wrap justify-end gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
+          <StatusBadge tone={task.estado === "Completado" ? "active" : "gray"} size="s">{task.estado === "Completado" ? "Completada" : task.estado}</StatusBadge>
           {types.map(type => <Badge key={type}><Icon className="size-3.5" name={type === "Imágenes" ? "eye" : type === "Videos" ? "publish" : type === "Descargables" ? "download" : "file"} />{type}</Badge>)}
-        </div>}
+        </div>
       </div>
       {files.length > 0 ? (
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
@@ -2422,6 +2375,12 @@ function ClientTaskContentWidget({
           <a className="block truncate p-3 text-sm font-semibold text-forest underline-offset-2 hover:underline" href={resource} rel="noreferrer" target="_blank">{resource}</a>
         </div>)}
       </div>}
+      {latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && (
+        <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-4">
+          <Button onClick={() => onStatusChange?.("aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button>
+          <Button onClick={() => onStatusChange?.("cambios_solicitados")} variant="secondary">Solicitar cambios</Button>
+        </div>
+      )}
     </article>
   )
 }
@@ -2479,7 +2438,6 @@ function ClientPortal({
 }) {
   const [active, setActive] = useState("Resumen")
   const [expandedClientTaskId, setExpandedClientTaskId] = useState<string | null>(null)
-  const [showActionUpdatesOnly, setShowActionUpdatesOnly] = useState(false)
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
   const [clientMessage, setClientMessage] = useState("")
   const notificationCount = (currentProject.actividadReciente || []).length
@@ -2675,28 +2633,25 @@ function ClientPortal({
     setClientMessage("")
     onToast("Mensaje enviado al equipo y guardado en el proyecto.")
   }
-  // The portal is a current-state view, not an audit trail: keep only the
-  // latest client-visible update for each task. The studio retains every
-  // version in its task inspector.
-  const clientUpdates = projectTasks.flatMap(task => {
+  const clientHistoryUpdates = projectTasks.flatMap(task =>
+    (task.actualizaciones || [])
+      .filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna")
+      .map(update => ({ task, update }))
+  )
+  // A task card represents its current state, so it uses only its latest
+  // published update. Earlier versions remain in the project history.
+  const latestClientUpdates = projectTasks.flatMap(task => {
     const latestUpdate = (task.actualizaciones || [])
       .filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna")
       .slice()
       .sort((a, b) => b.version - a.version || new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]
     return latestUpdate ? [{ task, update: latestUpdate }] : []
   })
-  const actionableClientUpdates = clientUpdates.filter(({ update }) =>
-    (update.accion === "revision" && update.estado === "en_revision") ||
-    (update.accion === "solicitud_informacion" && update.estado === "solicitud_enviada")
-  )
-  const visibleClientUpdates = showActionUpdatesOnly
-    ? actionableClientUpdates
-    : clientUpdates.filter(({ task }) => task.estado !== "Completado")
   const projectUpdates = [
     ...(currentProject.avances || []).map(advance => ({ date: advance.fecha, title: advance.titulo, description: advance.texto, tag: advance.categoria || "Avance", color: "bg-clay" })),
     ...(currentProject.actividadReciente || []).map(activity => ({ date: activity.fecha, title: "Actualización del proyecto", description: activity.descripcion, tag: activity.autor || "Equipo", color: "bg-forest" })),
-    ...clientUpdates.map(({ task, update }) => ({ date: update.fecha, title: `${task.titulo} · ${update.titulo}`, description: update.descripcion || task.descripcionTrabajo || "Actualización publicada en esta tarea.", tag: update.accion === "revision" ? "Revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : "Entrega", color: update.estado === "aprobada" ? "bg-mint" : "bg-clay" }))
-  ].slice(0, 4)
+    ...clientHistoryUpdates.map(({ task, update }) => ({ date: update.fecha, title: `${task.titulo} · ${update.titulo}`, description: update.descripcion || task.descripcionTrabajo || "Actualización publicada en esta tarea.", tag: update.accion === "revision" ? "Revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : "Entrega", color: update.estado === "aprobada" ? "bg-mint" : "bg-clay" }))
+  ]
   const projectDocuments = [
     ...(currentProject.documentos || []).map(document => {
     const revision = document.revisiones.find(item => item.esActual) || document.revisiones[document.revisiones.length - 1]
@@ -2715,7 +2670,7 @@ function ClientPortal({
     }))),
   ].slice(0, 8)
   const projectImageUrl = currentProject.info?.portadaUrl || currentProject.visualizaciones?.galeria?.[0]?.imagenUrl || projectImage
-  const clientContentTasks = projectTasks.filter(task => (task.tiposContenido || []).length > 0 || (task.archivos || []).some(file => file.publicadoCliente !== false) || clientUpdates.some(item => item.task.id === task.id))
+  const clientContentTasks = projectTasks.filter(task => (task.tiposContenido || []).length > 0 || (task.archivos || []).some(file => file.publicadoCliente !== false) || latestClientUpdates.some(item => item.task.id === task.id))
   const clientDeliverables = projectTasks.flatMap(task => (task.entregablesEsperados || []).filter(deliverable => deliverable.publicadoCliente !== false).map(deliverable => ({ task, deliverable })))
   const updateTaskUpdateStatus = (taskId: string, updateId: string, status: "aprobada" | "cambios_solicitados") => {
     const updatedDisciplines = (currentProject.disciplinasOperativas || []).map(discipline => ({
@@ -2806,29 +2761,15 @@ function ClientPortal({
                     onTaskToggle={taskId => setExpandedClientTaskId(current => current === taskId ? null : taskId)}
                     totalCount={projectTasks.length}
                   />
-                  {clientUpdates.length > 0 && (
-                    <section className="space-y-4">
-                      <div className="flex flex-wrap items-end justify-between gap-3">
-                        <SectionTitle eyebrow="Trabajo asociado">Actualizaciones de tareas</SectionTitle>
-                        <Button
-                          className="!rounded-full !px-3 !py-2 text-xs"
-                          onClick={() => setShowActionUpdatesOnly(value => !value)}
-                          variant={showActionUpdatesOnly ? "primary" : "secondary"}
-                        >
-                          {showActionUpdatesOnly ? "Ver todas" : `Necesitan acción (${actionableClientUpdates.length})`}
-                        </Button>
-                      </div>
-                      <div className="grid gap-4">
-                        {visibleClientUpdates.length > 0 ? visibleClientUpdates.map(({ task, update }) => <ClientTaskUpdateWidget key={`${task.id}-${update.id}`} task={task} update={update} highlighted={highlightedTaskId === task.id} onStatusChange={status => updateTaskUpdateStatus(task.id, update.id, status)} />) : <p className="rounded-2xl border border-line bg-white p-5 text-sm text-ink-muted">No hay actualizaciones que necesiten acción.</p>}
-                      </div>
-                    </section>
-                  )}
-                  <StorySection updates={projectUpdates} />
+                  <StorySection updates={projectUpdates} compact onViewAll={() => setActive("Historia")} />
                   {clientContentTasks.length > 0 && (
                     <section className="space-y-4">
-                      <SectionTitle eyebrow="Trabajo visible">Contenido de las tareas</SectionTitle>
+                      <SectionTitle eyebrow="Trabajo visible">Tareas</SectionTitle>
                       <div className="grid gap-4">
-                        {clientContentTasks.map(task => <ClientTaskContentWidget key={task.id} task={task} latestUpdate={clientUpdates.find(item => item.task.id === task.id)?.update} />)}
+                        {clientContentTasks.map(task => {
+                          const latestUpdate = latestClientUpdates.find(item => item.task.id === task.id)?.update
+                          return <ClientTaskContentWidget key={task.id} task={task} latestUpdate={latestUpdate} onStatusChange={status => latestUpdate && updateTaskUpdateStatus(task.id, latestUpdate.id, status)} />
+                        })}
                       </div>
                     </section>
                   )}
