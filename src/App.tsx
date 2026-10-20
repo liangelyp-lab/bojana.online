@@ -26,7 +26,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -780,56 +780,17 @@ function TasksPanel({
 
       <div className="overflow-hidden rounded-3xl border border-line bg-white">
         {visibleTasks.map((task) => (
-          <article
-            className={`grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_13rem] md:items-center md:px-6 ${onOpenTask && task.projectId ? "bojana-row-hover cursor-pointer" : ""}`}
+          <TaskRow
             key={task.title}
-            onClick={() => onOpenTask?.(task)}
-          >
-            <div className="min-w-0">
-              <Heading
-                as="h3"
-                className="truncate text-sm font-semibold text-ink"
-              >
-                {onOpenTask && task.projectId ? (
-                  <Button variant="tertiary" type="button" className="text-left hover:text-forest" onClick={(event) => { event.stopPropagation(); onOpenTask(task) }}>{task.title}</Button>
-                ) : task.title}
-              </Heading>
-              <p className="mt-1 text-xs text-ink-faint">{task.area}</p>
-              {(task.deliverablesCount || task.pendingApprovals) ? <p className="mt-1 text-[11px] text-ink-muted">{task.deliverablesCount || 0} entregables · {task.publishedDeliverables || 0} publicados{task.pendingApprovals ? ` · ${task.pendingApprovals} aprobación${task.pendingApprovals === 1 ? "" : "es"}` : ""}</p> : <p className="mt-1 text-[11px] text-ink-faint">Sin entregables configurados</p>}
-            </div>
-            <div className="flex items-center gap-2.5">
-              <span className="grid size-8 shrink-0 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">
-                {task.initials}
-              </span>
-              <span className="truncate text-xs font-medium text-ink-muted">
-                {task.owner}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-ink-muted">
-              <Icon className="size-4 text-ink-faint" name="calendar" />
-              {task.due}
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <Button variant="link"
-                type="button"
-                onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}
-                title="Clic para cambiar estado"
-                className="!min-h-0"
-              >
-                <StatusBadge tone={taskStatusBadge[task.status].tone} size="s">
-                  {taskStatusBadge[task.status].label}
-                </StatusBadge>
-              </Button>
-              <Button
-                ariaLabel={`Mas opciones para ${task.title}`}
-                className="!size-9 !p-0"
-                variant="icon"
-                onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}
-              >
-                <Icon className="size-4" name="more" />
-              </Button>
-            </div>
-          </article>
+            onClick={onOpenTask && task.projectId ? () => onOpenTask(task) : undefined}
+            title={task.title}
+            description={task.area}
+            details={(task.deliverablesCount || task.pendingApprovals) ? `${task.deliverablesCount || 0} entregables · ${task.publishedDeliverables || 0} publicados${task.pendingApprovals ? ` · ${task.pendingApprovals} aprobación${task.pendingApprovals === 1 ? "" : "es"}` : ""}` : "Sin entregables configurados"}
+            owner={<><span className="grid size-8 shrink-0 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">{task.initials}</span><span className="truncate text-xs font-medium text-ink-muted">{task.owner}</span></>}
+            due={<><Icon className="size-4 text-ink-faint" name="calendar" />{task.due}</>}
+            status={<Button variant="link" type="button" onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }} title="Clic para cambiar estado" className="!min-h-0"><StatusBadge tone={taskStatusBadge[task.status].tone} size="s">{taskStatusBadge[task.status].label}</StatusBadge></Button>}
+            actions={<Button ariaLabel={`Mas opciones para ${task.title}`} className="!size-9 !p-0" variant="icon" onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}><Icon className="size-4" name="more" /></Button>}
+          />
         ))}
         {visibleTasks.length === 0 && (
           <p className="p-8 text-center text-sm text-ink-faint">

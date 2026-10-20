@@ -15,7 +15,7 @@ import {
   Calendar,
   ExternalLink
 } from 'lucide-react';
-import { StatusBadge, Button, Checkbox, Tabs, TextAreaControl } from '../ui/DesignSystem';
+import { StatusBadge, Button, Checkbox, InputControl, Tabs, TextAreaControl } from '../ui/DesignSystem';
 import { createSecureProjectLink } from '../../services/projectAccess';
 
 interface RequestClientActionModalProps {

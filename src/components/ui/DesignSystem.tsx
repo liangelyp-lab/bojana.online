@@ -503,6 +503,34 @@ export function EmptyState({
   );
 }
 
+export function TaskRow({
+  title,
+  description,
+  details,
+  owner,
+  due,
+  status,
+  actions,
+  onClick,
+}: {
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  details?: React.ReactNode;
+  owner?: React.ReactNode;
+  due?: React.ReactNode;
+  status?: React.ReactNode;
+  actions?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  const interactive = Boolean(onClick);
+  return <article className={`grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_13rem] md:items-center md:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`} onClick={onClick}>
+    <div className="min-w-0"><h3 className="truncate text-sm font-semibold text-ink">{title}</h3>{description && <p className="mt-1 text-xs text-ink-faint">{description}</p>}{details && <p className="mt-1 text-[11px] text-ink-muted">{details}</p>}</div>
+    <div className="flex items-center gap-2.5">{owner}</div>
+    <div className="flex items-center gap-2 text-xs text-ink-muted">{due}</div>
+    <div className="flex items-center justify-between gap-2">{status}{actions}</div>
+  </article>;
+}
+
 export function Drawer({
   open,
   title,

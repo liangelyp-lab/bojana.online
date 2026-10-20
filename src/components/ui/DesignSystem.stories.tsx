@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, Bell, Building2, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
+import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TextArea } from './DesignSystem';
+import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Componentes',
@@ -86,6 +86,21 @@ export const Shadows: Story = {
 export const CardsAndBadges: Story = {
   render: () => <div className="space-y-4"><div className="flex flex-wrap gap-2"><Badge>Neutral</Badge><Badge tone="active">Active</Badge><Badge tone="waiting">Pending</Badge><Badge tone="danger">Urgent</Badge></div>
     <div className="grid gap-4 sm:grid-cols-2">{(['default', 'soft', 'waiting', 'dark'] as const).map(variant => <Card key={variant} variant={variant}><strong>{variant} card</strong><p>Example content for the portal.</p></Card>)}</div></div>,
+};
+
+export const TaskRowStory: Story = {
+  name: 'Task Row',
+  args: { showDescription: true, showDetails: true, showOwner: true, showDue: true, showStatus: true, showActions: true, interactive: true },
+  argTypes: {
+    showDescription: { control: 'boolean', description: 'Mostrar disciplina o área' },
+    showDetails: { control: 'boolean', description: 'Mostrar entregables y progreso' },
+    showOwner: { control: 'boolean', description: 'Mostrar responsable' },
+    showDue: { control: 'boolean', description: 'Mostrar fecha' },
+    showStatus: { control: 'boolean', description: 'Mostrar status badge' },
+    showActions: { control: 'boolean', description: 'Mostrar acción secundaria' },
+    interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
+  },
+  render: ({ showDescription, showDetails, showOwner, showDue, showStatus, showActions, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><TaskRow title="Documentación ejecutiva" description={showDescription ? 'Arquitectura' : undefined} details={showDetails ? '2 entregables · 1 publicado' : undefined} owner={showOwner ? <><span className="grid size-8 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">LM</span><span className="text-xs font-medium text-ink-muted">Lucía Martín</span></> : undefined} due={showDue ? <><PortalIcon icon={CalendarDays} size="s" color="line" />18 oct.</> : undefined} status={showStatus ? <StatusBadge tone="waiting" size="s">Esperando cliente</StatusBadge> : undefined} actions={showActions ? <Button variant="icon" size="s" ariaLabel="Más opciones">•••</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>
 };
 
 export const Forms: Story = {
