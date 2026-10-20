@@ -2875,9 +2875,9 @@ function ClientPortal({
             {/* TAB: RESUMEN */}
             {active === "Resumen" && (
               <>
-                <div className="mt-6">
-                  {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
-                </div>
+                {clientDecision && <div className="mt-6">
+                  <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} />
+                </div>}
                 <div className="mt-10 space-y-8 md:mt-12 md:space-y-10">
                   <ProgressSection
                     completedCount={completedCount}
@@ -2934,7 +2934,7 @@ function ClientPortal({
             {/* TAB: CONVERSACIONES / DECISIONES */}
             {active === "Conversaciones" && (
               <div className="mt-8 scroll-mt-8 space-y-6" id="client-conversations">
-                {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
+                {clientDecision && <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} />}
                 <div className="rounded-2xl border border-line bg-white p-4 sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
