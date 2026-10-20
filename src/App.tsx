@@ -1717,6 +1717,27 @@ function ClientSidebar({
   const [expanded, setExpanded] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   return (
+    <>
+    <header className="sticky top-0 z-40 w-full border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur lg:hidden">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-semibold">Portal del proyecto</span>
+        <div className="flex items-center gap-2">
+          {showAdminLink && <Button size="s" variant="tertiary" onClick={onBackToAdmin}>Volver al administrador</Button>}
+          <NotificationAnchor count={notificationCount}>
+            <Button ariaLabel="Notificaciones" aria-expanded={notificationsOpen} onClick={() => setNotificationsOpen(value => !value)} variant="icon" size="s"><Icon name="bell" className="size-4" /></Button>
+          </NotificationAnchor>
+        </div>
+      </div>
+      {projects.length > 1 && <label className="mt-3 block text-xs font-semibold">Proyecto<select className="bojana-control mt-1 w-full bg-white text-sm" value={selectedProjectId || projects[0]?.id || ""} onChange={event => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</select></label>}
+      <nav aria-label="Navegación cliente" className="mt-3 grid grid-cols-4 gap-1">
+        {clientNavItems.map(item => <Button key={item.label} ariaLabel={item.label} aria-current={active === item.label ? "page" : undefined} size="s" variant="tertiary" className={`min-w-0 !flex-col !gap-1 !rounded-xl !px-1 !text-[11px] ${active === item.label ? "!bg-stone !text-ink" : ""}`} onClick={() => { setActive(item.label); setNotificationsOpen(false) }}><Icon className="size-4" name={item.icon} /><span>{item.label}</span></Button>)}
+      </nav>
+      {notificationsOpen && <section aria-label="Notificaciones recientes" className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-line bg-white p-2">
+        <div className="flex items-center justify-between px-2"><p className="text-sm font-semibold">Notificaciones recientes</p><Button ariaLabel="Cerrar notificaciones" variant="icon" size="xs" onClick={() => setNotificationsOpen(false)}><X className="size-3" /></Button></div>
+        {recentNotifications.map(notification => <Button key={notification.id} variant="tertiary" className="w-full !justify-start !rounded-lg !text-left" onClick={() => { onOpenNotification(notification); setNotificationsOpen(false) }}><span className="min-w-0 break-words text-xs">{notification.descripcion}</span></Button>)}
+        {recentNotifications.length === 0 && <p className="p-2 text-xs text-ink-muted">No hay notificaciones recientes.</p>}
+      </section>}
+    </header>
     <div className={`group fixed left-4 top-4 z-50 hidden h-[calc(100vh-2rem)] lg:block ${expanded ? "w-60" : "w-14"}`}>
       <aside className={`flex h-full w-full shrink-0 flex-col rounded-3xl border border-line bg-white/60 py-3 shadow-card backdrop-blur transition-[width] duration-200 ${expanded ? "px-3" : "items-center px-1.5"}`}>
       <div className={`flex items-center ${expanded ? "justify-between px-2" : "justify-center"}`}>
@@ -1809,6 +1830,7 @@ function ClientSidebar({
         <Icon className={`size-4.5 transition-transform ${expanded ? "rotate-180" : ""}`} name="chevron" />
       </Button>
     </div>
+    </>
   )
 }
 
@@ -2803,7 +2825,7 @@ function ClientPortal({
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         <ClientSidebar
           active={active}
           onBackToAdmin={onBackToAdmin}
