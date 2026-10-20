@@ -37,6 +37,7 @@ import {
   DeliverableInteractionType,
   TaskUpdateAction,
   TaskUpdate,
+  TaskContentType,
   AvancePost,
   calculateTaskProgress,
   calculateDisciplineProgress,
@@ -1392,11 +1393,12 @@ export default function OperationalExecutionPanel({
                       }
                       placeholder="Qué entregás, qué cambió o qué necesitás..."
                     />
-                    {(resourcesOpen || updateDraft.accion === "publicar_entregable") && (
-                      <div className="border-t border-bojana-line px-2 pt-2">
+                    {resourcesOpen && (
+                      <div className="flex items-center gap-2 border-t border-bojana-line bg-bojana-surface/40 px-3 py-1.5">
+                        <Link2 className="size-3.5 shrink-0 text-bojana-muted" aria-hidden="true" />
                         <TextAreaControl
                           aria-label={updateDraft.accion === "publicar_entregable" ? "Enlace del entregable" : "Link o recurso dentro del mensaje"}
-                          className="!min-h-9 resize-y"
+                          className="!min-h-8 flex-1 resize-y border-0 bg-transparent px-0 py-1 shadow-none focus:!border-0 focus:!shadow-none"
                           rows={1}
                           value={updateDraft.recursos}
                           onChange={(e) =>
@@ -1407,27 +1409,80 @@ export default function OperationalExecutionPanel({
                           }
                           placeholder="Pegá uno o más enlaces, uno por línea"
                         />
-                        {updateDraft.accion === "publicar_entregable" && (
-                          <p className="px-1 py-1.5 text-[11px] text-bojana-muted">
-                            Es obligatorio. Al publicar, quedará registrado en esta tarea y visible para el cliente.
-                          </p>
+                        {updateDraft.accion !== "publicar_entregable" && (
+                          <Button
+                            type="button"
+                            size="xs"
+                            variant="tertiary"
+                            ariaLabel="Quitar link"
+                            className="!size-7 !min-h-0 !rounded-full !p-0"
+                            onClick={() => setResourcesOpen(false)}
+                          >
+                            <X className="size-3.5" />
+                          </Button>
                         )}
                       </div>
                     )}
-                    {updateDraft.accion !== "publicar_entregable" && (
-                      <div className="border-t border-bojana-line px-2 py-1.5">
-                        <Button
-                          type="button"
-                          size="xs"
-                          variant="tertiary"
-                          className="!min-h-7 !rounded-full !px-2.5 text-xs"
-                          onClick={() => setResourcesOpen((open) => !open)}
-                        >
-                          <Link2 className="size-3.5" />
-                          {resourcesOpen ? "Quitar link" : "Agregar link o recurso"}
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1.5 border-t border-bojana-line px-2 py-1.5">
+                      <Button
+                        type="button"
+                        size="xs"
+                        variant="icon"
+                        ariaLabel="Agregar link o recurso"
+                        tooltip="Agregar link o recurso"
+                        ariaPressed={resourcesOpen}
+                        className="!size-7 !min-h-0 !rounded-full !p-0"
+                        onClick={() =>
+                          updateDraft.accion === "publicar_entregable"
+                            ? setResourcesOpen(true)
+                            : setResourcesOpen((open) => !open)
+                        }
+                      >
+                        <Link2 className="size-3.5" />
+                      </Button>
+                      <TaskDeliverables
+                        project={{ ...project, disciplinasOperativas: disciplines }}
+                        taskId={task.id}
+                        discipline={disc.id}
+                        compact
+                        iconOnlyActions
+                        allowedContentTypes={contentTypes as TaskContentType[]}
+                        onChange={(storage, file) => {
+                          const updatedDisciplines = file
+                            ? updateTaskInDisciplines(disciplines, task.id, {
+                                archivos: [
+                                  ...(task.archivos || []),
+                                  {
+                                    nombre: file.name,
+                                    url: file.url,
+                                    tipo: file.mimeType.startsWith("image/")
+                                      ? "imagen"
+                                      : file.mimeType.startsWith("video/")
+                                        ? "video"
+                                        : file.mimeType === "application/pdf"
+                                          ? "pdf"
+                                          : "descargable",
+                                    funcion: "resultado",
+                                    version: file.version,
+                                    storage: file,
+                                  },
+                                ],
+                              }).updatedDisciplines
+                            : disciplines
+                          onUpdateProject({
+                            ...project,
+                            storage,
+                            disciplinasOperativas: updatedDisciplines,
+                            info: {
+                              ...project.info,
+                              cambiosSinPublicar:
+                                (project.info.cambiosSinPublicar || 0) +
+                                (file ? 1 : 0),
+                            },
+                          })
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

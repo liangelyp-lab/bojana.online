@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Paperclip, Upload, FolderOpen } from 'lucide-react';
 import type { ProjectData, DisciplinaType, TaskContentType } from '../../types';
 import { fileSize, getStorageStatus, getDeliverables, prepareProjectStorage, openGooglePicker, selectDriveFile, uploadDriveFile, storageRequest, type StorageStatus, type StoredDeliverable, type ProjectStorage } from '../../services/driveStorageService';
-export default function TaskDeliverables({ project, taskId, discipline, onChange, compact = false, allowedContentTypes = ['archivo'] }: { project: ProjectData; taskId: string; discipline: DisciplinaType; onChange: (storage: ProjectStorage, file?: StoredDeliverable) => void; compact?: boolean; allowedContentTypes?: TaskContentType[] }) {
+export default function TaskDeliverables({ project, taskId, discipline, onChange, compact = false, iconOnlyActions = false, allowedContentTypes = ['archivo'] }: { project: ProjectData; taskId: string; discipline: DisciplinaType; onChange: (storage: ProjectStorage, file?: StoredDeliverable) => void; compact?: boolean; iconOnlyActions?: boolean; allowedContentTypes?: TaskContentType[] }) {
   const [status, setStatus] = useState<StorageStatus | null>(null);
   const [files, setFiles] = useState<StoredDeliverable[]>([]);
   const [busy, setBusy] = useState(false);
@@ -40,18 +40,29 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
     const data = await storageRequest<{ files: typeof choices; nextPageToken?: string }>(`/projects/${encodeURIComponent(project.id)}/files?${params}`);
     setChoices(old => pageToken ? [...old, ...data.files] : data.files); setNextPage(data.nextPageToken);
   }
-  if (!status) return <section aria-label="Contenido de la actualización"><Skeleton rows={2} label="Consultando archivos" /></section>;
   const ready = status?.authorized && status?.connected;
-  return <section className="space-y-3" aria-label="Contenido de la actualización">
-    {files.length > 0 && <ul className="space-y-bojana-inside">{files.map(file => <li key={file.id} className="bojana-file border border-bojana-line rounded-bojana-widget p-3 bg-bojana-surface flex flex-wrap gap-bojana-inside justify-between items-center">
+  function requireDrive() {
+    if (ready) return true;
+    setError(!status
+      ? 'Comprobando la conexión con Drive. Volvé a intentar en un momento.'
+      : !status.configured
+        ? 'La carga de archivos no está configurada en el servidor.'
+        : !status.authorized
+          ? 'Autorizá el acceso a archivos desde Configuración para continuar.'
+          : 'Conectá Google Drive desde Configuración para subir o seleccionar archivos.');
+    return false;
+  }
+  if (!status && !iconOnlyActions) return <section aria-label="Contenido de la actualización"><Skeleton rows={2} label="Consultando archivos" /></section>;
+  return <section className={iconOnlyActions ? 'contents' : 'space-y-3'} aria-label="Contenido de la actualización">
+    {files.length > 0 && <ul className={`space-y-bojana-inside ${iconOnlyActions ? 'w-full basis-full' : ''}`}>{files.map(file => <li key={file.id} className="bojana-file border border-bojana-line rounded-bojana-widget p-3 bg-bojana-surface flex flex-wrap gap-bojana-inside justify-between items-center">
       {file.thumbnailUrl && <img src={file.thumbnailUrl} alt="" loading="lazy" className="bojana-media w-12 h-12 object-contain" onError={e => { e.currentTarget.hidden = true; }} />}
       <a href={file.url} className="text-sm text-bojana-ink underline underline-offset-4 break-all"><Paperclip size={14} className="inline mr-1" aria-hidden="true" />{file.name}</a>
       <span className="text-xs text-bojana-muted">Versión {file.version} · {fileSize(file.size)} · {file.published ? 'Publicado' : 'Sin publicar'}</span>
     </li>)}</ul>}
     {!files.length && !compact && <p className="text-sm text-bojana-muted">Agregá el resultado de esta tarea. Se compartirá cuando publiques los cambios.</p>}
-    <div className="flex flex-wrap gap-bojana-inside">
-      <Button variant="secondary" size="m" disabled={!ready || busy} onClick={() => input.current?.click()}><Upload size={15} aria-hidden="true" />Subir archivo</Button>
-      <Button variant="secondary" size="m" disabled={!ready || busy} onClick={() => void run(async () => { await listChoices(); setSelecting(true); })}><FolderOpen size={15} aria-hidden="true" />Seleccionar Drive</Button>
+    <div className={`flex items-center ${iconOnlyActions ? 'gap-1' : 'flex-wrap gap-bojana-inside'}`}>
+      <Button variant={iconOnlyActions ? 'icon' : 'secondary'} size={iconOnlyActions ? 'xs' : 'm'} ariaLabel={iconOnlyActions ? 'Subir archivo' : undefined} tooltip={iconOnlyActions ? 'Subir archivo' : undefined} disabled={busy} onClick={() => { setError(''); if (requireDrive()) input.current?.click(); }}><Upload size={15} aria-hidden="true" />{!iconOnlyActions && 'Subir archivo'}</Button>
+      <Button variant={iconOnlyActions ? 'icon' : 'secondary'} size={iconOnlyActions ? 'xs' : 'm'} ariaLabel={iconOnlyActions ? 'Seleccionar desde Google Drive' : undefined} tooltip={iconOnlyActions ? 'Seleccionar desde Google Drive' : undefined} disabled={busy} onClick={() => { setError(''); if (requireDrive()) void run(async () => { await listChoices(); setSelecting(true); }); }}><FolderOpen size={15} aria-hidden="true" />{!iconOnlyActions && 'Seleccionar Drive'}</Button>
       <input ref={input} className="sr-only" type="file" tabIndex={-1} aria-label="Archivo para entregar" onChange={e => {
         const file = e.target.files?.[0]; e.target.value = '';
         if (!file) return;
@@ -61,7 +72,7 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
         void run(() => uploadDriveFile(project, taskId, discipline, file, setProgress));
       }} accept={inputAccept} />
     </div>
-    {selecting && <Card padding="compact" className="space-y-3">
+    {selecting && <Card padding="compact" className={`space-y-3 ${iconOnlyActions ? 'w-full basis-full' : ''}`}>
       <p className="text-sm text-bojana-ink">Archivos de {discipline} en este proyecto</p>
       <form className="flex gap-bojana-inside" onSubmit={e => { e.preventDefault(); void run(async () => { await listChoices(); }); }}>
         <SearchInput aria-label="Buscar archivos por nombre" value={search} onChange={e => setSearch(e.target.value)} />
@@ -75,7 +86,7 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
       </div>
       <p className="text-sm text-bojana-muted">Se conserva una copia como versión del entregable. El archivo original permanece en su carpeta.</p>
     </Card>}
-    {busy && <p role="status" className="text-sm text-bojana-ink"><Spinner label={progress === null ? 'Preparando archivos…' : progress < 100 ? `Subiendo archivo · ${progress}%` : 'Guardando en Drive…'} /></p>}
-    {error && <p role="alert" className="text-sm text-bojana-error">{error}</p>}
+    {busy && <p role="status" className={`text-sm text-bojana-ink ${iconOnlyActions ? 'w-full basis-full' : ''}`}><Spinner label={progress === null ? 'Preparando archivos…' : progress < 100 ? `Subiendo archivo · ${progress}%` : 'Guardando en Drive…'} /></p>}
+    {error && <p role="alert" className={`text-sm text-bojana-error ${iconOnlyActions ? 'w-full basis-full' : ''}`}>{error}</p>}
   </section>;
 }
