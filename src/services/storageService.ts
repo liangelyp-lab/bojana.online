@@ -437,8 +437,8 @@ export const DEFAULT_OPERATIONAL_DISCIPLINES: Record<DisciplinaType, Operational
             visibleCliente: true,
             notaCliente: 'Esperando convalidación del comitente para avanzar con la documentación ejecutiva.',
             archivos: [
-              { nombre: 'Propuesta cocina Club House.pdf', url: '#', tipo: 'pdf' },
-              { nombre: 'Render 01 — Isla y mesada.jpg', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80', tipo: 'imagen' }
+              { nombre: 'Propuesta cocina Club House.pdf', url: '#', tipo: 'pdf', subetapaId: 'sub-gim-4' },
+              { nombre: 'Render 01 — Isla y mesada.jpg', url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80', tipo: 'imagen', subetapaId: 'sub-gim-4' }
             ],
             subetapas: [
               { id: 'sub-gim-1', label: 'Definir vistas', completada: true, pesoPorcentaje: 20 },
@@ -457,6 +457,7 @@ export const DEFAULT_OPERATIONAL_DISCIPLINES: Record<DisciplinaType, Operational
               fechaLimite: '12 OCT',
               bloquearSiguientesEtapas: true,
               pesoPorcentaje: 15,
+              subetapaId: 'sub-gim-4',
               alternativas: [
                 {
                   id: 'alt-roble',
@@ -1722,6 +1723,56 @@ function removePreviewStatusDemoTasks(project: ProjectData): { project: ProjectD
   return changed ? { project: { ...project, disciplinasOperativas }, changed } : { project, changed };
 }
 
+/** A pending client request is the source of truth for the task's visible
+ * operational state. Older saved projects could leave it as "En curso". */
+function normalizePendingClientActions(project: ProjectData): { project: ProjectData; changed: boolean } {
+  let changed = false;
+  const disciplinasOperativas = (project.disciplinasOperativas || []).map((discipline) => ({
+    ...discipline,
+    necesidades: discipline.necesidades.map((need) => ({
+      ...need,
+      tareas: need.tareas.map((task) => {
+        if (task.estado === 'Completado' && task.accionCliente?.activa) {
+          changed = true;
+          return { ...task, accionCliente: { ...task.accionCliente, activa: false } };
+        }
+        if (task.accionCliente?.activa && task.accionCliente.estado === 'pendiente' && task.estado !== 'Esperando al cliente' && task.estado !== 'Completado') {
+          changed = true;
+          return { ...task, estado: 'Esperando al cliente' as const };
+        }
+        return task;
+      }),
+    })),
+  }));
+  return changed ? { project: { ...project, disciplinasOperativas }, changed } : { project, changed };
+}
+
+/** Legacy action attachments were also stored as task files but had no stage
+ * reference. Reuse the action's explicit stage when the file is the same. */
+function linkLegacyActionFiles(project: ProjectData): { project: ProjectData; changed: boolean } {
+  let changed = false;
+  const disciplinasOperativas = (project.disciplinasOperativas || []).map((discipline) => ({
+    ...discipline,
+    necesidades: discipline.necesidades.map((need) => ({
+      ...need,
+      tareas: need.tareas.map((task) => {
+        const stageId = task.accionCliente?.subetapaId;
+        const attachmentNames = new Set((task.accionCliente?.adjuntos || []).map((attachment) => attachment.nombre));
+        if (!stageId || attachmentNames.size === 0) return task;
+        const archivos = (task.archivos || []).map((file) => {
+          if (!file.subetapaId && attachmentNames.has(file.nombre)) {
+            changed = true;
+            return { ...file, subetapaId: stageId };
+          }
+          return file;
+        });
+        return archivos.some((file, index) => file !== task.archivos?.[index]) ? { ...task, archivos } : task;
+      }),
+    })),
+  }));
+  return changed ? { project: { ...project, disciplinasOperativas }, changed } : { project, changed };
+}
+
 export function getAllProjects(): ProjectData[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1739,8 +1790,10 @@ export function getAllProjects(): ProjectData[] {
     const migrated = parsed.map((p: ProjectData) => {
       const withLifecycle = { ...p, lifecycleStatus: p.lifecycleStatus ?? 'ACTIVO' };
       const withoutDemoTasks = removePreviewStatusDemoTasks(withLifecycle);
-      const normalized = normalizeProjectPhaseWeights(withoutDemoTasks.project);
-      didMigrate ||= withoutDemoTasks.changed || normalized.changed || p.lifecycleStatus === undefined;
+      const withNormalizedActions = normalizePendingClientActions(withoutDemoTasks.project);
+      const withLinkedFiles = linkLegacyActionFiles(withNormalizedActions.project);
+      const normalized = normalizeProjectPhaseWeights(withLinkedFiles.project);
+      didMigrate ||= withoutDemoTasks.changed || withNormalizedActions.changed || withLinkedFiles.changed || normalized.changed || p.lifecycleStatus === undefined;
       return normalized.project;
     });
     if (didMigrate) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
@@ -1864,8 +1917,10 @@ export async function hydrateProjectsFromSupabase(): Promise<ProjectData[] | nul
     const projects = await listRemoteProjects();
     const normalized = projects.map((project) => {
       const withoutDemoTasks = removePreviewStatusDemoTasks(project);
-      const withNormalizedWeights = normalizeProjectPhaseWeights(withoutDemoTasks.project);
-      return { project: withNormalizedWeights.project, changed: withoutDemoTasks.changed || withNormalizedWeights.changed };
+      const withNormalizedActions = normalizePendingClientActions(withoutDemoTasks.project);
+      const withLinkedFiles = linkLegacyActionFiles(withNormalizedActions.project);
+      const withNormalizedWeights = normalizeProjectPhaseWeights(withLinkedFiles.project);
+      return { project: withNormalizedWeights.project, changed: withoutDemoTasks.changed || withNormalizedActions.changed || withLinkedFiles.changed || withNormalizedWeights.changed };
     });
     const normalizedProjects = normalized.map((result) => result.project);
     const changedProjects = normalized.filter((result) => result.changed).map((result) => result.project);

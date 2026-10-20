@@ -121,6 +121,7 @@ export default function RequestClientActionModal({
   const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || prefill?.fechaLimiteRespuesta || '');
   const [bloquear, setBloquear] = useState(existing?.bloquearSiguientesEtapas ?? true);
   const [pesoPct, setPesoPct] = useState(existing?.pesoPorcentaje ?? 10);
+  const [subetapaId, setSubetapaId] = useState(existing?.subetapaId || task.subetapas?.find((stage) => !stage.completada)?.id || '');
 
   const emailConfig = clientActionEmailConfig[tipo];
 
@@ -195,15 +196,17 @@ export default function RequestClientActionModal({
       fechaLimite: fechaLimite.trim(),
       bloquearSiguientesEtapas: bloquear,
       pesoPorcentaje: Number(pesoPct) || 10,
+      subetapaId: subetapaId || undefined,
       alternativas: tipo === 'elegir_alternativa' && alternativas.length > 0 ? alternativas : undefined,
       adjuntos,
-      estado: existing?.estado || 'pendiente',
+      // Sending a request always opens a new client-response cycle.
+      estado: 'pendiente',
       fechaSolicitud: existing?.fechaSolicitud || `${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }).toUpperCase()} · ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`,
       solicitudEnviadaEmail: sendEmail || existing?.solicitudEnviadaEmail || false,
       emailDestinatario: clientEmail,
       emailEntregado: sendEmail || existing?.emailEntregado || false,
       emailAbierto: existing?.emailAbierto || false,
-      respuestaCliente: existing?.respuestaCliente
+      respuestaCliente: undefined
     };
 
     if (sendEmail) {
@@ -486,6 +489,16 @@ export default function RequestClientActionModal({
                   onChange={setBloquear}
                   className="items-start"
                 />
+
+                {(task.subetapas || []).length > 0 && (
+                  <label className="block border-t border-bojana-line pt-3 text-bojana-muted">
+                    <span className="mb-1 block font-medium text-bojana-ink">Etapa que se completa al recibir respuesta</span>
+                    <select className="bojana-control w-full bg-bojana-surface text-xs" value={subetapaId} onChange={(event) => setSubetapaId(event.target.value)}>
+                      <option value="">No modifica una etapa</option>
+                      {task.subetapas?.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+                    </select>
+                  </label>
+                )}
 
                 <div className="pt-2 border-t border-bojana-line flex items-center justify-between text-bojana-muted">
                   <span>Porcentaje que desbloquea la aprobación:</span>

@@ -133,9 +133,9 @@ function taskStateFromUpdates(task: ExecutionTask): EstadoEtapa {
     .slice()
     .sort((a, b) => b.version - a.version)[0]
   if (!latest || latest.estado === "borrador") return task.estado
-  if (latest.estado === "cambios_solicitados") return "En revisión"
-  if (latest.estado === "aprobada" && task.estado === "Pendiente")
-    return "En curso"
+  if (latest.estado === "cambios_solicitados") return task.estado === "En curso" ? "En curso" : "En revisión"
+  if (latest.estado === "aprobada")
+    return latest.accion === "publicar_terminar" ? "Completado" : "En curso"
   if (latest.accion === "publicar_terminar") return "Completado"
   if (latest.accion === "publicar_avance") return "En curso"
   if (latest.accion === "revision") return "En revisión"
@@ -223,11 +223,13 @@ export default function OperationalExecutionPanel({
     titulo: "",
     descripcion: "",
     recursos: "",
-    accion: "revision" as TaskUpdateAction,
+    accion: "publicar_avance" as TaskUpdateAction,
+    subetapaId: "",
     opciones: emptyUpdateOptions(),
   })
   const [resourcesOpen, setResourcesOpen] = useState(false)
   const [editingUpdateId, setEditingUpdateId] = useState<string | null>(null)
+  const [historyUpdateId, setHistoryUpdateId] = useState<string | null>(null)
   const [showProjectUpdateModal, setShowProjectUpdateModal] = useState(false)
   const [projectUpdateDraft, setProjectUpdateDraft] = useState({
     titulo: "",
@@ -237,6 +239,7 @@ export default function OperationalExecutionPanel({
   const [attachmentFunction, setAttachmentFunction] =
     useState<DocumentFunction>("resultado")
   const [attachmentDeliverableId, setAttachmentDeliverableId] = useState("")
+  const [attachmentSubetapaId, setAttachmentSubetapaId] = useState("")
 
   // Publish & Client Invitation Modal state
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
@@ -415,7 +418,15 @@ export default function OperationalExecutionPanel({
     const { updatedDisciplines, newProjectProgress } = updateTaskInDisciplines(
       disciplines,
       taskId,
-      { subetapas: updatedSubetapas, estado: newStatus },
+      {
+        subetapas: updatedSubetapas,
+        estado: newStatus,
+        // If the studio completed every operational stage directly, there is
+        // no outstanding client action left to resolve for this task.
+        accionCliente: allCompleted && task.accionCliente?.activa
+          ? { ...task.accionCliente, activa: false }
+          : task.accionCliente,
+      },
     )
 
     const newDisc = updatedDisciplines.find((d) => d.id === discId)
@@ -616,7 +627,8 @@ export default function OperationalExecutionPanel({
         } else if (
           t.estado === "En curso" ||
           t.estado === "Requiere ajustes" ||
-          t.estado === "En revisión"
+          t.estado === "En revisión" ||
+          t.estado === "Requiere ajustes"
         ) {
           teamTasks.push({ disc: d, need: n, task: t })
         }
@@ -693,6 +705,7 @@ export default function OperationalExecutionPanel({
           fechaLimiteRespuesta: prefill.fechaLimiteRespuesta || undefined,
           opciones: prefill.opciones,
           visibleCliente: true,
+          subetapaId: actionData.subetapaId,
         }
       : undefined
 
@@ -853,7 +866,8 @@ export default function OperationalExecutionPanel({
       titulo: "",
       descripcion: "",
       recursos: "",
-      accion: "revision",
+      accion: "publicar_avance",
+      subetapaId: "",
       opciones: emptyUpdateOptions(),
     })
     setEditingUpdateId(null)
@@ -862,6 +876,15 @@ export default function OperationalExecutionPanel({
   }
   const saveTaskUpdate = (task: ExecutionTask, action: TaskUpdateAction) => {
     if (!updateDraft.titulo.trim()) return
+    const resources = updateDraft.recursos
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean)
+    if (action === "publicar_entregable" && resources.length === 0) {
+      onToast("Agregá al menos un enlace para publicar el entregable.")
+      setResourcesOpen(true)
+      return
+    }
     const updates = task.actualizaciones || []
     const options = updateDraft.opciones
       .filter((option) => option.titulo.trim())
@@ -880,10 +903,7 @@ export default function OperationalExecutionPanel({
         : updates.length + 1,
       titulo: updateDraft.titulo.trim(),
       descripcion: updateDraft.descripcion.trim() || undefined,
-      recursos: updateDraft.recursos
-        .split("\n")
-        .map((item) => item.trim())
-        .filter(Boolean),
+      recursos: resources,
       accion: action,
       estado:
         action === "borrador"
@@ -901,6 +921,7 @@ export default function OperationalExecutionPanel({
       visibilidad: action === "borrador" ? "interna" : "publicada",
       opciones: options.length ? options : undefined,
       visibleCliente: action !== "borrador",
+      subetapaId: updateDraft.subetapaId || undefined,
     }
     const nextStatus: EstadoEtapa | undefined =
       action === "publicar_terminar"
@@ -910,12 +931,39 @@ export default function OperationalExecutionPanel({
           : action === "solicitud_informacion"
             ? "Esperando al cliente"
             : undefined
+    const isNewPublishedUpdate = !editingUpdateId && action !== "borrador"
     const nextUpdates = editingUpdateId
       ? updates.map((item) => (item.id === editingUpdateId ? update : item))
       : [...updates, update]
-    changeTask(task, {
+    const taskPatch = {
       actualizaciones: nextUpdates,
       ...(nextStatus ? { estado: nextStatus } : {}),
+    }
+    const { updatedDisciplines, newProjectProgress } = updateTaskInDisciplines(
+      disciplines,
+      task.id,
+      taskPatch,
+    )
+    const notification = isNewPublishedUpdate ? {
+      id: `activity-${Date.now()}`,
+      fecha: "Ahora",
+      taskId: task.id,
+      updateId: update.id,
+      descripcion: `Nueva actualización en ${task.titulo}: "${update.titulo}" (v${update.version}).`,
+      autor: "Bojana Estudio",
+    } : null
+    onUpdateProject({
+      ...project,
+      disciplinasOperativas: updatedDisciplines,
+      progresoTotalCalculado: newProjectProgress,
+      actividadReciente: notification
+        ? [notification, ...(project.actividadReciente || [])]
+        : project.actividadReciente,
+      info: {
+        ...project.info,
+        cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
+        ultimaActualizacion: "Ahora",
+      },
     })
     onToast(
       editingUpdateId
@@ -926,6 +974,8 @@ export default function OperationalExecutionPanel({
             ? "Actualización publicada y tarea terminada."
             : action === "publicar_avance"
               ? "Avance publicado; la tarea sigue abierta."
+              : action === "publicar_entregable"
+                ? "Entregable publicado en el portal."
               : action === "revision"
                 ? "Actualización enviada a revisión."
                 : "Solicitud de información enviada al cliente.",
@@ -940,6 +990,12 @@ export default function OperationalExecutionPanel({
     const editingUpdate = editingUpdateId
       ? (task.actualizaciones || []).find((item) => item.id === editingUpdateId)
       : undefined
+    const taskHistory = (task.actualizaciones || [])
+      .slice()
+      .sort((a, b) => a.version - b.version || new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
+    const historyUpdate = historyUpdateId
+      ? taskHistory.find((item) => item.id === historyUpdateId)
+      : undefined
     const latestUpdate = (task.actualizaciones || [])
       .slice()
       .sort((a, b) => b.version - a.version)[0]
@@ -947,6 +1003,8 @@ export default function OperationalExecutionPanel({
     const contentTypes = task.tiposContenido?.length
       ? task.tiposContenido
       : ["archivo"]
+    const portalFiles = (task.archivos || []).filter((file) => file.publicadoCliente !== false)
+    const stageName = (stageId?: string) => task.subetapas?.find((stage) => stage.id === stageId)?.label
     return (
       <section
         className={`space-y-4 ${approvedUpdate ? "approved-update" : ""}`}
@@ -965,7 +1023,7 @@ export default function OperationalExecutionPanel({
               <div>
                 <p className="bojana-label">Etapas de la tarea</p>
                 <p className="text-[11px] text-bojana-muted">
-                  Se actualizan por separado de esta publicación.
+                  Completarlas actualiza automáticamente el avance de la tarea.
                 </p>
               </div>
               <span className="text-[11px] text-bojana-muted">
@@ -980,10 +1038,31 @@ export default function OperationalExecutionPanel({
             </div>
           </section>
         )}
+        {(portalFiles.length > 0 || task.accionCliente?.activa) && (
+          <section className="rounded-bojana-widget border border-mint/40 bg-mint-pale/30 px-3 py-2.5" aria-label="Contenido actual para el cliente">
+            <div className="flex items-center gap-2">
+              <Eye className="size-3.5 text-forest" />
+              <p className="bojana-label">Contenido actual para el cliente</p>
+            </div>
+            <div className="mt-2 space-y-1.5 text-xs">
+              {task.accionCliente?.activa && <div className="flex flex-wrap items-center gap-2 rounded-lg bg-white/70 px-2 py-1.5">
+                <Clock className="size-3.5 text-clay" />
+                <span className="font-medium text-ink">Acción: {task.accionCliente.titulo}</span>
+                {stageName(task.accionCliente.subetapaId) && <span className="text-ink-muted">· {stageName(task.accionCliente.subetapaId)}</span>}
+              </div>}
+              {portalFiles.map((file) => <div key={`${file.nombre}-${file.url}`} className="flex flex-wrap items-center gap-2 rounded-lg bg-white/70 px-2 py-1.5">
+                <FileText className="size-3.5 text-forest" />
+                <span>Archivo disponible · {file.nombre}</span>
+                <span className="text-ink-muted">· {stageName(file.subetapaId) || "Toda la tarea"}</span>
+              </div>)}
+            </div>
+          </section>
+        )}
         <div className="space-y-3">
           {latestUpdate && (
             <div className="mt-2 space-y-1">
               {[latestUpdate].map((update) => {
+                const isMutableDraft = update.estado === "borrador"
                 const visible =
                   update.visibleCliente !== false &&
                   update.visibilidad !== "interna"
@@ -994,7 +1073,9 @@ export default function OperationalExecutionPanel({
                       ? "Aprobada"
                       : update.accion === "publicar_terminar"
                         ? "Publicada y terminada"
-                        : update.accion === "publicar_avance"
+                        : update.accion === "publicar_entregable"
+                          ? "Entregable publicado"
+                          : update.accion === "publicar_avance"
                           ? "Avance publicado"
                           : update.accion === "revision"
                             ? "En revisión"
@@ -1021,8 +1102,26 @@ export default function OperationalExecutionPanel({
                         : ""
                     }`}
                     onClick={() => {
+                      if (!isMutableDraft) {
+                        setHistoryUpdateId(update.id)
+                        return
+                      }
                       setEditingUpdateId(update.id)
-                      setUpdateDraftOpen(false)
+                      setUpdateDraft({
+                        titulo: update.titulo,
+                        descripcion: update.descripcion || "",
+                        recursos: (update.recursos || []).join("\n"),
+                        accion: update.accion,
+                        subetapaId: update.subetapaId || "",
+                        opciones: (update.opciones || []).map((option) => ({
+                          id: option.id,
+                          titulo: option.titulo,
+                          descripcion: option.descripcion || "",
+                          imagenUrl: option.imagenUrl || "",
+                        })),
+                      })
+                      setResourcesOpen((update.recursos || []).length > 0 || update.accion === "publicar_entregable")
+                      setUpdateDraftOpen(true)
                     }}
                   >
                     <span className="font-semibold">
@@ -1042,6 +1141,19 @@ export default function OperationalExecutionPanel({
                       ·{" "}
                       {visible ? "Visible para cliente" : "Oculta para cliente"}
                     </span>
+                    {(update.recursos || []).map((resource) => (
+                      <a
+                        key={resource}
+                        href={resource}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex max-w-full items-center gap-1 rounded-full border border-bojana-line bg-white px-2 py-1 text-forest hover:underline"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <ExternalLink className="size-3 shrink-0" />
+                        <span className="max-w-48 truncate">{resource}</span>
+                      </a>
+                    ))}
                     <Button
                       variant="icon"
                       className="!size-7"
@@ -1049,13 +1161,12 @@ export default function OperationalExecutionPanel({
                       tooltip={`Ver historial de ${update.titulo}`}
                       onClick={(event) => {
                         event.stopPropagation()
-                        setEditingUpdateId(update.id)
-                        setUpdateDraftOpen(false)
+                        setHistoryUpdateId(update.id)
                       }}
                     >
                       <Clock className="size-3.5" />
                     </Button>
-                    <Button
+                    {isMutableDraft && <Button
                       variant="link"
                       size="s"
                       state={visible ? "default" : "disabled"}
@@ -1084,7 +1195,7 @@ export default function OperationalExecutionPanel({
                       }}
                     >
                       <PortalIcon icon={visible ? EyeOff : Eye} size="s" />
-                    </Button>
+                    </Button>}
                     <Button
                       variant="icon"
                       className="!size-7"
@@ -1125,24 +1236,25 @@ export default function OperationalExecutionPanel({
               })}
             </div>
           )}
-          {latestUpdate &&
-            (latestUpdate.estado === "aprobada" ||
-              latestUpdate.estado === "cambios_solicitados" ||
-              latestUpdate.respuesta) && (
-              <div className="mt-3 rounded-xl border border-line bg-stone/40 px-3 py-2 text-xs">
-                <span className="bojana-label">Respuesta del cliente</span>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-ink">
-                    v{latestUpdate.version} · {latestUpdate.titulo}
-                  </span>
-                  {latestUpdate.respuesta && (
-                    <span className="text-ink-muted">
-                      💬 {latestUpdate.respuesta}
-                    </span>
-                  )}
+          {historyUpdate && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Historial de la actualización">
+              <section className="max-h-[min(80vh,680px)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-bojana-line bg-white p-5 text-sm shadow-2xl">
+                <div className="flex items-start justify-between gap-3">
+                  <div><p className="bojana-label">Historial de la tarea</p><p className="mt-1 font-semibold text-ink">{task.titulo}</p></div>
+                  <Button variant="icon" className="!size-8" ariaLabel="Cerrar historial" onClick={() => setHistoryUpdateId(null)}><X className="size-4" /></Button>
                 </div>
-              </div>
-            )}
+                <div className="mt-5 space-y-3">
+                  {taskHistory.map((entry) => <article key={entry.id} className={`rounded-xl border p-3 ${entry.id === historyUpdate.id ? "border-forest/40 bg-mint-pale/30" : "border-bojana-line bg-bojana-surface/50"}`}>
+                    <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-ink">v{entry.version} · {entry.titulo}</p><span className="text-xs text-bojana-muted">{new Date(entry.fecha).toLocaleString("es-AR")}</span></div>
+                    <p className="mt-1 text-xs text-bojana-muted">{taskUpdateNotificationLabel(entry.accion)} · {entry.estado === "aprobada" ? "Aprobada" : entry.estado === "cambios_solicitados" ? "Cambios solicitados" : entry.estado === "en_revision" ? "En revisión" : entry.estado === "borrador" ? "Borrador interno" : "Publicada"}</p>
+                    {entry.descripcion && <p className="mt-3 leading-5 text-ink-muted">{entry.descripcion}</p>}
+                    {(entry.recursos || []).length > 0 && <div className="mt-3 space-y-1.5">{entry.recursos.map((resource) => <a key={resource} href={resource} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-forest hover:underline"><ExternalLink className="size-3.5" /><span className="truncate">{resource}</span></a>)}</div>}
+                    {entry.respuesta && <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-ink-muted">Respuesta del cliente · {entry.respuesta}</p>}
+                  </article>)}
+                </div>
+              </section>
+            </div>
+          )}
           {approvedUpdate && (
             <p className="rounded-xl bg-mint-pale px-3 py-2 text-xs text-forest">
               Esta actualización ya fue aprobada. No requiere volver a publicar
@@ -1171,13 +1283,13 @@ export default function OperationalExecutionPanel({
                     titulo: `${latestUpdate.titulo} · Seguimiento`,
                     descripcion: "",
                     recursos: "",
-                    accion: "revision",
+                    accion: "publicar_avance",
                     opciones: emptyUpdateOptions(),
                   })
                   setUpdateDraftOpen(true)
                 }}
               >
-                <Plus className="size-3.5" /> Nueva actualización en este hilo
+                <Plus className="size-3.5" /> Añadir actualización
               </Button>
             )}
           {updateDraftOpen && (
@@ -1195,14 +1307,14 @@ export default function OperationalExecutionPanel({
                 label="Acción"
                 className="w-full"
                 value={updateDraft.accion}
-                onChange={(e) =>
-                  setUpdateDraft({
-                    ...updateDraft,
-                    accion: e.target.value as TaskUpdateAction,
-                  })
-                }
+                onChange={(e) => {
+                  const accion = e.target.value as TaskUpdateAction
+                  setUpdateDraft({ ...updateDraft, accion })
+                  if (accion === "publicar_entregable") setResourcesOpen(true)
+                }}
               >
                 <option value="publicar_avance">Publicar avance</option>
+                <option value="publicar_entregable">Subir entregable</option>
                 <option value="publicar_terminar">
                   Publicar y marcar como terminada
                 </option>
@@ -1211,6 +1323,15 @@ export default function OperationalExecutionPanel({
                   Solicitar información
                 </option>
               </Select>
+              {(task.subetapas || []).length > 0 && <Select
+                label="Etapa vinculada (opcional)"
+                className="w-full"
+                value={updateDraft.subetapaId}
+                onChange={(e) => setUpdateDraft({ ...updateDraft, subetapaId: e.target.value })}
+              >
+                <option value="">Sin etapa específica</option>
+                {task.subetapas?.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+              </Select>}
               <div className="sm:col-span-2 space-y-2">
                 <TextArea
                   label="Mensaje para el cliente"
@@ -1226,7 +1347,7 @@ export default function OperationalExecutionPanel({
                   }
                   placeholder="Qué entregás, qué cambió o qué necesitás..."
                 />
-                <Button
+                {updateDraft.accion !== "publicar_entregable" && <Button
                   variant="tertiary"
                   className="!min-h-9 !rounded-full !px-3 text-xs"
                   onClick={() => setResourcesOpen((open) => !open)}
@@ -1235,13 +1356,13 @@ export default function OperationalExecutionPanel({
                   {resourcesOpen
                     ? "Ocultar link o recurso"
                     : "Agregar link o recurso"}
-                </Button>
-                {resourcesOpen && (
+                </Button>}
+                {(resourcesOpen || updateDraft.accion === "publicar_entregable") && (
                   <div className="rounded-xl border border-bojana-line bg-bojana-surface/50 p-2">
                     <TextArea
                       autoGrow
                       className="!min-h-0 resize-none"
-                      label="Link o recurso dentro del mensaje"
+                      label={updateDraft.accion === "publicar_entregable" ? "Enlace del entregable" : "Link o recurso dentro del mensaje"}
                       rows={1}
                       value={updateDraft.recursos}
                       onChange={(e) =>
@@ -1250,10 +1371,12 @@ export default function OperationalExecutionPanel({
                           recursos: e.target.value,
                         })
                       }
-                      placeholder="Pegá o copiá un hipervínculo"
+                      placeholder="Pegá uno o más enlaces, uno por línea"
                     />
                     <p className="mt-1 text-[11px] text-bojana-muted">
-                      Se mostrará como un enlace clickeable para el cliente.
+                      {updateDraft.accion === "publicar_entregable"
+                        ? "Es obligatorio. Al publicar, quedará registrado en esta tarea y visible para el cliente."
+                        : "Se mostrará como un enlace clickeable para el cliente."}
                     </p>
                   </div>
                 )}
@@ -1450,7 +1573,7 @@ export default function OperationalExecutionPanel({
                       disabled={!updateDraft.titulo.trim()}
                       onClick={() => saveTaskUpdate(task, "borrador")}
                     >
-                      Guardar borrador
+                      Guardar sin publicar
                     </Button>
                     <Button
                       variant="primary"
@@ -1459,7 +1582,7 @@ export default function OperationalExecutionPanel({
                       onClick={() => {
                         if (editingUpdateId) {
                           saveTaskUpdate(task, updateDraft.accion)
-                        } else if (updateDraft.accion !== "borrador") {
+                        } else if (updateDraft.accion === "revision" || updateDraft.accion === "solicitud_informacion") {
                           setUpdateDraftOpen(false)
                           setSelectedTaskForAction({
                             task,
@@ -1491,6 +1614,8 @@ export default function OperationalExecutionPanel({
                         ? "Publicar y terminar"
                         : updateDraft.accion === "publicar_avance"
                           ? "Publicar avance"
+                          : updateDraft.accion === "publicar_entregable"
+                            ? "Publicar entregable"
                           : updateDraft.accion === "revision"
                             ? "Continuar con revisión"
                             : "Solicitar información"}
@@ -1512,13 +1637,14 @@ export default function OperationalExecutionPanel({
                     titulo: "",
                     descripcion: "",
                     recursos: "",
-                    accion: "revision",
+                    accion: "publicar_avance",
+                    subetapaId: "",
                     opciones: emptyUpdateOptions(),
                   })
                   setUpdateDraftOpen(true)
                 }}
               >
-                <Plus className="size-3.5" /> Nueva actualización
+                <Plus className="size-3.5" /> Añadir actualización
               </Button>
             )}
           {false && (
@@ -1609,6 +1735,19 @@ export default function OperationalExecutionPanel({
                         </option>
                       ))}
                     </SelectControl>
+                    {(task.subetapas || []).length > 0 && <SelectControl
+                      aria-label={`Etapa asociada a ${deliverable.nombre}`}
+                      className="min-h-8 w-auto py-0 text-[11px]"
+                      value={deliverable.subetapaId || ""}
+                      onChange={(e) => changeTask(task, {
+                        entregablesEsperados: (task.entregablesEsperados || []).map((item) =>
+                          item.id === deliverable.id ? { ...item, subetapaId: e.target.value || undefined } : item,
+                        ),
+                      })}
+                    >
+                      <option value="">Toda la tarea</option>
+                      {task.subetapas?.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+                    </SelectControl>}
                     <Button
                       variant="secondary"
                       type="button"
@@ -1761,6 +1900,17 @@ export default function OperationalExecutionPanel({
                     ))}
                   </SelectControl>
                 )}
+                {(task.subetapas || []).length > 0 && (
+                  <SelectControl
+                    aria-label="Etapa a la que se asociará el archivo"
+                    className="w-full"
+                    value={attachmentSubetapaId}
+                    onChange={(e) => setAttachmentSubetapaId(e.target.value)}
+                  >
+                    <option value="">Toda la tarea</option>
+                    {task.subetapas?.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
+                  </SelectControl>
+                )}
                 <p className="text-xs text-bojana-muted">
                   Adjuntar información o evidencia no cambia el estado de la
                   tarea.
@@ -1792,6 +1942,7 @@ export default function OperationalExecutionPanel({
                             entregableId:
                               attachmentDeliverableId ||
                               task.entregablesEsperados?.[0]?.id,
+                            subetapaId: attachmentSubetapaId || undefined,
                             version: file.version,
                             storage: file,
                           },
@@ -2939,27 +3090,10 @@ export default function OperationalExecutionPanel({
                                                   >
                                                     {task.titulo}
                                                   </h4>
-                                                  {isTaskExpanded && (
-                                                    <>
-                                                      {task.notaCliente && (
-                                                        <p className="text-xs text-bojana-muted truncate">
-                                                          {task.notaCliente}
-                                                        </p>
-                                                      )}
-                                                      <p className="text-[11px] text-bojana-muted truncate">
-                                                        {responsible} ·{" "}
-                                                        {task.fecha || "Sin fecha"}{" "}
-                                                        ·{" "}
-                                                        {
-                                                          expectedDeliverables.length
-                                                        }{" "}
-                                                        entregable
-                                                        {expectedDeliverables.length ===
-                                                        1
-                                                          ? ""
-                                                          : "s"}
-                                                      </p>
-                                                    </>
+                                                  {isTaskExpanded && task.notaCliente && (
+                                                    <p className="text-xs text-bojana-muted truncate">
+                                                      {task.notaCliente}
+                                                    </p>
                                                   )}
                                                 </div>
                                               </div>

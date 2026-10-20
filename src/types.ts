@@ -308,6 +308,8 @@ export interface ClientActionRequired {
   fechaLimite?: string;      // ej: "12 OCT"
   bloquearSiguientesEtapas?: boolean; // Bloquea avance hasta recibir respuesta
   pesoPorcentaje?: number;   // Legacy/configuración visual. No modifica el avance ADN v1.
+  /** Subetapa que queda resuelta al recibir la respuesta del cliente. */
+  subetapaId?: string;
 
   // Alternatives if tipo === 'elegir_alternativa'
   alternativas?: ClientActionAlternative[];
@@ -350,7 +352,7 @@ export type DocumentFunction = 'entrada' | 'trabajo' | 'evidencia' | 'resultado'
 
 export type DeliverableInteractionType = 'entrega_final' | 'para_revision' | 'solicitud_informacion';
 export type ExpectedDeliverableStatus = 'pendiente' | 'preparado' | 'publicado' | 'aprobado' | 'cambios_solicitados' | 'recibido' | 'validado';
-export type TaskUpdateAction = 'borrador' | 'publicar_avance' | 'revision' | 'solicitud_informacion' | 'publicar_terminar';
+export type TaskUpdateAction = 'borrador' | 'publicar_avance' | 'publicar_entregable' | 'revision' | 'solicitud_informacion' | 'publicar_terminar';
 export type TaskUpdateStatus = 'borrador' | 'en_revision' | 'solicitud_enviada' | 'publicada' | 'aprobada' | 'cambios_solicitados';
 
 export interface TaskUpdate {
@@ -369,6 +371,8 @@ export interface TaskUpdate {
   respuesta?: string;
   opciones?: ClientActionAlternative[];
   visibleCliente?: boolean;
+  /** Optional operational stage this communication documents or requests. */
+  subetapaId?: string;
 }
 
 export interface ExpectedDeliverable {
@@ -379,6 +383,8 @@ export interface ExpectedDeliverable {
   requerido?: boolean;
   publicadoCliente?: boolean;
   estado?: ExpectedDeliverableStatus;
+  /** Optional operational stage that produced this deliverable. */
+  subetapaId?: string;
 }
 
 export interface ExecutionTask {
@@ -401,6 +407,7 @@ export interface ExecutionTask {
     tipo: 'imagen' | 'pdf' | 'video' | 'descargable' | 'archivo';
     funcion?: DocumentFunction;
     entregableId?: string;
+    subetapaId?: string;
     version?: number;
     revisadoInternamente?: boolean;
     publicadoCliente?: boolean;

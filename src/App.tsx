@@ -840,6 +840,7 @@ function ClientActions({
   ) : null
 
   if (!decision) {
+    if (!pendingAction) return null
     return (
       <section className="rounded-3xl border border-line bg-white p-6">
         <Eyebrow>Cliente</Eyebrow>
@@ -1606,7 +1607,22 @@ function AdminPortal({
           clientName={currentProject?.cliente?.nombre || "Comitente"}
           isOpen={isActionModalOpen}
           onClose={() => setIsActionModalOpen(false)}
-          onSaveAction={() => {
+          onSaveAction={(action) => {
+            const updatedProject = {
+              ...currentProject,
+              disciplinasOperativas: (currentProject.disciplinasOperativas || []).map(discipline => ({
+                ...discipline,
+                necesidades: discipline.necesidades.map(need => ({
+                  ...need,
+                  tareas: need.tareas.map(task => task.id === actionModalTask.id ? {
+                    ...task,
+                    estado: "Esperando al cliente" as import("./types").EstadoEtapa,
+                    accionCliente: action,
+                  } : task),
+                })),
+              })),
+            }
+            onUpdateProject(updatedProject)
             setIsActionModalOpen(false)
             onPublishToast("Solicitud de decisión enviada al comitente.")
           }}
@@ -1893,10 +1909,40 @@ function getNextProjectMilestone(project: ProjectData) {
   return next ? `${next.title} · ${formatMilestoneDate(next.date)}` : project.info?.proximoHito || "Sin próximo hito"
 }
 
+/** Resolves the stage explicitly linked to a client request. Legacy requests
+ * without a link fall back to their first pending approval stage. */
+function getClientActionStageId(task: ExecutionTask) {
+  const stages = task.subetapas || []
+  const explicitId = task.accionCliente?.subetapaId
+  if (explicitId && stages.some(stage => stage.id === explicitId)) return explicitId
+  return stages.find(stage => !stage.completada && /aprob|confirm|decisi|elecci/i.test(stage.label))?.id
+}
+
+function resolveClientActionTask(task: ExecutionTask, approved: boolean): ExecutionTask {
+  const resolvedStageId = approved ? getClientActionStageId(task) : undefined
+  const subetapas = (task.subetapas || []).map(stage =>
+    stage.id === resolvedStageId ? { ...stage, completada: true, estado: "Completado" as const } : stage,
+  )
+  const hasStages = subetapas.length > 0
+  const allStagesCompleted = hasStages && subetapas.every(stage => stage.completada || stage.estado === "Completado")
+  return {
+    ...task,
+    subetapas,
+    estado: allStagesCompleted || (approved && !hasStages) ? "Completado" : "En curso",
+    accionCliente: task.accionCliente ? {
+      ...task.accionCliente,
+      activa: false,
+      estado: approved ? "aprobado" : "requiere_ajustes",
+    } : undefined,
+  }
+}
+
 function ActionCard({
   decision,
   onApprove,
   onRequestChanges,
+  onViewTask,
+  compact = false,
 }: {
   decision: {
     title: string
@@ -1911,6 +1957,8 @@ function ActionCard({
   }
   onApprove: (option: string, comment: string) => void
   onRequestChanges: (comment: string) => void
+  onViewTask?: () => void
+  compact?: boolean
 }) {
   const isChoiceRequest = decision.requestType === "elegir_alternativa" || (!decision.requestType && Boolean(decision.options?.length))
   const availableOptions = isChoiceRequest && decision.options && decision.options.length > 0
@@ -1931,7 +1979,7 @@ function ActionCard({
   return (
     <>
       <section
-        className={`relative rounded-3xl border p-6 transition-colors md:p-8 ${
+        className={`relative ${compact ? "rounded-2xl p-4" : "rounded-3xl p-6 md:p-8"} border transition-colors ${
           isApproved ? "border-mint/40 bg-mint-pale" : "border-clay/25 bg-clay-pale"
         }`}
       >
@@ -1944,7 +1992,7 @@ function ActionCard({
             <X aria-hidden="true" />
           </Button></div>
         )}
-        <div className="grid gap-6 md:grid-cols-action md:items-center">
+        <div className={`grid ${compact ? "gap-4" : "gap-6 md:grid-cols-action"} md:items-center`}>
           <div className="flex gap-4">
             <div
               className={`grid size-11 shrink-0 place-items-center rounded-full ${
@@ -1957,10 +2005,7 @@ function ActionCard({
               <Eyebrow>
                 {isApproved ? "Decision registrada" : hasChangesRequested ? "Cambios solicitados" : "Te necesitamos"}
               </Eyebrow>
-              <Heading
-                as="h2"
-                className="mt-2 font-display text-2xl leading-tight text-ink md:text-3xl"
-              >
+              <Heading as={compact ? "h3" : "h2"} className={`mt-2 font-display leading-tight text-ink ${compact ? "text-xl" : "text-2xl md:text-3xl"}`}>
                 {isApproved
                   ? `${decision.title} (${decision.optionChosen || "Aprobado"})`
                   : decision.title}
@@ -1977,9 +2022,14 @@ function ActionCard({
               <Icon className="size-5" name="check" /> Completado hoy
             </div>
           ) : (
-            <Button onClick={() => setShowModal(true)}>
-              Revisar y responder <Icon className="size-4" name="arrow" />
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={() => setShowModal(true)}>
+                Revisar <Icon className="size-4" name="arrow" />
+              </Button>
+              {onViewTask && <Button variant="secondary" onClick={onViewTask}>
+                Ver tarea <Icon className="size-4" name="arrow" />
+              </Button>}
+            </div>
           )}
         </div>
       </section>
@@ -2065,6 +2115,8 @@ function ActionCard({
   )
 }
 
+type ClientDecision = Parameters<typeof ActionCard>[0]["decision"]
+
 type ClientProgressGroups = {
   area: string
   needs: {
@@ -2140,6 +2192,9 @@ function ClientProjectTasksSection({
   onNeedSelect,
   onTaskToggle,
   onUpdateStatus,
+  clientActionTaskId,
+  clientDecision,
+  onRespondToClientAction,
 }: {
   progressGroups: ClientProgressGroups
   mode: 'granular' | 'completo'
@@ -2148,8 +2203,11 @@ function ClientProjectTasksSection({
   onNeedSelect: (needId: string | null) => void
   onTaskToggle: (needId: string, taskId: string) => void
   onUpdateStatus: (taskId: string, updateId: string, status: "aprobada" | "cambios_solicitados") => void
+  clientActionTaskId?: string
+  clientDecision?: ClientDecision | null
+  onRespondToClientAction: (option: string, comment: string, approved: boolean) => void
 }) {
-  return <section className="-mt-5 space-y-0">
+  return <section id="client-project-tasks" className="-mt-5 space-y-0">
     <div className="overflow-hidden rounded-3xl border border-line bg-white">
       {progressGroups.map(group => group.needs.filter(need => !selectedNeedId || need.id === selectedNeedId).map(need => {
         const expanded = selectedNeedId === need.id
@@ -2173,12 +2231,21 @@ function ClientProjectTasksSection({
                   description={item.task.descripcionTrabajo}
                   details={item.update ? `Última actualización: ${item.update}` : undefined}
                   owner={<span className="text-xs text-ink-muted">{Math.round(item.progress)}% de avance</span>}
-                  status={<StatusBadge tone={item.status === "Completada" ? "active" : item.status === "En revisión" ? "waiting" : "gray"} size="s" showDot={false}>{item.status}</StatusBadge>}
+                  status={<StatusBadge tone={item.status === "Completada" ? "active" : item.status === "En revisión" || item.status === "Requiere ajustes" || item.status === "Esperando al cliente" ? "waiting" : "gray"} size="s" showDot={false}>{item.status}</StatusBadge>}
                   actions={taskExpanded ? <ChevronUp className="size-4 text-ink-muted" aria-hidden="true" /> : <ChevronDown className="size-4 text-ink-muted" aria-hidden="true" />}
                   onClick={() => onTaskToggle(need.id, item.task.id)}
                 />
-                {taskExpanded && <div className="border-t border-line px-5 py-4 sm:px-6"><ClientTaskInlineDetails task={item.task} />
-                  {latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button><Button variant="secondary" onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "cambios_solicitados")}>Solicitar cambios</Button></div>}
+                {taskExpanded && <div className="border-t border-line px-5 py-4 sm:px-6">
+                  {clientActionTaskId === item.task.id && clientDecision && <div className="mb-4">
+                    <ActionCard
+                      compact
+                      decision={clientDecision}
+                      onApprove={(option, comment) => onRespondToClientAction(option, comment, true)}
+                      onRequestChanges={comment => onRespondToClientAction("", comment, false)}
+                    />
+                  </div>}
+                  <ClientTaskInlineDetails task={item.task} />
+                  {clientActionTaskId !== item.task.id && latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button><Button variant="secondary" onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "cambios_solicitados")}>Solicitar cambios</Button></div>}
                 </div>}
               </div>
             })}
@@ -2345,18 +2412,19 @@ function ClientTaskInlineDetails({ task }: { task: import("./types").ExecutionTa
   // Historia, so they cannot be mistaken for a pending client response here.
   const updates = latestUpdate ? [latestUpdate] : []
   const files = (task.archivos || []).filter(file => file.publicadoCliente !== false)
-  const typeLabels: Record<string, string> = { archivo: "Archivos", imagenes: "Imágenes", videos: "Videos", descargables: "Descargables" }
-  const types = (task.tiposContenido || (task.archivos || []).map(file => file.tipo === "imagen" ? "imagenes" : file.tipo === "video" ? "videos" : file.tipo === "descargable" ? "descargables" : "archivo"))
-    .map(type => typeLabels[type] || type)
-    .filter((type, index, list) => list.indexOf(type) === index)
+  const filesByStage = files.reduce<Record<string, typeof files>>((groups, file) => {
+    const key = file.subetapaId || "task"
+    groups[key] = [...(groups[key] || []), file]
+    return groups
+  }, {})
+  const stageLabel = (stageId: string) => task.subetapas?.find(stage => stage.id === stageId)?.label
   return <div className="ml-4 mt-2 space-y-3 border-l-2 border-clay/40 pl-4 text-xs">
-    {types.length > 0 && <div className="flex flex-wrap gap-2">
-      {types.map(type => <Badge key={type}><Icon className="size-3.5" name={type === "Imágenes" ? "eye" : type === "Videos" ? "publish" : type === "Descargables" ? "download" : "file"} />{type}</Badge>)}
-    </div>}
     {task.descripcionTrabajo && <p className="text-sm leading-5 text-ink-muted">{task.descripcionTrabajo}</p>}
-    {files.length > 0 && <div className="space-y-2">{files.map(file => <ClientFileResource key={`${file.nombre}-${file.url}`} file={file} />)}</div>}
+    {files.length > 0 && <div className="space-y-4">{Object.entries(filesByStage).map(([stageId, stageFiles]) => <div key={stageId} className="space-y-2">
+      <p className="bojana-label">{stageId === "task" ? "Entregables de la tarea" : `Entregables · ${stageLabel(stageId) || "Etapa vinculada"}`}</p>
+      {stageFiles.map(file => <ClientFileResource key={`${file.nombre}-${file.url}`} file={file} />)}
+    </div>)}</div>}
     {updates.length > 0 && <div className="space-y-2">
-      <p className="bojana-label">Última actualización</p>
       {updates.map(update => <div key={update.id} className="rounded-xl bg-stone/60 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold text-ink">v{update.version} · {update.titulo}</span><span className="text-ink-muted">{update.accion === "revision" ? "Para revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : update.accion === "publicar_terminar" ? "Entrega final" : "Avance publicado"}</span></div>
         {update.descripcion && <p className="mt-1 text-ink-muted">{update.descripcion}</p>}
@@ -2482,7 +2550,9 @@ function ClientPortal({
           progress: calculateTaskProgress(task),
           weight: task.pesoPorcentaje ?? 0,
           contribution: Math.round(calculateTaskProgress(task) * (task.pesoPorcentaje ?? 0) / 100),
-          status: task.estado === "Pendiente" ? "No iniciada" : task.estado === "Esperando al cliente" ? "Esperando información" : task.estado === "Completado" ? "Completada" : task.estado,
+          status: task.accionCliente?.activa && task.accionCliente.estado === "pendiente"
+            ? "Esperando al cliente"
+            : task.estado === "Pendiente" ? "No iniciada" : task.estado === "Completado" ? "Completada" : task.estado,
           types: types.length > 0 ? types : ["Archivos"],
           update: latestUpdate?.titulo,
         }
@@ -2515,14 +2585,28 @@ function ClientPortal({
   // Keep every portal badge and summary tied to the same canonical progress
   // calculation used by the studio view.
   const progressPercent = getEffectiveProgress(currentProject)
-  const actionTask = projectTasks.find(task => task.accionCliente?.activa && task.accionCliente.estado !== "aprobado" && task.accionCliente.estado !== "informacion_enviada")
-  const actionUpdate = actionTask ? (actionTask.actualizaciones || []).filter(update => update.estado !== "borrador").slice().sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0] : undefined
+  const actionTask = projectTasks.find(task => task.accionCliente?.activa && task.accionCliente.estado === "pendiente")
+  const actionNeedId = progressGroups
+    .flatMap(group => group.needs)
+    .find(need => need.tasks.some(item => item.task.id === actionTask?.id))?.id
+  const viewActionTask = () => {
+    if (!actionTask || !actionNeedId) return
+    setActive("Resumen")
+    setProgressMode("granular")
+    setSelectedNeedId(actionNeedId)
+    setExpandedClientTaskId(actionTask.id)
+    window.requestAnimationFrame(() => document.getElementById("client-project-tasks")?.scrollIntoView({ behavior: "smooth", block: "start" }))
+  }
+  const actionUpdate = actionTask ? (actionTask.actualizaciones || [])
+    .filter(update => update.estado === "en_revision" || update.estado === "solicitud_enviada")
+    .slice()
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0] : undefined
   const actionResources = Array.from(new Set(actionUpdate?.recursos || []))
   const actionAttachments = [
     ...(actionTask?.accionCliente?.adjuntos || []).map(attachment => ({ name: attachment.nombre, url: attachment.url, type: attachment.tipo })),
     ...(actionTask?.archivos || []).filter(file => file.publicadoCliente !== false).map(file => ({ name: file.nombre, url: file.url, type: file.tipo })),
   ].filter((attachment, index, list) => !actionResources.includes(attachment.url || "") && list.findIndex(item => item.name === attachment.name && item.url === attachment.url) === index)
-  const projectDecision = currentProject.decisiones?.find(item => item.estado !== "Aprobado") || currentProject.decisiones?.[0]
+  const projectDecision = currentProject.decisiones?.find(item => item.estado === "Pendiente")
   const clientDecision = actionTask?.accionCliente
     ? {
         title: actionTask.accionCliente.titulo,
@@ -2552,15 +2636,7 @@ function ClientPortal({
           necesidades: discipline.necesidades.map(need => ({
             ...need,
             tareas: need.tareas.map(task => task.id !== actionTask.id ? task : {
-              ...task,
-              // A client approval resolves this specific update. It only
-              // completes the task when the studio explicitly published a
-              // final delivery; ordinary reviews keep the task in progress.
-              estado: approved
-                ? actionUpdate?.accion === "publicar_terminar"
-                  ? "Completado" as import("./types").EstadoEtapa
-                  : "En curso" as import("./types").EstadoEtapa
-                : "En revisión" as import("./types").EstadoEtapa,
+              ...resolveClientActionTask(task, approved),
               accionCliente: task.accionCliente ? {
                 ...task.accionCliente,
                 estado: (approved ? "aprobado" : "requiere_ajustes") as import("./types").ClientActionStatus,
@@ -2661,14 +2737,26 @@ function ClientPortal({
       ...discipline,
       necesidades: discipline.necesidades.map(need => ({
         ...need,
-        tareas: need.tareas.map(task => task.id !== taskId ? task : {
-          ...task,
-          estado: status === "aprobada"
-            ? (task.actualizaciones || []).find(update => update.id === updateId)?.accion === "publicar_terminar"
-              ? "Completado" as import("./types").EstadoEtapa
-              : "En curso" as import("./types").EstadoEtapa
-            : "En revisión" as import("./types").EstadoEtapa,
-          actualizaciones: (task.actualizaciones || []).map(update => update.id === updateId ? { ...update, estado: status } : update),
+        tareas: need.tareas.map(task => {
+          if (task.id !== taskId) return task
+          const update = (task.actualizaciones || []).find(item => item.id === updateId)
+          const resolved = task.accionCliente?.activa
+            ? resolveClientActionTask(task, status === "aprobada")
+            : {
+                ...task,
+                estado: status === "aprobada"
+                  ? ((task.subetapas || []).length === 0 || update?.accion === "publicar_terminar" ? "Completado" : "En curso") as import("./types").EstadoEtapa
+                  : "En curso" as import("./types").EstadoEtapa,
+              }
+          return {
+            ...resolved,
+            accionCliente: task.accionCliente?.activa ? {
+              ...task.accionCliente,
+              activa: false,
+              estado: (status === "aprobada" ? "aprobado" : "requiere_ajustes") as import("./types").ClientActionStatus,
+            } : task.accionCliente,
+            actualizaciones: (task.actualizaciones || []).map(item => item.id === updateId ? { ...item, estado: status } : item),
+          }
         }),
       })),
     }))
@@ -2709,7 +2797,15 @@ function ClientPortal({
           onOpenNotification={({ taskId }) => {
             setActive(taskId ? "Resumen" : "Historia")
             setHighlightedTaskId(taskId || null)
-            if (taskId) setExpandedClientTaskId(taskId)
+            if (taskId) {
+              const targetNeed = progressGroups
+                .flatMap(group => group.needs)
+                .find(need => need.tasks.some(item => item.task.id === taskId))
+              setSelectedNeedId(targetNeed?.id || null)
+              setProgressMode("granular")
+              setExpandedClientTaskId(taskId)
+              window.requestAnimationFrame(() => document.getElementById("client-project-tasks")?.scrollIntoView({ behavior: "smooth", block: "start" }))
+            }
           }}
           projects={availableProjects}
           selectedProjectId={selectedProjectId}
@@ -2737,7 +2833,7 @@ function ClientPortal({
             {active === "Resumen" && (
               <>
                 <div className="mt-6">
-                  {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
+                  {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
                 </div>
                 <div className="mt-10 space-y-8 md:mt-12 md:space-y-10">
                   <ProgressSection
@@ -2762,6 +2858,9 @@ function ClientPortal({
                       setExpandedClientTaskId(current => current === taskId ? null : taskId)
                     }}
                     onUpdateStatus={updateTaskUpdateStatus}
+                    clientActionTaskId={actionTask?.id}
+                    clientDecision={clientDecision}
+                    onRespondToClientAction={respondToClientAction}
                   />
                   {clientDeliverables.length > 0 && (
                     <section className="space-y-4">
@@ -2792,7 +2891,7 @@ function ClientPortal({
             {/* TAB: CONVERSACIONES / DECISIONES */}
             {active === "Conversaciones" && (
               <div className="mt-8 scroll-mt-8 space-y-6" id="client-conversations">
-                {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
+                {clientDecision ? <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} /> : <div className="rounded-3xl border border-line bg-white p-6 text-sm text-ink-muted">Este proyecto todavía no tiene decisiones pendientes para mostrar.</div>}
                 <div className="rounded-2xl border border-line bg-white p-4 sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
