@@ -131,6 +131,7 @@ export default function StudioProjectsList({
       <div className="space-y-8 animate-fade-in">
       {/* 1. HEADER & NEW PROJECT CTA */}
       <PageHeader
+        divider
         title="Proyectos"
         actions={<Button size="l" onClick={onNewProject}><Plus className="size-4.5" />Nuevo proyecto</Button>}
       />

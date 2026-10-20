@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, Bell, Building2, CheckCircle2, CircleAlert, Eye, FolderOpen, Plus, Search, Settings } from 'lucide-react';
+import { ArrowLeft, Bell, Building2, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
 import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TextArea } from './DesignSystem';
 
@@ -126,11 +126,11 @@ function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabel
   return <StatusBar value={value} mode={currentMode} color={color} trackColor={trackColor} size={size} showLabels={showLabels} taskCount={showMetadata ? segments.reduce((total, segment) => total + segment.taskCount, 0) : undefined} completedTaskCount={showMetadata ? segments.reduce((total, segment) => total + segment.completedTaskCount, 0) : undefined} taskStatusCounts={showMetadata ? { completed: 5, 'in-progress': 2, review: 1, waiting: 1, adjustments: 1, pending: 2, paused: 1, 'out-of-scope': 1 } : undefined} segments={segments} activeSegment={activeSegment} expandedSegment={expandOnClick && currentMode === "granular" ? expandedSegment : null} onSegmentHover={setActiveSegment} onSegmentClick={id => { setActiveSegment(id); if (expandOnClick) setExpandedSegment(current => current === id ? null : id); }} projectStatus={<StatusBadge tone="active" size="s">En tiempo</StatusBadge>} onModeChange={showModeToggle ? next => { setCurrentMode(next); setExpandedSegment(null); setActiveSegment(null); } : undefined} />;
 }
 
-function FilterBarExample({ showSearch, background }: { showSearch: boolean; background: 'white' | 'canvas-light' | 'canvas' | 'stone' | 'transparent' }) {
+function FilterBarExample({ showSearch, showLayoutIcon, background }: { showSearch: boolean; showLayoutIcon: boolean; background: 'white' | 'canvas-light' | 'canvas' | 'stone' | 'transparent' }) {
   const [filter, setFilter] = useState('all');
-  return <div className="space-y-6"><FilterBar background={background}><FilterTabs tabs={[{ id: 'all', label: 'All' }, { id: 'active', label: 'Active' }]} activeTab={filter} onChange={setFilter} />{showSearch && <SearchInput size="s" aria-label="Buscar" />}</FilterBar><p>Selected filter: {filter}</p></div>;
+  return <div className="space-y-6"><FilterBar background={background}><FilterTabs tabs={[{ id: 'all', label: 'All', icon: showLayoutIcon ? LayoutGrid : undefined }, { id: 'active', label: 'Active' }]} activeTab={filter} onChange={setFilter} />{showSearch && <SearchInput size="s" aria-label="Buscar" />}</FilterBar><p>Selected filter: {filter}</p></div>;
 }
-export const FilterBarStory: Story = { name: 'FilterBar', args: { showSearch: true, background: 'stone' }, argTypes: { showSearch: { control: 'boolean', description: 'Mostrar el campo de búsqueda' }, background: { control: 'select', options: ['white', 'canvas-light', 'canvas', 'stone', 'transparent'], description: 'Fondo de la barra' } }, render: ({ showSearch, background }) => <FilterBarExample showSearch={showSearch} background={background} /> };
+export const FilterBarStory: Story = { name: 'FilterBar', args: { showSearch: true, showLayoutIcon: true, background: 'stone' }, argTypes: { showSearch: { control: 'boolean', description: 'Mostrar el campo de búsqueda' }, showLayoutIcon: { control: 'boolean', description: 'Mostrar LayoutGrid en el primer filtro' }, background: { control: 'select', options: ['white', 'canvas-light', 'canvas', 'stone', 'transparent'], description: 'Fondo de la barra' } }, render: ({ showSearch, showLayoutIcon, background }) => <FilterBarExample showSearch={showSearch} showLayoutIcon={showLayoutIcon} background={background} /> };
 
 export const States: Story = {
   render: () => <div className="max-w-2xl space-y-6"><div className="flex flex-wrap items-center gap-3"><Button disabled>Disabled</Button><Button loading>Loading</Button></div><EmptyState icon={FolderOpen} title="No projects yet" description="Create a project to get started." action={{ label: 'Create project', icon: Plus, onClick: () => {} }} /><Spinner /><Skeleton rows={3} /></div>,

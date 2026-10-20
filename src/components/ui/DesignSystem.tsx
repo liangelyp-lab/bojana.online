@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, LoaderCircle, ChevronDown, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, Pause, Ban, LucideIcon } from 'lucide-react';
+import { X, LoaderCircle, ChevronDown, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, LucideIcon } from 'lucide-react';
 import { DecisionStatus, EstadoEtapa } from '../../types';
 import { taskStateLabel } from '../../design/status';
 
@@ -788,8 +788,6 @@ export function StatusBar({
     { state: 'waiting', tone: 'waiting', icon: Clock3 },
     { state: 'adjustments', tone: 'warning', icon: CircleAlert },
     { state: 'pending', tone: 'gray', icon: Circle },
-    { state: 'paused', tone: 'gray', icon: Pause },
-    { state: 'out-of-scope', tone: 'gray', icon: Ban },
   ];
   const statusBarRef = useRef<HTMLDivElement>(null);
   const expandedBarRef = useRef<HTMLSpanElement>(null);
@@ -901,7 +899,7 @@ export function FilterTabs({
   ariaLabel = 'Filtros',
   className = ''
 }: {
-  tabs: Array<{ id: string; label: React.ReactNode }>;
+  tabs: Array<{ id: string; label: React.ReactNode; icon?: LucideIcon }>;
   activeTab: string;
   onChange: (id: string) => void;
   ariaLabel?: string;
@@ -918,8 +916,9 @@ export function FilterTabs({
   };
   return (
     <div role="tablist" aria-label={ariaLabel} className={`bojana-filter-tablist ${className}`}>
-      {tabs.map(({ id, label }, index) => (
+      {tabs.map(({ id, label, icon: Icon }, index) => (
         <Button key={id} variant={activeTab === id ? 'primary' : 'tertiary'} size="xs" type="button" role="tab" tabIndex={activeTab === id ? 0 : -1} aria-selected={activeTab === id} onClick={() => onChange(id)} onKeyDown={(event) => handleKeyDown(event, index)} className="shrink-0 whitespace-nowrap">
+          {Icon && <Icon className="size-3" aria-hidden="true" />}
           {label}
         </Button>
       ))}

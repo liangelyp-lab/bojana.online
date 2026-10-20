@@ -457,6 +457,7 @@ export default function StudioSettingsView({
         </p>
       )}
       <PageHeader
+        divider
         title="Configuración del estudio"
         actions={currentUserRole === "owner" ? <Button variant="icon" tooltip="Configuración del estudio" ariaLabel="Abrir configuración del estudio" onClick={() => setOwnerSettingsOpen(true)}><Settings2 className="size-4" /></Button> : undefined}
       />

@@ -115,6 +115,14 @@ async function createLink(req: VercelRequest, res: VercelResponse) {
     const projectRows = Array.isArray(projects) ? projects : [];
     const project = projectRows.find(candidate => candidate.id === projectId || candidate.data?.id === projectId);
     if (!projectResponse.ok || !project) return res.status(404).json({ error: "No encontramos el proyecto." });
+    // A team member can only publish links for a project explicitly assigned
+    // to them. Being in the same studio must never grant access to every
+    // client portal.
+    if (member.role === 'team') {
+      const membershipResponse = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(project.id)}&user_id=eq.${encodeURIComponent(requester.id)}&role=in.(owner,editor)&select=id&limit=1`, { headers: adminHeaders! });
+      const memberships = await membershipResponse.json() as Array<{ id: string }>;
+      if (!membershipResponse.ok || !memberships[0]) return res.status(403).json({ error: "Sólo podés crear enlaces para proyectos que tenés asignados." });
+    }
     if (project.lifecycle_status !== 'ACTIVO') return res.status(409).json({ error: "Publicá el proyecto antes de crear el enlace." });
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
     const nonce = crypto.randomBytes(12).toString('base64url');

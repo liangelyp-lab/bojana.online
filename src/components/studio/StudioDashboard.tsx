@@ -122,6 +122,7 @@ export default function StudioDashboard({
       {/* 1. PROYECTOS ACTIVOS */}
       <section className="space-y-6">
         <PageHeader
+          divider
           title={`Proyectos activos (${activeProjects.length})`}
           actions={<Button size="l" onClick={onNewProject}><Plus className="size-4.5" />Nuevo proyecto</Button>}
         />

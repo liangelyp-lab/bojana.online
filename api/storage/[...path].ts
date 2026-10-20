@@ -339,9 +339,15 @@ async function assertProjectInStudio(projectId: string, staff: StaffUser) {
   const baseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!baseUrl || !serviceKey) throw new Error("Supabase no está configurado.");
-  const response = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&studio_id=eq.${encodeURIComponent(staff.studioId)}&select=id&limit=1`, { headers: { apikey: serviceKey, authorization: `Bearer ${serviceKey}` } });
+  const headers = { apikey: serviceKey, authorization: `Bearer ${serviceKey}` };
+  const response = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&studio_id=eq.${encodeURIComponent(staff.studioId)}&select=id&limit=1`, { headers });
   const rows = await response.json() as Array<{ id: string }>;
   if (!response.ok || !rows[0]) throw new StorageHttpError("No encontramos el proyecto en tu estudio.", 404, "project_not_found");
+  if (staff.role === "team") {
+    const membershipResponse = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(staff.id)}&role=in.(owner,editor)&select=id&limit=1`, { headers });
+    const memberships = await membershipResponse.json() as Array<{ id: string }>;
+    if (!membershipResponse.ok || !memberships[0]) throw new StorageHttpError("No tenés acceso a los archivos de este proyecto.", 403, "project_forbidden");
+  }
 }
 
 async function ensureProjectFolders(token: string, staff: StaffUser, project: any, rootFolderName: string) {

@@ -38,6 +38,7 @@ export default function StudioClientsView({
     <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <PageHeader
+        divider
         title="Clientes"
       />
 

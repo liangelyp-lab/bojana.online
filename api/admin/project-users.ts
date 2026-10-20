@@ -35,6 +35,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const project = projects.find(candidate => candidate.id === projectId || candidate.data?.id === projectId);
     if (!projectResponse.ok || !project) return res.status(404).json({ error: "No encontramos el proyecto." });
     if (project.studio_id !== requesterRows[0].studio_id) return res.status(403).json({ error: "El proyecto no pertenece a tu estudio." });
+    if (requesterRows[0].role === "team") {
+      const membershipResponse = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(project.id)}&user_id=eq.${encodeURIComponent(requester.id)}&role=in.(owner,editor)&select=id&limit=1`, { headers: adminHeaders });
+      const memberships = await membershipResponse.json() as Array<{ id: string }>;
+      if (!membershipResponse.ok || !memberships[0]) return res.status(403).json({ error: "Sólo podés crear accesos para proyectos que tenés asignados." });
+    }
     const password = randomPassword();
     const authResponse = await fetch(`${baseUrl}/auth/v1/admin/users`, { method: "POST", headers: adminHeaders, body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { name, must_change_password: true } }) });
     const authData = await authResponse.json();
