@@ -90,7 +90,7 @@ function applyResponse(project: Record<string, any>, body: ResponseBody) {
   const now = new Date().toISOString();
   const comment = String(body.comment || "").trim().slice(0, 4000);
   const message = String(body.message || "").trim().slice(0, 4000);
-  const appendActivity = (data: Record<string, any>, description: string) => ({ ...data, actividadReciente: [{ id: `client-${Date.now()}`, fecha: now, descripcion: description, autor: "Cliente" }, ...(data.actividadReciente || [])] });
+  const appendActivity = (data: Record<string, any>, description: string) => ({ ...data, ultimaModificacion: now, actividadReciente: [{ id: `client-${Date.now()}`, fecha: now, descripcion: description, autor: "Cliente", taskId: body.taskId, updateId: body.updateId }, ...(data.actividadReciente || [])] });
   if (body.kind === "message") return message ? appendActivity(project, `Mensaje del cliente: ${message}`) : null;
 
   let matched = false;
@@ -98,15 +98,30 @@ function applyResponse(project: Record<string, any>, body: ResponseBody) {
     if (task.id !== body.taskId) return task;
     if (body.kind === "client_action" && task.visibleCliente && task.accionCliente?.activa && task.accionCliente.estado === "pendiente") {
       if (body.approved && task.accionCliente.tipo === "elegir_alternativa" && !(task.accionCliente.alternativas || []).some((option: any) => option.id === body.optionId)) return task;
+      const pendingUpdates = (task.actualizaciones || []).filter((update: any) =>
+        (update.visibleCliente || update.visibilidad === "publicada") && ["en_revision", "solicitud_enviada"].includes(update.estado));
+      const update = body.updateId
+        ? pendingUpdates.find((update: any) => update.id === body.updateId)
+        : pendingUpdates.slice().sort((a: any, b: any) => b.version - a.version || new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0];
+      if (body.updateId && !update) return task;
       matched = true;
       const approved = Boolean(body.approved);
-      return { ...task, accionCliente: { ...task.accionCliente, estado: approved ? "aprobado" : "requiere_ajustes", respuestaCliente: { fecha: now, decision: approved ? (task.accionCliente.tipo === "elegir_alternativa" ? "alternativa_elegida" : "aprobado") : "requiere_cambios", alternativaElegidaId: approved ? body.optionId : undefined, comentario: comment || undefined } } };
+      return {
+        ...resolveTaskResponse(task, approved),
+        accionCliente: { ...task.accionCliente, activa: false, estado: approved ? "aprobado" : "requiere_ajustes", respuestaCliente: { fecha: now, decision: approved ? (task.accionCliente.tipo === "elegir_alternativa" ? "alternativa_elegida" : "aprobado") : "requiere_cambios", alternativaElegidaId: approved ? body.optionId : undefined, comentario: comment || undefined } },
+        actualizaciones: (task.actualizaciones || []).map((item: any) => item.id === update?.id ? { ...item, estado: approved ? "aprobada" : "cambios_solicitados", respuesta: comment || undefined } : item),
+      };
     }
     if (body.kind === "task_update") {
       const status = body.status === "aprobada" ? "aprobada" : body.status === "cambios_solicitados" ? "cambios_solicitados" : null;
       if (!status || !task.visibleCliente || !(task.actualizaciones || []).some((update: any) => update.id === body.updateId && (update.visibleCliente || update.visibilidad === "publicada") && ["en_revision", "solicitud_enviada"].includes(update.estado))) return task;
       matched = true;
-      return { ...task, actualizaciones: task.actualizaciones.map((update: any) => update.id === body.updateId ? { ...update, estado: status, respuesta: comment || undefined } : update) };
+      const approved = status === "aprobada";
+      return {
+        ...resolveTaskResponse(task, approved),
+        accionCliente: task.accionCliente?.activa ? { ...task.accionCliente, activa: false, estado: approved ? "aprobado" : "requiere_ajustes", respuestaCliente: { fecha: now, decision: approved ? "aprobado" : "requiere_cambios", comentario: comment || undefined } } : task.accionCliente,
+        actualizaciones: task.actualizaciones.map((update: any) => update.id === body.updateId ? { ...update, estado: status, respuesta: comment || undefined } : update),
+      };
     }
     if (body.kind === "deliverable") {
       const allowed = ["aprobado", "cambios_solicitados", "recibido", "validado"];
@@ -127,5 +142,16 @@ function applyResponse(project: Record<string, any>, body: ResponseBody) {
   }
   if (!matched) return null;
   const text = body.kind === "client_action" ? (body.approved ? "Acción aprobada por el cliente." : "El cliente solicitó cambios.") : body.kind === "task_update" ? "Respuesta del cliente registrada en una actualización." : "Respuesta del cliente registrada en un entregable.";
-  return appendActivity({ ...project, disciplinasOperativas: disciplines }, text);
+  return appendActivity({ ...project, disciplinasOperativas: disciplines }, `${text}${comment ? ` ${comment}` : ""}`);
+}
+
+function resolveTaskResponse(task: Record<string, any>, approved: boolean) {
+  const stages = task.subetapas || [];
+  const explicitId = task.accionCliente?.subetapaId;
+  const stageId = approved
+    ? stages.find((stage: any) => stage.id === explicitId)?.id || stages.find((stage: any) => !stage.completada && /aprob|confirm|decisi|elecci/i.test(stage.label))?.id
+    : undefined;
+  const subetapas = stages.map((stage: any) => stage.id === stageId ? { ...stage, completada: true, estado: "Completado" } : stage);
+  const completed = subetapas.length > 0 && subetapas.every((stage: any) => stage.completada || stage.estado === "Completado");
+  return { ...task, subetapas, estado: approved && (completed || subetapas.length === 0) ? "Completado" : "En curso" };
 }

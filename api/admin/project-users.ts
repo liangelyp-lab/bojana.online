@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { requireSupabaseUser } from "../_lib/auth.js";
+import { reconcileClientResponses } from "../_lib/client-response-state.js";
 
 type VercelRequest = any;
 type VercelResponse = any;
@@ -116,7 +117,7 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       const response = await fetch(projectsUrl, { headers: queryHeaders });
       const rows = await response.json();
       if (!response.ok) return res.status(502).json({ error: "No pudimos cargar los proyectos." });
-      return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
+      return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? reconcileClientResponses({ ...row.data, id: row.id }) : null).filter(Boolean) });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
     if (!['owner', 'admin', 'team'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para guardar proyectos." });

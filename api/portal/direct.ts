@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { requireSupabaseUser } from "../_lib/auth.js";
+import { reconcileClientResponses } from "../_lib/client-response-state.js";
 
 type VercelRequest = any;
 type VercelResponse = any;
@@ -174,6 +175,7 @@ async function revokeLink(req: VercelRequest, res: VercelResponse) {
 
 /** Public projection: direct links must never serialize staff, credentials or unpublished module data. */
 export function toClientProject(project: Record<string, any>) {
+  project = reconcileClientResponses(project);
   const visibleTasks = (project.disciplinasOperativas || []).map((discipline: any) => ({
     id: discipline.id,
     pesoPorcentaje: discipline.pesoPorcentaje,
@@ -194,12 +196,14 @@ export function toClientProject(project: Record<string, any>) {
         actualizaciones: (task.actualizaciones || []).filter((item: any) => item.visibleCliente || item.visibilidad === 'publicada').map((item: any) => ({
           id: item.id, version: item.version, titulo: item.titulo, descripcion: item.descripcion, recursos: item.recursos,
           accion: item.accion, estado: item.estado, fecha: item.fecha, opciones: item.opciones, visibleCliente: true,
+          respuesta: item.respuesta,
         })),
         archivos: (task.archivos || []).filter((file: any) => file.publicadoCliente).map((file: any) => ({
           nombre: file.nombre, url: file.url, tipo: file.tipo, entregableId: file.entregableId, version: file.version,
         })),
         accionCliente: task.accionCliente ? {
           id: task.accionCliente.id, activa: task.accionCliente.activa, tipo: task.accionCliente.tipo,
+          subetapaId: task.accionCliente.subetapaId,
           titulo: task.accionCliente.titulo, mensaje: task.accionCliente.mensaje,
           accionRequeridaTexto: task.accionCliente.accionRequeridaTexto, fechaLimite: task.accionCliente.fechaLimite,
           alternativas: (task.accionCliente.alternativas || []).map((option: any) => ({

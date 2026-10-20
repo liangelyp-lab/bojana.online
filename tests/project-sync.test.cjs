@@ -12,7 +12,7 @@ function load(file, fetch, dependencies = {}) {
     exports, fetch, structuredClone, AbortSignal, console,
     process: { env: { SUPABASE_URL: 'https://test.invalid', SUPABASE_SERVICE_ROLE_KEY: 'test', DIRECT_LINK_SECRET: 'test' } },
     Buffer,
-    require: name => dependencies[name] || require(name),
+    require: name => dependencies[name] || (name === '../_lib/client-response-state.js' ? load('api/_lib/client-response-state.ts', fetch) : require(name)),
   }, { filename: file });
   return exports;
 }
@@ -115,10 +115,71 @@ test('failed save prevents sharing; a later successful edit recovers', async () 
   const storage = load('src/services/supabaseClient.ts', fetch, { './authService': { getAccessToken: () => null } });
   const access = load('src/services/projectAccess.ts', fetch, { './supabaseClient': storage });
   await assert.rejects(storage.saveRemoteProject({ id: 'p' }), /Save rejected/);
+  assert.equal(storage.hasUnpersistedProjectChanges(), true);
   await assert.rejects(access.issueSecureProjectLink('p'), /Save rejected/);
   assert.equal(links, 0);
   fail = false;
   await storage.saveRemoteProject({ id: 'p' });
+  assert.equal(storage.hasUnpersistedProjectChanges(), false);
   await access.issueSecureProjectLink('p');
   assert.equal(links, 1);
+});
+
+for (const kind of ['client_action', 'task_update']) {
+  test(`${kind}: request changes persists comment, update status and task state`, async () => {
+    let project = {
+      id: 'p', info: { nombre: 'Test' },
+      disciplinasOperativas: [{ id: 'd', necesidades: [{ id: 'n', tareas: [{
+        id: 't', visibleCliente: true, estado: 'Esperando al cliente',
+        subetapas: [{ id: 's', label: 'Aprobación', completada: false }],
+        accionCliente: { id: 'a', activa: true, estado: 'pendiente', tipo: 'enviar_informacion', subetapaId: 's' },
+        actualizaciones: [
+          { id: 'old', version: 1, visibleCliente: true, estado: 'aprobada', respuesta: 'Previous approval' },
+          { id: 'u', version: 2, visibleCliente: true, estado: 'solicitud_enviada', accion: 'solicitud_informacion' },
+        ],
+      }] }] }],
+    };
+    const fetch = async (url, options = {}) => {
+      if (url.includes('/studio_users?')) return Response.json([{ role: 'owner', studio_id: 's' }]);
+      if (options.method === 'PATCH') { project = JSON.parse(options.body).data; return new Response(null, { status: 204 }); }
+      if (url.includes('/projects?')) return Response.json([{ id: 'p', data: project }]);
+      throw Error(url);
+    };
+    const dependencies = { '../_lib/auth.js': { requireSupabaseUser: async () => ({ id: 'owner' }) } };
+    const handler = load('api/portal/respond.ts', fetch, dependencies).default;
+    const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
+    await handler({ method: 'POST', headers: {}, body: { projectId: 'p', kind, taskId: 't', updateId: 'u', approved: false, status: 'cambios_solicitados', comment: 'Ajustar la propuesta' } }, res);
+    assert.equal(res.code, 200);
+    const task = project.disciplinasOperativas[0].necesidades[0].tareas[0];
+    assert.equal(task.estado, 'En curso');
+    assert.equal(task.accionCliente.activa, false);
+    assert.equal(task.accionCliente.estado, 'requiere_ajustes');
+    assert.equal(task.accionCliente.respuestaCliente.comentario, 'Ajustar la propuesta');
+    assert.equal(task.actualizaciones[1].estado, 'cambios_solicitados');
+    assert.equal(task.actualizaciones[1].respuesta, 'Ajustar la propuesta');
+    assert.equal(task.actualizaciones[0].estado, 'aprobada');
+    assert.equal(task.subetapas[0].completada, false);
+    const visible = load('api/portal/direct.ts', fetch, dependencies).toClientProject(project);
+    const visibleTask = visible.disciplinasOperativas[0].necesidades[0].tareas[0];
+    assert.equal(visibleTask.actualizaciones[1].estado, 'cambios_solicitados');
+    assert.equal(visibleTask.actualizaciones[1].respuesta, 'Ajustar la propuesta');
+  });
+}
+
+test('previously saved partial replies display changes requested without modifying newer updates', () => {
+  const reconcile = load('api/_lib/client-response-state.ts', () => { throw Error('No requests expected'); }).reconcileClientResponses;
+  const project = { disciplinasOperativas: [{ necesidades: [{ tareas: [{
+    id: 't', estado: 'Esperando al cliente',
+    accionCliente: { activa: true, estado: 'requiere_ajustes', respuestaCliente: { fecha: '2026-10-20T10:00:00Z', comentario: 'Corregir medidas' } },
+    actualizaciones: [
+      { id: 'answered', version: 1, visibleCliente: true, estado: 'solicitud_enviada', fecha: '2026-10-20T09:00:00Z' },
+      { id: 'new', version: 2, visibleCliente: true, estado: 'en_revision', fecha: '2026-10-20T11:00:00Z' },
+    ],
+  }] }] }] };
+  const task = reconcile(project).disciplinasOperativas[0].necesidades[0].tareas[0];
+  assert.equal(task.actualizaciones[0].estado, 'cambios_solicitados');
+  assert.equal(task.actualizaciones[0].respuesta, 'Corregir medidas');
+  assert.equal(task.actualizaciones[1].estado, 'en_revision');
+  assert.equal(task.accionCliente.activa, false);
+  assert.equal(project.disciplinasOperativas[0].necesidades[0].tareas[0].accionCliente.activa, true);
 });

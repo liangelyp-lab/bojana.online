@@ -8,6 +8,7 @@ import {
 } from "react"
 import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronDown, ChevronUp, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
+import { hasUnpersistedProjectChanges, listRemoteProjects } from "./services/supabaseClient";
 import { getAllProjects, saveAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
@@ -2254,7 +2255,6 @@ function ClientProjectTasksSection({
                 <TaskRow
                   title={<span className="inline-flex min-w-0 items-center gap-2"><span className={`size-2 shrink-0 rounded-full ${item.progress === 100 ? "bg-forest" : item.progress > 0 ? "bg-clay" : "bg-line-strong"}`} /><span className="truncate">{item.title}</span></span>}
                   description={item.task.descripcionTrabajo}
-                  details={item.update ? `Última actualización: ${item.update}` : undefined}
                   owner={<span className="text-xs text-ink-muted">{Math.round(item.progress)}% de avance</span>}
                   status={<StatusBadge tone={item.status === "Completada" ? "active" : item.status === "En revisión" || item.status === "Requiere ajustes" || item.status === "Esperando al cliente" ? "waiting" : "gray"} size="s" showDot={false}>{item.status}</StatusBadge>}
                   actions={taskExpanded ? <ChevronUp className="size-4 text-ink-muted" aria-hidden="true" /> : <ChevronDown className="size-4 text-ink-muted" aria-hidden="true" />}
@@ -2452,7 +2452,8 @@ function ClientTaskInlineDetails({ task }: { task: import("./types").ExecutionTa
     </div>)}</div>}
     {updates.length > 0 && <div className="space-y-2">
       {updates.map(update => <div key={update.id} className="rounded-xl bg-stone/60 p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold text-ink">v{update.version} · {update.titulo}</span><span className="text-ink-muted">{update.accion === "revision" ? "Para revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : update.accion === "publicar_terminar" ? "Entrega final" : "Avance publicado"}</span></div>
+        <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold text-ink">v{update.version} · {update.titulo}</span><span className="text-ink-muted">{update.estado === "cambios_solicitados" ? "Cambios solicitados" : update.estado === "aprobada" ? "Aprobada" : update.accion === "revision" ? "Para revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : update.accion === "publicar_terminar" ? "Entrega final" : "Avance publicado"}</span></div>
+        {update.respuesta && <p className="mt-2 rounded-lg border border-line bg-white p-2 text-ink-muted">Comentario del cliente: {update.respuesta}</p>}
         {update.descripcion && <p className="mt-1 text-ink-muted">{update.descripcion}</p>}
         {(update.opciones || []).length > 0 && <div className="mt-2 grid gap-2 sm:grid-cols-2">{(update.opciones || []).map(option => <div key={option.id} className="overflow-hidden rounded-lg border border-line bg-white">{option.imagenUrl && <img src={option.imagenUrl} alt={option.titulo} className="max-h-32 w-full object-cover" />}<div className="p-2"><p className="font-semibold text-ink">{option.letra || "Opción"} · {option.titulo}</p>{option.descripcion && <p className="mt-1 text-ink-muted">{option.descripcion}</p>}</div></div>)}</div>}
         {(update.recursos || []).length > 0 && <div className="mt-2 space-y-2">{(update.recursos || []).map(resource => <div key={resource} className="overflow-hidden rounded-lg border border-line bg-white">
@@ -2707,7 +2708,7 @@ function ClientPortal({
     }
     const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, decisiones: updatedDecisions, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } }
     const response = actionTask
-      ? { kind: "client_action" as const, taskId: actionTask.id, approved, optionId: option || undefined, comment }
+      ? { kind: "client_action" as const, taskId: actionTask.id, updateId: actionUpdate?.id, approved, optionId: option || undefined, comment }
       : { kind: "decision" as const, decisionId: projectDecision?.id, approved, optionId: option || undefined, comment }
     void onPersistClientResponse(response, updated).then(() => {
       if (approved) onApproveDecision(option)
@@ -2754,7 +2755,7 @@ function ClientPortal({
   const projectUpdates = [
     ...(currentProject.avances || []).map(advance => ({ date: advance.fecha, title: advance.titulo, description: advance.texto, tag: advance.categoria || "Avance", color: "bg-clay" })),
     ...(currentProject.actividadReciente || []).map(activity => ({ date: activity.fecha, title: "Actualización del proyecto", description: activity.descripcion, tag: activity.autor || "Equipo", color: "bg-forest" })),
-    ...clientHistoryUpdates.map(({ task, update }) => ({ date: update.fecha, title: `${task.titulo} · ${update.titulo}`, description: update.descripcion || task.descripcionTrabajo || "Actualización publicada en esta tarea.", tag: update.accion === "revision" ? "Revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : "Entrega", color: update.estado === "aprobada" ? "bg-mint" : "bg-clay" }))
+    ...clientHistoryUpdates.map(({ task, update }) => ({ date: update.fecha, title: `${task.titulo} · ${update.titulo}`, description: update.descripcion || task.descripcionTrabajo || "Actualización publicada en esta tarea.", tag: update.estado === "cambios_solicitados" ? "Cambios solicitados" : update.estado === "aprobada" ? "Aprobada" : update.accion === "revision" ? "Revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : "Entrega", color: update.estado === "aprobada" ? "bg-mint" : "bg-clay" }))
   ]
   const projectDocuments = [
     ...(currentProject.documentos || []).map(document => {
@@ -3186,6 +3187,32 @@ export default function App() {
       if (!isStaff) setClientProjectsLoading(false)
     })
   }, [activeUser?.id, activeUser?.rol, directToken, localPreview, projectsReloadKey, sessionReady])
+
+  useEffect(() => {
+    if (!sessionReady || !activeUser?.id || !["owner", "admin", "team"].includes(activeUser.rol) || directToken || localPreview || screen !== "admin") return
+    let cancelled = false
+    let refreshing = false
+    const refresh = async () => {
+      const editing = document.activeElement?.matches("input, textarea, select, [contenteditable='true']") || document.querySelector("[role='dialog']")
+      if (refreshing || document.visibilityState !== "visible" || editing || hasUnpersistedProjectChanges()) return
+      refreshing = true
+      try {
+        const projects = await listRemoteProjects()
+        const editingNow = document.activeElement?.matches("input, textarea, select, [contenteditable='true']") || document.querySelector("[role='dialog']")
+        if (!cancelled && !editingNow && !hasUnpersistedProjectChanges()) {
+          saveAllProjects(projects)
+          setAllProjects(projects)
+        }
+      } catch (error) {
+        console.error("No pudimos actualizar las respuestas del cliente", error)
+      } finally {
+        refreshing = false
+      }
+    }
+    const timer = window.setInterval(() => { void refresh() }, 15000)
+    window.addEventListener("focus", refresh)
+    return () => { cancelled = true; window.clearInterval(timer); window.removeEventListener("focus", refresh) }
+  }, [activeUser?.id, activeUser?.rol, directToken, localPreview, screen, sessionReady])
 
   const showToast = (msg?: string) => {
     if (!msg) return

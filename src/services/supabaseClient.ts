@@ -19,12 +19,20 @@ export async function listRemoteProjects(): Promise<ProjectData[]> {
 }
 
 const projectSaves = new Map<string, Promise<void>>();
+const unpersistedProjects = new Set<string>();
+
+export function hasUnpersistedProjectChanges(): boolean {
+  return unpersistedProjects.size > 0;
+}
 
 /** Keep full-document writes in order so an older edit cannot finish last. */
 export function saveRemoteProject(project: ProjectData): Promise<void> {
   const snapshot = structuredClone(project);
+  unpersistedProjects.add(project.id);
   const previous = projectSaves.get(project.id) || Promise.resolve();
-  const save = previous.catch(() => undefined).then(() => persistRemoteProject(snapshot));
+  const save = previous.catch(() => undefined).then(() => persistRemoteProject(snapshot)).then(() => {
+    if (projectSaves.get(project.id) === save) unpersistedProjects.delete(project.id);
+  });
   projectSaves.set(project.id, save);
   return save;
 }
