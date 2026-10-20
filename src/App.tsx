@@ -1101,6 +1101,7 @@ function AdminPortal({
   const [menuOpen, setMenuOpen] = useState(false)
   const [actionModalTask, setActionModalTask] = useState<ExecutionTask | null>(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
+  const [isActionTaskPickerOpen, setIsActionTaskPickerOpen] = useState(false)
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
   const [clientAlert, setClientAlert] = useState<{ title: string; message: string; actionType: ClientAlertActionType } | null>(null)
   const libraryItems = useMemo(() => collectLibraryItems(allProjects), [allProjects])
@@ -1317,16 +1318,10 @@ function AdminPortal({
                   onEditProject={onEditProject}
                   onViewClientPortal={onViewClientPortal}
                   onRequestAction={() => {
-                    const firstTask = currentProject?.disciplinasOperativas
-                      ?.flatMap((discipline) => discipline.necesidades || [])
-                      .flatMap((need) => need.tareas || [])
-                      .find(Boolean)
-                    if (firstTask) {
-                      setActionModalTask(firstTask)
-                      setIsActionModalOpen(true)
-                    } else {
-                      onReviewDecision()
-                    }
+                    const hasTasks = currentProject?.disciplinasOperativas
+                      ?.some((discipline) => discipline.necesidades?.some((need) => need.tareas?.length))
+                    if (hasTasks) setIsActionTaskPickerOpen(true)
+                    else onPublishToast("Este proyecto todavía no tiene tareas para asociar a una solicitud.")
                   }}
                   project={currentProject!}
                 />
@@ -1482,6 +1477,35 @@ function AdminPortal({
       </div>
 
       {/* Request Client Action Modal */}
+      {isActionTaskPickerOpen && currentProject && (
+        <Modal open onClose={() => setIsActionTaskPickerOpen(false)} title="Elegir tarea" customContent maxWidth="max-w-xl">
+          <ModalHeader title="¿A qué tarea corresponde la solicitud?" onClose={() => setIsActionTaskPickerOpen(false)} />
+          <div className="bojana-modal-body space-y-2">
+            {(currentProject.disciplinasOperativas || []).flatMap((discipline) =>
+              (discipline.necesidades || []).flatMap((need) =>
+                (need.tareas || []).map((task) => (
+                  <button
+                    key={task.id}
+                    type="button"
+                    className="flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-white px-4 py-3 text-left hover:bg-stone/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-border"
+                    onClick={() => {
+                      setActionModalTask(task)
+                      setIsActionTaskPickerOpen(false)
+                      setIsActionModalOpen(true)
+                    }}
+                  >
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-medium text-ink">{task.titulo}</span>
+                      <span className="mt-1 block truncate text-xs text-ink-muted">{need.nombre} · {discipline.id}</span>
+                    </span>
+                    <span className="shrink-0 text-xs text-ink-muted">{task.estado}</span>
+                  </button>
+                )),
+              ),
+            )}
+          </div>
+        </Modal>
+      )}
       {isActionModalOpen && actionModalTask && currentProject && (
         <RequestClientActionModal
           clientEmail={currentProject?.cliente?.email || "cliente@ejemplo.com"}

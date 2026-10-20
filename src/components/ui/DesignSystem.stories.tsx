@@ -5,12 +5,14 @@ import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, Circle, CircleA
 import { lucideIcons } from './storybookIcons';
 import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, ProgressDots, ProjectProgressStatusBadge, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea, Tooltip } from './DesignSystem';
 
-const meta = {
+type DesignSystemStoryArgs = Record<string, any>;
+
+const meta: Meta<DesignSystemStoryArgs> = {
   title: 'Bojana/Componentes',
   parameters: { layout: 'padded' },
-} satisfies Meta;
+};
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<DesignSystemStoryArgs>;
 
 export const Buttons: Story = {
   args: {
@@ -35,7 +37,7 @@ export const Buttons: Story = {
     loading: { control: 'boolean' },
     pressed: { control: 'boolean', description: 'Sets aria-pressed and shows the pressed state' },
   },
-  render: ({ label, variant, size, showIcon, icon: iconName, iconPosition, disabled, loading, pressed }) => {
+  render: ({ label, variant, size, showIcon, icon: iconName, iconPosition, disabled, loading, pressed }: DesignSystemStoryArgs) => {
     const Icon = lucideIcons[iconName as keyof typeof lucideIcons] ?? Search;
     const icon = <Icon aria-hidden="true" />;
     const content = variant === 'icon'
@@ -62,14 +64,14 @@ export const Checkboxes: Story = {
 export const SearchField: Story = {
   args: { size: 'm', disabled: false },
   argTypes: { size: { control: 'select', options: ['s', 'm', 'l'] }, disabled: { control: 'boolean' } },
-  render: ({ size, disabled }) => <SearchInput aria-label="Buscar" size={size} disabled={disabled} />,
+  render: ({ size, disabled }: DesignSystemStoryArgs) => <SearchInput aria-label="Buscar" size={size} disabled={disabled} />,
 };
 
 export const NotificationIndicator: Story = {
   name: 'Notification Indicator',
   args: { count: 3, attached: true, component: 'icono', size: 'm', mode: 'count' },
   argTypes: { count: { control: { type: 'number', min: 0, step: 1 }, description: 'Cantidad de notificaciones' }, attached: { control: 'boolean', description: 'Mostrar en la esquina superior derecha de un componente' }, component: { control: 'select', options: ['icono', 'botón', 'badge', 'card'], description: 'Componente de ejemplo' }, size: { control: 'select', options: ['s', 'm', 'l'], description: 'Tamaño del indicador' }, mode: { control: 'select', options: ['count', 'icon'], description: 'Mostrar número o campanita' } },
-  render: ({ count, attached, component, size, mode }) => {
+  render: ({ count, attached, component, size, mode }: DesignSystemStoryArgs) => {
     const examples = {
       icono: <Button variant="icon" size="m" ariaLabel="Notificaciones"><PortalIcon icon={Bell} /></Button>,
       botón: <Button>Mensajes</Button>,
@@ -97,7 +99,7 @@ export const ProjectListCardStory: Story = {
     progress: { control: { type: 'number', min: 0, max: 100, step: 1 }, description: 'Porcentaje de avance total' },
     status: { control: 'select', options: ['Borrador', 'En progreso', 'En revisión', 'Requiere ajustes', 'Requiere acción', 'Completado'], description: 'Estado general del proyecto' },
   },
-  render: ({ showDiscipline, progress, status }) => <div className="max-w-5xl">
+  render: ({ showDiscipline, progress, status }: DesignSystemStoryArgs) => <div className="max-w-5xl">
     <Card className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
       <div className="min-w-0 flex-1 space-y-3">
         <div>
@@ -129,7 +131,7 @@ export const TaskRowStory: Story = {
     showActions: { control: 'boolean', description: 'Mostrar acción secundaria' },
     interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
   },
-  render: ({ showDescription, showDetails, showOwner, showDue, showStatus, showActions, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><TaskRow title="Documentación ejecutiva" description={showDescription ? 'Arquitectura' : undefined} details={showDetails ? '2 entregables · 1 publicado' : undefined} owner={showOwner ? <><span className="grid size-8 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">LM</span><span className="text-xs font-medium text-ink-muted">Lucía Martín</span></> : undefined} due={showDue ? <><PortalIcon icon={CalendarDays} size="s" color="line" />18 oct.</> : undefined} status={showStatus ? <StatusBadge tone="waiting" size="s">Esperando cliente</StatusBadge> : undefined} actions={showActions ? <Button variant="icon" size="s" ariaLabel="Más opciones">•••</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>
+  render: ({ showDescription, showDetails, showOwner, showDue, showStatus, showActions, interactive }: DesignSystemStoryArgs) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><TaskRow title="Documentación ejecutiva" description={showDescription ? 'Arquitectura' : undefined} details={showDetails ? '2 entregables · 1 publicado' : undefined} owner={showOwner ? <><span className="grid size-8 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">LM</span><span className="text-xs font-medium text-ink-muted">Lucía Martín</span></> : undefined} due={showDue ? <><PortalIcon icon={CalendarDays} size="s" color="line" />18 oct.</> : undefined} status={showStatus ? <StatusBadge tone="waiting" size="s">Esperando cliente</StatusBadge> : undefined} actions={showActions ? <Button variant="icon" size="s" ariaLabel="Más opciones">•••</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>
 };
 
 export const PhaseRowStory: Story = {
@@ -142,7 +144,7 @@ export const PhaseRowStory: Story = {
     expanded: { control: 'boolean', description: 'Mostrar estado expandido' },
     interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
   },
-  render: ({ showSummary, showProgress, showWeight, expanded, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><PhaseRow title="Documentación ejecutiva" summary={showSummary ? '5/12 tareas completadas' : undefined} progress={showProgress ? '42% de avance' : undefined} weight={showWeight ? 'Peso: 20%' : undefined} expanded={expanded} onClick={interactive ? () => {} : undefined} /></div>,
+  render: ({ showSummary, showProgress, showWeight, expanded, interactive }: DesignSystemStoryArgs) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><PhaseRow title="Documentación ejecutiva" summary={showSummary ? '5/12 tareas completadas' : undefined} progress={showProgress ? '42% de avance' : undefined} weight={showWeight ? 'Peso: 20%' : undefined} expanded={expanded} onClick={interactive ? () => {} : undefined} /></div>,
 };
 
 export const HistoryRowStory: Story = {
@@ -154,7 +156,7 @@ export const HistoryRowStory: Story = {
     showAction: { control: 'boolean', description: 'Mostrar acción de detalle' },
     interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
   },
-  render: ({ showDescription, showStatus, showAction, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><HistoryRow date="18 OCT" title="Planos arquitectónicos actualizados" description={showDescription ? 'Bojana Estudio publicó la revisión 03 para el cliente.' : undefined} status={showStatus ? <StatusBadge tone="gray" size="s" showDot={false}>Actualización</StatusBadge> : undefined} actions={showAction ? <Button variant="icon" size="s" ariaLabel="Ver detalle">→</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>,
+  render: ({ showDescription, showStatus, showAction, interactive }: DesignSystemStoryArgs) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><HistoryRow date="18 OCT" title="Planos arquitectónicos actualizados" description={showDescription ? 'Bojana Estudio publicó la revisión 03 para el cliente.' : undefined} status={showStatus ? <StatusBadge tone="gray" size="s" showDot={false}>Actualización</StatusBadge> : undefined} actions={showAction ? <Button variant="icon" size="s" ariaLabel="Ver detalle">→</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>,
 };
 
 export const Forms: Story = {
@@ -172,13 +174,13 @@ function TabsExample({ divider = true }: { divider?: boolean }) {
   const tabs = [{ id: 'general', label: 'General' }, { id: 'detalles', label: 'Detalles' }, { id: 'archivos', label: 'Archivos' }];
   return <div className="space-y-6"><Tabs tabs={tabs} activeTab={active} onChange={setActive} divider={divider} /><p>Selected section: {active}</p></div>;
 }
-export const TabsStory: Story = { args: { divider: true }, argTypes: { divider: { control: 'boolean', description: 'Mostrar divisor bajo las pestañas' } }, render: ({ divider }) => <TabsExample divider={divider} /> };
+export const TabsStory: Story = { args: { divider: true }, argTypes: { divider: { control: 'boolean', description: 'Mostrar divisor bajo las pestañas' } }, render: ({ divider }: DesignSystemStoryArgs) => <TabsExample divider={divider} /> };
 
 export const StatusBarStory: Story = {
   name: 'Status Bar',
   args: { value: 60, size: 'm', mode: 'granular', color: 'forest', trackColor: 'white', showLabels: true, expandOnClick: true, showModeToggle: true, showMetadata: true, taskStatusDisplay: 'icon-count', showPercentage: true, showPhaseTaskSummary: true },
   argTypes: { value: { control: { type: 'number', min: 0, max: 100, step: 1 } }, size: { control: 'select', options: ['s', 'm', 'l'] }, mode: { control: 'select', options: ['granular', 'completo'], description: 'Mostrar progreso por segmentos o como total' }, color: { control: 'select', options: ['forest', 'clay', 'mint', 'warning', 'ink', 'stone'], description: 'Color del progreso' }, trackColor: { control: 'select', options: ['same', 'white'], description: 'Color del tramo pendiente' }, showLabels: { control: 'boolean' }, expandOnClick: { control: 'boolean', description: 'Expandir el progreso de la sección seleccionada' }, showModeToggle: { control: 'boolean', description: 'Permitir alternar entre progreso total y por fases con el chip de intercambio' }, showMetadata: { control: 'boolean', description: 'Mostrar los contadores de estado de las tareas' }, showPercentage: { control: 'boolean', description: 'Mostrar el porcentaje grande encima de la barra' }, showPhaseTaskSummary: { control: 'boolean', description: 'Mostrar fases y tareas en un badge blanco' }, taskStatusDisplay: { control: 'select', options: ['icon-count', 'label-count'], description: 'Formato de las etiquetas de estado' } },
-  render: ({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }) => <StatusBarStoryExample value={value} size={size} mode={mode} color={color} trackColor={trackColor} showLabels={showLabels} expandOnClick={expandOnClick} showModeToggle={showModeToggle} showMetadata={showMetadata} taskStatusDisplay={taskStatusDisplay} showPercentage={showPercentage} showPhaseTaskSummary={showPhaseTaskSummary} />,
+  render: ({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }: DesignSystemStoryArgs) => <StatusBarStoryExample value={value} size={size} mode={mode} color={color} trackColor={trackColor} showLabels={showLabels} expandOnClick={expandOnClick} showModeToggle={showModeToggle} showMetadata={showMetadata} taskStatusDisplay={taskStatusDisplay} showPercentage={showPercentage} showPhaseTaskSummary={showPhaseTaskSummary} />,
 };
 
 export const ProgressDotsStory: Story = {
@@ -189,7 +191,7 @@ export const ProgressDotsStory: Story = {
     completed: { control: { type: 'number', min: 0, max: 20, step: 1 }, description: 'Puntos completados en verde success' },
     size: { control: 'select', options: ['s', 'm', 'l'] },
   },
-  render: ({ total, completed, size }) => <div className="flex min-h-32 items-center rounded-bojana-widget border border-line bg-canvas-light p-6"><ProgressDots total={total} completed={completed} size={size} ariaLabel={`${completed} de ${total} completados`} /></div>,
+  render: ({ total, completed, size }: DesignSystemStoryArgs) => <div className="flex min-h-32 items-center rounded-bojana-widget border border-line bg-canvas-light p-6"><ProgressDots total={total} completed={completed} size={size} ariaLabel={`${completed} de ${total} completados`} /></div>,
 };
 
 function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }: { value: number; size: 's' | 'm' | 'l'; mode: 'granular' | 'completo'; color: 'forest' | 'clay' | 'mint' | 'warning' | 'ink' | 'stone'; trackColor: 'same' | 'white'; showLabels: boolean; expandOnClick: boolean; showModeToggle: boolean; showMetadata: boolean; taskStatusDisplay: 'icon-count' | 'label-count'; showPercentage: boolean; showPhaseTaskSummary: boolean }) {
@@ -210,7 +212,7 @@ function FilterBarExample({ showSearch, showLayoutIcon, background }: { showSear
   const [filter, setFilter] = useState('all');
   return <div className="space-y-6"><FilterBar background={background}><FilterTabs tabs={[{ id: 'all', label: 'All', icon: showLayoutIcon ? LayoutGrid : undefined }, { id: 'active', label: 'Active' }]} activeTab={filter} onChange={setFilter} />{showSearch && <SearchInput size="s" aria-label="Buscar" />}</FilterBar><p>Selected filter: {filter}</p></div>;
 }
-export const FilterBarStory: Story = { name: 'FilterBar', args: { showSearch: true, showLayoutIcon: true, background: 'stone' }, argTypes: { showSearch: { control: 'boolean', description: 'Mostrar el campo de búsqueda' }, showLayoutIcon: { control: 'boolean', description: 'Mostrar LayoutGrid en el primer filtro' }, background: { control: 'select', options: ['white', 'canvas-light', 'canvas', 'stone', 'transparent'], description: 'Fondo de la barra' } }, render: ({ showSearch, showLayoutIcon, background }) => <FilterBarExample showSearch={showSearch} showLayoutIcon={showLayoutIcon} background={background} /> };
+export const FilterBarStory: Story = { name: 'FilterBar', args: { showSearch: true, showLayoutIcon: true, background: 'stone' }, argTypes: { showSearch: { control: 'boolean', description: 'Mostrar el campo de búsqueda' }, showLayoutIcon: { control: 'boolean', description: 'Mostrar LayoutGrid en el primer filtro' }, background: { control: 'select', options: ['white', 'canvas-light', 'canvas', 'stone', 'transparent'], description: 'Fondo de la barra' } }, render: ({ showSearch, showLayoutIcon, background }: DesignSystemStoryArgs) => <FilterBarExample showSearch={showSearch} showLayoutIcon={showLayoutIcon} background={background} /> };
 
 export const States: Story = {
   render: () => <div className="max-w-2xl space-y-6"><div className="flex flex-wrap items-center gap-3"><Button disabled>Disabled</Button><Button loading>Loading</Button></div><EmptyState icon={FolderOpen} title="No projects yet" description="Create a project to get started." action={{ label: 'Create project', icon: Plus, onClick: () => {} }} /><Spinner /><Skeleton rows={3} /></div>,
@@ -252,7 +254,7 @@ export const HeaderAndBrand: Story = {
     showSecondaryAction: { control: 'boolean', description: 'Mostrar botón secundario a la derecha' },
     showIconButtons: { control: 'boolean', description: 'Mostrar icon-buttons a la derecha' },
   },
-  render: ({ title, eyebrow, description, showEyebrow, showDescription, showBackButton, showDivider, titleAccessory, showSecondaryAction, showIconButtons }) => {
+  render: ({ title, eyebrow, description, showEyebrow, showDescription, showBackButton, showDivider, titleAccessory, showSecondaryAction, showIconButtons }: DesignSystemStoryArgs) => {
     const accessory = titleAccessory === 'badge'
       ? <ProjectProgressStatusBadge progress={60} status="En progreso" size="m" />
       : titleAccessory === 'button'
@@ -346,7 +348,7 @@ export const StatusBadgeVariants: Story = {
     label: { control: 'text' },
     adminTaskDisplay: { control: 'inline-radio', options: ['solo-icono', 'icono-y-estado'], description: 'Vista de estados de tareas dentro del proyecto admin' },
   },
-  render: ({ tone, size, showDot, filled, iconOnly, iconName, label, adminTaskDisplay }) => {
+  render: ({ tone, size, showDot, filled, iconOnly, iconName, label, adminTaskDisplay }: DesignSystemStoryArgs) => {
     const icons = { none: undefined, ...lucideIcons };
     return <div className="max-w-3xl space-y-8">
     <header><p className="bojana-label">Componentes</p><h1 className="bojana-heading-page mt-2">StatusBadge</h1><p className="mt-2 text-sm text-ink-muted">Variantes de tono, tamaño y dot.</p></header>
@@ -361,13 +363,13 @@ export const StatusBadgeVariants: Story = {
         <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
           <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas dentro del proyecto · admin</p><p className="mt-1 text-xs text-ink-muted">Estado como {adminTaskDisplay === 'solo-icono' ? 'icono solo' : 'icono y texto'} · tamaño S · tooltip al pasar o enfocar</p></div>
           {([
-            { name: 'Definición de alcance', state: 'En curso', icon: Zap, tooltip: 'En curso' },
-            { name: 'Revisión técnica', state: 'En revisión', icon: Eye, tooltip: 'En revisión' },
-            { name: 'Corrección solicitada', state: 'Requiere ajustes', icon: CircleAlert, tooltip: 'Requiere ajustes' },
-            { name: 'Esperar respuesta', state: 'Esperando al cliente', icon: MessageSquare, tooltip: 'Esperando cliente' },
-            { name: 'Documentación', state: 'Pendiente', icon: Circle, tooltip: 'Por completar', tone: 'info' },
-            { name: 'Planta general', state: 'Completado', icon: CheckCircle2, tooltip: 'Completada' },
-          ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><Tooltip content={task.tooltip}><StatusBadge state={task.state} audience="studio" tone={task.tone} ariaLabel={task.tooltip} size="s" showDot={false} icon={task.icon} iconOnly={adminTaskDisplay === 'solo-icono'} /></Tooltip></div>)}
+              { name: 'Definición de alcance', state: 'En curso', icon: Zap, tooltip: 'En curso', tone: undefined },
+              { name: 'Revisión técnica', state: 'En revisión', icon: Eye, tooltip: 'En revisión', tone: undefined },
+              { name: 'Corrección solicitada', state: 'Requiere ajustes', icon: CircleAlert, tooltip: 'Requiere ajustes', tone: undefined },
+              { name: 'Esperar respuesta', state: 'Esperando al cliente', icon: MessageSquare, tooltip: 'Esperando cliente', tone: undefined },
+              { name: 'Documentación', state: 'Pendiente', icon: Circle, tooltip: 'Por completar', tone: 'info' },
+              { name: 'Planta general', state: 'Completado', icon: CheckCircle2, tooltip: 'Completada', tone: undefined },
+            ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><Tooltip content={task.tooltip}><StatusBadge state={task.state} audience="studio" tone={task.tone} ariaLabel={task.tooltip} size="s" showDot={false} icon={task.icon} iconOnly={adminTaskDisplay === 'solo-icono'} /></Tooltip></div>)}
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
           <div className="overflow-hidden rounded-bojana-card border border-line bg-white">

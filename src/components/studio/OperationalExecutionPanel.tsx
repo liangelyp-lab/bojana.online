@@ -340,7 +340,7 @@ export default function OperationalExecutionPanel({
     prefill?: {
       titulo: string
       descripcion: string
-      accion?: TaskUpdateAction
+      accion?: "borrador" | "publicar_avance" | "revision" | "solicitud_informacion" | "publicar_terminar"
       recursos: string
       responsableRespuesta: string
       fechaLimiteRespuesta: string
@@ -712,8 +712,7 @@ export default function OperationalExecutionPanel({
         } else if (
           t.estado === "En curso" ||
           t.estado === "Requiere ajustes" ||
-          t.estado === "En revisión" ||
-          t.estado === "Requiere ajustes"
+          t.estado === "En revisión"
         ) {
           teamTasks.push({ disc: d, need: n, task: t })
         }
@@ -1317,7 +1316,7 @@ export default function OperationalExecutionPanel({
                     <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-ink">v{entry.version} · {entry.titulo}</p><span className="text-xs text-bojana-muted">{new Date(entry.fecha).toLocaleString("es-AR")}</span></div>
                     <p className="mt-1 text-xs text-bojana-muted">{taskUpdateNotificationLabel(entry.accion)} · {entry.estado === "aprobada" ? "Aprobada" : entry.estado === "cambios_solicitados" ? "Cambios solicitados" : entry.estado === "en_revision" ? "En revisión" : entry.estado === "borrador" ? "Borrador interno" : "Publicada"}</p>
                     {entry.descripcion && <p className="mt-3 leading-5 text-ink-muted">{entry.descripcion}</p>}
-                    {(entry.recursos || []).length > 0 && <div className="mt-3 space-y-1.5">{entry.recursos.map((resource) => <a key={resource} href={resource} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-forest hover:underline"><ExternalLink className="size-3.5" /><span className="truncate">{resource}</span></a>)}</div>}
+                    {(entry.recursos || []).length > 0 && <div className="mt-3 space-y-1.5">{(entry.recursos || []).map((resource) => <a key={resource} href={resource} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-forest hover:underline"><ExternalLink className="size-3.5" /><span className="truncate">{resource}</span></a>)}</div>}
                     {entry.respuesta && <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-ink-muted">Respuesta del cliente · {entry.respuesta}</p>}
                   </article>)}
                 </div>
@@ -1352,6 +1351,7 @@ export default function OperationalExecutionPanel({
                     descripcion: "",
                     recursos: "",
                     accion: "publicar_avance",
+                    subetapaId: latestUpdate.subetapaId || "",
                     opciones: emptyUpdateOptions(),
                   })
                   setUpdateDraftOpen(true)
@@ -1657,7 +1657,14 @@ export default function OperationalExecutionPanel({
                             discId: disc.id,
                             needId: need.id,
                             prefill: {
-                              ...updateDraft,
+                              titulo: updateDraft.titulo,
+                              descripcion: updateDraft.descripcion,
+                              accion:
+                                updateDraft.accion === "revision" ||
+                                updateDraft.accion === "solicitud_informacion"
+                                  ? updateDraft.accion
+                                  : undefined,
+                              recursos: updateDraft.recursos,
                               responsableRespuesta: "",
                               fechaLimiteRespuesta: "",
                               opciones: updateDraft.opciones

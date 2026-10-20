@@ -23,7 +23,7 @@ export default function ProjectProgressBar({ project, value }: { project: Projec
         weight: totalNeedWeight > 0 ? (need.pesoPorcentaje || 0) / totalNeedWeight * 100 : 100 / needs.length,
         progress: calculateNeedProgress({ ...need, publishedProgress: undefined }),
         taskCount: (need.tareas || []).filter(task => task.estado !== "Fuera de alcance").length,
-        completedTaskCount: (need.tareas || []).filter(task => task.estado === "Completada").length,
+        completedTaskCount: (need.tareas || []).filter(task => task.estado === "Completado").length,
       })).filter(segment => segment.weight > 0);
   }, [project.disciplinasOperativas]);
   const showGranular = granular && segments.length > 0;

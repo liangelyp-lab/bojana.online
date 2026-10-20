@@ -25,7 +25,7 @@ const projectSyncListeners = new Set<ProjectSyncListener>();
 
 export function subscribeProjectSync(listener: ProjectSyncListener) {
   projectSyncListeners.add(listener);
-  return () => projectSyncListeners.delete(listener);
+  return () => { projectSyncListeners.delete(listener); };
 }
 
 function notifyProjectSync(status: ProjectSyncStatus) {
