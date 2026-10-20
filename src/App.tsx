@@ -2368,7 +2368,13 @@ function ClientTaskUpdateWidget({
   )
 }
 
-function ClientTaskContentWidget({ task }: { task: import("./types").ExecutionTask }) {
+function ClientTaskContentWidget({
+  task,
+  latestUpdate,
+}: {
+  task: import("./types").ExecutionTask
+  latestUpdate?: import("./types").TaskUpdate
+}) {
   const typeLabels: Record<import("./types").TaskContentType, string> = {
     archivo: "Archivos",
     imagenes: "Imágenes",
@@ -2385,10 +2391,15 @@ function ClientTaskContentWidget({ task }: { task: import("./types").ExecutionTa
     <article className="rounded-3xl border border-line bg-white p-6 md:p-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Eyebrow>Contenido de la tarea</Eyebrow>
+          <Eyebrow>{task.estado === "Completado" ? "Tarea finalizada" : "Contenido de la tarea"}</Eyebrow>
           <Heading as="h3" className="mt-2 text-xl font-semibold text-ink">{task.titulo}</Heading>
+          {task.estado === "Completado" && latestUpdate && (
+            <p className="mt-1 text-sm text-ink-muted">
+              Entregable final · {latestUpdate.titulo}
+            </p>
+          )}
         </div>
-        {types.length > 0 && <div className="flex flex-wrap justify-end gap-2">
+        {task.estado === "Completado" ? <StatusBadge tone="active" size="s">Completada</StatusBadge> : types.length > 0 && <div className="flex flex-wrap justify-end gap-2">
           {types.map(type => <Badge key={type}><Icon className="size-3.5" name={type === "Imágenes" ? "eye" : type === "Videos" ? "publish" : type === "Descargables" ? "download" : "file"} />{type}</Badge>)}
         </div>}
       </div>
@@ -2405,6 +2416,12 @@ function ClientTaskContentWidget({ task }: { task: import("./types").ExecutionTa
           </div>)}
         </div>
       ) : <p className="mt-4 text-sm text-ink-muted">El contenido de esta tarea se mostrará cuando el estudio lo publique.</p>}
+      {task.estado === "Completado" && (latestUpdate?.recursos || []).length > 0 && <div className="mt-4 space-y-2">
+        {(latestUpdate?.recursos || []).map(resource => <div key={resource} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
+          {isImageResource(resource) && <img src={resource} alt="Recurso final de la tarea" className="max-h-56 w-full object-cover" />}
+          <a className="block truncate p-3 text-sm font-semibold text-forest underline-offset-2 hover:underline" href={resource} rel="noreferrer" target="_blank">{resource}</a>
+        </div>)}
+      </div>}
     </article>
   )
 }
@@ -2658,12 +2675,23 @@ function ClientPortal({
     setClientMessage("")
     onToast("Mensaje enviado al equipo y guardado en el proyecto.")
   }
-  const clientUpdates = projectTasks.flatMap(task => (task.actualizaciones || []).filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna").map(update => ({ task, update })))
+  // The portal is a current-state view, not an audit trail: keep only the
+  // latest client-visible update for each task. The studio retains every
+  // version in its task inspector.
+  const clientUpdates = projectTasks.flatMap(task => {
+    const latestUpdate = (task.actualizaciones || [])
+      .filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna")
+      .slice()
+      .sort((a, b) => b.version - a.version || new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]
+    return latestUpdate ? [{ task, update: latestUpdate }] : []
+  })
   const actionableClientUpdates = clientUpdates.filter(({ update }) =>
     (update.accion === "revision" && update.estado === "en_revision") ||
     (update.accion === "solicitud_informacion" && update.estado === "solicitud_enviada")
   )
-  const visibleClientUpdates = showActionUpdatesOnly ? actionableClientUpdates : clientUpdates
+  const visibleClientUpdates = showActionUpdatesOnly
+    ? actionableClientUpdates
+    : clientUpdates.filter(({ task }) => task.estado !== "Completado")
   const projectUpdates = [
     ...(currentProject.avances || []).map(advance => ({ date: advance.fecha, title: advance.titulo, description: advance.texto, tag: advance.categoria || "Avance", color: "bg-clay" })),
     ...(currentProject.actividadReciente || []).map(activity => ({ date: activity.fecha, title: "Actualización del proyecto", description: activity.descripcion, tag: activity.autor || "Equipo", color: "bg-forest" })),
@@ -2800,7 +2828,7 @@ function ClientPortal({
                     <section className="space-y-4">
                       <SectionTitle eyebrow="Trabajo visible">Contenido de las tareas</SectionTitle>
                       <div className="grid gap-4">
-                        {clientContentTasks.map(task => <ClientTaskContentWidget key={task.id} task={task} />)}
+                        {clientContentTasks.map(task => <ClientTaskContentWidget key={task.id} task={task} latestUpdate={clientUpdates.find(item => item.task.id === task.id)?.update} />)}
                       </div>
                     </section>
                   )}
