@@ -1,8 +1,9 @@
 import { ModalHeader, ModalFooter } from '../ui/DesignSystem';
-import { projectStatusTone, updateStatusTone } from '../../design/status';
+import { projectStatusTone, taskStateLabel, updateStatusTone } from '../../design/status';
 import {
   Modal,
   Card,
+  ExpandableSection,
   Badge,
   Button,
   Checkbox,
@@ -13,11 +14,13 @@ import {
   Select,
   SelectControl,
   StatusBadge,
+  Tooltip,
   TextArea,
   TextAreaControl,
 } from "../ui/DesignSystem"
 import { getPendingTaskDependencies } from "../../services/projectStructure"
 import ProjectProgressBar from "./ProjectProgressBar"
+import { CompactNotice, ProjectPublishNotice, RecalculationNotice } from "../ui/Notifications"
 import TaskDeliverables from "../storage/TaskDeliverables"
 import { publishStorageProject } from "../../services/driveStorageService"
 import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from "react"
@@ -72,7 +75,6 @@ import {
   X,
   Zap,
   Paperclip,
-  TrendingUp,
   ExternalLink,
   Building2,
   AlertCircle,
@@ -84,7 +86,7 @@ import {
 
 const taskStatusIcons: Record<EstadoEtapa, typeof Check> = {
   Pendiente: Circle,
-  "En curso": Zap,
+  "En curso": Circle,
   "En revisión": Eye,
   "Esperando al cliente": MessageSquare,
   "Requiere ajustes": AlertCircle,
@@ -101,6 +103,22 @@ type UpdateOptionDraft = {
 }
 
 const emptyUpdateOptions = (): UpdateOptionDraft[] => []
+
+function readCollapsedDisciplines(projectId: string): Record<string, boolean> {
+  try {
+    return JSON.parse(localStorage.getItem(`bojana-studio-collapsed-phases:${projectId}`) || "{}")
+  } catch {
+    return {}
+  }
+}
+
+function saveCollapsedDisciplines(projectId: string, value: Record<string, boolean>) {
+  try {
+    localStorage.setItem(`bojana-studio-collapsed-phases:${projectId}`, JSON.stringify(value))
+  } catch {
+    // The current view still works when browser storage is unavailable.
+  }
+}
 
 interface OperationalExecutionPanelProps {
   project: ProjectData
@@ -186,8 +204,13 @@ export default function OperationalExecutionPanel({
   )
 
   // Expanded disciplines state
-  const [collapsedDisciplines, setCollapsedDisciplines] =
-    useState<Record<string, boolean>>({})
+  const [collapsedDisciplines, setCollapsedDisciplines] = useState<Record<string, boolean>>(
+    () => readCollapsedDisciplines(project.id),
+  )
+
+  useEffect(() => {
+    setCollapsedDisciplines(readCollapsedDisciplines(project.id))
+  }, [project.id])
 
   // Expanded needs state for inline inspection (PROJECT -> NEED -> ITEM -> TASKS)
   const [expandedNeeds, setExpandedNeeds] = useState<Record<string, boolean>>({
@@ -220,10 +243,17 @@ export default function OperationalExecutionPanel({
     if (!target) return
     handledFocus.current = focusKey
     setHighlightedTaskId(focusTaskId)
-    setCollapsedDisciplines((prev) => ({
-      ...prev,
-      [target.discipline.id]: false,
-    }))
+    const focusedPhaseKey = `need-${target.discipline.id}-${target.need.id}`
+    const focusedPhaseState = Object.fromEntries(
+      disciplines.flatMap((discipline) =>
+        discipline.necesidades.map((need) => {
+          const key = `need-${discipline.id}-${need.id}`
+          return [key, key !== focusedPhaseKey]
+        }),
+      ),
+    )
+    setCollapsedDisciplines(focusedPhaseState)
+    saveCollapsedDisciplines(project.id, focusedPhaseState)
     setExpandedNeeds((prev) => ({ ...prev, [target.need.id]: true }))
     setTaskPanel({ id: focusTaskId, mode: "update" })
     setEditingUpdateId(focusUpdateId || null)
@@ -332,7 +362,9 @@ export default function OperationalExecutionPanel({
 
   // Toggle discipline collapse
   const toggleDiscipline = (discId: string) => {
-    setCollapsedDisciplines((prev) => ({ ...prev, [discId]: !prev[discId] }))
+    const next = { ...collapsedDisciplines, [discId]: !collapsedDisciplines[discId] }
+    setCollapsedDisciplines(next)
+    saveCollapsedDisciplines(project.id, next)
   }
 
   // Toggle need inline expansion
@@ -1063,9 +1095,7 @@ export default function OperationalExecutionPanel({
         className={`space-y-4 ${approvedUpdate ? "approved-update" : ""}`}
       >
         {taskError && (
-          <p role="alert" className="text-xs text-bojana-error">
-            {taskError}
-          </p>
+          <CompactNotice tone="error">{taskError}</CompactNotice>
         )}
         {task.subetapas && task.subetapas.length > 0 && (
           <section
@@ -1294,10 +1324,10 @@ export default function OperationalExecutionPanel({
             </Modal>
           )}
           {approvedUpdate && (
-            <p className="rounded-xl bg-mint-pale px-3 py-2 text-xs text-forest">
+            <CompactNotice tone="success">
               Esta actualización ya fue aprobada. No requiere volver a publicar
               ni marcar la tarea como terminada.
-            </p>
+            </CompactNotice>
           )}
           {approvedUpdate && task.estado !== "Completado" && (
             <Button
@@ -2164,10 +2194,7 @@ export default function OperationalExecutionPanel({
             </div>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 text-xs font-semibold text-forest bg-mint-pale p-3 rounded-2xl border border-mint/40">
-                <CheckCircle2 className="size-4 text-forest shrink-0" />
-                <span>Portal activo &bull; Al día ✓</span>
-              </div>
+              <CompactNotice tone="success">Portal activo · Al día ✓</CompactNotice>
               <p className="text-xs text-ink-muted px-1">
                 {project.info?.ultimaPublicacion
                   ? `Última: ${project.info.ultimaPublicacion}`
@@ -2357,10 +2384,10 @@ export default function OperationalExecutionPanel({
                     className="w-full justify-start text-sm"
                     type="button"
                     onClick={() => {
-                      setCollapsedDisciplines((prev) => ({
-                        ...prev,
-                        [disc.id]: false,
-                      }))
+                      const phaseKey = `need-${disc.id}-${need.id}`
+                      const next = { ...collapsedDisciplines, [phaseKey]: false }
+                      setCollapsedDisciplines(next)
+                      saveCollapsedDisciplines(project.id, next)
                       setExpandedNeeds((prev) => ({ ...prev, [need.id]: true }))
                       requestAnimationFrame(() =>
                         document
@@ -2533,34 +2560,7 @@ export default function OperationalExecutionPanel({
 
         {/* Real-time Recalculation Cascading Banner */}
         {recalcEvent && (
-          <div className="bojana-widget bg-bojana-soft border border-bojana-success rounded-bojana-widget p-3.5 flex items-center justify-between gap-3 text-xs animate-fade-in text-bojana-success font-sans">
-            <div className="flex items-center gap-bojana-inside">
-              <TrendingUp className="w-4 h-4 text-bojana-success shrink-0" />
-              <span>
-                <strong>Cálculo en cascada:</strong> {recalcEvent.taskTitle} ✓
-                &rarr; {recalcEvent.needName}:{" "}
-                <strong>
-                  {recalcEvent.oldNeedProg}% &rarr; {recalcEvent.newNeedProg}%
-                </strong>{" "}
-                &bull; {recalcEvent.discName}:{" "}
-                <strong>
-                  {recalcEvent.oldDiscProg}% &rarr; {recalcEvent.newDiscProg}%
-                </strong>{" "}
-                &bull; {projectTitle}:{" "}
-                <strong>
-                  {recalcEvent.oldProjProg}% &rarr; {recalcEvent.newProjProg}%
-                </strong>
-              </span>
-            </div>
-            <Button
-              variant="icon"
-              type="button"
-              onClick={() => setRecalcEvent(null)}
-              className="bojana-icon-button text-bojana-success hover:text-bojana-success p-1"
-            >
-              <X className="w-3.5 h-3.5" />
-            </Button>
-          </div>
+          <RecalculationNotice data={recalcEvent} projectTitle={projectTitle} onDismiss={() => setRecalcEvent(null)} />
         )}
       </div>
 
@@ -2568,38 +2568,7 @@ export default function OperationalExecutionPanel({
       {(!project.lifecycleStatus ||
         project.lifecycleStatus === "BORRADOR" ||
         project.lifecycleStatus === "LISTO_PARA_COMPARTIR") && (
-        <div className="bojana-widget bg-gradient-to-r from-bojana-ink/10 via-bojana-ink/5 to-white border border-bojana-line/70 rounded-bojana-widget p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-bojana-block shadow-bojana-widget animate-fade-in">
-          <div className="space-y-bojana-inside">
-            <div className="flex items-center gap-bojana-inside">
-              <StatusBadge tone="neutral" size="s" showDot={false}>
-                {project.lifecycleStatus === "BORRADOR"
-                  ? "BORRADOR"
-                  : "LISTO PARA COMPARTIR"}
-              </StatusBadge>
-              <span className="text-xs font-sans text-bojana-muted">
-                0% ejecución &bull; Base contractual formalizada
-              </span>
-            </div>
-            <h3 className="bojana-heading-component text-base sm:text-lg font-sans font-medium text-bojana-ink">
-              Proyecto formalizado y listo para compartir
-            </h3>
-            <p className="text-xs text-bojana-muted font-sans max-w-xl">
-              El portal comitente ya está preparado con el presupuesto, plazos y
-              ADN del proyecto. Revisá la vista previa y publicá; el email o el
-              enlace quedan como acciones posteriores independientes.
-            </p>
-          </div>
-
-          <Button
-            variant="primary"
-            type="button"
-            onClick={() => setIsPublishModalOpen(true)}
-            className="shrink-0 self-start sm:self-auto"
-          >
-            <Check className="w-3.5 h-3.5" />
-            <span>Publicar cambios</span>
-          </Button>
-        </div>
+        <ProjectPublishNotice status={project.lifecycleStatus === "BORRADOR" ? "BORRADOR" : "LISTO_PARA_COMPARTIR"} onPublish={() => setIsPublishModalOpen(true)} />
       )}
 
       {/* 2. MAIN WORKSPACE: LEFT (AHORA + ADN) | RIGHT (ACTIVIDAD + CLIENTE + PUBLICACIÓN) */}
@@ -2914,7 +2883,7 @@ export default function OperationalExecutionPanel({
                       {showDisciplineTitle && (
                         <h3 className="bojana-label px-1 pt-3">{disc.id}</h3>
                       )}
-                    <Card expandable padding="none" elevation="raised" expanded={!isCollapsed} onExpandedChange={() => toggleDiscipline(key)} expandLabel={displayNeed.nombre} header={<span className="bojana-heading-component text-sm font-medium uppercase">{displayNeed.nombre}</span>} className="bojana-discipline-card">
+                    <Card expandable padding="none" elevation="raised" expanded={!isCollapsed} onExpandedChange={() => toggleDiscipline(key)} expandLabel={displayNeed.nombre} header={<span className="bojana-heading-section">{displayNeed.nombre}</span>} className="bojana-discipline-card">
                       {/* Needs under this Discipline */}
                       {!isCollapsed && (
                         <div className="divide-y divide-bojana-line">
@@ -3018,7 +2987,7 @@ export default function OperationalExecutionPanel({
                                 {isNeedExpanded && (
                                   <div className="bojana-expanded-panel p-4 sm:p-5 space-y-3 animate-fade-in">
                                     {/* Layer 2 & 3: Items and Inline Details */}
-                                    <div className="space-y-bojana-inside">
+                                    <div>
                                       {need.tareas.map((task) => {
                                         const activeTaskMode =
                                           taskPanel?.id === task.id
@@ -3049,10 +3018,11 @@ export default function OperationalExecutionPanel({
                                           )?.nombre || "Sin asignar"
 
                                         return (
-                                          <Card
+                                          <ExpandableSection
                                             key={task.id}
                                             id={`workspace-task-${task.id}`}
-                                            expandable headerDensity="compact" padding="none"
+                                            grouped
+                                            focused={highlightedTaskId === task.id}
                                             expanded={isTaskExpanded}
                                             onExpandedChange={() => {
                                                 const close =
@@ -3140,18 +3110,22 @@ export default function OperationalExecutionPanel({
                                                 >
                                                   <PortalIcon icon={task.visibleCliente ? Eye : EyeOff} size="s" />
                                                 </Button>
-                                                <StatusBadge
-                                                  state={displayState}
-                                                  audience="studio"
-                                                  size="s"
-                                                  showDot={false}
-                                                  icon={taskStatusIcons[displayState]}
-                                                  iconOnly
-                                                  className="mt-0 self-start"
-                                                />
+                                                <Tooltip content={displayState === "Pendiente" ? "Por completar" : taskStateLabel(displayState, "studio")}>
+                                                  <StatusBadge
+                                                    state={displayState}
+                                                    audience="studio"
+                                                    tone={displayState === "Pendiente" ? "info" : undefined}
+                                                    size="s"
+                                                    showDot={false}
+                                                    icon={taskStatusIcons[displayState]}
+                                                    iconOnly
+                                                    ariaLabel={displayState === "Pendiente" ? "Por completar" : undefined}
+                                                    className="mt-0 self-start"
+                                                  />
+                                                </Tooltip>
                                                 </div>
                                               </div></>}
-                                            className={`${highlightedTaskId === task.id ? 'focused-notification-task' : ''} ${isTaskExpanded ? 'bojana-task-expanded' : ''}`}
+                                            className={`scroll-mt-24 ${isTaskExpanded ? 'bojana-task-expanded' : ''}`}
                                           >
                                             {isTaskExpanded && (
                                               <div
@@ -3167,7 +3141,7 @@ export default function OperationalExecutionPanel({
                                                 )}
                                               </div>
                                             )}
-                                          </Card>
+                                          </ExpandableSection>
                                         )
                                       })}
                                     </div>
@@ -3270,9 +3244,7 @@ export default function OperationalExecutionPanel({
         </Modal>
       )}
       {taskError && !selected && (
-        <p role="alert" className="text-xs text-bojana-error">
-          {taskError}
-        </p>
+        <CompactNotice tone="error">{taskError}</CompactNotice>
       )}
       {selectedTaskForAction && (
         <RequestClientActionModal

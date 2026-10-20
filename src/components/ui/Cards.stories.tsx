@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Badge, Button, Card, MetricCard, SelectionCard } from './DesignSystem';
+import { Badge, Button, Card, ExpandableSection, MetricCard, SelectionCard } from './DesignSystem';
 const meta = { title: 'Bojana/Cards', parameters: { layout: 'padded' } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -41,18 +41,21 @@ function ExpandableExamples() {
   const [visible, setVisible] = useState(true);
   return <div className="max-w-4xl space-y-6">
     <h1 className="bojana-heading-page">Una Card con contenido expandible</h1>
-    <p className="bojana-caption">Ficha, grupo y tarea comparten Card expandable. El botón del encabezado funciona con Enter y Espacio; las acciones laterales son independientes.</p>
-    <Card expandable expandLabel="ficha del cliente" header={<span><span className="bojana-label block">Ficha de comitente</span><span className="block font-display text-2xl">Cliente de ejemplo</span></span>}>
+    <p className="bojana-caption">ExpandableSection permite usar filas dentro de una Card: en grupo separa las filas salvo la última; como sección individual no muestra separador. El botón del encabezado funciona con Enter y Espacio.</p>
+    <Card expandable elevation="hover" expandLabel="ficha del cliente" header={<span className="block font-display text-2xl">Cliente de ejemplo</span>}>
       <p className="text-sm text-ink-muted">Información de contacto y proyectos asociados.</p>
     </Card>
-    <Card expandable padding="none" expandLabel="Etapas del proyecto" header={<span className="bojana-heading-component">Etapas del proyecto</span>}>
+    <Card expandable elevation="hover" padding="none" expandLabel="Etapas del proyecto" header={<span className="bojana-heading-section">Etapas del proyecto</span>}>
       <div className="p-4">
-        <Card expandable padding="none" headerDensity="compact" expanded={taskExpanded} onExpandedChange={setTaskExpanded} expandLabel="Planta de demolición" header={<span className="text-xs">Planta de demolición</span>} headerActions={<><Button size="xs" variant="secondary" ariaPressed={visible} onClick={() => setVisible(value => !value)}>{visible ? 'Visible' : 'Oculto'}</Button><Badge tone="active">Completada</Badge></>}>
+        <ExpandableSection grouped expanded={taskExpanded} onExpandedChange={setTaskExpanded} expandLabel="Planta de demolición" header={<span className="text-xs">Planta de demolición</span>} headerActions={<><Button size="xs" variant="secondary" ariaPressed={visible} onClick={() => setVisible(value => !value)}>{visible ? 'Visible' : 'Oculto'}</Button><Badge tone="active">Completada</Badge></>}>
           <div className="space-y-3 p-4"><p className="bojana-caption">Rev. 02 · Publicado al cliente</p><Button variant="secondary">Añadir actualización</Button></div>
-        </Card>
+        </ExpandableSection>
+        <ExpandableSection grouped expandLabel="Documentación final" header={<span className="text-xs">Documentación final</span>} headerActions={<Badge tone="gray">Pendiente</Badge>}>
+          <div className="p-4"><p className="bojana-caption">Las secciones agrupadas se separan con una línea; la última no lleva separador.</p></div>
+        </ExpandableSection>
       </div>
     </Card>
-    <Card expandable defaultExpanded={false} expandLabel="información adicional" header="Empieza contraída"><p className="text-sm">Contenido adicional.</p></Card>
+    <Card expandable elevation="hover" defaultExpanded={false} expandLabel="información adicional" header={<span className="bojana-heading-section">Empieza contraída</span>}><p className="text-sm">Contenido adicional.</p></Card>
   </div>;
 }
 export const Expandable: Story = { name: 'Expandibles · ficha, grupo y tarea', render: () => <ExpandableExamples /> };

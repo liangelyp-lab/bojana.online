@@ -164,12 +164,9 @@
 
 /* ─── Bojana Component Classes ──────────────────────────────────────── */
 @layer components {
-  .focused-notification-task {
-    border-color: var(--color-ink) !important;
-    background: var(--color-stone) !important;
-    outline: 3px solid color-mix(in srgb, var(--color-clay) 55%, transparent) !important;
-    outline-offset: 4px;
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ink) 12%, transparent), 0 1rem 2rem color-mix(in srgb, var(--color-ink) 12%, transparent) !important;
+  .bojana-expandable-section-focused {
+    background: color-mix(in srgb, var(--color-bojana-primary) 6%, transparent) !important;
+    box-shadow: inset 3px 0 var(--color-bojana-primary);
   }
 
   /* ── Typography ─────────────────────────────────────── */
@@ -604,8 +601,9 @@
     cursor: pointer;
   }
   .bojana-card-compact-header .bojana-card-toggle { padding: 0.75rem 1rem; }
+  .bojana-card-compact-toggle { padding: 0.75rem 1rem; }
   .bojana-card-compact-header .bojana-card-header-actions { padding-right: 1rem; }
-  .bojana-card-toggle:hover { background: var(--color-canvas-light); }
+  .bojana-card-toggle:hover { background: transparent; }
   .bojana-card-toggle:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: -3px; }
   .bojana-card-header-actions { display: flex; flex-shrink: 0; align-items: center; gap: 0.75rem; padding-right: 1.25rem; }
 
@@ -907,21 +905,24 @@
   .bojana-modal-header {
     display: flex;
     flex-shrink: 0;
-    align-items: flex-start;
+    min-height: 5rem;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--color-bojana-line);
   }
+  .bojana-modal-header h2 { margin: 0; padding: 0; line-height: 1; }
   .bojana-modal-body { padding: 1.5rem; }
   .bojana-modal-footer {
     display: flex;
     flex-shrink: 0;
+    min-height: 5rem;
     flex-wrap: wrap;
     align-items: center;
     justify-content: flex-end;
     gap: 0.75rem;
-    padding: 1.5rem;
+    padding: 1rem 1.5rem;
     border-top: 1px solid var(--color-bojana-line);
     font-family: var(--font-sans);
     font-size: 0.875rem;

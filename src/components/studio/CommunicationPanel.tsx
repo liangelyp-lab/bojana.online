@@ -2,6 +2,7 @@ import { formatPortalDate } from '../../design/format';
 import { FormEvent, useMemo, useState } from "react"
 import type { ProjectActivityLog, ProjectData, ProjectInvitationLog } from "../../types"
 import { StatusBadge, Button, TextAreaControl } from "../ui/DesignSystem"
+import { CompactNotice } from "../ui/Notifications"
 
 type ReplyChannel = "portal" | "email"
 
@@ -143,7 +144,7 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
         <form className="mt-4 border-t border-line pt-4" onSubmit={sendReply}>
         <label className="block text-xs font-semibold text-ink" htmlFor="studio-reply">Escribí tu respuesta</label>
         <TextAreaControl className="mt-2" disabled={sending} id="studio-reply" onChange={event => setReply(event.target.value)} placeholder="Escribí la respuesta..." rows={3} value={reply} />
-        {error && <p className="mt-3 rounded-xl bg-clay-pale px-4 py-3 text-sm text-clay-dark" role="alert">{error}</p>}
+        {error && <div className="mt-3"><CompactNotice tone="error">{error}</CompactNotice></div>}
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <p className="text-[11px] text-ink-faint">La respuesta queda registrada en la actividad del proyecto.</p>
           <div className="flex flex-wrap gap-2">

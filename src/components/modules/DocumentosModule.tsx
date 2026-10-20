@@ -14,7 +14,7 @@ import {
   ChevronUp,
   UploadCloud
 } from 'lucide-react';
-import { ModalFooter, Card, Badge, Button, EmptyState, FilterTabs, Field, InputControl, SearchInput, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
+import { ModalFooter, Card, Badge, Button, EmptyState, FilterBar, FilterTabs, Field, InputControl, SearchInput, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
 
 interface DocumentosModuleProps {
   project: ProjectData;
@@ -150,7 +150,7 @@ export default function DocumentosModule({
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
       {/* CATEGORIES FILTER & SEARCH BAR */}
-      {docs.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-bojana-widget border border-line bg-white p-3 shadow-sm">
+      {docs.length > 0 && <FilterBar background="white">
         {/* Category Tabs */}
         <FilterTabs
           ariaLabel="Categorías de documentos"
@@ -162,7 +162,7 @@ export default function DocumentosModule({
 
         {/* Search Input */}
         <SearchInput aria-label="Buscar documentos" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-      </div>}
+      </FilterBar>}
 
       {/* 3. DOCUMENTS LIST WITH VISIBLE VERSIONING */}
       <div className="space-y-bojana-block">

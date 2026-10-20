@@ -31,6 +31,7 @@ import Library from "./components/Library";
 import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, ProjectProgressStatusBadge, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import BrandLogo from "./components/ui/BrandLogo";
+import { CompactNotice, InlineNotice, ToastNotice } from "./components/ui/Notifications";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
 import { persistClientPortalResponse, type ClientPortalResponse } from "./services/clientPortalService";
 
@@ -770,28 +771,14 @@ function ClientActions({
   onReviewDecision: () => void
 }) {
   const pendingActionCard = pendingAction ? (
-    <article className="rounded-2xl bg-clay-pale p-4">
-      <div className="flex items-start gap-3">
-        <span className="mt-1 size-2.5 shrink-0 rounded-full bg-clay" />
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-clay-dark">Respuesta pendiente</p>
-          <p className="mt-1 text-sm font-semibold text-ink">{pendingAction.title}</p>
-          <p className="mt-1 text-xs leading-5 text-ink-muted">{pendingAction.message}</p>
-          <p className="mt-2 text-xs text-ink-faint">{pendingAction.actionLabel} · Tarea: {pendingAction.taskTitle}{pendingAction.deadline ? ` · Vence ${pendingAction.deadline}` : ""}</p>
-        </div>
-      </div>
-      <Button className="mt-4 w-full" onClick={onReviewDecision}>
-        Revisar solicitud pendiente
-      </Button>
-    </article>
+    <InlineNotice tone="action" title={pendingAction.title} description={`${pendingAction.message}${pendingAction.deadline ? ` · Vence ${pendingAction.deadline}` : ""}`} actions={<Button size="s" variant="secondary" onClick={onReviewDecision}>Revisar</Button>} />
   ) : null
 
   if (!decision) {
     if (!pendingAction) return null
     return (
       <Card as="section">
-        <Eyebrow>Cliente</Eyebrow>
-        <Heading as="h2" className="mt-2 font-display text-2xl text-ink">Acciones y respuestas</Heading>
+        <Heading as="h2" className="bojana-heading-component">Acciones y respuestas</Heading>
         {pendingActionCard}
         {comments.length === 0 && !pendingAction ? (
           <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
@@ -819,8 +806,7 @@ function ClientActions({
     <Card as="section">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <Eyebrow>Cliente</Eyebrow>
-          <Heading as="h2" className="mt-2 font-display text-2xl text-ink">
+          <Heading as="h2" className="bojana-heading-component">
             Acciones y respuestas
           </Heading>
         </div>
@@ -834,44 +820,14 @@ function ClientActions({
       <div className="mt-6 space-y-3">
         {pendingActionCard}
         {isApproved ? (
-          <article className="rounded-2xl border border-mint/40 bg-mint-pale p-4">
-            <div className="flex items-start gap-3">
-              <span className="mt-1 size-2.5 shrink-0 rounded-full bg-forest" />
-              <div>
-                <p className="text-sm font-semibold text-forest">
-                  {decision.title}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-forest/80">
-                  Respuesta recibida: {decision.optionChosen || "Aprobado por el cliente"} &bull; Completado hoy
-                </p>
-              </div>
-            </div>
-            <Button className="mt-3 !px-0 !text-forest hover:!bg-transparent" onClick={onReviewDecision} variant="tertiary">
-              Ver detalle aprobado <Icon className="size-4" name="arrow" />
-            </Button>
-          </article>
+          <InlineNotice tone="success" filled title={decision.title} description={`Respuesta recibida: ${decision.optionChosen || "Aprobado por el cliente"} · Completado hoy`} actions={<Button size="s" variant="secondary" onClick={onReviewDecision}>Ver detalle</Button>} />
         ) : (
-          <article className="rounded-2xl bg-clay-pale p-4">
-            <div className="flex items-start gap-3">
-              <span className="mt-1 size-2.5 shrink-0 rounded-full bg-clay" />
-              <div>
-                <p className="text-sm font-semibold text-ink">
-                  {decision.title}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-ink-muted">
-                  Esperando respuesta del cliente &bull; Pendiente
-                </p>
-              </div>
-            </div>
-            <Button className="mt-4 w-full" onClick={onReviewDecision}>
-              Revisar opciones enviadas
-            </Button>
-          </article>
+          <InlineNotice tone="warning" title={decision.title} description="Esperando respuesta del cliente · Pendiente" actions={<Button size="s" onClick={onReviewDecision}>Revisar opciones enviadas</Button>} />
         )}
       </div>
       {comments.length > 0 && (
         <div className="mt-5 space-y-3 border-t border-line pt-5">
-          <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Comentarios del sitio</p>
+          <p className="bojana-heading-component">Comentarios del sitio</p>
           {comments.map(comment => (
             <article key={comment.id} className="rounded-bojana-widget border border-line bg-stone/40 p-4">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
@@ -890,7 +846,7 @@ function ClientActions({
 function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectData["hitosInternos"]> }) {
   return (
     <Card as="section">
-      <Eyebrow>Proximos 7 dias</Eyebrow>
+      <p className="bojana-heading-component">Próximos 7 días</p>
       <Heading as="h2" className="mt-2 font-display text-2xl text-ink">
         Hitos y entregas
       </Heading>
@@ -2178,7 +2134,7 @@ function ClientProjectTasksSection({
                     />
                   </div>}
                   <ClientTaskInlineDetails task={item.task} />
-                  {clientActionTaskId !== item.task.id && latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button><Button variant="secondary" onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "cambios_solicitados")}>Solicitar cambios</Button></div>}
+                  {clientActionTaskId !== item.task.id && latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && <div className="mt-4"><InlineNotice tone="action" title="Revisión disponible" description={`El estudio publicó “${latestUpdate.titulo}” para que la revises.`} actions={<><Button size="s" variant="secondary" onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "cambios_solicitados")}>Solicitar cambios</Button><Button size="s" onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "aprobada")}>Aprobar</Button></>} /></div>}
                 </div>}
               </div>
             })}
@@ -2353,6 +2309,7 @@ function ClientTaskInlineDetails({ task }: { task: import("./types").ExecutionTa
   }, {})
   const stageLabel = (stageId: string) => task.subetapas?.find(stage => stage.id === stageId)?.label
   return <div className="ml-4 mt-2 space-y-3 border-l-2 border-clay/40 pl-4 text-xs">
+    {task.estado === "Pendiente" && <InlineNotice tone="info" title={task.titulo} description="La tarea todavía no se completó." />}
     {task.descripcionTrabajo && <p className="text-sm leading-5 text-ink-muted">{task.descripcionTrabajo}</p>}
     {files.length > 0 && <div className="space-y-4">{Object.entries(filesByStage).map(([stageId, stageFiles]) => <div key={stageId} className="space-y-2">
       <p className="bojana-label">{stageId === "task" ? "Entregables de la tarea" : `Entregables · ${stageLabel(stageId) || "Etapa vinculada"}`}</p>
@@ -2895,7 +2852,7 @@ function ClientPortal({
                       disabled={clientMessageSending}
                       onChange={event => setClientMessage(event.target.value)}
                     />
-                    {clientMessageError && <p role="alert" className="text-sm text-red-700">{clientMessageError}</p>}
+                    {clientMessageError && <CompactNotice tone="error">{clientMessageError}</CompactNotice>}
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-[11px] text-ink-faint">El mensaje queda registrado en la actividad de este proyecto.</p>
                       <Button className="!min-h-9 !px-3 text-xs" disabled={!clientMessage.trim() || clientMessageSending} loading={clientMessageSending} type="submit" variant="secondary">
@@ -3314,10 +3271,7 @@ export default function App() {
 
       {/* Floating Refine UI Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-2xl bg-forest px-5 py-3.5 text-xs font-medium text-white shadow-xl animate-fade-in border border-white/10">
-          <span className="size-2 rounded-full bg-mint" />
-          <span>{toastMessage}</span>
-        </div>
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in"><ToastNotice message={toastMessage} /></div>
       )}
     </>
   )

@@ -1,9 +1,9 @@
 import BrandLogo from './BrandLogo';
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, Circle, CircleAlert, Eye, FolderOpen, LayoutGrid, LoaderCircle, MessageSquare, Plus, Search, Settings } from 'lucide-react';
+import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, Circle, CircleAlert, Eye, FolderOpen, LayoutGrid, LoaderCircle, MessageSquare, Plus, Search, Settings, Zap } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, ProgressDots, ProjectProgressStatusBadge, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
+import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, ProgressDots, ProjectProgressStatusBadge, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea, Tooltip } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Componentes',
@@ -359,15 +359,15 @@ export const StatusBadgeVariants: Story = {
           <div className="flex flex-wrap gap-2 p-4">{([{ label: 'Borrador', progress: 0 }, { label: 'En progreso', progress: 60 }, { label: 'En revisión', progress: 75 }, { label: 'Requiere ajustes', progress: 60 }, { label: 'Requiere acción', progress: 85 }, { label: 'Completado', progress: 100 }] as const).map(item => <ProjectProgressStatusBadge key={item.label} status={item.label} progress={item.progress} />)}</div>
         </div>
         <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-          <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas dentro del proyecto · admin</p><p className="mt-1 text-xs text-ink-muted">Estado como {adminTaskDisplay === 'solo-icono' ? 'icono solo' : 'icono y texto'} · tamaño S · sin punto</p></div>
+          <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas dentro del proyecto · admin</p><p className="mt-1 text-xs text-ink-muted">Estado como {adminTaskDisplay === 'solo-icono' ? 'icono solo' : 'icono y texto'} · tamaño S · tooltip al pasar o enfocar</p></div>
           {([
-            { name: 'Definición de alcance', state: 'En curso', icon: LoaderCircle },
-            { name: 'Revisión técnica', state: 'En revisión', icon: Eye },
-            { name: 'Corrección solicitada', state: 'Requiere ajustes', icon: CircleAlert },
-            { name: 'Esperar respuesta', state: 'Esperando al cliente', icon: MessageSquare },
-            { name: 'Documentación', state: 'Pendiente', icon: Circle },
-            { name: 'Planta general', state: 'Completado', icon: CheckCircle2 },
-          ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><StatusBadge state={task.state} audience="studio" size="s" showDot={false} icon={task.icon} iconOnly={adminTaskDisplay === 'solo-icono'} /></div>)}
+            { name: 'Definición de alcance', state: 'En curso', icon: Zap, tooltip: 'En curso' },
+            { name: 'Revisión técnica', state: 'En revisión', icon: Eye, tooltip: 'En revisión' },
+            { name: 'Corrección solicitada', state: 'Requiere ajustes', icon: CircleAlert, tooltip: 'Requiere ajustes' },
+            { name: 'Esperar respuesta', state: 'Esperando al cliente', icon: MessageSquare, tooltip: 'Esperando cliente' },
+            { name: 'Documentación', state: 'Pendiente', icon: Circle, tooltip: 'Por completar', tone: 'info' },
+            { name: 'Planta general', state: 'Completado', icon: CheckCircle2, tooltip: 'Completada' },
+          ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><Tooltip content={task.tooltip}><StatusBadge state={task.state} audience="studio" tone={task.tone} ariaLabel={task.tooltip} size="s" showDot={false} icon={task.icon} iconOnly={adminTaskDisplay === 'solo-icono'} /></Tooltip></div>)}
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
           <div className="overflow-hidden rounded-bojana-card border border-line bg-white">

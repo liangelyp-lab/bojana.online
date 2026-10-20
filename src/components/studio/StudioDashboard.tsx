@@ -179,10 +179,7 @@ export default function StudioDashboard({
       {/* 3. ACTIVIDAD RECIENTE */}
       <section className="space-y-4">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-            Historial de eventos
-          </p>
-          <h2 className="mt-1 font-display text-2xl text-ink">
+          <h2 className="font-display text-2xl text-ink">
             Actividad reciente
           </h2>
         </div>

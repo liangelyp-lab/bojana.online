@@ -153,6 +153,39 @@ export function Button({
   );
 }
 
+export function Tooltip({ content, children, className = '' }: { content: React.ReactNode; children: React.ReactNode; className?: string }) {
+  const tooltipId = useId();
+  const anchorRef = useRef<HTMLSpanElement>(null);
+  const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState<React.CSSProperties>({});
+  const updatePosition = () => {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (rect) setPosition({ left: rect.left + rect.width / 2, top: rect.bottom + 10 });
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    updatePosition();
+    const reposition = () => updatePosition();
+    window.addEventListener('resize', reposition);
+    window.addEventListener('scroll', reposition, true);
+    return () => {
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+    };
+  }, [open]);
+
+  const show = () => {
+    updatePosition();
+    setOpen(true);
+  };
+
+  return <span ref={anchorRef} tabIndex={0} aria-describedby={tooltipId} className={`bojana-tooltip-anchor focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest ${className}`} onFocus={show} onBlur={() => setOpen(false)} onMouseEnter={show} onMouseLeave={() => setOpen(false)}>
+    {children}
+    {typeof document !== 'undefined' && createPortal(<span id={tooltipId} role="tooltip" aria-hidden={!open} className={`bojana-tooltip ${open ? 'bojana-tooltip-visible' : ''}`} style={position}>{content}</span>, document.body)}
+  </span>;
+}
+
 export function Checkbox({
   id,
   label,
@@ -262,6 +295,41 @@ export function Card({ children, as: Component = 'div', variant = 'default', pad
       <div id={contentId} hidden={!isExpanded} className={paddings[padding]}>{isExpanded && children}</div>
     </> : children}
   </Component>;
+}
+
+export function ExpandableSection({ children, header, headerActions, expanded, defaultExpanded = false, onExpandedChange, expandLabel = 'sección', id, grouped = false, focused = false, className = '', bodyClassName = '' }: {
+  children: React.ReactNode;
+  header: React.ReactNode;
+  headerActions?: React.ReactNode;
+  expanded?: boolean;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  expandLabel?: string;
+  id?: string;
+  grouped?: boolean;
+  focused?: boolean;
+  className?: string;
+  bodyClassName?: string;
+}) {
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+  const contentId = useId();
+  const isExpanded = expanded ?? internalExpanded;
+  const toggle = () => {
+    const next = !isExpanded;
+    if (expanded === undefined) setInternalExpanded(next);
+    onExpandedChange?.(next);
+  };
+
+  return <section id={id} data-focused={focused || undefined} className={`bojana-expandable-section border-0 ${grouped ? 'border-b border-line last:border-b-0' : ''} bg-transparent transition ${focused ? 'bojana-expandable-section-focused' : ''} ${className}`}>
+    <div className={`bojana-card-header ${isExpanded ? 'bojana-card-header-open' : ''}`}>
+      <button type="button" className="bojana-card-toggle bojana-card-compact-toggle" onClick={toggle} aria-expanded={isExpanded} aria-controls={contentId} aria-label={`${isExpanded ? 'Contraer' : 'Expandir'} ${expandLabel}`}>
+        {isExpanded ? <ChevronUp className="size-4 shrink-0" aria-hidden="true" /> : <ChevronDown className="size-4 shrink-0" aria-hidden="true" />}
+        <span className="min-w-0 flex-1 text-left">{header}</span>
+      </button>
+      {headerActions && <div className="bojana-card-header-actions">{headerActions}</div>}
+    </div>
+    <div id={contentId} hidden={!isExpanded} className={`p-0 ${bodyClassName}`}>{isExpanded && children}</div>
+  </section>;
 }
 
 /** A card whose entire surface selects an item; never nest interactive controls. */
@@ -510,7 +578,6 @@ export function StatusBadge({
       className={`inline-flex items-center rounded-full ${filled || stateTone === 'danger' ? '' : borderWidths[size]} font-semibold transition-colors ${contentClasses} ${colorClasses} ${className}`}
       role={iconOnly ? 'img' : undefined}
       aria-label={ariaLabel ?? (iconOnly ? label || undefined : undefined)}
-      title={iconOnly ? (ariaLabel ?? label) || undefined : undefined}
     >
       {Icon ? <Icon size={buttonIconPixels[size]} aria-hidden="true" /> : showDot && <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />}
       {!iconOnly && <span className="inline-flex items-center gap-1.5">{children ?? label}</span>}
@@ -645,7 +712,7 @@ export function HistoryRow({
   return <article className={`grid gap-3 border-b border-line px-5 py-4 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center sm:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`} onClick={onClick}>
     <p className="text-xs font-semibold text-ink-faint">{date}</p>
     <div className="min-w-0">
-      <h3 className="truncate text-sm font-semibold text-ink">{title}</h3>
+      <h3 className="bojana-heading-section truncate font-normal">{title}</h3>
       {description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-muted">{description}</p>}
     </div>
     <div className="flex items-center justify-end gap-2">{status}{actions}</div>

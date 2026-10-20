@@ -155,7 +155,7 @@ export default function AvancesModule({
                     </span>
                   </div>
 
-                  <h3 className="font-display text-2xl font-semibold text-ink pt-0.5">
+                  <h3 className="bojana-heading-section pt-0.5">
                     {post.titulo}
                   </h3>
                 </div>
