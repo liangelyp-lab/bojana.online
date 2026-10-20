@@ -16,7 +16,6 @@ const typography = [
   ['Etiqueta', 'bojana-label', 'Estado del proyecto'],
   ['Caption', 'bojana-caption', 'Actualizado hoy a las 10:30'],
   ['Editorial', 'bojana-editorial text-xl text-ink', 'Cada decisión construye el próximo paso.'],
-  ['Métrica', 'bojana-metric', '68%'],
 ] as const;
 
 export const Typography: Story = {

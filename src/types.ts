@@ -166,6 +166,10 @@ export interface DecisionItem {
   comentarios: DecisionComment[];
   archivoAdjuntoUrl?: string;
   origenMaterialId?: string; // Si proviene de Materiales & Propuestas
+  requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision";
+  accionRequeridaTexto?: string;
+  fechaLimite?: string;
+  adjuntos?: { id: string; nombre: string; url?: string; tipo?: "pdf" | "imagen" | "otro" }[];
 }
 
 // 7. Materiales & Propuestas

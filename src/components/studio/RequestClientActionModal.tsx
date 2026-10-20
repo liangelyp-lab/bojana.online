@@ -3,7 +3,8 @@ import {
   ExecutionTask,
   ClientActionRequired,
   ClientActionType,
-  ClientActionAlternative
+  ClientActionAlternative,
+  TaskUpdateAction
 } from '../../types';
 import {
   X,
@@ -20,7 +21,9 @@ import { createSecureProjectLink } from '../../services/projectAccess';
 
 interface RequestClientActionModalProps {
   isOpen: boolean;
-  task: ExecutionTask;
+  task: ExecutionTask | null;
+  availableTasks?: { task: ExecutionTask; context: string }[];
+  onTaskChange?: (task: ExecutionTask | null) => void;
   projectName: string;
   projectId: string;
   clientName: string;
@@ -28,7 +31,7 @@ interface RequestClientActionModalProps {
   prefill?: {
     titulo: string;
     descripcion: string;
-    accion?: 'borrador' | 'publicar_avance' | 'revision' | 'solicitud_informacion' | 'publicar_terminar';
+    accion?: TaskUpdateAction;
     recursos?: string;
     fechaLimiteRespuesta: string;
     opciones?: ClientActionAlternative[];
@@ -39,42 +42,36 @@ interface RequestClientActionModalProps {
 
 const clientActionEmailConfig: Record<ClientActionType, {
   label: string;
-  modalTitle: string;
   title: (taskTitle: string) => string;
   message: string;
   actionText: string;
 }> = {
   aprobar_rechazar: {
     label: 'Aprobar / rechazar',
-    modalTitle: 'Solicitar aprobación o rechazo al comitente',
     title: (taskTitle) => `Aprobación de ${taskTitle}`,
     message: 'Necesitamos tu aprobación o rechazo para continuar con el desarrollo final y la siguiente etapa del proyecto.',
     actionText: 'Aprobar propuesta'
   },
   elegir_alternativa: {
     label: 'Elegir alternativa',
-    modalTitle: 'Solicitar elección de alternativa al comitente',
     title: (taskTitle) => `Elegir alternativa para ${taskTitle}`,
     message: 'Revisá las alternativas disponibles y elegí una opción para que podamos continuar con el proyecto.',
     actionText: 'Elegir alternativa'
   },
   enviar_informacion: {
     label: 'Enviar información',
-    modalTitle: 'Solicitar información al comitente',
     title: (taskTitle) => `Información requerida: ${taskTitle}`,
     message: 'Necesitamos que nos envíes la información solicitada para poder continuar con el proyecto.',
     actionText: 'Enviar información'
   },
   subir_documento: {
     label: 'Subir documento',
-    modalTitle: 'Solicitar documento al comitente',
     title: (taskTitle) => `Documento requerido: ${taskTitle}`,
     message: 'Necesitamos que subas el documento solicitado para completar esta etapa del proyecto.',
     actionText: 'Subir documento'
   },
   confirmar_decision: {
     label: 'Confirmar decisión',
-    modalTitle: 'Solicitar confirmación al comitente',
     title: (taskTitle) => `Confirmar decisión: ${taskTitle}`,
     message: 'Necesitamos que confirmes esta decisión para dejarla registrada y continuar con el proyecto.',
     actionText: 'Confirmar decisión'
@@ -84,6 +81,8 @@ const clientActionEmailConfig: Record<ClientActionType, {
 export default function RequestClientActionModal({
   isOpen,
   task,
+  availableTasks = [],
+  onTaskChange,
   projectName,
   projectId,
   clientName,
@@ -92,7 +91,7 @@ export default function RequestClientActionModal({
   onClose,
   onSaveAction
 }: RequestClientActionModalProps) {
-  const existing = task.accionCliente;
+  const existing = task?.accionCliente;
 
 
   const [activeTab, setActiveTab] = useState<'config' | 'email_preview'>('config');
@@ -107,22 +106,20 @@ export default function RequestClientActionModal({
   const initialEmailConfig = clientActionEmailConfig[initialTipo];
   const prefillMessage = [prefill?.descripcion, prefill?.recursos].filter(Boolean).join('\n\nRecursos de la actualización:\n');
   const [tipo, setTipo] = useState<ClientActionType>(initialTipo);
-  const [titulo, setTitulo] = useState(prefill?.titulo || existing?.titulo || initialEmailConfig.title(task.titulo));
+  const [titulo, setTitulo] = useState(prefill?.titulo || existing?.titulo || initialEmailConfig.title(task?.titulo || projectName));
   const [mensaje, setMensaje] = useState(prefillMessage || existing?.mensaje || initialEmailConfig.message);
-  const [accionTexto, setAccionTexto] = useState(updateTipo ? initialEmailConfig.actionText : existing?.accionRequeridaTexto || initialEmailConfig.actionText);
   const [fechaLimite, setFechaLimite] = useState(existing?.fechaLimite || prefill?.fechaLimiteRespuesta || '');
   const [bloquear, setBloquear] = useState(existing?.bloquearSiguientesEtapas ?? true);
-  const [pesoPct, setPesoPct] = useState(existing?.pesoPorcentaje ?? 10);
-  const [subetapaId, setSubetapaId] = useState(existing?.subetapaId || task.subetapas?.find((stage) => !stage.completada)?.id || '');
+  const [subetapaId, setSubetapaId] = useState(existing?.subetapaId || task?.subetapas?.find((stage) => !stage.completada)?.id || '');
 
   const emailConfig = clientActionEmailConfig[tipo];
+  const accionTexto = emailConfig.actionText;
 
   const handleTypeChange = (nextType: ClientActionType) => {
     const nextConfig = clientActionEmailConfig[nextType];
     setTipo(nextType);
-    setTitulo(nextConfig.title(task.titulo));
+    setTitulo(nextConfig.title(task?.titulo || projectName));
     setMensaje(nextConfig.message);
-    setAccionTexto(nextConfig.actionText);
   };
 
   // Alternatives state (if tipo === 'elegir_alternativa')
@@ -187,7 +184,7 @@ export default function RequestClientActionModal({
       accionRequeridaTexto: accionTexto.trim() || 'Aprobar',
       fechaLimite: fechaLimite.trim(),
       bloquearSiguientesEtapas: bloquear,
-      pesoPorcentaje: Number(pesoPct) || 10,
+      pesoPorcentaje: existing?.pesoPorcentaje ?? 10,
       subetapaId: subetapaId || undefined,
       alternativas: tipo === 'elegir_alternativa' && alternativas.length > 0 ? alternativas : undefined,
       adjuntos,
@@ -236,7 +233,7 @@ export default function RequestClientActionModal({
     <>
     <Modal open={isOpen} onClose={onClose} title="Solicitar acción al cliente" customContent maxWidth="max-w-2xl" panelClassName="flex flex-col overflow-hidden">
         {/* Header */}
-        <ModalHeader onClose={onClose} title={emailConfig.modalTitle} />
+        <ModalHeader className="!min-h-16 !pt-3 !pb-2" onClose={onClose} title="Solicitar acción" />
 
         {/* Tab selection */}
         <Tabs
@@ -254,35 +251,39 @@ export default function RequestClientActionModal({
           {activeTab === 'config' ? (
             <div className="space-y-bojana-block animate-fade-in">
               {/* Type Selector */}
-              <div>
-                <label className="font-sans text-bojana-muted font-medium block mb-1.5 uppercase text-xs">
-                  ¿Qué tipo de acción necesitas del cliente?
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-bojana-inside">
-                  {[
-                    { id: 'aprobar_rechazar', label: 'Aprobar / rechazar' },
-                    { id: 'elegir_alternativa', label: 'Elegir alternativa' },
-                    { id: 'enviar_informacion', label: 'Enviar información' },
-                    { id: 'subir_documento', label: 'Subir documento' },
-                    { id: 'confirmar_decision', label: 'Confirmar decisión' },
-                  ].map((t) => (
-                    <Button variant={tipo === t.id ? 'primary' : 'secondary'}
-                      key={t.id}
-                      type="button"
-                      onClick={() => handleTypeChange(t.id as ClientActionType)}
-                      ariaPressed={tipo === t.id}
-                      className="w-full"
-                    >
-                      {t.label}
-                    </Button>
-                  ))}
+              <div className="grid grid-cols-1 gap-bojana-block sm:grid-cols-2">
+                <div>
+                  <label className="bojana-field-label mb-1" htmlFor="action-task-scope">
+                    Tarea asociada (opcional)
+                  </label>
+                  <SelectControl
+                    id="action-task-scope"
+                    value={task?.id || ""}
+                    onChange={(event) => {
+                      const nextTask = availableTasks.find(({ task: item }) => item.id === event.target.value)?.task || null
+                      if (titulo === emailConfig.title(task?.titulo || projectName)) setTitulo(emailConfig.title(nextTask?.titulo || projectName))
+                      onTaskChange?.(nextTask)
+                    }}
+                  >
+                    <option value="">Sin tarea asociada · Notificación general</option>
+                    {availableTasks.map(({ task: item, context }) => <option key={item.id} value={item.id}>{context ? `${context} · ` : ""}{item.titulo}</option>)}
+                  </SelectControl>
+                </div>
+
+                <div>
+                  <label className="bojana-field-label mb-1" htmlFor="action-type-select">
+                    ¿Qué tipo de acción necesitas del cliente?
+                  </label>
+                  <SelectControl id="action-type-select" value={tipo} onChange={(event) => handleTypeChange(event.target.value as ClientActionType)}>
+                    {Object.entries(clientActionEmailConfig).map(([id, config]) => <option key={id} value={id}>{config.label}</option>)}
+                  </SelectControl>
                 </div>
               </div>
 
               {/* Title & Message */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-bojana-block">
                 <div className="sm:col-span-2">
-                  <label className="font-sans text-bojana-muted font-medium block mb-1">
+                  <label className="bojana-field-label mb-1">
                     Título de la solicitud
                   </label>
                   <InputControl
@@ -296,31 +297,18 @@ export default function RequestClientActionModal({
 
                 <div className="sm:col-span-2">
                   <label className="font-sans text-bojana-muted font-medium block mb-1">
-                    Mensaje explicativo para el comitente
+                    {tipo === 'enviar_informacion' ? '¿Qué información debe enviar?' : tipo === 'subir_documento' ? '¿Qué documento debe subir?' : tipo === 'elegir_alternativa' ? '¿Qué debe tener en cuenta para elegir?' : tipo === 'confirmar_decision' ? '¿Qué decisión debe confirmar?' : 'Mensaje explicativo para el comitente'}
                   </label>
                   <TextAreaControl
                     rows={2}
                     value={mensaje}
                     onChange={(e) => setMensaje(e.target.value)}
-                    placeholder="Explicá con claridad qué se está presentando y qué decisión se espera..."
+                    placeholder={tipo === 'enviar_informacion' ? 'Detallá qué información falta y para qué se necesita...' : tipo === 'subir_documento' ? 'Indicá qué documento debe compartir el comitente...' : tipo === 'elegir_alternativa' ? 'Explicá los criterios para comparar las alternativas...' : tipo === 'confirmar_decision' ? 'Describí la decisión que debe quedar confirmada...' : 'Explicá con claridad qué se está presentando y qué decisión se espera...'}
                     className="w-full bg-bojana-surface p-2.5 text-bojana-ink leading-relaxed"
                   />
                 </div>
 
-                <div>
-                  <label className="font-sans text-bojana-muted font-medium block mb-1">
-                    Texto del botón de acción en portal
-                  </label>
-                  <InputControl
-                    type="text"
-                    value={accionTexto}
-                    onChange={(e) => setAccionTexto(e.target.value)}
-                    placeholder="ej: Aprobar propuesta"
-                    className="w-full bg-bojana-surface p-2.5 text-bojana-ink"
-                  />
-                </div>
-
-                <div>
+                <div className="sm:col-span-2">
                   <label className="font-sans text-bojana-muted font-medium block mb-1">
                     Fecha límite sugerida
                   </label>
@@ -449,7 +437,7 @@ export default function RequestClientActionModal({
               </div>
 
               {/* Blocking & Weight Options */}
-              <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3 font-sans text-xs">
+              {task && <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-4 space-y-3 font-sans text-xs">
                 <Checkbox
                   label={<><strong className="block font-sans text-bojana-ink">Bloquear las siguientes etapas hasta recibir respuesta</strong><span className="bojana-caption mt-0.5 block">Indica al sistema y al cliente que la continuación de la obra o documentación depende de esta decisión.</span></>}
                   checked={bloquear}
@@ -467,21 +455,7 @@ export default function RequestClientActionModal({
                   </label>
                 )}
 
-                <div className="pt-2 border-t border-bojana-line flex items-center justify-between text-bojana-muted">
-                  <span>Porcentaje que desbloquea la aprobación:</span>
-                  <div className="flex items-center gap-bojana-inside">
-                    <InputControl
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={pesoPct}
-                      onChange={(e) => setPesoPct(Number(e.target.value))}
-                      className="w-16 bg-bojana-surface p-1 text-center font-medium text-bojana-ink"
-                    />
-                    <span>%</span>
-                  </div>
-                </div>
-              </div>
+              </div>}
             </div>
           ) : (
             /* Tab 2: EMAIL PREVIEW */
@@ -512,7 +486,7 @@ export default function RequestClientActionModal({
                   <span className="font-sans font-medium text-xs uppercase tracking-normal text-bojana-ink">
                     BOJANA ESTUDIO
                   </span>
-                  <StatusBadge tone="neutral" size="s" showDot={false}>
+                  <StatusBadge tone="waiting" size="s" showDot={false}>
                     {emailConfig.label}
                   </StatusBadge>
                 </div>
@@ -531,9 +505,9 @@ export default function RequestClientActionModal({
 
                 {/* Direct CTA */}
                 <div className="pt-2 text-center">
-                  <div className="bojana-widget inline-flex items-center justify-center gap-bojana-inside px-6 py-3 rounded-bojana-widget bg-bojana-ink text-bojana-inverse font-sans text-xs font-medium shadow-bojana-widget">
-                    <span>{accionTexto} desde el portal</span>
-                    <ExternalLink className="w-3.5 h-3.5 text-bojana-ink" />
+                  <div className="bojana-widget relative mx-auto flex w-full max-w-xs items-center justify-center rounded-bojana-widget bg-bojana-ink px-10 py-3 font-sans text-xs font-medium text-bojana-inverse shadow-bojana-widget">
+                    <span className="text-center">{accionTexto} desde el portal</span>
+                    <ExternalLink className="absolute right-4 size-3.5 text-bojana-inverse" />
                   </div>
                   <p className="text-xs font-sans text-bojana-muted mt-2">
                     El botón dirige directamente a esta solicitud interactiva.
@@ -541,7 +515,7 @@ export default function RequestClientActionModal({
                 </div>
 
                 <div className="border-t border-bojana-line pt-4 text-xs font-sans text-bojana-muted flex items-center justify-between">
-                  <span>Fecha límite: {fechaLimite}</span>
+                  <span>Fecha límite: {fechaLimite.trim() || 'N/A'}</span>
                   <span>info@bojana.com.ar</span>
                 </div>
               </div>
@@ -553,13 +527,6 @@ export default function RequestClientActionModal({
         {/* Modal Footer */}
         <ModalFooter>
           {sendError && <p role="alert" className="w-full text-xs text-bojana-error sm:absolute sm:bottom-20 sm:left-5">{sendError}</p>}
-          <Button variant="tertiary"
-            type="button"
-            onClick={onClose}
-          >
-            Cancelar
-          </Button>
-
           <div className="flex flex-col items-stretch gap-bojana-inside w-full sm:w-auto sm:flex-row sm:items-center sm:justify-end">
             <Button variant="secondary"
               type="button"

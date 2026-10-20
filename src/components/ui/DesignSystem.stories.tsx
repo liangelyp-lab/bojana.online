@@ -1,9 +1,9 @@
 import BrandLogo from './BrandLogo';
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, Circle, CircleAlert, Eye, FolderOpen, LayoutGrid, LoaderCircle, MessageSquare, Plus, Search, Settings, Zap } from 'lucide-react';
+import { ArrowLeft, Bell, CalendarDays, CheckCircle2, Circle, CircleAlert, Clock3, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, ProgressDots, ProjectProgressStatusBadge, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea, Tooltip } from './DesignSystem';
+import { Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, ProjectProgressStatusBadge, SearchInput, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, Tooltip } from './DesignSystem';
 
 type DesignSystemStoryArgs = Record<string, any>;
 
@@ -16,7 +16,7 @@ type Story = StoryObj<DesignSystemStoryArgs>;
 
 export const Buttons: Story = {
   args: {
-    label: 'Button',
+    label: 'Guardar cambios',
     variant: "primary",
     size: "m",
     showIcon: true,
@@ -27,15 +27,15 @@ export const Buttons: Story = {
     pressed: false,
   },
   argTypes: {
-    label: { control: 'text', description: 'Visible button label' },
-    variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger', 'icon', 'link'], description: 'Visual button variant (link for actions styled as a link)' },
+    label: { control: 'text', description: 'Texto visible del botón' },
+    variant: { control: 'select', options: ['primary', 'secondary', 'tertiary', 'danger', 'icon', 'link'], description: 'Estilo del botón' },
     size: { control: 'select', options: ['xs', 's', 'm', 'l'], description: 'Button size' },
-    showIcon: { control: 'boolean', description: 'Show an icon in the button' },
+    showIcon: { control: 'boolean', description: 'Mostrar un ícono' },
     icon: { control: 'select', options: Object.keys(lucideIcons), description: 'Icono Lucide del botón' },
-    iconPosition: { control: 'select', options: ['left', 'right'], description: 'Icon position' },
+    iconPosition: { control: 'select', options: ['left', 'right'], description: 'Posición del ícono' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
-    pressed: { control: 'boolean', description: 'Sets aria-pressed and shows the pressed state' },
+    pressed: { control: 'boolean', description: 'Expone el estado presionado del control' },
   },
   render: ({ label, variant, size, showIcon, icon: iconName, iconPosition, disabled, loading, pressed }: DesignSystemStoryArgs) => {
     const Icon = lucideIcons[iconName as keyof typeof lucideIcons] ?? Search;
@@ -55,9 +55,9 @@ export const Buttons: Story = {
 
 export const Checkboxes: Story = {
   render: () => <div className="max-w-xl space-y-6">
-    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Selection</h3><Checkbox label="Unchecked" /><Checkbox label="Checked" defaultChecked /><Checkbox label="Indeterminate" indeterminate /></section>
-    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">States</h3><Checkbox label="Disabled unchecked" disabled /><Checkbox label="Disabled checked" checked disabled /><Checkbox label="With description" description="Additional context for the option." /></section>
-    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Portal patterns</h3><Checkbox label="Keep me signed in" /><Checkbox label="Portal access" description="Allow this contact to access the portal." /><Checkbox label="Visible to client" /><Checkbox label="Completed checklist item" checked /></section>
+    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Selección</h3><Checkbox label="Sin marcar" /><Checkbox label="Marcada" defaultChecked /><Checkbox label="Parcial" indeterminate /></section>
+    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Estados deshabilitados y ayuda</h3><Checkbox label="Sin marcar" disabled /><Checkbox label="Marcada" checked disabled /><Checkbox label="Con descripción" description="Información adicional para esta opción." /></section>
+    <section className="space-y-3"><h3 className="text-sm font-semibold text-ink">Opciones del portal</h3><Checkbox label="Mantener la sesión iniciada" /><Checkbox label="Acceso al portal" description="Permitir que este contacto acceda al portal." /><Checkbox label="Visible para el comitente" /><Checkbox label="Tarea completada" checked /></section>
   </div>,
 };
 
@@ -68,31 +68,18 @@ export const SearchField: Story = {
 };
 
 export const NotificationIndicator: Story = {
-  name: 'Notification Indicator',
-  args: { count: 3, attached: true, component: 'icono', size: 'm', mode: 'count' },
-  argTypes: { count: { control: { type: 'number', min: 0, step: 1 }, description: 'Cantidad de notificaciones' }, attached: { control: 'boolean', description: 'Mostrar en la esquina superior derecha de un componente' }, component: { control: 'select', options: ['icono', 'botón', 'badge', 'card'], description: 'Componente de ejemplo' }, size: { control: 'select', options: ['s', 'm', 'l'], description: 'Tamaño del indicador' }, mode: { control: 'select', options: ['count', 'icon'], description: 'Mostrar número o campanita' } },
-  render: ({ count, attached, component, size, mode }: DesignSystemStoryArgs) => {
-    const examples = {
-      icono: <Button variant="icon" size="m" ariaLabel="Notificaciones"><PortalIcon icon={Bell} /></Button>,
-      botón: <Button>Mensajes</Button>,
-      badge: <Badge tone="active">En curso</Badge>,
-      card: <Card><span className="text-sm font-semibold">Proyecto</span></Card>,
-    };
-    return attached ? <NotificationAnchor count={count} size={size} mode={mode}>{examples[component as keyof typeof examples]}</NotificationAnchor> : <NotificationCount count={count} size={size} mode={mode} />;
-  },
+  name: 'Campanita de notificaciones',
+  args: { count: 3 },
+  argTypes: { count: { control: { type: 'number', min: 0, step: 1 }, description: 'Notificaciones pendientes' } },
+  render: ({ count }: DesignSystemStoryArgs) => <NotificationAnchor count={count} size="s"><Button variant="icon" size="m" ariaLabel="Notificaciones"><PortalIcon icon={Bell} /></Button></NotificationAnchor>,
 };
 
 export const Shadows: Story = {
   render: () => <div className="max-w-4xl space-y-6"><header><p className="bojana-label">Fundamentos</p><h1 className="bojana-heading-page mt-2">Sombras</h1><p className="mt-2 text-sm text-ink-muted">Cuatro niveles de elevación para el portal.</p></header><div className="grid gap-6 p-4 sm:grid-cols-2 lg:grid-cols-4">{([{ name: 'XS', token: '--shadow-bojana-xs', usage: 'Campos activos' }, { name: 'S', token: '--shadow-bojana-sm', usage: 'Elementos sutiles' }, { name: 'M', token: '--shadow-bojana-md', usage: 'Cards en hover' }, { name: 'L', token: '--shadow-bojana-lg', usage: 'Paneles y overlays' }] as const).map(shadow => <div key={shadow.name} className="rounded-2xl bg-white p-5" style={{ boxShadow: `var(${shadow.token})` }}><p className="text-sm font-semibold text-ink">{shadow.name}</p><p className="mt-2 text-xs text-ink-muted">{shadow.usage}</p><code className="mt-3 block break-all text-[10px] text-ink-faint">{shadow.token}</code></div>)}</div></div>,
 };
 
-export const CardsAndBadges: Story = {
-  render: () => <div className="space-y-4"><div className="flex flex-wrap gap-2"><Badge>Neutral</Badge><Badge tone="active">Active</Badge><Badge tone="waiting">Pending</Badge><Badge tone="danger">Urgent</Badge></div>
-    <div className="grid gap-4 sm:grid-cols-2">{(['default', 'soft', 'waiting', 'dark'] as const).map(variant => <Card key={variant} variant={variant}><strong>{variant} card</strong><p>Example content for the portal.</p></Card>)}</div></div>,
-};
-
 export const ProjectListCardStory: Story = {
-  name: 'Project List Card',
+  name: 'Tarjeta de proyecto',
   args: { showDiscipline: false, progress: 60, status: 'En progreso' },
   argTypes: {
     showDiscipline: { control: 'boolean', description: 'Mostrar la disciplina junto al estado y el avance' },
@@ -159,16 +146,6 @@ export const HistoryRowStory: Story = {
   render: ({ showDescription, showStatus, showAction, interactive }: DesignSystemStoryArgs) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><HistoryRow date="18 OCT" title="Planos arquitectónicos actualizados" description={showDescription ? 'Bojana Estudio publicó la revisión 03 para el cliente.' : undefined} status={showStatus ? <StatusBadge tone="gray" size="s" showDot={false}>Actualización</StatusBadge> : undefined} actions={showAction ? <Button variant="icon" size="s" ariaLabel="Ver detalle">→</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>,
 };
 
-export const Forms: Story = {
-  render: () => <form className="max-w-md space-y-4" onSubmit={event => event.preventDefault()}>
-    <Field label="Project name" placeholder="e.g. Country house" required />
-    <Field label="Disabled field" value="Read only" disabled readOnly />
-    <Select label="Status" defaultValue="progress"><option value="progress">In progress</option><option value="paused">Paused</option></Select>
-    <TextArea label="Description" placeholder="Tell us about the project" autoGrow />
-    <Button type="submit">Save</Button>
-  </form>,
-};
-
 function TabsExample({ divider = true }: { divider?: boolean }) {
   const [active, setActive] = useState('general');
   const tabs = [{ id: 'general', label: 'General' }, { id: 'detalles', label: 'Detalles' }, { id: 'archivos', label: 'Archivos' }];
@@ -181,17 +158,6 @@ export const StatusBarStory: Story = {
   args: { value: 60, size: 'm', mode: 'granular', color: 'forest', trackColor: 'white', showLabels: true, expandOnClick: true, showModeToggle: true, showMetadata: true, taskStatusDisplay: 'icon-count', showPercentage: true, showPhaseTaskSummary: true },
   argTypes: { value: { control: { type: 'number', min: 0, max: 100, step: 1 } }, size: { control: 'select', options: ['s', 'm', 'l'] }, mode: { control: 'select', options: ['granular', 'completo'], description: 'Mostrar progreso por segmentos o como total' }, color: { control: 'select', options: ['forest', 'clay', 'mint', 'warning', 'ink', 'stone'], description: 'Color del progreso' }, trackColor: { control: 'select', options: ['same', 'white'], description: 'Color del tramo pendiente' }, showLabels: { control: 'boolean' }, expandOnClick: { control: 'boolean', description: 'Expandir el progreso de la sección seleccionada' }, showModeToggle: { control: 'boolean', description: 'Permitir alternar entre progreso total y por fases con el chip de intercambio' }, showMetadata: { control: 'boolean', description: 'Mostrar los contadores de estado de las tareas' }, showPercentage: { control: 'boolean', description: 'Mostrar el porcentaje grande encima de la barra' }, showPhaseTaskSummary: { control: 'boolean', description: 'Mostrar fases y tareas en un badge blanco' }, taskStatusDisplay: { control: 'select', options: ['icon-count', 'label-count'], description: 'Formato de las etiquetas de estado' } },
   render: ({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }: DesignSystemStoryArgs) => <StatusBarStoryExample value={value} size={size} mode={mode} color={color} trackColor={trackColor} showLabels={showLabels} expandOnClick={expandOnClick} showModeToggle={showModeToggle} showMetadata={showMetadata} taskStatusDisplay={taskStatusDisplay} showPercentage={showPercentage} showPhaseTaskSummary={showPhaseTaskSummary} />,
-};
-
-export const ProgressDotsStory: Story = {
-  name: 'Progress Dots',
-  args: { total: 8, completed: 3, size: 'm' },
-  argTypes: {
-    total: { control: { type: 'number', min: 1, max: 20, step: 1 }, description: 'Cantidad total de puntos' },
-    completed: { control: { type: 'number', min: 0, max: 20, step: 1 }, description: 'Puntos completados en verde success' },
-    size: { control: 'select', options: ['s', 'm', 'l'] },
-  },
-  render: ({ total, completed, size }: DesignSystemStoryArgs) => <div className="flex min-h-32 items-center rounded-bojana-widget border border-line bg-canvas-light p-6"><ProgressDots total={total} completed={completed} size={size} ariaLabel={`${completed} de ${total} completados`} /></div>,
 };
 
 function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }: { value: number; size: 's' | 'm' | 'l'; mode: 'granular' | 'completo'; color: 'forest' | 'clay' | 'mint' | 'warning' | 'ink' | 'stone'; trackColor: 'same' | 'white'; showLabels: boolean; expandOnClick: boolean; showModeToggle: boolean; showMetadata: boolean; taskStatusDisplay: 'icon-count' | 'label-count'; showPercentage: boolean; showPhaseTaskSummary: boolean }) {
@@ -210,30 +176,21 @@ function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabel
 
 function FilterBarExample({ showSearch, showLayoutIcon, background }: { showSearch: boolean; showLayoutIcon: boolean; background: 'white' | 'canvas-light' | 'canvas' | 'stone' | 'transparent' }) {
   const [filter, setFilter] = useState('all');
-  return <div className="space-y-6"><FilterBar background={background}><FilterTabs tabs={[{ id: 'all', label: 'All', icon: showLayoutIcon ? LayoutGrid : undefined }, { id: 'active', label: 'Active' }]} activeTab={filter} onChange={setFilter} />{showSearch && <SearchInput size="s" aria-label="Buscar" />}</FilterBar><p>Selected filter: {filter}</p></div>;
+  return <div className="space-y-6"><FilterBar background={background}><FilterTabs tabs={[{ id: 'all', label: 'Todos', icon: showLayoutIcon ? LayoutGrid : undefined }, { id: 'active', label: 'En curso' }]} activeTab={filter} onChange={setFilter} />{showSearch && <SearchInput size="s" aria-label="Buscar" />}</FilterBar><p>Filtro seleccionado: {filter === 'all' ? 'Todos' : 'En curso'}</p></div>;
 }
 export const FilterBarStory: Story = { name: 'FilterBar', args: { showSearch: true, showLayoutIcon: true, background: 'stone' }, argTypes: { showSearch: { control: 'boolean', description: 'Mostrar el campo de búsqueda' }, showLayoutIcon: { control: 'boolean', description: 'Mostrar LayoutGrid en el primer filtro' }, background: { control: 'select', options: ['white', 'canvas-light', 'canvas', 'stone', 'transparent'], description: 'Fondo de la barra' } }, render: ({ showSearch, showLayoutIcon, background }: DesignSystemStoryArgs) => <FilterBarExample showSearch={showSearch} showLayoutIcon={showLayoutIcon} background={background} /> };
 
 export const States: Story = {
-  render: () => <div className="max-w-2xl space-y-6"><div className="flex flex-wrap items-center gap-3"><Button disabled>Disabled</Button><Button loading>Loading</Button></div><EmptyState icon={FolderOpen} title="No projects yet" description="Create a project to get started." action={{ label: 'Create project', icon: Plus, onClick: () => {} }} /><Spinner /><Skeleton rows={3} /></div>,
+  name: 'Carga, deshabilitado y sin resultados',
+  render: () => <div className="max-w-2xl space-y-6"><div className="flex flex-wrap items-center gap-3"><Button disabled>Deshabilitado</Button><Button loading>Cargando</Button></div><EmptyState icon={FolderOpen} title="Todavía no hay proyectos" description="Creá un proyecto para comenzar." action={{ label: 'Nuevo proyecto', icon: Plus, onClick: () => {} }} /><Spinner label="Guardando…" /><Skeleton rows={3} label="Cargando proyectos" /></div>,
 };
-
-function OverlayExample() {
-  const [modal, setModal] = useState(false);
-  const [drawer, setDrawer] = useState(false);
-  return <div className="flex gap-3"><Button onClick={() => setModal(true)}>Open modal</Button><Button variant="secondary" onClick={() => setDrawer(true)}>Open panel</Button>
-    <Modal open={modal} title="New project" onClose={() => setModal(false)}><div className="space-y-4"><Field label="Name" placeholder="Project name" /><Button onClick={() => setModal(false)}>Done</Button></div></Modal>
-    <Drawer open={drawer} title="Project details" onClose={() => setDrawer(false)}><div className="space-y-4 p-6"><p>Project information.</p><Field label="Name" placeholder="Project name" /><Button onClick={() => setDrawer(false)}>Done</Button></div></Drawer>
-  </div>;
-}
-export const ModalAndPanel: Story = { render: () => <OverlayExample /> };
 
 export const HeaderAndBrand: Story = {
   name: 'Header',
   args: {
-    title: 'Projects',
-    eyebrow: 'Studio',
-    description: "An overview of the studio's projects.",
+    title: 'Proyectos',
+    eyebrow: 'Estudio',
+    description: 'Un resumen de los proyectos del estudio.',
     showEyebrow: true,
     showDescription: true,
     showBackButton: false,
@@ -260,7 +217,7 @@ export const HeaderAndBrand: Story = {
       : titleAccessory === 'button'
         ? <Button size="s" variant="secondary">Editar</Button>
         : undefined;
-    const actions = <>{showIconButtons && <><Button ariaLabel="Configurar" size="m" tooltip="Configurar" variant="icon"><PortalIcon icon={Settings} size="m" /></Button><Button ariaLabel="Ver" size="m" tooltip="Ver" variant="icon"><PortalIcon icon={Eye} size="m" /></Button></>}{showSecondaryAction && <Button variant="secondary">Solicitar acción</Button>}<Button>New project</Button></>;
+    const actions = <>{showIconButtons && <><Button ariaLabel="Configurar" size="m" tooltip="Configurar" variant="icon"><PortalIcon icon={Settings} size="m" /></Button><Button ariaLabel="Ver" size="m" tooltip="Ver" variant="icon"><PortalIcon icon={Eye} size="m" /></Button></>}{showSecondaryAction && <Button variant="secondary">Solicitar acción</Button>}<Button>Nuevo proyecto</Button></>;
     return <PageHeader eyebrow={showEyebrow ? eyebrow : undefined} title={title} description={showDescription ? description : undefined} leading={showBackButton ? <Button ariaLabel="Volver" className="!size-6 !min-h-0 !rounded-full !p-0" size="xs" variant="tertiary"><ArrowLeft className="size-3" /></Button> : undefined} titleAccessory={accessory} divider={showDivider} actions={actions} />;
   },
 };
@@ -328,93 +285,31 @@ export const Palette: Story = {
 };
 
 export const StatusBadgeVariants: Story = {
-  args: {
-    tone: 'active',
-    size: 'm',
-    showDot: true,
-    filled: false,
-    iconOnly: false,
-    iconName: 'none',
-    label: 'En curso',
-    adminTaskDisplay: 'solo-icono',
-  },
+  name: 'Estados de proyecto y tarea',
+  args: { tone: 'info', size: 's', showDot: false, iconOnly: false, label: 'En curso' },
   argTypes: {
-    tone: { control: 'select', options: ['neutral', 'active', 'warning', 'waiting', 'danger', 'info', 'gray', 'white', 'black'] },
+    tone: { control: 'select', options: ['neutral', 'active', 'warning', 'waiting', 'info', 'gray', 'white'] },
     size: { control: 'inline-radio', options: ['xs', 's', 'm', 'l'] },
     showDot: { control: 'boolean' },
-    filled: { control: 'boolean' },
-    iconOnly: { control: 'boolean' },
-    iconName: { control: 'select', options: ['none', ...Object.keys(lucideIcons)] },
+    iconOnly: { control: 'boolean', description: 'Usado en estados de tareas del panel del estudio' },
     label: { control: 'text' },
-    adminTaskDisplay: { control: 'inline-radio', options: ['solo-icono', 'icono-y-estado'], description: 'Vista de estados de tareas dentro del proyecto admin' },
   },
-  render: ({ tone, size, showDot, filled, iconOnly, iconName, label, adminTaskDisplay }: DesignSystemStoryArgs) => {
-    const icons = { none: undefined, ...lucideIcons };
-    return <div className="max-w-3xl space-y-8">
-    <header><p className="bojana-label">Componentes</p><h1 className="bojana-heading-page mt-2">StatusBadge</h1><p className="mt-2 text-sm text-ink-muted">Variantes de tono, tamaño y dot.</p></header>
-    <section className="space-y-4"><div className="rounded-bojana-card border border-line bg-white p-4"><p className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">Prueba interactiva</p><StatusBadge tone={tone} size={size} showDot={showDot} filled={filled} icon={icons[iconName as keyof typeof icons]} iconOnly={iconOnly}>{label}</StatusBadge></div><div className="space-y-4">{([{ tone: 'neutral', label: 'Neutral' }, { tone: 'active', label: 'Active' }, { tone: 'warning', label: 'Warning' }, { tone: 'gray', label: 'Pending' }, { tone: 'waiting', label: 'Urgent' }, { tone: 'danger', label: 'Error' }, { tone: 'info', label: 'Info' }, { tone: 'white', label: 'White' }, { tone: 'black', label: 'Black' }] as const).map(item => <div key={item.tone} className="flex flex-wrap items-center gap-2"><span className="w-20 text-xs font-semibold text-ink-muted">{item.label}</span>{(['xs', 's', 'm', 'l'] as const).map(size => <StatusBadge key={`${item.tone}-${size}`} tone={item.tone} size={size}>{size.toUpperCase()}</StatusBadge>)}<StatusBadge tone={item.tone} size="m" showDot={false}>{item.label} · sin dot</StatusBadge><StatusBadge tone={item.tone} size="m" filled>{item.label} · filled</StatusBadge></div>)}</div><div className="space-y-2"><p className="text-xs font-semibold text-ink-muted">Solo icon</p><div className="flex flex-wrap items-center gap-2"><StatusBadge tone="active" icon={CheckCircle2} iconOnly size="xs" /><StatusBadge tone="info" icon={Building2} iconOnly size="s" /><StatusBadge tone="warning" icon={CircleAlert} iconOnly size="m" /><StatusBadge tone="danger" icon={CircleAlert} iconOnly size="l" /></div></div></section>
-    <section className="space-y-3">
-      <div><h2 className="bojana-heading-section">Aplicación en el portal</h2><p className="mt-1 text-sm text-ink-muted">Los tonos se asignan según el significado del estado en cada área.</p></div>
-      <div className="space-y-3">
-        <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3"><div><p className="bojana-label">Proyecto · encabezado y tarjetas</p><p className="mt-1 text-xs text-ink-muted">Un badge · tamaño S · tono según estado</p></div><span className="text-xs text-ink-muted">Porcentaje + estado general</span></div>
-          <div className="flex flex-wrap gap-2 p-4">{([{ label: 'Borrador', progress: 0 }, { label: 'En progreso', progress: 60 }, { label: 'En revisión', progress: 75 }, { label: 'Requiere ajustes', progress: 60 }, { label: 'Requiere acción', progress: 85 }, { label: 'Completado', progress: 100 }] as const).map(item => <ProjectProgressStatusBadge key={item.label} status={item.label} progress={item.progress} />)}</div>
-        </div>
-        <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-          <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas dentro del proyecto · admin</p><p className="mt-1 text-xs text-ink-muted">Estado como {adminTaskDisplay === 'solo-icono' ? 'icono solo' : 'icono y texto'} · tamaño S · tooltip al pasar o enfocar</p></div>
-          {([
-              { name: 'Definición de alcance', state: 'En curso', icon: Zap, tooltip: 'En curso', tone: undefined },
-              { name: 'Revisión técnica', state: 'En revisión', icon: Eye, tooltip: 'En revisión', tone: undefined },
-              { name: 'Corrección solicitada', state: 'Requiere ajustes', icon: CircleAlert, tooltip: 'Requiere ajustes', tone: undefined },
-              { name: 'Esperar respuesta', state: 'Esperando al cliente', icon: MessageSquare, tooltip: 'Esperando cliente', tone: undefined },
-              { name: 'Documentación', state: 'Pendiente', icon: Circle, tooltip: 'Por completar', tone: 'info' },
-              { name: 'Planta general', state: 'Completado', icon: CheckCircle2, tooltip: 'Completada', tone: undefined },
-            ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><Tooltip content={task.tooltip}><StatusBadge state={task.state} audience="studio" tone={task.tone} ariaLabel={task.tooltip} size="s" showDot={false} icon={task.icon} iconOnly={adminTaskDisplay === 'solo-icono'} /></Tooltip></div>)}
-        </div>
-        <div className="grid gap-3 lg:grid-cols-2">
-          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas · vista del estudio</p><p className="mt-1 text-xs text-ink-muted">Fila real de tarea · tamaño S · con punto</p></div>
-            {([
-              { name: 'Definición de alcance', label: 'En curso', tone: 'info' },
-              { name: 'Revisión técnica', label: 'En revisión', tone: 'neutral' },
-              { name: 'Corrección solicitada', label: 'Requiere ajustes', tone: 'warning' },
-              { name: 'Esperar respuesta', label: 'Esperando cliente', tone: 'waiting' },
-              { name: 'Documentación', label: 'Pendiente', tone: 'gray' },
-              { name: 'Planta general', label: 'Completada', tone: 'active' },
-            ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><StatusBadge tone={task.tone} size="s">{task.label}</StatusBadge></div>)}
-          </div>
-          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Fases y tareas · portal cliente</p><p className="mt-1 text-xs text-ink-muted">Fila real de tarea · tamaño S · sin punto</p></div>
-            {([
-              { name: 'Concepto y moodboard', label: 'No iniciada', tone: 'gray' },
-              { name: 'Planos', label: 'En curso', tone: 'info' },
-              { name: 'Revisión de propuesta', label: 'En revisión', tone: 'neutral' },
-              { name: 'Respuesta requerida', label: 'Esperando al cliente', tone: 'waiting' },
-              { name: 'Ajustes de diseño', label: 'Requiere ajustes', tone: 'warning' },
-              { name: 'Renders', label: 'Completada', tone: 'active' },
-              { name: 'Pausada', label: 'Pausada', tone: 'gray' },
-              { name: 'Fuera de alcance', label: 'Fuera de alcance', tone: 'gray' },
-            ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-2.5"><span className="text-sm font-medium text-ink">{task.name}</span><StatusBadge tone={task.tone} size="s" showDot={false}>{task.label}</StatusBadge></div>)}
-          </div>
-          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Decisiones · módulo</p><p className="mt-1 text-xs text-ink-muted">Tarjeta de decisión · tamaño M · con punto</p></div>
-            {([{ title: 'Elección de fachada', state: 'Pendiente' }, { title: 'Paleta aprobada', state: 'Aprobado' }, { title: 'Ajuste solicitado', state: 'Requiere cambios' }] as const).map(item => <div key={item.title} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{item.title}</span><StatusBadge state={item.state} kind="decision" size="m" /></div>)}
-            <div className="flex items-center justify-between gap-3 bg-canvas-light px-4 py-3"><span className="text-xs text-ink-muted">En panel de ejecución: tamaño S, sin punto</span><StatusBadge state="Pendiente" kind="decision" size="s" showDot={false} /></div>
-          </div>
-          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
-            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Documentos, actualizaciones y acceso</p><p className="mt-1 text-xs text-ink-muted">Filas de detalle · tamaño S · sin punto</p></div>
-            {([
-              { title: 'Plano para revisar', label: 'Para revisar', tone: 'waiting' },
-              { title: 'Actualización publicada', label: 'Actualización', tone: 'gray' },
-              { title: 'Acceso al portal', label: 'Abierto', tone: 'active' },
-              { title: 'Invitación anterior', label: 'Revocada', tone: 'gray' },
-            ] as const).map(item => <div key={item.title} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{item.title}</span><StatusBadge tone={item.tone} size="s" showDot={false}>{item.label}</StatusBadge></div>)}
-          </div>
-        </div>
-      </div>
+  render: ({ tone, size, showDot, iconOnly, label }: DesignSystemStoryArgs) => <div className="max-w-3xl space-y-6">
+    <header><h1 className="bojana-heading-page">Estados del portal</h1><p className="bojana-caption mt-2">Tonos, tamaños y presentación que aparecen en proyectos, tareas y documentos.</p></header>
+    <section className="rounded-xl border border-line bg-white p-5">
+      <h2 className="bojana-heading-component mb-4">Vista configurable</h2>
+      <StatusBadge tone={tone} size={size} showDot={showDot} iconOnly={iconOnly}>{label}</StatusBadge>
     </section>
-  </div>;
-  },
+    <section className="divide-y divide-line rounded-xl border border-line bg-white px-5" aria-label="Estados de tareas">
+      {([
+        { title: 'Definición de alcance', status: 'En curso', icon: Circle, tooltip: 'En curso' },
+        { title: 'Revisión técnica', status: 'En revisión', icon: Eye, tooltip: 'En revisión' },
+        { title: 'Esperando al cliente', status: 'Esperando al cliente', icon: Clock3, tooltip: 'Esperando cliente' },
+        { title: 'Ajustes de diseño', status: 'Requiere ajustes', icon: CircleAlert, tooltip: 'Requiere ajustes' },
+        { title: 'Documentación final', status: 'Completado', icon: CheckCircle2, tooltip: 'Completada' },
+      ] as const).map(task => <div key={task.title} className="flex items-center justify-between gap-4 py-3"><span className="text-sm text-ink">{task.title}</span><Tooltip content={task.tooltip}><StatusBadge state={task.status} audience="studio" ariaLabel={task.tooltip} size="s" showDot={false} icon={task.icon} iconOnly /></Tooltip></div>)}
+    </section>
+  </div>,
 };
 
 export const LogoVariants: Story = {

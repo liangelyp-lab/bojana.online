@@ -1,38 +1,48 @@
 import type { ReactNode } from "react"
-import { AlertCircle, Bell, Check, Clock3, TrendingUp, X } from "lucide-react"
+import { AlertCircle, Bell, Check, Clock3, TrendingUp, X, type LucideIcon } from "lucide-react"
 import { Button, StatusBadge } from "./DesignSystem"
 
 export type NoticeTone = "info" | "action" | "warning" | "success" | "error"
 
-export function InlineNotice({ tone, title, description, actions, onDismiss, filled = false }: {
+export function InlineNotice({ tone, title, description, actions, onDismiss, filled = false, compact = false, eyebrow, icon: IconOverride }: {
   tone: NoticeTone
   title: string
-  description: string
+  description?: string
   actions?: ReactNode
   onDismiss?: () => void
   filled?: boolean
+  compact?: boolean
+  eyebrow?: string
+  icon?: LucideIcon
 }) {
   const styles = {
-    info: { frame: "border-info-border", surface: "bg-white", icon: "border-info-border bg-info-surface text-info-strong", Icon: Clock3 },
-    action: { frame: "border-clay/30", surface: "bg-white", icon: "border-clay/30 bg-clay-pale text-clay-dark", Icon: Bell },
-    warning: { frame: "border-warning/40", surface: "bg-white", icon: "border-warning/40 bg-warning-pale text-warning-strong", Icon: AlertCircle },
-    success: { frame: "border-mint-strong/40", surface: "bg-white", icon: "border-mint-strong/40 bg-mint-pale text-mint-strong", Icon: Check },
-    error: { frame: "border-clay/30", surface: "bg-white", icon: "border-clay/30 bg-clay-pale text-clay-dark", Icon: AlertCircle },
-  } satisfies Record<NoticeTone, { frame: string; surface: string; icon: string; Icon: typeof Clock3 }>
-  const { frame, surface, icon, Icon } = styles[tone]
+    info: { frame: "border-info-border", surface: "bg-white", icon: "border-info-border bg-info-surface text-info-strong", filledIcon: "border-info-strong bg-info-strong text-info-surface", Icon: Clock3 },
+    action: { frame: "border-clay/30", surface: "bg-white", icon: "border-clay/30 bg-clay-pale text-clay-dark", filledIcon: "border-clay-dark bg-clay-dark text-clay-pale", Icon: Bell },
+    warning: { frame: "border-warning/40", surface: "bg-white", icon: "border-warning/40 bg-warning-pale text-warning-strong", filledIcon: "border-warning-strong bg-warning-strong text-warning-pale", Icon: AlertCircle },
+    success: { frame: "border-mint-strong/40", surface: "bg-white", icon: "border-mint-strong/40 bg-mint-pale text-mint-strong", filledIcon: "border-mint-strong bg-mint-strong text-mint-pale", Icon: Check },
+    error: { frame: "border-clay/30", surface: "bg-white", icon: "border-clay/30 bg-clay-pale text-clay-dark", filledIcon: "border-clay-dark bg-clay-dark text-clay-pale", Icon: AlertCircle },
+  } satisfies Record<NoticeTone, { frame: string; surface: string; icon: string; filledIcon: string; Icon: typeof Clock3 }>
+  const { frame, surface, icon, filledIcon, Icon: DefaultIcon } = styles[tone]
+  const Icon = IconOverride || DefaultIcon
+  const filledSurface = { info: "bg-info-surface", action: "bg-clay-pale", warning: "bg-warning-pale", success: "bg-mint-pale", error: "bg-clay-pale" } satisfies Record<NoticeTone, string>
 
-  return <article role={tone === "error" ? "alert" : "status"} className={`flex flex-col items-stretch justify-between gap-4 rounded-2xl border p-4 sm:flex-row sm:items-center ${frame} ${tone === "success" && filled ? "bg-mint-pale" : surface}`}>
-    <div className="flex min-w-0 items-center gap-3">
-      <span className={`grid size-10 shrink-0 place-items-center rounded-full border ${icon}`}><Icon className="size-5" aria-hidden="true" /></span>
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-ink">{title}</p>
-        <p className="mt-1 text-sm leading-5 text-ink-muted">{description}</p>
+  return <article role={tone === "error" ? "alert" : "status"} className={`flex ${compact ? "flex-row items-center gap-2.5 rounded-xl p-3" : "flex-col items-stretch justify-between gap-4 rounded-2xl p-4 sm:flex-row sm:items-center"} border ${frame} ${filled ? filledSurface[tone] : surface}`}>
+    <span className={`grid ${compact ? "size-7" : "size-10"} shrink-0 place-items-center rounded-full border ${filled ? filledIcon : icon}`}><Icon className={compact ? "size-3.5" : "size-5"} aria-hidden="true" /></span>
+    <div className={`min-w-0 ${compact ? "flex-1" : "flex flex-1 items-center gap-3"}`}>
+      <div className="min-w-0 flex-1">
+        {eyebrow && <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">{eyebrow}</p>}
+        <p className={compact ? "text-xs font-medium leading-4 text-ink" : "text-sm font-medium text-ink"}>{title}</p>
+        {description && <p className={compact ? "mt-0.5 text-[11px] leading-4 text-ink-muted" : "mt-1 text-sm leading-5 text-ink-muted"}>{description}</p>}
       </div>
+      {!compact && (actions || onDismiss) && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+        {actions}
+        {onDismiss && <Button variant="icon" size="xs" ariaLabel="Cerrar notificación" onClick={onDismiss}><X className="size-4" /></Button>}
+      </div>}
+      {compact && (actions || onDismiss) && <div className="mt-2 flex items-center gap-2">
+        {actions}
+        {onDismiss && <Button variant="icon" size="xs" ariaLabel="Cerrar notificación" onClick={onDismiss}><X className="size-4" /></Button>}
+      </div>}
     </div>
-    {(actions || onDismiss) && <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-      {actions}
-      {onDismiss && <Button variant="icon" size="xs" ariaLabel="Cerrar notificación" onClick={onDismiss}><X className="size-4" /></Button>}
-    </div>}
   </article>
 }
 

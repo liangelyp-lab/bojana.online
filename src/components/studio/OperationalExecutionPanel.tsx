@@ -38,8 +38,6 @@ import {
   TaskUpdateAction,
   TaskUpdate,
   AvancePost,
-  TaskContentType,
-  DecisionItem,
   calculateTaskProgress,
   calculateDisciplineProgress,
 } from "../../types"
@@ -53,10 +51,6 @@ import {
 } from "../../services/storageService"
 import PublishInviteModal from "./PublishInviteModal"
 import RequestClientActionModal from "./RequestClientActionModal"
-import ClientAlertModal, {
-  clientAlertActionLabel,
-  type ClientAlertActionType,
-} from "./ClientAlertModal"
 import ClientUpdatePreviewModal from "./ClientUpdatePreviewModal"
 import {
   CheckCircle2,
@@ -78,8 +72,9 @@ import {
   ExternalLink,
   Building2,
   AlertCircle,
-  Mail,
+  Link2,
   Bell,
+  Mail,
   Palette,
   MessageSquare,
 } from "lucide-react"
@@ -156,11 +151,8 @@ function taskUpdateNotificationLabel(action: TaskUpdateAction) {
           : "Actualización en borrador"
 }
 
-const taskContentTypeLabels: Record<TaskContentType, string> = {
-  archivo: "Archivos",
-  imagenes: "Imágenes",
-  videos: "Videos",
-  descargables: "Descargables",
+function nextUpdateTitle(task: ExecutionTask) {
+  return `${task.titulo} V${(task.actualizaciones || []).length + 1}`
 }
 
 function taskStateFromUpdates(task: ExecutionTask): EstadoEtapa {
@@ -326,12 +318,6 @@ export default function OperationalExecutionPanel({
 
   // Publish & Client Invitation Modal state
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
-  const [clientAlert, setClientAlert] = useState<{
-    title: string
-    message: string
-    actionType: ClientAlertActionType
-  } | null>(null)
-
   // Contextual Client Action Modal state
   const [selectedTaskForAction, setSelectedTaskForAction] = useState<{
     task: ExecutionTask
@@ -340,7 +326,7 @@ export default function OperationalExecutionPanel({
     prefill?: {
       titulo: string
       descripcion: string
-      accion?: "borrador" | "publicar_avance" | "revision" | "solicitud_informacion" | "publicar_terminar"
+      accion?: TaskUpdateAction
       recursos: string
       responsableRespuesta: string
       fechaLimiteRespuesta: string
@@ -356,8 +342,7 @@ export default function OperationalExecutionPanel({
       publishAndActivateProject(projectToPublish),
     )
     onUpdateProject(updated)
-    setIsPublishModalOpen(false)
-    onToast("Cambios publicados. Ahora podés enviar email o copiar el enlace.")
+    onToast("Portal publicado. Ahora podés enviar el email desde esta pestaña.")
   }
 
   // Toggle discipline collapse
@@ -1275,29 +1260,19 @@ export default function OperationalExecutionPanel({
                       tooltip={`Avisar al cliente sobre ${update.titulo}`}
                       onClick={(event) => {
                         event.stopPropagation()
-                        const kind = taskUpdateNotificationLabel(update.accion)
-                        const actionType: ClientAlertActionType =
-                          update.accion === "revision"
-                            ? "revision"
-                            : update.accion === "solicitud_informacion"
-                              ? "informacion"
-                              : update.accion === "publicar_terminar"
-                                ? "entrega"
-                                : update.accion === "borrador"
-                                  ? "borrador"
-                                  : "avance"
-                        setClientAlert({
-                          title: `${kind} · ${update.titulo}`,
-                          message:
-                            update.descripcion ||
-                            `${kind}: ya está disponible en el portal del proyecto. ${
-                              update.accion === "revision"
-                                ? "Podés revisarla y responder desde el portal."
-                                : update.accion === "solicitud_informacion"
-                                  ? "Necesitamos la información indicada para continuar."
-                                  : "Podés consultar el contenido actualizado en el portal."
-                            }`,
-                          actionType,
+                        setSelectedTaskForAction({
+                          task,
+                          discId: disc.id,
+                          needId: need.id,
+                          prefill: {
+                            titulo: update.titulo,
+                            descripcion: update.descripcion || "",
+                            accion: update.accion,
+                            recursos: (update.recursos || []).join("\n"),
+                            responsableRespuesta: update.responsableRespuesta || "",
+                            fechaLimiteRespuesta: update.fechaLimiteRespuesta || "",
+                            opciones: update.opciones,
+                          },
                         })
                       }}
                     >
@@ -1347,7 +1322,7 @@ export default function OperationalExecutionPanel({
                   setEditingUpdateId(null)
                   setResourcesOpen(false)
                   setUpdateDraft({
-                    titulo: `${latestUpdate.titulo} · Seguimiento`,
+                    titulo: nextUpdateTitle(task),
                     descripcion: "",
                     recursos: "",
                     accion: "publicar_avance",
@@ -1369,7 +1344,7 @@ export default function OperationalExecutionPanel({
                 onChange={(e) =>
                   setUpdateDraft({ ...updateDraft, titulo: e.target.value })
                 }
-                placeholder={`Versión ${(task.actualizaciones || []).length + 1}`}
+                placeholder={nextUpdateTitle(task)}
               />
               <Select
                 label="Acción"
@@ -1401,53 +1376,60 @@ export default function OperationalExecutionPanel({
                 {task.subetapas?.map(stage => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
               </Select>}
               <div className="sm:col-span-2 space-y-2">
-                <TextArea
-                  label="Mensaje para el cliente"
-                  autoGrow
-                  className="!min-h-0 resize-none"
-                  rows={2}
-                  value={updateDraft.descripcion}
-                  onChange={(e) =>
-                    setUpdateDraft({
-                      ...updateDraft,
-                      descripcion: e.target.value,
-                    })
-                  }
-                  placeholder="Qué entregás, qué cambió o qué necesitás..."
-                />
-                {updateDraft.accion !== "publicar_entregable" && <Button
-                  variant="tertiary"
-                  className="!min-h-9 !rounded-full !px-3 text-xs"
-                  onClick={() => setResourcesOpen((open) => !open)}
-                >
-                  <Plus className="size-3.5" />{" "}
-                  {resourcesOpen
-                    ? "Ocultar link o recurso"
-                    : "Agregar link o recurso"}
-                </Button>}
-                {(resourcesOpen || updateDraft.accion === "publicar_entregable") && (
-                  <div className="rounded-xl border border-bojana-line bg-bojana-surface/50 p-2">
-                    <TextArea
-                      autoGrow
-                      className="!min-h-0 resize-none"
-                      label={updateDraft.accion === "publicar_entregable" ? "Enlace del entregable" : "Link o recurso dentro del mensaje"}
-                      rows={1}
-                      value={updateDraft.recursos}
+                <div className="space-y-1.5">
+                  <label className="bojana-label">Mensaje para el cliente</label>
+                  <div className="overflow-hidden rounded-bojana-input border border-bojana-line bg-white focus-within:border-bojana-ink focus-within:ring-2 focus-within:ring-bojana-focus">
+                    <TextAreaControl
+                      aria-label="Mensaje para el cliente"
+                      className="!min-h-[4.5rem] resize-y rounded-none border-0 bg-transparent shadow-none focus:!border-0 focus:!shadow-none"
+                      rows={2}
+                      value={updateDraft.descripcion}
                       onChange={(e) =>
                         setUpdateDraft({
                           ...updateDraft,
-                          recursos: e.target.value,
+                          descripcion: e.target.value,
                         })
                       }
-                      placeholder="Pegá uno o más enlaces, uno por línea"
+                      placeholder="Qué entregás, qué cambió o qué necesitás..."
                     />
-                    <p className="mt-1 text-[11px] text-bojana-muted">
-                      {updateDraft.accion === "publicar_entregable"
-                        ? "Es obligatorio. Al publicar, quedará registrado en esta tarea y visible para el cliente."
-                        : "Se mostrará como un enlace clickeable para el cliente."}
-                    </p>
+                    {(resourcesOpen || updateDraft.accion === "publicar_entregable") && (
+                      <div className="border-t border-bojana-line px-2 pt-2">
+                        <TextAreaControl
+                          aria-label={updateDraft.accion === "publicar_entregable" ? "Enlace del entregable" : "Link o recurso dentro del mensaje"}
+                          className="!min-h-9 resize-y"
+                          rows={1}
+                          value={updateDraft.recursos}
+                          onChange={(e) =>
+                            setUpdateDraft({
+                              ...updateDraft,
+                              recursos: e.target.value,
+                            })
+                          }
+                          placeholder="Pegá uno o más enlaces, uno por línea"
+                        />
+                        {updateDraft.accion === "publicar_entregable" && (
+                          <p className="px-1 py-1.5 text-[11px] text-bojana-muted">
+                            Es obligatorio. Al publicar, quedará registrado en esta tarea y visible para el cliente.
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    {updateDraft.accion !== "publicar_entregable" && (
+                      <div className="border-t border-bojana-line px-2 py-1.5">
+                        <Button
+                          type="button"
+                          size="xs"
+                          variant="tertiary"
+                          className="!min-h-7 !rounded-full !px-2.5 text-xs"
+                          onClick={() => setResourcesOpen((open) => !open)}
+                        >
+                          <Link2 className="size-3.5" />
+                          {resourcesOpen ? "Quitar link" : "Agregar link o recurso"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
               {updateDraft.accion === "revision" && (
                 <div className="sm:col-span-2 space-y-2">
@@ -1556,66 +1538,6 @@ export default function OperationalExecutionPanel({
                   )}
                 </div>
               )}
-              <div className="sm:col-span-2 space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="bojana-label">
-                    Tipo de contenido para esta actualización
-                  </span>
-                  <span className="text-[11px] text-bojana-muted">
-                    Configurado en Settings
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {contentTypes.map((type) => (
-                    <StatusBadge key={type} size="s" showDot={false}>
-                      {taskContentTypeLabels[(type as TaskContentType)]}
-                    </StatusBadge>
-                  ))}
-                </div>
-              </div>
-              <div className="sm:col-span-2">
-                <TaskDeliverables
-                  project={{ ...project, disciplinasOperativas: disciplines }}
-                  taskId={task.id}
-                  discipline={disc.id}
-                  compact
-                  allowedContentTypes={contentTypes as TaskContentType[]}
-                  onChange={(storage, file) => {
-                    const updatedDisciplines = file
-                      ? updateTaskInDisciplines(disciplines, task.id, {
-                          archivos: [
-                            ...(task.archivos || []),
-                            {
-                              nombre: file.name,
-                              url: file.url,
-                              tipo: file.mimeType.startsWith("image/")
-                                ? "imagen"
-                                : file.mimeType.startsWith("video/")
-                                  ? "video"
-                                  : file.mimeType === "application/pdf"
-                                    ? "pdf"
-                                    : "descargable",
-                              funcion: "resultado",
-                              version: file.version,
-                              storage: file,
-                            },
-                          ],
-                        }).updatedDisciplines
-                      : disciplines
-                    onUpdateProject({
-                      ...project,
-                      storage,
-                      disciplinasOperativas: updatedDisciplines,
-                      info: {
-                        ...project.info,
-                        cambiosSinPublicar:
-                          (project.info.cambiosSinPublicar || 0) +
-                          (file ? 1 : 0),
-                      },
-                    })
-                  }}
-                />
-              </div>
               <div className="sm:col-span-2 flex flex-col gap-3 border-t border-bojana-line pt-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-1">
@@ -1709,7 +1631,7 @@ export default function OperationalExecutionPanel({
                   setEditingUpdateId(null)
                   setResourcesOpen(false)
                   setUpdateDraft({
-                    titulo: "",
+                    titulo: nextUpdateTitle(task),
                     descripcion: "",
                     recursos: "",
                     accion: "publicar_avance",
@@ -3266,54 +3188,6 @@ export default function OperationalExecutionPanel({
           onSaveAction={handleSaveClientAction}
         />
       )}
-      <ClientAlertModal
-        isOpen={Boolean(clientAlert)}
-        projectName={projectTitle}
-        clientName={project.cliente?.nombre || "Comitente"}
-        clientEmail={project.cliente?.email || ""}
-        initialTitle={clientAlert?.title}
-        initialMessage={clientAlert?.message}
-        initialAction={clientAlert?.actionType}
-        onClose={() => setClientAlert(null)}
-        onSend={(title, message, actionType) => {
-          const now = new Date().toISOString()
-          const shouldRegisterDecision =
-            actionType === "revision" || actionType === "informacion"
-          const alertDecision: DecisionItem = {
-            id: `decision-alert-${Date.now()}`,
-            titulo: `Alerta al cliente · ${title}`,
-            tipo: "revision_tecnica",
-            descripcion: `${message}\nAcción esperada: ${clientAlertActionLabel(actionType)}.`,
-            fechaCreacion: now,
-            estado: "Pendiente",
-            comentarios: [
-              {
-                id: `comment-${Date.now()}`,
-                autor: "Bojana Estudio",
-                rol: "admin",
-                fecha: now,
-                texto: `Alerta enviada a ${project.cliente?.email || "el cliente"}. Acción requerida: ${clientAlertActionLabel(actionType)}.`,
-              },
-            ],
-          }
-          if (shouldRegisterDecision)
-            onUpdateProject({
-              ...project,
-              decisiones: [alertDecision, ...(project.decisiones || [])],
-              info: {
-                ...project.info,
-                cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-                ultimaActualizacion: "Hoy",
-              },
-            })
-          setClientAlert(null)
-          onToast(
-            shouldRegisterDecision
-              ? `Alerta enviada y registrada en Decisiones: ${title}.`
-              : `Alerta enviada: ${title}.`,
-          )
-        }}
-      />
       <ClientUpdatePreviewModal
         isOpen={updatePreviewOpen}
         projectName={projectTitle}

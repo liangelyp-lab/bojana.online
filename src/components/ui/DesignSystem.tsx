@@ -3,7 +3,7 @@ import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'reac
 import { createPortal } from 'react-dom';
 import { X, LoaderCircle, ChevronDown, ChevronUp, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, FileText, MessageSquare, LucideIcon } from 'lucide-react';
 import { DecisionStatus, EstadoEtapa } from '../../types';
-import { decisionStatusTone, projectProgressStatusLabel, projectStatusTone, taskStateLabel, taskStatusTone, type ProjectStatusLabel } from '../../design/status';
+import { decisionStatusTone, projectStatusTone, taskStateLabel, taskStatusTone, type ProjectStatusLabel } from '../../design/status';
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return <BrandLogo className={compact ? 'h-7 w-auto' : 'h-10 w-auto'} />;
@@ -590,12 +590,17 @@ const projectStatusIcons: Record<ProjectStatusLabel, LucideIcon> = {
   'En progreso': LoaderCircle,
   'En revisión': Eye,
   'Requiere ajustes': CircleAlert,
-  'Requiere acción': MessageSquare,
+  'Requiere acción': Clock3,
   'Completado': Check,
 };
 
 export function ProjectProgressStatusBadge({ progress, status, size = 's' }: { progress: number; status: ProjectStatusLabel; size?: ButtonSize }) {
-  return <StatusBadge tone={projectStatusTone(status)} size={size} showDot={false} icon={projectStatusIcons[status]} className="font-sans">{projectProgressStatusLabel(progress, status)}</StatusBadge>;
+  const Icon = projectStatusIcons[status];
+  return <StatusBadge tone={projectStatusTone(status)} size={size} showDot={false} className="font-sans">
+    <span>{Math.round(progress)}%</span>
+    <Icon size={buttonIconPixels[size]} aria-hidden="true" />
+    <span>{status}</span>
+  </StatusBadge>;
 }
 
 export function EmptyState({
@@ -805,8 +810,8 @@ export function Drawer({
   );
 }
 
-export function ModalHeader({ title, onClose, id }: { title: React.ReactNode; onClose?: () => void; id?: string }) {
-  return <header className="bojana-modal-header"><div className="min-w-0"><h2 id={id} className="bojana-heading-section">{title}</h2></div>{onClose && <Button type="button" variant="icon" size="xs" onClick={onClose} ariaLabel="Cerrar modal"><X aria-hidden="true" /></Button>}</header>;
+export function ModalHeader({ title, onClose, id, className = '' }: { title: React.ReactNode; onClose?: () => void; id?: string; className?: string }) {
+  return <header className={`bojana-modal-header ${className}`}><div className="min-w-0"><h2 id={id} className="bojana-heading-section">{title}</h2></div>{onClose && <Button type="button" variant="icon" size="xs" onClick={onClose} ariaLabel="Cerrar modal"><X aria-hidden="true" /></Button>}</header>;
 }
 export function ModalFooter({ children }: { children: React.ReactNode }) {
   return <footer className="bojana-modal-footer">{children}</footer>;

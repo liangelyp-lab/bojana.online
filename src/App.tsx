@@ -26,7 +26,6 @@ import DocumentosModule from "./components/modules/DocumentosModule";
 import AvancesModule from "./components/modules/AvancesModule";
 import RequestClientActionModal from "./components/studio/RequestClientActionModal";
 import PublishInviteModal from "./components/studio/PublishInviteModal";
-import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
 import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, ProjectProgressStatusBadge, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
@@ -658,7 +657,7 @@ function ProjectExecutionSummary({
       <PageHeader
         divider
         title={project.info?.nombre || "Proyecto"}
-        titleAccessory={<ProjectProgressStatusBadge progress={projectProgress} status={projectStatus} size="m" />}
+        titleAccessory={<ProjectProgressStatusBadge progress={projectProgress} status={projectStatus} size="s" />}
         description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span></>}
         actions={<>
           <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="m" tooltip="Configurar proyecto" variant="icon">
@@ -759,22 +758,36 @@ type PendingClientActionSummary = {
   deadline?: string
 }
 
+type ResolvedClientActionSummary = {
+  taskId: string
+  title: string
+  responseDate: string
+}
+
 function ClientActions({
   decision,
   pendingAction,
+  resolvedAction,
+  hideResolvedNotice = false,
   comments = [],
   onReviewDecision,
+  onOpenTask,
+  onOpenDecision,
 }: {
   decision: DashboardDecision | null
   pendingAction?: PendingClientActionSummary | null
+  resolvedAction?: ResolvedClientActionSummary | null
+  hideResolvedNotice?: boolean
   comments?: { id: string; autor: string; fecha: string; texto: string }[]
   onReviewDecision: () => void
+  onOpenTask: (taskId: string) => void
+  onOpenDecision: () => void
 }) {
   const pendingActionCard = pendingAction ? (
-    <InlineNotice tone="action" title={pendingAction.title} description={`${pendingAction.message}${pendingAction.deadline ? ` · Vence ${pendingAction.deadline}` : ""}`} actions={<Button size="s" variant="secondary" onClick={onReviewDecision}>Revisar</Button>} />
+    <InlineNotice compact filled tone="action" icon={Clock} title={pendingAction.title} actions={<Button size="xs" onClick={onReviewDecision}>Revisar</Button>} />
   ) : null
 
-  if (!decision) {
+  if (!decision && !resolvedAction) {
     if (!pendingAction) return null
     return (
       <Card as="section">
@@ -800,7 +813,8 @@ function ClientActions({
       </Card>
     )
   }
-  const isApproved = decision.status === "aprobado"
+  const hasApprovedNotice = decision?.status === "aprobado" || Boolean(resolvedAction)
+  const isApproved = hasApprovedNotice && !hideResolvedNotice
 
   return (
     <Card as="section">
@@ -820,10 +834,10 @@ function ClientActions({
       <div className="mt-6 space-y-3">
         {pendingActionCard}
         {isApproved ? (
-          <InlineNotice tone="success" filled title={decision.title} description={`Respuesta recibida: ${decision.optionChosen || "Aprobado por el cliente"} · Completado hoy`} actions={<Button size="s" variant="secondary" onClick={onReviewDecision}>Ver detalle</Button>} />
-        ) : (
-          <InlineNotice tone="warning" title={decision.title} description="Esperando respuesta del cliente · Pendiente" actions={<Button size="s" onClick={onReviewDecision}>Revisar opciones enviadas</Button>} />
-        )}
+          <InlineNotice compact tone="success" filled title={resolvedAction?.title || decision?.title || "Actualización aprobada"} actions={<Button size="xs" onClick={() => resolvedAction ? onOpenTask(resolvedAction.taskId) : onOpenDecision()}>Revisar</Button>} />
+        ) : !hasApprovedNotice ? (
+          <InlineNotice tone="warning" title={decision?.title || "Respuesta pendiente"} description="Esperando respuesta del cliente · Pendiente" actions={<Button size="s" onClick={onReviewDecision}>Revisar opciones enviadas</Button>} />
+        ) : null}
       </div>
       {comments.length > 0 && (
         <div className="mt-5 space-y-3 border-t border-line pt-5">
@@ -1098,12 +1112,11 @@ function AdminPortal({
   const [activeNav, setActiveNav] = useState("Proyectos")
   const [activeTab, setActiveTab] = useState("Resumen")
   const [notificationTarget, setNotificationTarget] = useState<{ taskId?: string; updateId?: string } | undefined>()
+  const [dismissedResolvedActionTaskId, setDismissedResolvedActionTaskId] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [actionModalTask, setActionModalTask] = useState<ExecutionTask | null>(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
-  const [isActionTaskPickerOpen, setIsActionTaskPickerOpen] = useState(false)
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false)
-  const [clientAlert, setClientAlert] = useState<{ title: string; message: string; actionType: ClientAlertActionType } | null>(null)
   const libraryItems = useMemo(() => collectLibraryItems(allProjects), [allProjects])
   const [studioEmail, setStudioEmail] = useState(() => {
     try { return localStorage.getItem("bojana-studio-email") || "info@bojana.com.ar" } catch { return "info@bojana.com.ar" }
@@ -1165,6 +1178,31 @@ function AdminPortal({
     }
     return null
   }, [currentProject, selectedProjectId])
+  const resolvedClientAction = useMemo<ResolvedClientActionSummary | null>(() => {
+    if (!selectedProjectId) return null
+    const resolvedActions = (currentProject?.disciplinasOperativas || []).flatMap((discipline) =>
+      discipline.necesidades.flatMap((need) =>
+        need.tareas.flatMap((task) => {
+          const action = task.accionCliente
+          const response = action?.respuestaCliente
+          if (!action || !response || (response.decision !== "aprobado" && response.decision !== "alternativa_elegida")) return []
+          return [{ taskId: task.id, title: action.titulo, responseDate: response.fecha }]
+        }),
+      ),
+    )
+    return resolvedActions.sort((a, b) => Date.parse(b.responseDate) - Date.parse(a.responseDate))[0] || null
+  }, [currentProject, selectedProjectId])
+  const openTaskInAdmin = (taskId: string) => {
+    setDismissedResolvedActionTaskId(null)
+    setNotificationTarget({ taskId })
+    setActiveNav("Proyectos")
+    setActiveTab("Resumen")
+  }
+  const openDecisionInAdmin = () => {
+    setNotificationTarget(undefined)
+    setActiveNav("Proyectos")
+    setActiveTab("Decisiones")
+  }
   const workspaceMilestones = currentProject?.hitosInternos || []
   const clientComments = (currentProject?.decisiones || []).flatMap(decisionItem =>
     (decisionItem.comentarios || []).map(comment => ({
@@ -1318,10 +1356,8 @@ function AdminPortal({
                   onEditProject={onEditProject}
                   onViewClientPortal={onViewClientPortal}
                   onRequestAction={() => {
-                    const hasTasks = currentProject?.disciplinasOperativas
-                      ?.some((discipline) => discipline.necesidades?.some((need) => need.tareas?.length))
-                    if (hasTasks) setIsActionTaskPickerOpen(true)
-                    else onPublishToast("Este proyecto todavía no tiene tareas para asociar a una solicitud.")
+                    setActionModalTask(null)
+                    setIsActionModalOpen(true)
                   }}
                   project={currentProject!}
                 />
@@ -1354,10 +1390,13 @@ function AdminPortal({
                         studioEmail={studioEmail}
                         focusTaskId={notificationTarget?.taskId}
                         focusUpdateId={notificationTarget?.updateId}
-                        onDismissTaskFocus={() => setNotificationTarget(undefined)}
+                        onDismissTaskFocus={() => {
+                          if (notificationTarget?.taskId) setDismissedResolvedActionTaskId(notificationTarget.taskId)
+                          setNotificationTarget(undefined)
+                        }}
                       />
                       <aside className="space-y-6">
-                        <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} pendingAction={pendingClientAction} />
+                        <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} onOpenTask={openTaskInAdmin} onOpenDecision={openDecisionInAdmin} pendingAction={pendingClientAction} resolvedAction={resolvedClientAction} hideResolvedNotice={resolvedClientAction?.taskId === dismissedResolvedActionTaskId} />
                         <UpcomingPanel milestones={workspaceMilestones} />
                       </aside>
                     </div>
@@ -1477,56 +1516,63 @@ function AdminPortal({
       </div>
 
       {/* Request Client Action Modal */}
-      {isActionTaskPickerOpen && currentProject && (
-        <Modal open onClose={() => setIsActionTaskPickerOpen(false)} title="Elegir tarea" customContent maxWidth="max-w-xl">
-          <ModalHeader title="¿A qué tarea corresponde la solicitud?" onClose={() => setIsActionTaskPickerOpen(false)} />
-          <div className="bojana-modal-body space-y-2">
-            {(currentProject.disciplinasOperativas || []).flatMap((discipline) =>
-              (discipline.necesidades || []).flatMap((need) =>
-                (need.tareas || []).map((task) => (
-                  <button
-                    key={task.id}
-                    type="button"
-                    className="flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-white px-4 py-3 text-left hover:bg-stone/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-info-border"
-                    onClick={() => {
-                      setActionModalTask(task)
-                      setIsActionTaskPickerOpen(false)
-                      setIsActionModalOpen(true)
-                    }}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-ink">{task.titulo}</span>
-                      <span className="mt-1 block truncate text-xs text-ink-muted">{need.nombre} · {discipline.id}</span>
-                    </span>
-                    <span className="shrink-0 text-xs text-ink-muted">{task.estado}</span>
-                  </button>
-                )),
-              ),
-            )}
-          </div>
-        </Modal>
-      )}
-      {isActionModalOpen && actionModalTask && currentProject && (
+      {isActionModalOpen && currentProject && (
         <RequestClientActionModal
-          clientEmail={currentProject?.cliente?.email || "cliente@ejemplo.com"}
+          clientEmail={currentProject?.cliente?.email || ""}
           clientName={currentProject?.cliente?.nombre || "Comitente"}
           isOpen={isActionModalOpen}
           onClose={() => setIsActionModalOpen(false)}
+          availableTasks={(currentProject.disciplinasOperativas || []).flatMap((discipline) =>
+            (discipline.necesidades || []).flatMap((need) =>
+              (need.tareas || []).map((task) => ({ task, context: need.nombre })),
+            ),
+          )}
+          onTaskChange={setActionModalTask}
           onSaveAction={(action) => {
-            const updatedProject = {
-              ...currentProject,
-              disciplinasOperativas: (currentProject.disciplinasOperativas || []).map(discipline => ({
-                ...discipline,
-                necesidades: discipline.necesidades.map(need => ({
-                  ...need,
-                  tareas: need.tareas.map(task => task.id === actionModalTask.id ? {
-                    ...task,
-                    estado: "Esperando al cliente" as import("./types").EstadoEtapa,
-                    accionCliente: action,
-                  } : task),
-                })),
-              })),
-            }
+            const updatedProject = actionModalTask
+              ? {
+                  ...currentProject,
+                  disciplinasOperativas: (currentProject.disciplinasOperativas || []).map(discipline => ({
+                    ...discipline,
+                    necesidades: discipline.necesidades.map(need => ({
+                      ...need,
+                      tareas: need.tareas.map(task => task.id === actionModalTask.id ? {
+                        ...task,
+                        estado: "Esperando al cliente" as import("./types").EstadoEtapa,
+                        accionCliente: action,
+                      } : task),
+                    })),
+                  })),
+                }
+              : {
+                  ...currentProject,
+                  decisiones: [{
+                    id: `decision-action-${Date.now()}`,
+                    titulo: action.titulo,
+                    tipo: action.tipo === "elegir_alternativa" ? "decision_diseno" as const : "revision_tecnica" as const,
+                    descripcion: action.mensaje,
+                    fechaCreacion: new Date().toISOString(),
+                    estado: "Pendiente" as const,
+                    requestType: action.tipo,
+                    accionRequeridaTexto: action.accionRequeridaTexto,
+                    fechaLimite: action.fechaLimite,
+                    adjuntos: action.adjuntos,
+                    opciones: (action.alternativas || []).map((option, index) => ({
+                      id: option.id,
+                      letra: option.letra || `Opción ${String.fromCharCode(65 + index)}`,
+                      titulo: option.titulo,
+                      descripcion: option.descripcion,
+                      imagenUrl: option.imagenUrl,
+                      costoEstimado: option.costoEstimado,
+                    })),
+                    comentarios: [],
+                  }, ...(currentProject.decisiones || [])],
+                  info: {
+                    ...currentProject.info,
+                    cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1,
+                    ultimaActualizacion: "Hoy",
+                  },
+                }
             onUpdateProject(updatedProject)
             setIsActionModalOpen(false)
             onPublishToast("Solicitud de decisión enviada al comitente.")
@@ -1545,7 +1591,6 @@ function AdminPortal({
           onPublish={(projectToPublish) => {
             const published = publishAndActivateProject(projectToPublish)
             onUpdateProject(published)
-            setIsPublishModalOpen(false)
             onPublishToast("Portal del comitente sincronizado y publicado.")
           }}
           onUpdateProject={onUpdateProject}
@@ -1554,32 +1599,6 @@ function AdminPortal({
           studioEmail={studioEmail}
         />
       )}
-      <ClientAlertModal
-        isOpen={Boolean(clientAlert && currentProject)}
-        projectName={currentProject?.info?.nombre || activeProject.name}
-        clientName={currentProject?.cliente?.nombre || "Comitente"}
-        clientEmail={currentProject?.cliente?.email || ""}
-        initialTitle={clientAlert?.title}
-        initialMessage={clientAlert?.message}
-        initialAction={clientAlert?.actionType}
-        onClose={() => setClientAlert(null)}
-        onSend={(title, message, actionType) => {
-          const now = new Date().toISOString()
-          const shouldRegisterDecision = actionType === "revision" || actionType === "informacion"
-          const alertDecision: DecisionItem = {
-            id: `decision-alert-${Date.now()}`,
-            titulo: `Alerta al cliente · ${title}`,
-            tipo: "revision_tecnica",
-            descripcion: `${message}\nAcción esperada: ${clientAlertActionLabel(actionType)}.`,
-            fechaCreacion: now,
-            estado: "Pendiente",
-            comentarios: [{ id: `comment-${Date.now()}`, autor: "Bojana Estudio", rol: "admin", fecha: now, texto: `Alerta enviada a ${currentProject?.cliente?.email || "el cliente"}. Acción requerida: ${clientAlertActionLabel(actionType)}.` }]
-          }
-          if (shouldRegisterDecision && currentProject) onUpdateProject({ ...currentProject, decisiones: [alertDecision, ...(currentProject.decisiones || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } })
-          setClientAlert(null)
-          onPublishToast(shouldRegisterDecision ? `Alerta enviada y registrada en Decisiones: ${title}.` : `Alerta enviada: ${title}.`)
-        }}
-      />
     </div>
   )
 }
@@ -1879,6 +1898,7 @@ function ActionCard({
     description: string
     status: "pendiente" | "aprobado" | "cambios"
     requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision"
+    actionText?: string
     optionChosen?: string
     options?: { id: string; title: string; description?: string; imageUrl?: string; cost?: string }[]
     attachments?: { name: string; url?: string; type?: string }[]
@@ -1900,6 +1920,7 @@ function ActionCard({
   const [showModal, setShowModal] = useState(false)
   const [selectedOption, setSelectedOption] = useState(availableOptions[0]?.id || "")
   const [comment, setComment] = useState("")
+  const [commentError, setCommentError] = useState(false)
   const [dismissed, setDismissed] = useState(false)
   const isApproved = decision.status === "aprobado"
   const hasChangesRequested = decision.status === "cambios"
@@ -1908,7 +1929,7 @@ function ActionCard({
 
   return (
     <>
-      <section
+      {isApproved ? <section
         className={`relative ${compact ? "rounded-2xl p-4" : "rounded-3xl p-6 md:p-8"} border transition-colors ${
           isApproved ? "border-mint/40 bg-mint-pale" : "border-clay/25 bg-clay-pale"
         }`}
@@ -1962,7 +1983,17 @@ function ActionCard({
             </div>
           )}
         </div>
-      </section>
+      </section> : <InlineNotice
+        tone="action"
+        filled
+        icon={Clock}
+        title={decision.title}
+        description={decision.description}
+        actions={<>
+          <Button size="s" onClick={() => setShowModal(true)}>Revisar</Button>
+          {onViewTask && <Button size="s" onClick={onViewTask}>Ver tarea</Button>}
+        </>}
+      />}
 
       {showModal && (
         <Modal open={showModal} onClose={() => setShowModal(false)} title="Respuesta del cliente" customContent maxWidth="max-w-2xl" >
@@ -2013,15 +2044,32 @@ function ActionCard({
             </div>}
 
             <label className="mt-5 block">
-              <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{decision.requestType === "enviar_informacion" ? "Información para el equipo" : decision.requestType === "subir_documento" ? "Comentario sobre el documento" : "Comentario (opcional)"}</span>
-              <TextAreaControl aria-label="Comentario sobre la decisión" value={comment} onChange={event => setComment(event.target.value)} placeholder="Agregá una observación o pedido de cambio..." />
+              <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{decision.requestType === "enviar_informacion" ? "Información para el equipo" : decision.requestType === "subir_documento" ? "Comentario sobre el documento" : "Comentario"}</span>
+              <TextAreaControl
+                aria-label="Comentario sobre la decisión"
+                aria-invalid={commentError}
+                aria-describedby={commentError ? "decision-comment-error" : undefined}
+                value={comment}
+                onChange={event => {
+                  const nextComment = event.target.value
+                  setComment(nextComment)
+                  if (nextComment.trim()) setCommentError(false)
+                }}
+                placeholder="Agregá una observación o pedido de cambio..."
+                className={commentError ? "border-clay-dark focus:border-clay-dark" : ""}
+              />
+              {commentError && <p id="decision-comment-error" role="alert" className="mt-1.5 text-xs font-medium text-clay-dark">Escribí un comentario para solicitar cambios.</p>}
             </label>
 
             <ModalFooter>
-              <Button variant="tertiary" onClick={() => setShowModal(false)}>
-                Cancelar
-              </Button>
-              <Button variant="secondary" onClick={() => { setShowModal(false); onRequestChanges(comment) }}>
+              <Button variant="secondary" onClick={() => {
+                if (!comment.trim()) {
+                  setCommentError(true)
+                  return
+                }
+                setShowModal(false)
+                onRequestChanges(comment.trim())
+              }}>
                 Solicitar cambios
               </Button>
               <Button
@@ -2030,7 +2078,7 @@ function ActionCard({
                   setShowModal(false)
                 }}
               >
-                {decision.requestType === "enviar_informacion" ? "Enviar información" : decision.requestType === "subir_documento" ? "Enviar documento" : decision.requestType === "confirmar_decision" ? "Confirmar decisión" : isChoiceRequest ? "Aprobar esta opción" : "Aprobar y continuar"} <Icon className="size-4" name="check" />
+                {decision.actionText || (decision.requestType === "enviar_informacion" ? "Enviar información" : decision.requestType === "subir_documento" ? "Enviar documento" : decision.requestType === "confirmar_decision" ? "Confirmar decisión" : isChoiceRequest ? "Aprobar esta opción" : "Aprobar y continuar")} <Icon className="size-4" name="check" />
               </Button>
             </ModalFooter>
           </div>
@@ -2545,6 +2593,7 @@ function ClientPortal({
         title: actionTask.accionCliente.titulo,
         description: actionTask.accionCliente.mensaje,
         requestType: actionTask.accionCliente.tipo,
+        actionText: actionTask.accionCliente.accionRequeridaTexto,
         content: actionUpdate?.descripcion || actionTask.notaCliente || actionTask.descripcionTrabajo,
         resources: actionResources,
         status: actionTask.accionCliente.estado === "aprobado" ? "aprobado" as const : actionTask.accionCliente.estado === "requiere_ajustes" ? "cambios" as const : "pendiente" as const,
@@ -2555,10 +2604,15 @@ function ClientPortal({
       ? {
           title: projectDecision.titulo,
           description: projectDecision.descripcion,
+          requestType: projectDecision.requestType,
           status: projectDecision.estado === "Aprobado" ? "aprobado" as const : "pendiente" as const,
           optionChosen: projectDecision.opcionAprobadaId,
-          options: (projectDecision.opciones || []).map(option => ({ id: option.id, title: option.titulo, description: option.descripcion })),
-          attachments: projectDecision.archivoAdjuntoUrl ? [{ name: "Archivo adjunto", url: projectDecision.archivoAdjuntoUrl }] : [],
+          options: (projectDecision.opciones || []).map(option => ({ id: option.id, title: option.titulo, description: option.descripcion, imageUrl: option.imagenUrl, cost: option.costoEstimado })),
+          attachments: [
+            ...(projectDecision.adjuntos || []).map(file => ({ name: file.nombre, url: file.url, type: file.tipo })),
+            ...(projectDecision.archivoAdjuntoUrl ? [{ name: "Archivo adjunto", url: projectDecision.archivoAdjuntoUrl }] : []),
+          ],
+          actionText: projectDecision.accionRequeridaTexto,
         }
       : null
   const respondToClientAction = (option: string, comment: string, approved: boolean) => {

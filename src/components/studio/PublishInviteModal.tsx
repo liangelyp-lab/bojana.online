@@ -132,7 +132,10 @@ export default function PublishInviteModal({
 
   const handlePublish = async () => {
     setIsPublishing(true); setPublishError('');
-    try { await onPublish({ ...project, tareaFocalPublicadaId: focusTaskId || undefined }); }
+    try {
+      await onPublish({ ...project, tareaFocalPublicadaId: focusTaskId || undefined });
+      setActiveTab('email');
+    }
     catch (error) { setPublishError((error as Error).message); }
     finally { setIsPublishing(false); }
   };
@@ -565,14 +568,6 @@ export default function PublishInviteModal({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-bojana-inside w-full sm:w-auto justify-end">
-            <Button variant="tertiary"
-              type="button"
-              onClick={onClose}
-
-            >
-              Cancelar
-            </Button>
-
             <Button variant="primary"
               type="button"
               onClick={handlePublish}
