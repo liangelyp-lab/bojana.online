@@ -2471,6 +2471,8 @@ function ClientPortal({
   const [progressMode, setProgressMode] = useState<'granular' | 'completo'>('granular')
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
   const [clientMessage, setClientMessage] = useState("")
+  const [clientMessageSending, setClientMessageSending] = useState(false)
+  const [clientMessageError, setClientMessageError] = useState<string | null>(null)
   const notificationCount = (currentProject.actividadReciente || []).length
   const recentNotifications = currentProject.actividadReciente || []
   const conversationMessages = recentNotifications
@@ -2690,7 +2692,9 @@ function ClientPortal({
   const sendClientMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const message = clientMessage.trim()
-    if (!message) return
+    if (!message || clientMessageSending) return
+    setClientMessageSending(true)
+    setClientMessageError(null)
     const messageActivity: ProjectActivityLog = {
       id: `client-message-${Date.now()}`,
       fecha: "Ahora",
@@ -2709,7 +2713,11 @@ function ClientPortal({
     void onPersistClientResponse({ kind: "message", message }, updated).then(() => {
       setClientMessage("")
       onToast("Mensaje enviado al equipo y guardado en el proyecto.")
-    }).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos enviar el mensaje."))
+    }).catch((error) => {
+      const message = error instanceof Error ? error.message : "No pudimos enviar el mensaje."
+      setClientMessageError(message)
+      onToast(message)
+    }).finally(() => setClientMessageSending(false))
   }
   const clientHistoryUpdates = projectTasks.flatMap(task =>
     (task.actualizaciones || [])
@@ -2936,12 +2944,14 @@ function ClientPortal({
                       id="client-message"
                       placeholder="Contanos qué necesitás revisar con el equipo..."
                       value={clientMessage}
+                      disabled={clientMessageSending}
                       onChange={event => setClientMessage(event.target.value)}
                     />
+                    {clientMessageError && <p role="alert" className="text-sm text-red-700">{clientMessageError}</p>}
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <p className="text-[11px] text-ink-faint">El mensaje queda registrado en la actividad de este proyecto.</p>
-                      <Button className="!min-h-9 !px-3 text-xs" disabled={!clientMessage.trim()} type="submit" variant="secondary">
-                        Enviar mensaje al equipo <Icon className="size-4" name="arrow" />
+                      <Button className="!min-h-9 !px-3 text-xs" disabled={!clientMessage.trim() || clientMessageSending} loading={clientMessageSending} type="submit" variant="secondary">
+                        {clientMessageSending ? "Enviando mensaje…" : "Enviar mensaje al equipo"} <Icon className="size-4" name="arrow" />
                       </Button>
                     </div>
                   </form>

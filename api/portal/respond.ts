@@ -55,6 +55,16 @@ async function canRespond(req: VercelRequest, body: ResponseBody, projectId: str
   if (body.token && await validateDirectToken(String(body.token), projectId, baseUrl, headers)) return true;
   const user = await requireSupabaseUser(req, { status: () => ({ json: () => undefined }) });
   if (!user) return false;
+  // Owners and admins manage all projects in their own studio, without
+  // needing a client membership. Never extend that access to other studios.
+  const profileResponse = await fetch(`${baseUrl}/rest/v1/studio_users?id=eq.${encodeURIComponent(user.id)}&select=role,studio_id&limit=1`, { headers });
+  const profiles = await profileResponse.json() as Array<{ role: string; studio_id: string }>;
+  const profile = profileResponse.ok ? profiles[0] : undefined;
+  if (profile && ["owner", "admin"].includes(profile.role)) {
+    const projectResponse = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(projectId)}&studio_id=eq.${encodeURIComponent(profile.studio_id)}&select=id&limit=1`, { headers });
+    const projects = await projectResponse.json() as Array<{ id: string }>;
+    return projectResponse.ok && Boolean(projects[0]);
+  }
   const membership = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(user.id)}&select=id&limit=1`, { headers });
   const rows = await membership.json() as Array<{ id: string }>;
   return membership.ok && Boolean(rows[0]);
