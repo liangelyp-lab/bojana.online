@@ -874,6 +874,7 @@ function ProjectActivity({ project, onOpenTask }: { project: ProjectData; onOpen
 
 function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectData["hitosInternos"]> }) {
   const upcoming = upcomingMilestones(milestones)
+  if (upcoming.length === 0) return null
   return (
     <Card as="section">
       <p className="bojana-heading-component">Próximos 7 días</p>
@@ -901,11 +902,6 @@ function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectDa
           </article>
           )
         })}
-        {upcoming.length === 0 && (
-          <p className="rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
-            No hay hitos pendientes para los próximos 7 días.
-          </p>
-        )}
       </div>
     </Card>
   )
