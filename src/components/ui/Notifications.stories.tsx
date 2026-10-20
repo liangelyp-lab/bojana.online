@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
+import { Clock } from 'lucide-react'
 import { Button } from './DesignSystem'
-import { CompactNotice, InlineNotice, ProjectPublishNotice, RecalculationNotice, ToastNotice } from './Notifications'
+import { CompactNotice, InlineNotice, NavigationNotificationPanel, ProjectPublishNotice, RecalculationNotice, ToastNotice } from './Notifications'
 
 type NotificationStoryArgs = { actionCount: 1 | 2; showDismiss: boolean; publishStatus: 'BORRADOR' | 'LISTO_PARA_COMPARTIR' }
 
@@ -42,6 +43,34 @@ export const InlineNotifications: Story = {
         <InlineNotice tone="warning" title="Respuesta solicitada" description="Revisá la información y elegí cómo continuar." onDismiss={onDismiss} actions={<Button size="s">Ver detalle</Button>} />
       </section>
 
+      <section className="max-w-3xl space-y-3">
+        <h2 className="bojana-heading-component">Acción enviada al cliente</h2>
+        <InlineNotice tone="action" icon={Clock} title="Review" description="Alcance validado con el comitente." actions={<>
+          <Button size="s">Revisar</Button>
+          <Button size="s" variant="secondary">Ver tarea</Button>
+        </>} />
+        <InlineNotice tone="warning" icon={Clock} title="Review" description="Alcance validado con el comitente." actions={<>
+          <Button size="s">Revisar</Button>
+          <Button size="s" variant="secondary">Ver tarea</Button>
+        </>} />
+      </section>
+
+      <section className="max-w-3xl space-y-3">
+        <h2 className="bojana-heading-component">Acción enviada al cliente · fondos claros</h2>
+        <InlineNotice filled tone="action" icon={Clock} title="Review" description="Alcance validado con el comitente." actions={<>
+          <Button size="s">Revisar</Button>
+          <Button size="s" variant="secondary">Ver tarea</Button>
+        </>} />
+        <InlineNotice filled tone="success" icon={Clock} title="Review" description="Alcance validado con el comitente." actions={<>
+          <Button size="s">Revisar</Button>
+          <Button size="s" variant="secondary">Ver tarea</Button>
+        </>} />
+        <InlineNotice filled tone="warning" icon={Clock} title="Review" description="Alcance validado con el comitente." actions={<>
+          <Button size="s">Revisar</Button>
+          <Button size="s" variant="secondary">Ver tarea</Button>
+        </>} />
+      </section>
+
       <section className="space-y-5">
         <h2 className="bojana-heading-component">Mensajes compactos</h2>
         <CompactNotice tone="error">No se pudo completar la acción. Intentá nuevamente.</CompactNotice>
@@ -56,6 +85,30 @@ export const InlineNotifications: Story = {
       <section className="space-y-5">
         <h2 className="bojana-heading-component">Toast</h2>
         <ToastNotice message="Cambios publicados. Ahora podés enviar email o copiar el enlace." onDismiss={onDismiss} />
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="bojana-heading-component">Panel de notificaciones de navegación</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <NavigationNotificationPanel
+            title="Admin · cliente → admin"
+            items={[
+              { id: 'notification-admin-1', title: 'Los Alisos', description: 'El comitente aprobó la revisión “Clases”.', date: 'Hoy · 10:30' },
+              { id: 'notification-admin-2', title: 'Casa del Parque', description: 'Hay una respuesta nueva sobre la tarea “Planos”.', date: 'Ayer · 16:45', read: true },
+            ]}
+            onSelect={() => undefined}
+            onClose={() => undefined}
+          />
+          <NavigationNotificationPanel
+            title="Cliente · admin → cliente"
+            items={[
+              { id: 'notification-client-1', title: 'Los Alisos', description: 'Nueva actualización publicada: “Avance de obra”.', date: 'Hoy · 09:15' },
+              { id: 'notification-client-2', title: 'Casa del Parque', description: 'Se solicitó acción al comitente: “Aprobación de planos”.', date: 'Ayer · 14:20' },
+            ]}
+            onSelect={() => undefined}
+            onClose={() => undefined}
+          />
+        </div>
       </section>
     </div>
   },

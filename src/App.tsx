@@ -8,11 +8,11 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
-import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronDown, ChevronUp, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
+import { ArrowDownLeft, ArrowLeft, ArrowRight, ArrowUpRight, Bell, Calendar, Check, ChevronDown, ChevronUp, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { hasUnpersistedProjectChanges, listRemoteProjects } from "./services/supabaseClient";
 import { getAllProjects, saveAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
-import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
+import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData, TaskUpdate } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
 import StudioProjectsList from "./components/studio/StudioProjectsList";
@@ -27,10 +27,10 @@ import AvancesModule from "./components/modules/AvancesModule";
 import RequestClientActionModal from "./components/studio/RequestClientActionModal";
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import Library from "./components/Library";
-import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, ProjectProgressStatusBadge, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, ProjectProgressStatusBadge, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, Tooltip, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import BrandLogo from "./components/ui/BrandLogo";
-import { CompactNotice, InlineNotice, ToastNotice } from "./components/ui/Notifications";
+import { CompactNotice, InlineNotice, NavigationNotificationPanel, ToastNotice } from "./components/ui/Notifications";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
 import { persistClientPortalResponse, type ClientPortalResponse } from "./services/clientPortalService";
 
@@ -173,14 +173,6 @@ type Task = {
   deliverablesCount?: number
   publishedDeliverables?: number
   pendingApprovals?: number
-}
-
-type DashboardDecision = {
-  title: string
-  description: string
-  status: "pendiente" | "aprobado" | "cambios"
-  requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision"
-  optionChosen?: string
 }
 
 function getProjectTasks(project: ProjectData): Task[] {
@@ -472,23 +464,40 @@ const mainNav: { label: string; icon: IconName }[] = [
   { label: "Biblioteca", icon: "folder" },
 ]
 
-function AdminNotificationsButton({ mobile = false, compact = false, projects = [], onOpenProject }: { mobile?: boolean; compact?: boolean; projects?: ProjectData[]; onOpenProject?: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean; communication?: boolean }) => void }) {
+function isClientToStudioActivity(activity: ProjectActivityLog, project: ProjectData) {
+  const description = activity.descripcion || ""
+  const clientName = project.cliente?.nombre?.trim()
+  return description.startsWith("Mensaje del cliente:")
+    || description.startsWith("El cliente aprobó")
+    || description.startsWith("El cliente solicitó cambios")
+    || Boolean(activity.autor && activity.autor !== "Bojana Estudio" && (activity.autor === clientName || /^(cliente|comitente|comisión los alisos)$/i.test(activity.autor)))
+}
+
+function isStudioToClientActivity(activity: ProjectActivityLog) {
+  const description = activity.descripcion || ""
+  return description.startsWith("Respuesta del estudio:")
+    || description.startsWith("Correo enviado al cliente:")
+    || description.startsWith("Se solicitó acción al comitente:")
+    || description.startsWith("Nueva actualización publicada:")
+    || description.startsWith("Nueva actualización en ")
+}
+
+function AdminNotificationsButton({ mobile = false, compact = false, projects = [], onOpenProject, onOpenChange }: { mobile?: boolean; compact?: boolean; projects?: ProjectData[]; onOpenProject?: (projectId: string, activity?: { taskId?: string; updateId?: string; decision?: boolean; communication?: boolean }) => void; onOpenChange?: (open: boolean) => void }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [reviewedIds, setReviewedIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem("bojana-reviewed-notifications") || "[]") } catch { return [] }
   })
-  const notifications = projects.flatMap(project => (project.actividadReciente || []).map(activity => ({
-    ...activity,
-    projectId: project.id,
-    projectName: project.info?.nombre || 'Proyecto',
-    isDecision: /(decisi[oó]n|opci[oó]n|aprob(?:ó|ada|ado)|cambios solicitados)/i.test(activity.descripcion),
-    isCommunication: activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:") || activity.descripcion.startsWith("Correo enviado al cliente:"),
-    notificationKey: `${project.id}-${activity.id}`
-  }))).sort((a, b) => {
-    const aTime = Date.parse(a.fecha)
-    const bTime = Date.parse(b.fecha)
-    return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime)
-  }).slice(0, 8)
+  const allNotifications = projects.flatMap(project => (project.actividadReciente || [])
+    .filter(activity => isClientToStudioActivity(activity, project))
+    .map(activity => ({
+      ...activity,
+      projectId: project.id,
+      projectName: project.info?.nombre || 'Proyecto',
+      isDecision: /(decisi[oó]n|opci[oó]n|aprob(?:ó|ada|ado)|cambios solicitados)/i.test(activity.descripcion),
+      isCommunication: activity.descripcion.startsWith("Mensaje del cliente:"),
+      notificationKey: `${project.id}-${activity.id}`
+    }))).sort((a, b) => activityTimestamp(b.fecha) - activityTimestamp(a.fecha))
+  const notifications = allNotifications.slice(0, 8)
   const markAsReviewed = (notificationId: string) => {
     setReviewedIds(current => {
       const next = current.includes(notificationId) ? current : [...current, notificationId]
@@ -497,46 +506,39 @@ function AdminNotificationsButton({ mobile = false, compact = false, projects = 
     })
   }
   return (
-    <div className="group relative">
-      <NotificationAnchor count={notifications.filter(notification => !reviewedIds.includes(notification.notificationKey)).length} size="s">
+    <div className={`group relative ${notificationsOpen ? "z-[1000]" : ""}`}>
+      <NotificationAnchor count={allNotifications.filter(notification => !reviewedIds.includes(notification.notificationKey)).length} size="s">
       <Button
         ariaLabel="Notificaciones"
         className={compact ? "hover:!bg-white/5" : undefined}
-        onClick={() => setNotificationsOpen((open) => !open)}
+        onClick={() => setNotificationsOpen(open => { onOpenChange?.(!open); return !open })}
         variant="icon"
         size="m"
       >
         <Icon className={compact ? "text-white/55 group-hover:text-white" : undefined} name="bell" />
       </Button>
       </NotificationAnchor>
-      {notificationsOpen && (
-        <div className={`${mobile ? "left-0 top-12" : "left-full top-0 ml-2"} absolute z-50 w-72 rounded-2xl border border-line bg-white p-4 text-ink shadow-xl`}>
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold">Notificaciones</p>
-            <Button
-              variant="icon"
-              size="s"
-              ariaLabel="Cerrar notificaciones"
-              onClick={() => setNotificationsOpen(false)}
-            >
-              <X aria-hidden="true" />
-            </Button>
-          </div>
-          {notifications.length === 0 ? (
-            <p className="mt-2 text-xs leading-relaxed text-ink-muted">No hay notificaciones nuevas.</p>
-          ) : (
-            <div className="mt-3 divide-y divide-line rounded-xl border border-line bg-canvas">
-              {notifications.map(notification => (
-                <Button variant="tertiary" key={notification.notificationKey} type="button" className={`w-full px-3 py-2.5 text-left hover:bg-stone ${reviewedIds.includes(notification.notificationKey) ? "opacity-60" : ""}`} onClick={() => { markAsReviewed(notification.notificationKey); onOpenProject?.(notification.projectId, { ...notification, decision: notification.isDecision, communication: notification.isCommunication }); setNotificationsOpen(false) }}>
-                  <span className="flex items-center justify-between gap-2 text-xs font-semibold text-ink"><span>{notification.projectName}</span>{reviewedIds.includes(notification.notificationKey) && <span className="text-[10px] font-medium text-ink-faint">Revisado</span>}</span>
-                  <span className="mt-0.5 block truncate text-[11px] text-ink-muted">{notification.descripcion}</span>
-                </Button>
-              ))}
-            </div>
-          )}
-          <Button className="mt-3 w-full" variant="secondary" onClick={() => { notifications.forEach(notification => markAsReviewed(notification.notificationKey)); setNotificationsOpen(false) }}>Marcar todo como revisado</Button>
-        </div>
-      )}
+      {notificationsOpen && <div className={`${mobile ? "left-0 top-12" : "left-full top-0 ml-2"} absolute z-50 w-72`}>
+        <NavigationNotificationPanel
+          emptyMessage="No hay notificaciones nuevas."
+          items={notifications.map(notification => ({
+            id: notification.notificationKey,
+            title: notification.projectName,
+            description: notification.descripcion,
+            date: notification.fecha,
+            read: reviewedIds.includes(notification.notificationKey),
+            context: notification,
+          }))}
+          onClose={() => { setNotificationsOpen(false); onOpenChange?.(false) }}
+          onSelect={item => {
+            const notification = item.context!
+            markAsReviewed(notification.notificationKey)
+            onOpenProject?.(notification.projectId, { ...notification, decision: notification.isDecision, communication: notification.isCommunication })
+            setNotificationsOpen(false)
+            onOpenChange?.(false)
+          }}
+        />
+      </div>}
     </div>
   )
 }
@@ -556,15 +558,16 @@ function AdminSidebar({
   activeUser?: { nombre: string; rol: string } | null
   canAccessSettings: boolean
 }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
   return (
-    <aside className="sticky top-0 hidden h-full max-h-full w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex">
+    <aside className={`sticky top-0 ${notificationsOpen ? "z-[1000]" : "z-0"} hidden h-full max-h-full w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex`}>
       <div className="flex items-center justify-between gap-3 px-2">
         <div className="min-w-0 flex-1">
           <BrandLogo tone="onDark"
             className="h-auto w-32 max-w-full"
           />
         </div>
-        <AdminNotificationsButton compact projects={projects} onOpenProject={onOpenProject} />
+        <AdminNotificationsButton compact projects={projects} onOpenProject={onOpenProject} onOpenChange={setNotificationsOpen} />
       </div>
 
       <nav aria-label="Navegacion principal" className="mt-10 space-y-1">
@@ -658,7 +661,7 @@ function ProjectExecutionSummary({
         divider
         title={project.info?.nombre || "Proyecto"}
         titleAccessory={<ProjectProgressStatusBadge progress={projectProgress} status={projectStatus} size="s" />}
-        description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span></>}
+        description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion ? formatPortalDate(project.info.ultimaActualizacion) : "Sin actualizaciones"}</span></>}
         actions={<>
           <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="m" tooltip="Configurar proyecto" variant="icon">
             <PortalIcon icon={Settings} size="m" />
@@ -749,108 +752,120 @@ function TasksPanel({
   )
 }
 
-type PendingClientActionSummary = {
-  taskId: string
-  taskTitle: string
-  title: string
-  message: string
-  actionLabel: string
-  deadline?: string
+type ActivityFeedItem = {
+  id: string
+  fecha: string
+  autor: string
+  titulo: string
+  texto: string
+  taskId?: string
 }
 
-type ResolvedClientActionSummary = {
-  taskId: string
-  title: string
-  responseDate: string
-}
-
-function ClientActions({
-  decision,
-  pendingAction,
-  resolvedAction,
-  hideResolvedNotice = false,
-  comments = [],
-  onReviewDecision,
-  onOpenTask,
-  onOpenDecision,
-}: {
-  decision: DashboardDecision | null
-  pendingAction?: PendingClientActionSummary | null
-  resolvedAction?: ResolvedClientActionSummary | null
-  hideResolvedNotice?: boolean
-  comments?: { id: string; autor: string; fecha: string; texto: string }[]
-  onReviewDecision: () => void
-  onOpenTask: (taskId: string) => void
-  onOpenDecision: () => void
-}) {
-  const pendingActionCard = pendingAction ? (
-    <InlineNotice compact filled tone="action" icon={Clock} title={pendingAction.title} actions={<Button size="xs" onClick={onReviewDecision}>Revisar</Button>} />
-  ) : null
-
-  if (!decision && !resolvedAction) {
-    if (!pendingAction) return null
-    return (
-      <Card as="section">
-        <Heading as="h2" className="bojana-heading-component">Acciones y respuestas</Heading>
-        {pendingActionCard}
-        {comments.length === 0 && !pendingAction ? (
-          <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
-            Este proyecto todavía no tiene acciones pendientes ni respuestas del cliente.
-          </p>
-        ) : comments.length > 0 ? (
-          <div className={`${pendingAction ? "mt-5 border-t border-line pt-5" : "mt-6"} space-y-3`}>
-            {comments.map(comment => (
-              <article key={comment.id} className="rounded-bojana-widget border border-line bg-stone/40 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
-                  <span className="font-semibold text-ink">{comment.autor}</span>
-                  <time className="shrink-0" dateTime={/^\d{4}-\d{2}-\d{2}T/.test(comment.fecha) ? comment.fecha : undefined}>{formatPortalDate(comment.fecha)}</time>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-ink-muted">{comment.texto}</p>
-              </article>
-            ))}
-          </div>
-        ) : null}
-      </Card>
-    )
+function activityTimestamp(value: string) {
+  if (/^(ahora|hoy)(\b|[, ·])/i.test(value.trim())) return Number.MAX_SAFE_INTEGER
+  if (/^ayer(\b|[, ·])/i.test(value.trim())) return Number.MAX_SAFE_INTEGER - 86400000
+  if (/^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    const iso = Date.parse(value)
+    if (!Number.isNaN(iso)) return iso
   }
-  const hasApprovedNotice = decision?.status === "aprobado" || Boolean(resolvedAction)
-  const isApproved = hasApprovedNotice && !hideResolvedNotice
+  const match = value.match(/^(\d{1,2})[ /-]([a-záéíóú]+|\d{1,2})(?:[ /·,-]+(\d{4}))?/i)
+  if (!match) return 0
+  const months: Record<string, number> = { ene: 0, enero: 0, feb: 1, febrero: 1, mar: 2, marzo: 2, abr: 3, abril: 3, may: 4, mayo: 4, jun: 5, junio: 5, jul: 6, julio: 6, ago: 7, agosto: 7, sep: 8, sept: 8, septiembre: 8, oct: 9, octubre: 9, nov: 10, noviembre: 10, dic: 11, diciembre: 11 }
+  const month = /^\d+$/.test(match[2]) ? Number(match[2]) - 1 : months[match[2].toLowerCase()]
+  if (month === undefined) return 0
+  return new Date(Number(match[3] || new Date().getFullYear()), month, Number(match[1])).getTime()
+}
+
+function ProjectActivity({ project, onOpenTask }: { project: ProjectData; onOpenTask: (taskId: string) => void }) {
+  const items = useMemo(() => {
+    const activities: ActivityFeedItem[] = (project.actividadReciente || [])
+      .filter(activity => !activity.descripcion.startsWith("Se solicitó acción al comitente:")
+        && !activity.descripcion.startsWith("El cliente aprobó")
+        && !activity.descripcion.startsWith("El cliente solicitó cambios sobre"))
+      .map(activity => ({
+        id: activity.id,
+        fecha: activity.fecha,
+        autor: activity.autor || "Bojana Estudio",
+        titulo: activity.descripcion.startsWith("Mensaje del cliente:") ? "Mensaje del cliente"
+          : activity.descripcion.startsWith("Respuesta del estudio:") ? "Respuesta del estudio"
+            : activity.descripcion.startsWith("Correo enviado al cliente:") ? "Correo enviado al cliente"
+              : "Actividad del proyecto",
+        texto: activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio|Correo enviado al cliente):\s*/, ""),
+        taskId: activity.taskId,
+      }))
+
+    for (const decision of project.decisiones || []) {
+      for (const comment of decision.comentarios || []) {
+        activities.push({ id: `decision-comment-${decision.id}-${comment.id}`, fecha: comment.fecha, autor: comment.autor, titulo: `Comentario · ${decision.titulo}`, texto: comment.texto })
+      }
+    }
+
+    for (const discipline of project.disciplinasOperativas || []) {
+      for (const need of discipline.necesidades || []) {
+        for (const task of need.tareas || []) {
+          const action = task.accionCliente
+          if (!action) continue
+          activities.push({
+            id: `action-request-${action.id}`,
+            fecha: action.fechaSolicitud || "Ahora",
+            autor: "Bojana Estudio",
+            titulo: `Solicitud enviada · ${task.titulo}`,
+            texto: `${action.titulo}\n${action.mensaje}\nAcción requerida: ${action.accionRequeridaTexto}`,
+            taskId: task.id,
+          })
+          if (action.respuestaCliente) {
+            const response = action.respuestaCliente
+            const outcome = response.decision === "aprobado" || response.decision === "alternativa_elegida" ? "Aprobación recibida" : response.decision === "requiere_cambios" ? "Cambios solicitados" : "Información recibida"
+            activities.push({
+              id: `action-response-${action.id}`,
+              fecha: response.fecha,
+              autor: project.cliente?.nombre || "Cliente",
+              titulo: `${outcome} · ${task.titulo}`,
+              texto: response.comentario || action.titulo,
+              taskId: task.id,
+            })
+          }
+        }
+      }
+    }
+
+    return activities.sort((a, b) => activityTimestamp(b.fecha) - activityTimestamp(a.fecha))
+  }, [project])
 
   return (
     <Card as="section">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <Heading as="h2" className="bojana-heading-component">
-            Acciones y respuestas
-          </Heading>
+      <Heading as="h2" className="bojana-heading-component">Actividad</Heading>
+      {items.length === 0 ? (
+        <p className="mt-5 rounded-2xl border border-dashed border-line p-4 text-sm text-ink-faint">Todavía no hay actividad registrada en este proyecto.</p>
+      ) : (
+        <div className="activity-feed-frame relative mt-3">
+        <div className="activity-feed-scroll -mr-2 max-h-[14rem] space-y-1 overflow-y-auto pr-1">
+          {items.map(item => {
+            const incoming = item.autor !== "Bojana Estudio"
+            const DirectionIcon = incoming ? ArrowDownLeft : ArrowUpRight
+            const messagePreview = item.texto.split(/\r?\n/).map(line => line.trim()).find(Boolean) || item.titulo
+            const preview = /^https?:\/\/\S+$/i.test(messagePreview) ? item.titulo : messagePreview
+            const content = <span className="flex min-w-0 items-center gap-2">
+              <DirectionIcon aria-label={incoming ? "Entrante" : "Saliente"} className={`size-4 shrink-0 ${incoming ? "text-info-strong" : "text-forest"}`} />
+              <span className="min-w-0 flex-1 truncate text-xs text-ink" title={preview}>{preview}</span>
+              <time className="shrink-0 text-[11px] text-ink-muted">{formatPortalDate(item.fecha)}</time>
+            </span>
+            const row = item.taskId ? (
+              <button aria-label={`${incoming ? "Entrante" : "Saliente"}: ${preview}, ${formatPortalDate(item.fecha)}`} className="block w-full rounded-lg py-2 pl-1.5 pr-2.5 text-left transition-colors hover:bg-stone/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink" key={item.id} onClick={() => onOpenTask(item.taskId!)} title={preview} type="button">
+                {content}
+              </button>
+            ) : (
+              <article className="rounded-lg py-2 pl-1.5 pr-2.5" key={item.id} title={preview}>
+                {content}
+              </article>
+            )
+            return <Tooltip className="block w-full" content={<div className="max-w-xs space-y-1 whitespace-normal text-left">
+              <p className="font-semibold">{item.titulo}</p>
+              <p className="text-[11px] font-normal">{item.autor} · {formatPortalDate(item.fecha)}</p>
+              <p className="whitespace-pre-wrap break-words text-[11px] font-normal">{/^https?:\/\/\S+$/i.test(item.texto.trim()) ? preview : item.texto}</p>
+            </div>} key={item.id}>{row}</Tooltip>
+          })}
         </div>
-        {isApproved ? (
-          <PortalIcon icon={Check} size="xs" filled />
-        ) : (
-          <span className="grid size-8 place-items-center rounded-full bg-clay text-xs font-bold text-white">1</span>
-        )}
-      </div>
-
-      <div className="mt-6 space-y-3">
-        {pendingActionCard}
-        {isApproved ? (
-          <InlineNotice compact tone="success" filled title={resolvedAction?.title || decision?.title || "Actualización aprobada"} actions={<Button size="xs" onClick={() => resolvedAction ? onOpenTask(resolvedAction.taskId) : onOpenDecision()}>Revisar</Button>} />
-        ) : !hasApprovedNotice ? (
-          <InlineNotice tone="warning" title={decision?.title || "Respuesta pendiente"} description="Esperando respuesta del cliente · Pendiente" actions={<Button size="s" onClick={onReviewDecision}>Revisar opciones enviadas</Button>} />
-        ) : null}
-      </div>
-      {comments.length > 0 && (
-        <div className="mt-5 space-y-3 border-t border-line pt-5">
-          <p className="bojana-heading-component">Comentarios del sitio</p>
-          {comments.map(comment => (
-            <article key={comment.id} className="rounded-bojana-widget border border-line bg-stone/40 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
-                <span className="font-semibold text-ink">{comment.autor}</span>
-                <time className="shrink-0" dateTime={/^\d{4}-\d{2}-\d{2}T/.test(comment.fecha) ? comment.fecha : undefined}>{formatPortalDate(comment.fecha)}</time>
-              </div>
-              <p className="mt-2 text-sm leading-6 text-ink-muted">{comment.texto}</p>
-            </article>
-          ))}
         </div>
       )}
     </Card>
@@ -861,10 +876,7 @@ function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectDa
   return (
     <Card as="section">
       <p className="bojana-heading-component">Próximos 7 días</p>
-      <Heading as="h2" className="mt-2 font-display text-2xl text-ink">
-        Hitos y entregas
-      </Heading>
-      <div className="mt-6 space-y-5">
+      <div className="mt-4 space-y-5">
         {milestones.map((milestone) => {
           const [day, ...monthParts] = milestone.fecha.split(" ")
           return (
@@ -913,7 +925,8 @@ function collectLibraryItems(projects: ProjectData[]): LibraryItem[] {
 
   projects.forEach((project) => {
     const projectName = project.info?.nombre || project.id;
-    const projectDate = project.ultimaModificacion || project.info?.ultimaActualizacion || "N/D";
+    const rawProjectDate = project.ultimaModificacion || project.info?.ultimaActualizacion || "N/D";
+    const projectDate = formatPortalDate(rawProjectDate);
     const addProjectFile = (item: Omit<LibraryItem, "proyecto" | "origen"> & { url?: string; origen: string }) => {
       add({ ...item, proyecto: projectName });
     };
@@ -1077,8 +1090,6 @@ function AdminPortal({
   onNewProject,
   tasks,
   onToggleTask,
-  decision,
-  onReviewDecision,
   onPublishToast,
   onUpdateProject,
   onEditProject,
@@ -1095,14 +1106,6 @@ function AdminPortal({
   onNewProject: () => void
   tasks: Task[]
   onToggleTask: (title: string) => void
-  decision: {
-    title: string
-    description: string
-    status: "pendiente" | "aprobado" | "cambios"
-    requestType?: "aprobar_rechazar" | "elegir_alternativa" | "enviar_informacion" | "subir_documento" | "confirmar_decision"
-    optionChosen?: string
-  }
-  onReviewDecision: () => void
   onPublishToast: (msg?: string) => void
   onUpdateProject: (updated: ProjectData) => void
   onEditProject: () => void
@@ -1112,7 +1115,6 @@ function AdminPortal({
   const [activeNav, setActiveNav] = useState("Proyectos")
   const [activeTab, setActiveTab] = useState("Resumen")
   const [notificationTarget, setNotificationTarget] = useState<{ taskId?: string; updateId?: string } | undefined>()
-  const [dismissedResolvedActionTaskId, setDismissedResolvedActionTaskId] = useState<string | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [actionModalTask, setActionModalTask] = useState<ExecutionTask | null>(null)
   const [isActionModalOpen, setIsActionModalOpen] = useState(false)
@@ -1137,104 +1139,15 @@ function AdminPortal({
     }),
     [allProjects],
   )
-  const workspaceDecision = useMemo<DashboardDecision | null>(() => {
-    if (!selectedProjectId) return decision
-    const projectDecision = currentProject?.decisiones?.[0]
-    if (!projectDecision) return null
-    return {
-      title: projectDecision.titulo,
-      description: projectDecision.descripcion,
-      status: projectDecision.estado === "Aprobado" ? "aprobado" : "pendiente",
-      optionChosen: projectDecision.opciones?.find((option) => option.id === projectDecision.opcionAprobadaId)?.titulo,
-    }
-  }, [currentProject, decision, selectedProjectId])
-  const pendingClientAction = useMemo<PendingClientActionSummary | null>(() => {
-    if (!selectedProjectId) return null
-    for (const discipline of currentProject?.disciplinasOperativas || []) {
-      for (const need of discipline.necesidades || []) {
-        for (const task of need.tareas || []) {
-          const action = task.accionCliente
-          if (action?.activa && action.estado === "pendiente") {
-            return {
-              taskId: task.id,
-              taskTitle: task.titulo,
-              title: action.titulo,
-              message: action.mensaje,
-              actionLabel: action.accionRequeridaTexto,
-              deadline: action.fechaLimite,
-            }
-          }
-          if (task.estado === "Esperando al cliente") {
-            return {
-              taskId: task.id,
-              taskTitle: task.titulo,
-              title: task.titulo,
-              message: "Esta tarea está esperando una respuesta del cliente para continuar.",
-              actionLabel: "Responder",
-            }
-          }
-        }
-      }
-    }
-    return null
-  }, [currentProject, selectedProjectId])
-  const resolvedClientAction = useMemo<ResolvedClientActionSummary | null>(() => {
-    if (!selectedProjectId) return null
-    const resolvedActions = (currentProject?.disciplinasOperativas || []).flatMap((discipline) =>
-      discipline.necesidades.flatMap((need) =>
-        need.tareas.flatMap((task) => {
-          const action = task.accionCliente
-          const response = action?.respuestaCliente
-          if (!action || !response || (response.decision !== "aprobado" && response.decision !== "alternativa_elegida")) return []
-          return [{ taskId: task.id, title: action.titulo, responseDate: response.fecha }]
-        }),
-      ),
-    )
-    return resolvedActions.sort((a, b) => Date.parse(b.responseDate) - Date.parse(a.responseDate))[0] || null
-  }, [currentProject, selectedProjectId])
   const openTaskInAdmin = (taskId: string) => {
-    setDismissedResolvedActionTaskId(null)
     setNotificationTarget({ taskId })
     setActiveNav("Proyectos")
     setActiveTab("Resumen")
   }
-  const openDecisionInAdmin = () => {
-    setNotificationTarget(undefined)
-    setActiveNav("Proyectos")
-    setActiveTab("Decisiones")
-  }
   const workspaceMilestones = currentProject?.hitosInternos || []
-  const clientComments = (currentProject?.decisiones || []).flatMap(decisionItem =>
-    (decisionItem.comentarios || []).map(comment => ({
-      id: comment.id,
-      autor: comment.autor,
-      fecha: comment.fecha,
-      texto: comment.texto,
-    }))
-  ).concat(
-    (currentProject?.disciplinasOperativas || []).flatMap(discipline => discipline.necesidades.flatMap(need => need.tareas.flatMap(task => {
-      const response = task.accionCliente?.respuestaCliente
-      return response?.comentario ? [{
-        id: `action-comment-${task.id}`,
-        autor: currentProject?.cliente?.nombre || "Cliente",
-        fecha: response.fecha,
-        texto: response.comentario,
-      }] : []
-    })))
-  ).concat(
-    (currentProject?.actividadReciente || [])
-      .filter(activity => activity.autor && activity.autor !== "Bojana Estudio" && activity.descripcion.startsWith("Mensaje del cliente:"))
-      .map(activity => ({
-        id: activity.id,
-        autor: activity.autor || "Cliente",
-        fecha: activity.fecha,
-        texto: activity.descripcion.replace(/^Mensaje del cliente:\s*/, ""),
-      }))
-  )
 
   const completedCount = useMemo(() => workspaceTasks.filter(t => t.status === "Completado").length, [workspaceTasks])
   const inProgressCount = useMemo(() => workspaceTasks.filter(t => t.status === "En curso").length, [workspaceTasks])
-  const waitingClientCount = useMemo(() => workspaceDecision?.status === "pendiente" ? 1 : 0, [workspaceDecision])
   // This is the project-wide weighted progress: the same source rendered by the
   // status bar and client portal. The task count below remains a separate count.
   const progressPercent = currentProject ? getEffectiveProgress(currentProject) : 0
@@ -1261,7 +1174,7 @@ function AdminPortal({
           projects={allProjects}
           activeUser={activeUser}
           canAccessSettings={canAccessSettings}
-          onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen") }}
+          onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.taskId || activity?.updateId ? "Resumen" : activity?.decision ? "Decisiones" : "Resumen") }}
         />
         <div className="min-w-0 flex-1 lg:min-h-0 lg:overflow-y-auto lg:[scrollbar-gutter:stable]">
           <AdminHeader
@@ -1303,7 +1216,7 @@ function AdminPortal({
                 <Icon className="size-4" name="settings" /> Configuracion
               </Button>}
               <div className="col-span-2">
-                <AdminNotificationsButton mobile projects={allProjects} onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.decision ? "Decisiones" : "Resumen"); setMenuOpen(false) }} />
+                <AdminNotificationsButton mobile projects={allProjects} onOpenProject={(projectId, activity) => { setNotificationTarget(activity?.taskId || activity?.updateId ? { taskId: activity.taskId, updateId: activity.updateId } : undefined); setSelectedProjectId(projectId); setActiveNav("Proyectos"); setActiveTab(activity?.communication ? "Comunicación" : activity?.taskId || activity?.updateId ? "Resumen" : activity?.decision ? "Decisiones" : "Resumen"); setMenuOpen(false) }} />
               </div>
               <Button
                 className="!justify-start !rounded-xl col-span-2"
@@ -1391,12 +1304,11 @@ function AdminPortal({
                         focusTaskId={notificationTarget?.taskId}
                         focusUpdateId={notificationTarget?.updateId}
                         onDismissTaskFocus={() => {
-                          if (notificationTarget?.taskId) setDismissedResolvedActionTaskId(notificationTarget.taskId)
                           setNotificationTarget(undefined)
                         }}
                       />
                       <aside className="space-y-6">
-                        <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} onOpenTask={openTaskInAdmin} onOpenDecision={openDecisionInAdmin} pendingAction={pendingClientAction} resolvedAction={resolvedClientAction} hideResolvedNotice={resolvedClientAction?.taskId === dismissedResolvedActionTaskId} />
+                        {currentProject && <ProjectActivity onOpenTask={openTaskInAdmin} project={currentProject} />}
                         <UpcomingPanel milestones={workspaceMilestones} />
                       </aside>
                     </div>
@@ -1443,6 +1355,7 @@ function AdminPortal({
                   <div className="mt-8">
                     <CommunicationPanel
                       activeUser={activeUser || undefined}
+                      onOpenTask={openTaskInAdmin}
                       onToast={onPublishToast}
                       onUpdateProject={onUpdateProject}
                       project={currentProject}
@@ -1570,7 +1483,7 @@ function AdminPortal({
                   info: {
                     ...currentProject.info,
                     cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1,
-                    ultimaActualizacion: "Hoy",
+                    ultimaActualizacion: new Date().toISOString(),
                   },
                 }
             onUpdateProject(updatedProject)
@@ -1619,7 +1532,6 @@ function ClientSidebar({
   setActive,
   onBackToAdmin,
   showAdminLink,
-  notificationCount,
   recentNotifications,
   onOpenNotification,
   projects,
@@ -1630,23 +1542,45 @@ function ClientSidebar({
   setActive: (item: string) => void
   onBackToAdmin: () => void
   showAdminLink: boolean
-  notificationCount: number
   recentNotifications: Array<{ id: string; descripcion: string; fecha: string; taskId?: string; updateId?: string }>
-  onOpenNotification: (notification: { taskId?: string; updateId?: string }) => void
+  onOpenNotification: (notification: { taskId?: string; updateId?: string; descripcion: string }) => void
   projects: ProjectData[]
   selectedProjectId: string | null
   onProjectChange: (id: string) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [readNotificationIds, setReadNotificationIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("bojana-client-reviewed-notifications") || "[]") } catch { return [] }
+  })
+  const markNotificationRead = (id: string) => {
+    setReadNotificationIds(current => {
+      const next = current.includes(id) ? current : [...current, id]
+      try { localStorage.setItem("bojana-client-reviewed-notifications", JSON.stringify(next)) } catch { /* Keep the current session state if storage is unavailable. */ }
+      return next
+    })
+  }
+  const notificationItems = recentNotifications.map(notification => ({
+    id: `client-${selectedProjectId || "project"}-${notification.id}`,
+    description: notification.descripcion,
+    date: notification.fecha,
+    read: readNotificationIds.includes(`client-${selectedProjectId || "project"}-${notification.id}`),
+    context: notification,
+  }))
+  const unreadCount = notificationItems.filter(item => !item.read).length
+  const openNotification = (notification: typeof recentNotifications[number], id: string) => {
+    markNotificationRead(id)
+    onOpenNotification(notification)
+    setNotificationsOpen(false)
+  }
   return (
     <>
-    <header className="sticky top-0 z-40 w-full border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur lg:hidden">
+    <header className={`sticky top-0 ${notificationsOpen ? "z-[1000]" : "z-40"} w-full border-b border-line bg-canvas/95 px-4 py-3 backdrop-blur lg:hidden`}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm font-semibold">Portal del proyecto</span>
         <div className="flex items-center gap-2">
           {showAdminLink && <Button size="s" variant="tertiary" onClick={onBackToAdmin}>Volver al administrador</Button>}
-          <NotificationAnchor count={notificationCount}>
+          <NotificationAnchor count={unreadCount}>
             <Button ariaLabel="Notificaciones" aria-expanded={notificationsOpen} onClick={() => setNotificationsOpen(value => !value)} variant="icon" size="s"><Icon name="bell" className="size-4" /></Button>
           </NotificationAnchor>
         </div>
@@ -1655,19 +1589,20 @@ function ClientSidebar({
       <nav aria-label="Navegación cliente" className="mt-3 grid grid-cols-2 gap-1 min-[360px]:grid-cols-4">
         {clientNavItems.map(item => <Button key={item.label} ariaLabel={item.label} aria-current={active === item.label ? "page" : undefined} size="s" variant="tertiary" className={`min-w-0 !flex-col !gap-1 !rounded-xl !px-1 !text-[11px] ${active === item.label ? "!bg-stone !text-ink" : ""}`} onClick={() => { setActive(item.label); setNotificationsOpen(false) }}><Icon className="size-4" name={item.icon} /><span>{item.label}</span></Button>)}
       </nav>
-      {notificationsOpen && <section aria-label="Notificaciones recientes" className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-line bg-white p-2">
-        <div className="flex items-center justify-between px-2"><p className="text-sm font-semibold">Notificaciones recientes</p><Button ariaLabel="Cerrar notificaciones" variant="icon" size="xs" onClick={() => setNotificationsOpen(false)}><X className="size-3" /></Button></div>
-        {recentNotifications.map(notification => <Button key={notification.id} variant="tertiary" className="w-full !justify-start !rounded-lg !text-left" onClick={() => { onOpenNotification(notification); setNotificationsOpen(false) }}><span className="min-w-0 break-words text-xs">{notification.descripcion}</span></Button>)}
-        {recentNotifications.length === 0 && <p className="p-2 text-xs text-ink-muted">No hay notificaciones recientes.</p>}
-      </section>}
+      {notificationsOpen && <NavigationNotificationPanel
+        className="mt-3 p-3 shadow-none"
+        items={notificationItems}
+        onClose={() => setNotificationsOpen(false)}
+        onSelect={item => openNotification(item.context!, item.id)}
+      />}
     </header>
-    <div className={`group fixed left-4 top-4 z-50 hidden h-[calc(100vh-2rem)] lg:block ${expanded ? "w-60" : "w-14"}`}>
+    <div className={`group fixed left-4 top-4 ${notificationsOpen ? "z-[1000]" : "z-50"} hidden h-[calc(100vh-2rem)] lg:block ${expanded ? "w-60" : "w-14"}`}>
       <aside className={`flex h-full w-full shrink-0 flex-col rounded-bojana-widget border border-line bg-white/60 py-3 shadow-card backdrop-blur transition-[width] duration-200 ${expanded ? "px-3" : "items-center px-1.5"}`}>
       <div className={`flex items-center ${expanded ? "justify-between px-2" : "justify-center"}`}>
         {expanded && <div className="w-36 rounded-xl px-2 py-2" title="Bojana Estudio">
           <BrandLogo tone="onLight" className="h-auto w-full opacity-70" />
         </div>}
-        <NotificationAnchor count={notificationCount}>
+        <NotificationAnchor count={unreadCount}>
         <Button
           ariaLabel="Notificaciones"
           title="Notificaciones"
@@ -1699,31 +1634,13 @@ function ClientSidebar({
         ))}
       </nav>
 
-      {notificationsOpen && (
-        <div className="absolute left-full top-12 z-[100] ml-3 w-72 rounded-2xl border border-line bg-white p-4 text-left shadow-xl">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-ink">Notificaciones recientes</p>
-            <Button
-              variant="icon"
-              size="xs"
-              onClick={() => setNotificationsOpen(false)}
-              ariaLabel="Cerrar notificaciones"
-              title="Cerrar notificaciones"
-            >
-              <X className="size-3" aria-hidden="true" />
-            </Button>
-          </div>
-          <div className="mt-3 max-h-72 divide-y divide-line overflow-y-auto rounded-xl border border-line bg-canvas">
-            {recentNotifications.map(notification => (
-              <Button variant="tertiary" key={notification.id} type="button" className="w-full px-3 py-2.5 text-left hover:bg-stone" onClick={() => { onOpenNotification(notification); setNotificationsOpen(false) }}>
-                <span className="block text-xs font-semibold text-ink">{notification.descripcion}</span>
-                <span className="mt-0.5 block text-[11px] text-ink-muted">{notification.fecha}</span>
-              </Button>
-            ))}
-            {recentNotifications.length === 0 && <p className="px-3 py-3 text-xs text-ink-muted">No hay notificaciones recientes.</p>}
-          </div>
-        </div>
-      )}
+      {notificationsOpen && <div className="absolute left-full top-12 z-[100] ml-3 w-72">
+        <NavigationNotificationPanel
+          items={notificationItems}
+          onClose={() => setNotificationsOpen(false)}
+          onSelect={item => openNotification(item.context!, item.id)}
+        />
+      </div>}
 
       <div className="mt-5 border-t border-line pt-4" />
 
@@ -1924,6 +1841,13 @@ function ActionCard({
   const [dismissed, setDismissed] = useState(false)
   const isApproved = decision.status === "aprobado"
   const hasChangesRequested = decision.status === "cambios"
+  const descriptionIsLink = /^https?:\/\/\S+$/i.test(decision.description.trim())
+  const attachmentPreview = decision.attachments?.map(attachment => attachment.name).filter(Boolean).join(" · ")
+  const contentPreview = decision.content?.trim()
+  const optionPreview = decision.options?.map(option => option.title).filter(Boolean).join(" · ")
+  const actionPreview = descriptionIsLink
+    ? attachmentPreview || contentPreview || optionPreview || decision.actionText || "Revisá el contenido asociado a esta solicitud."
+    : decision.description
 
   if (dismissed) return null
 
@@ -1988,7 +1912,7 @@ function ActionCard({
         filled
         icon={Clock}
         title={decision.title}
-        description={decision.description}
+        description={actionPreview}
         actions={<>
           <Button size="s" onClick={() => setShowModal(true)}>Revisar</Button>
           {onViewTask && <Button size="s" onClick={onViewTask}>Ver tarea</Button>}
@@ -2095,6 +2019,11 @@ type ClientProgressGroups = {
   needs: {
     id: string
     name: string
+    cierrePublicado?: boolean
+    cierreDestacado?: boolean
+    cierreFecha?: string
+    cierreImagenUrl?: string
+    cierreDescripcion?: string
     progress: number
     weight: number
     projectWeight: number
@@ -2178,12 +2107,20 @@ function ClientProjectTasksSection({
         const completed = need.tasks.filter(task => task.status === "Completada").length
         return <section key={need.id} className="border-b border-line last:border-0">
           <PhaseRow
-            title={need.name}
+            title={<span className="flex flex-wrap items-center gap-2">{need.name}{need.cierrePublicado && <StatusBadge tone="active" size="s" showDot={false}>{need.cierreDestacado ? "Cierre destacado" : "Cierre publicado"}</StatusBadge>}</span>}
             progress={`${completed}/${need.tasks.length} tareas completadas`}
             expanded={expanded}
             onClick={() => onNeedSelect(expanded ? null : need.id)}
           />
           {expanded && <div className="border-t border-line bg-white">
+            {need.cierrePublicado && need.cierreDestacado && <article className="mx-5 mt-5 overflow-hidden rounded-2xl border border-line bg-white shadow-sm sm:mx-6">
+              {need.cierreImagenUrl && <img src={need.cierreImagenUrl} alt={`Cierre destacado: ${need.name}`} className="max-h-80 w-full object-cover" />}
+              <div className="p-4 sm:p-5">
+                <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-forest">Cierre destacado</div>
+                <h3 className="font-display text-xl text-ink">{need.name}</h3>
+                {need.cierreDescripcion && <p className="mt-2 text-sm leading-6 text-ink-muted">{need.cierreDescripcion}</p>}
+              </div>
+            </article>}
             {need.tasks.map(item => {
               const latestUpdate = (item.task.actualizaciones || []).filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna").slice().sort((a, b) => b.version - a.version)[0]
               const taskExpanded = expandedTaskId === item.task.id
@@ -2217,7 +2154,7 @@ function ClientProjectTasksSection({
   </section>
 }
 
-function StorySection({ updates }: { updates: { date: string; title: string; description: string; tag: string; color: string }[] }) {
+function StorySection({ updates }: { updates: { date: string; title: string; description: string; tag: string; color: string; phase?: string; destacado?: boolean; recursos?: string[] }[] }) {
   const displayedUpdates = updates
   return (
     <section>
@@ -2226,16 +2163,19 @@ function StorySection({ updates }: { updates: { date: string; title: string; des
       </SectionTitle>
       <Card padding="none" className="overflow-hidden">
         {displayedUpdates.length === 0 && <p className="p-6 text-sm text-ink-muted">Todavía no hay avances publicados para este proyecto.</p>}
-        {displayedUpdates.map((update, index) => (
-          <HistoryRow
-            key={`${update.date}-${update.title}-${index}`}
-            date={update.date}
-            title={update.title}
-            description={update.description}
-            status={<StatusBadge tone="gray" size="s" showDot={false}>{update.tag}</StatusBadge>}
-            actions={<Button ariaLabel={`Ver detalle: ${update.title}`} className="!size-8 !p-0" variant="icon"><Icon className="size-3.5" name="arrow" /></Button>}
-          />
-        ))}
+        {displayedUpdates.map((update, index) => {
+          const image = update.recursos?.find(resource => /\.(png|jpe?g|webp|gif)(\?|$)/i.test(resource))
+          return <article key={`${update.date}-${update.title}-${index}`} className={`border-b border-line last:border-0 ${update.destacado ? "overflow-hidden bg-white" : ""}`}>
+            {update.destacado && image && <img src={image} alt="Entrega destacada" className="max-h-[28rem] w-full object-cover" />}
+            <HistoryRow
+              date={formatPortalDate(update.date)}
+              title={update.title}
+              description={<>{update.phase && <span className="mr-2 font-semibold text-forest">{update.phase}</span>}{update.description}</>}
+              status={<StatusBadge tone="gray" size="s" showDot={false}>{update.tag}</StatusBadge>}
+              actions={update.recursos?.length ? <a href={update.recursos[0]} target="_blank" rel="noreferrer" aria-label={`Ver entrega: ${update.title}`} className="grid size-8 place-items-center rounded-full text-ink-muted hover:bg-stone"><Icon className="size-3.5" name="arrow" /></a> : undefined}
+            />
+          </article>
+        })}
       </Card>
     </section>
   )
@@ -2436,9 +2376,17 @@ function ClientPortal({
   const [clientMessage, setClientMessage] = useState("")
   const [clientMessageSending, setClientMessageSending] = useState(false)
   const [clientMessageError, setClientMessageError] = useState<string | null>(null)
-  const notificationCount = (currentProject.actividadReciente || []).length
-  const recentNotifications = currentProject.actividadReciente || []
-  const conversationMessages = recentNotifications
+  const allRecentNotifications = currentProject.actividadReciente || []
+  const clientActionTasks = (currentProject.disciplinasOperativas || []).flatMap(discipline =>
+    discipline.necesidades.flatMap(need => need.tareas.filter(task => task.accionCliente).map(task => ({ id: task.id, title: task.accionCliente!.titulo }))),
+  )
+  const clientNotifications = allRecentNotifications.filter(isStudioToClientActivity).map(activity => {
+    if (activity.taskId || !activity.descripcion.startsWith("Se solicitó acción al comitente:")) return activity
+    const matchingTask = clientActionTasks.find(task => activity.descripcion.includes(task.title))
+    return matchingTask ? { ...activity, taskId: matchingTask.id } : activity
+  })
+  const recentNotifications = clientNotifications.slice().sort((a, b) => activityTimestamp(b.fecha) - activityTimestamp(a.fecha)).slice(0, 8)
+  const conversationMessages = allRecentNotifications
     .filter(activity => activity.descripcion.startsWith("Mensaje del cliente:") || activity.descripcion.startsWith("Respuesta del estudio:"))
     .slice()
     .reverse()
@@ -2499,9 +2447,20 @@ function ClientPortal({
       area: discipline.id,
       needs: visibleNeeds.map(need => {
         const clientVisibleTasks = need.tareas.filter(task => task.visibleCliente)
+        const approvedPhaseUpdates = clientVisibleTasks.flatMap(task => (task.actualizaciones || []).filter(update => update.estado === "aprobada" && update.visibleCliente !== false && update.visibilidad !== "interna").map(update => ({ task, update })))
+        const cierreImagenUrl = approvedPhaseUpdates.flatMap(({ task, update }) => [
+          ...(update.opciones || []).map(option => option.imagenUrl).filter((url): url is string => Boolean(url)),
+          ...(update.recursos || []).filter(url => /\.(png|jpe?g|webp|gif)(\?|$)/i.test(url)),
+          ...(task.archivos || []).filter(file => file.tipo === "imagen" && file.publicadoCliente !== false).map(file => file.url),
+        ])[0]
         return ({
         id: `${discipline.id}-${need.id}`,
         name: need.nombre,
+        cierrePublicado: need.cierrePublicado,
+        cierreDestacado: need.cierreDestacado,
+        cierreFecha: need.cierreFecha,
+        cierreImagenUrl,
+        cierreDescripcion: approvedPhaseUpdates.map(({ update }) => update.descripcion || update.titulo).filter(Boolean).join(" · "),
         // Every client-facing number uses the same published task set.
         progress: calculateNeedProgress({ ...need, tareas: clientVisibleTasks, publishedProgress: undefined }),
         weight: need.pesoPorcentaje ?? 100,
@@ -2617,6 +2576,21 @@ function ClientPortal({
       : null
   const respondToClientAction = (option: string, comment: string, approved: boolean) => {
     const now = new Date().toISOString()
+    const generatedActionUpdate: TaskUpdate | undefined = actionTask && !actionUpdate ? {
+      id: `client-action-${actionTask.id}-${Date.now()}`,
+      version: Math.max(0, ...(actionTask.actualizaciones || []).map(update => update.version)) + 1,
+      titulo: actionTask.accionCliente?.titulo || actionTask.titulo,
+      descripcion: actionTask.accionCliente?.mensaje || actionTask.descripcionTrabajo,
+      recursos: (actionTask.accionCliente?.adjuntos || []).map(attachment => attachment.url).filter((url): url is string => Boolean(url)),
+      accion: actionTask.accionCliente?.tipo === "enviar_informacion" || actionTask.accionCliente?.tipo === "subir_documento" ? "solicitud_informacion" : "revision",
+      estado: (approved ? "aprobada" : "cambios_solicitados") as import("./types").TaskUpdateStatus,
+      fecha: now,
+      autor: currentProject.cliente?.nombre || "Cliente",
+      visibilidad: "publicada",
+      visibleCliente: true,
+      respuesta: comment || undefined,
+      opciones: actionTask.accionCliente?.alternativas,
+    } : undefined
     const updatedDisciplines = actionTask
       ? (currentProject.disciplinasOperativas || []).map(discipline => ({
           ...discipline,
@@ -2634,11 +2608,11 @@ function ClientPortal({
                   comentario: comment || undefined,
                 },
               } : task.accionCliente,
-              actualizaciones: (task.actualizaciones || []).map(update => update.id === actionUpdate?.id ? {
+              actualizaciones: actionUpdate ? (task.actualizaciones || []).map(update => update.id === actionUpdate.id ? {
                 ...update,
                 estado: (approved ? "aprobada" : "cambios_solicitados") as import("./types").TaskUpdateStatus,
                 respuesta: comment || undefined,
-              } : update),
+              } : update) : generatedActionUpdate ? [...(task.actualizaciones || []), generatedActionUpdate] : task.actualizaciones,
             }),
           })),
         }))
@@ -2654,7 +2628,7 @@ function ClientPortal({
       : currentProject.decisiones
     const responseActivity = {
       id: `act-${Date.now()}`,
-      fecha: "Hoy",
+      fecha: now,
       taskId: actionTask?.id,
       updateId: actionUpdate?.id,
       descripcion: approved
@@ -2662,7 +2636,7 @@ function ClientPortal({
         : `El cliente solicitó cambios sobre ${actionTask?.titulo || "la decisión"}${comment ? `: ${comment}` : "."}`,
       autor: currentProject.cliente?.nombre || "Cliente",
     }
-    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, decisiones: updatedDecisions, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } }
+    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, decisiones: updatedDecisions, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: now } }
     const response = actionTask
       ? { kind: "client_action" as const, taskId: actionTask.id, updateId: actionUpdate?.id, approved, optionId: option || undefined, comment }
       : { kind: "decision" as const, decisionId: projectDecision?.id, approved, optionId: option || undefined, comment }
@@ -2675,11 +2649,12 @@ function ClientPortal({
     event.preventDefault()
     const message = clientMessage.trim()
     if (!message || clientMessageSending) return
+    const now = new Date().toISOString()
     setClientMessageSending(true)
     setClientMessageError(null)
     const messageActivity: ProjectActivityLog = {
       id: `client-message-${Date.now()}`,
-      fecha: "Ahora",
+      fecha: now,
       descripcion: `Mensaje del cliente: ${message}`,
       autor: currentProject.cliente?.nombre || "Cliente",
     }
@@ -2689,7 +2664,7 @@ function ClientPortal({
       info: {
         ...currentProject.info,
         cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Ahora",
+        ultimaActualizacion: now,
       },
     }
     void onPersistClientResponse({ kind: "message", message }, updated).then(() => {
@@ -2708,11 +2683,34 @@ function ClientPortal({
   )
   // A task card represents its current state, so it uses only its latest
   // published update. Earlier versions remain in the project history.
+  const phaseClosures = (currentProject.disciplinasOperativas || []).flatMap(discipline =>
+    discipline.necesidades.filter(need => need.cierrePublicado && need.visibleCliente !== false).map(need => {
+      const phaseTasks = need.tareas.filter(task => task.visibleCliente)
+      const approvedUpdates = phaseTasks.flatMap(task => (task.actualizaciones || []).filter(update => update.estado === "aprobada" && update.visibleCliente !== false && update.visibilidad !== "interna").map(update => ({ task, update })))
+      const resources = [...new Set([
+        ...approvedUpdates.flatMap(({ update }) => update.recursos || []),
+        ...approvedUpdates.flatMap(({ update }) => (update.opciones || []).map(option => option.imagenUrl).filter((url): url is string => Boolean(url))),
+        ...phaseTasks.flatMap(task => (task.archivos || []).filter(file => file.publicadoCliente !== false).map(file => file.url)),
+      ])]
+      const summary = approvedUpdates.map(({ update }) => update.descripcion || update.titulo).filter(Boolean).join(" · ")
+      return {
+        date: need.cierreFecha || approvedUpdates.map(({ update }) => update.fecha).sort((a, b) => activityTimestamp(b) - activityTimestamp(a))[0] || "Ahora",
+        title: need.nombre,
+        description: summary || `Cierre publicado para la fase ${need.nombre}.`,
+        tag: "Cierre de fase",
+        color: "bg-mint",
+        phase: discipline.id,
+        destacado: Boolean(need.cierreDestacado),
+        recursos: resources,
+      }
+    })
+  )
   const projectUpdates = [
     ...(currentProject.avances || []).map(advance => ({ date: advance.fecha, title: advance.titulo, description: advance.texto, tag: advance.categoria || "Avance", color: "bg-clay" })),
     ...(currentProject.actividadReciente || []).map(activity => ({ date: activity.fecha, title: "Actualización del proyecto", description: activity.descripcion, tag: activity.autor || "Equipo", color: "bg-forest" })),
-    ...clientHistoryUpdates.map(({ task, update }) => ({ date: update.fecha, title: `${task.titulo} · ${update.titulo}`, description: update.descripcion || task.descripcionTrabajo || "Actualización publicada en esta tarea.", tag: update.estado === "cambios_solicitados" ? "Cambios solicitados" : update.estado === "aprobada" ? "Aprobada" : update.accion === "revision" ? "Revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : "Entrega", color: update.estado === "aprobada" ? "bg-mint" : "bg-clay" }))
-  ]
+    ...clientHistoryUpdates.filter(({ update }) => !update.cierrePublicado).map(({ task, update }) => ({ date: update.fecha, title: `${task.titulo} · ${update.titulo}`, description: update.descripcion || task.descripcionTrabajo || "Actualización publicada en esta tarea.", tag: update.estado === "cambios_solicitados" ? "Cambios solicitados" : update.estado === "aprobada" ? "Aprobada" : update.accion === "revision" ? "Revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : "Entrega", color: update.estado === "aprobada" ? "bg-mint" : "bg-clay", recursos: update.recursos })),
+    ...phaseClosures
+  ].sort((a, b) => activityTimestamp(b.date) - activityTimestamp(a.date))
   const projectDocuments = [
     ...(currentProject.documentos || []).map(document => {
     const revision = document.revisiones.find(item => item.esActual) || document.revisiones[document.revisiones.length - 1]
@@ -2733,6 +2731,19 @@ function ClientPortal({
   const projectImageUrl = currentProject.info?.portadaUrl || currentProject.visualizaciones?.galeria?.[0]?.imagenUrl || projectImage
   const clientDeliverables = projectTasks.flatMap(task => (task.entregablesEsperados || []).filter(deliverable => deliverable.publicadoCliente !== false).map(deliverable => ({ task, deliverable })))
   const updateTaskUpdateStatus = (taskId: string, updateId: string, status: "aprobada" | "cambios_solicitados") => {
+    const now = new Date().toISOString()
+    const sourceTask = projectTasks.find(task => task.id === taskId)
+    const sourceUpdate = sourceTask?.actualizaciones?.find(update => update.id === updateId)
+    const responseActivity: ProjectActivityLog = {
+      id: `client-review-${taskId}-${updateId}-${Date.now()}`,
+      fecha: now,
+      taskId,
+      updateId,
+      descripcion: status === "aprobada"
+        ? `El cliente aprobó la actualización “${sourceUpdate?.titulo || sourceTask?.titulo || "tarea"}”.`
+        : `El cliente solicitó cambios sobre la actualización “${sourceUpdate?.titulo || sourceTask?.titulo || "tarea"}”.`,
+      autor: currentProject.cliente?.nombre || "Cliente",
+    }
     const updatedDisciplines = (currentProject.disciplinasOperativas || []).map(discipline => ({
       ...discipline,
       necesidades: discipline.necesidades.map(need => ({
@@ -2760,11 +2771,23 @@ function ClientPortal({
         }),
       })),
     }))
-    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1 } }
+    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: now } }
     void onPersistClientResponse({ kind: "task_update", taskId, updateId, status }, updated).then(() => onToast(status === "aprobada" ? "Actualización aprobada." : "Se solicitaron cambios sobre esta actualización.")).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos registrar tu respuesta."))
   }
   const updateDeliverable = (taskId: string, deliverableId: string, status: ExpectedDeliverableStatus, file?: File) => {
     if (file) { onToast("La carga de archivos desde el portal todavía no está disponible."); return }
+    const sourceTask = projectTasks.find(task => task.id === taskId)
+    const sourceDeliverable = sourceTask?.entregablesEsperados?.find(deliverable => deliverable.id === deliverableId)
+    const now = new Date().toISOString()
+    const responseActivity: ProjectActivityLog | null = status === "aprobado" || status === "cambios_solicitados" ? {
+      id: `client-deliverable-${taskId}-${deliverableId}-${Date.now()}`,
+      fecha: now,
+      taskId,
+      descripcion: status === "aprobado"
+        ? `El cliente aprobó el entregable “${sourceDeliverable?.nombre || sourceTask?.titulo || "tarea"}”.`
+        : `El cliente solicitó cambios sobre el entregable “${sourceDeliverable?.nombre || sourceTask?.titulo || "tarea"}”.`,
+      autor: currentProject.cliente?.nombre || "Cliente",
+    } : null
     const updatedDisciplines = (currentProject.disciplinasOperativas || []).map(discipline => ({
       ...discipline,
       necesidades: discipline.necesidades.map(need => ({
@@ -2779,7 +2802,7 @@ function ClientPortal({
         }),
       })),
     }))
-    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info.cambiosSinPublicar || 0) + 1 } }
+    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, actividadReciente: responseActivity ? [responseActivity, ...(currentProject.actividadReciente || [])] : currentProject.actividadReciente, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info.cambiosSinPublicar || 0) + 1, ultimaActualizacion: now } }
     void onPersistClientResponse({ kind: "deliverable", taskId, deliverableId, status }, updated).then(() => onToast(status === "aprobado" ? "Entrega aprobada para esta tarea." : "Se solicitaron cambios sobre la entrega.")).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos registrar tu respuesta."))
   }
 
@@ -2790,10 +2813,10 @@ function ClientPortal({
           active={active}
           onBackToAdmin={onBackToAdmin}
           showAdminLink={showAdminLink}
-          notificationCount={notificationCount}
           recentNotifications={recentNotifications}
-          onOpenNotification={({ taskId }) => {
-            setActive(taskId ? "Resumen" : "Historia")
+          onOpenNotification={({ taskId, descripcion }) => {
+            const isConversation = descripcion.startsWith("Respuesta del estudio:") || descripcion.startsWith("Correo enviado al cliente:")
+            setActive(taskId ? "Resumen" : isConversation ? "Conversaciones" : "Historia")
             setHighlightedTaskId(taskId || null)
             if (taskId) {
               const targetNeed = progressGroups
@@ -2944,7 +2967,7 @@ function ClientPortal({
 
             <footer className="mt-12 flex flex-col gap-3 border-t border-line py-8 text-xs text-ink-faint sm:flex-row sm:items-center sm:justify-between">
               <p>Bojana Estudio - Arquitectura, ingenieria y construccion</p>
-              <p>Última actualización · {currentProject.info?.ultimaActualizacion || "Sin actualizaciones"}</p>
+              <p>Última actualización · {currentProject.info?.ultimaActualizacion ? formatPortalDate(currentProject.info.ultimaActualizacion) : "Sin actualizaciones"}</p>
             </footer>
           </main>
         </div>
@@ -3018,6 +3041,71 @@ export default function App() {
   const [clientProjectsError, setClientProjectsError] = useState<string | null>(directToken === "portal-direct" ? "El enlace directo del portal no es válido o ya no está disponible." : null)
   const [projectsReloadKey, setProjectsReloadKey] = useState(0)
   const [sessionReady, setSessionReady] = useState(Boolean(directToken || isPasswordSetupLink || localPreview))
+
+  useEffect(() => {
+    if (!localPreview) return
+    const projects = getAllProjects()
+    let migrated = false
+    const repairedProjects = projects.map((project) => {
+      const disciplines = (project.disciplinasOperativas || []).map((discipline) => ({
+        ...discipline,
+        necesidades: discipline.necesidades.map((need) => {
+          let migratedClose = false
+          let migratedFeatured = false
+          let migratedDate: string | undefined
+          const tareas = need.tareas.map((task) => {
+            const action = task.accionCliente
+            const updates = task.actualizaciones || []
+            let nextTask = task
+            if (action?.estado === "aprobado" && !updates.some((update) => update.estado === "aprobada")) {
+              migrated = true
+              const update: TaskUpdate = {
+              id: `client-action-${task.id}-${action.respuestaCliente?.fecha || "approved"}`,
+              version: Math.max(0, ...updates.map((item) => item.version)) + 1,
+              titulo: action.titulo || task.titulo,
+              descripcion: action.mensaje || task.descripcionTrabajo,
+              recursos: (action.adjuntos || []).map((attachment) => attachment.url).filter((url): url is string => Boolean(url)),
+              accion: action.tipo === "enviar_informacion" || action.tipo === "subir_documento" ? "solicitud_informacion" : "revision",
+              estado: "aprobada",
+              fecha: action.respuestaCliente?.fecha || new Date().toISOString(),
+              autor: project.cliente?.nombre || "Cliente",
+              visibilidad: "publicada",
+              visibleCliente: true,
+              respuesta: action.respuestaCliente?.comentario,
+              opciones: action.alternativas,
+              }
+              nextTask = { ...task, actualizaciones: [...updates, update] }
+            }
+            updates.filter((update) => update.cierrePublicado).forEach((update) => {
+              migratedClose = true
+              migratedFeatured ||= Boolean(update.cierreDestacado)
+              migratedDate ||= update.fecha
+            })
+            return nextTask
+          })
+          const migrateClose = migratedClose && !need.cierrePublicado
+          if (migrateClose) migrated = true
+          return {
+            ...need,
+            ...(migrateClose ? { cierrePublicado: true, cierreDestacado: migratedFeatured, cierreFecha: migratedDate } : {}),
+            tareas,
+          }
+        }),
+      }))
+      return { ...project, disciplinasOperativas: disciplines }
+    })
+    if (migrated) {
+      saveAllProjects(repairedProjects)
+      setAllProjects(repairedProjects)
+    }
+    const syncPreviewProject = (event: StorageEvent) => {
+      if (event.key?.startsWith("BOJANA_CLIENT_PORTAL_PROJECTS")) {
+        setAllProjects(getAllProjects())
+      }
+    }
+    window.addEventListener("storage", syncPreviewProject)
+    return () => window.removeEventListener("storage", syncPreviewProject)
+  }, [localPreview])
 
   const currentProject = useMemo(() => {
     return allProjects.find((p) => p.id === selectedProjectId) || allProjects[0]
@@ -3225,6 +3313,14 @@ export default function App() {
   }
 
   const handleClientPortalResponse = async (response: Omit<ClientPortalResponse, "projectId" | "token">, updated: ProjectData) => {
+    // The local admin preview runs on Vite without the deployed portal API.
+    // Persist its simulated client responses into the same local project store
+    // so approvals immediately update task and project status in the preview.
+    if (localPreview) {
+      saveProjectData(updated)
+      setAllProjects(getAllProjects())
+      return
+    }
     await persistClientPortalResponse({ ...response, projectId: updated.id, token: directToken || undefined })
     setAllProjects((current) => current.map((project) => project.id === updated.id ? updated : project))
     // Keep the browser cache useful for authenticated clients, but do not run
@@ -3281,7 +3377,6 @@ export default function App() {
           activeProject={activeProject}
           allProjects={allProjects}
           currentProject={currentProject}
-          decision={decision}
           onNewProject={() => {
             setProjectBeingEdited(undefined)
             setIsNewProjectModalOpen(true)
@@ -3291,7 +3386,6 @@ export default function App() {
             setIsNewProjectModalOpen(true)
           }}
           onPublishToast={showToast}
-          onReviewDecision={() => setScreen("client")}
           onSignOut={handleSignOut}
           onToggleTask={handleToggleTask}
           onUpdateProject={handleUpdateProject}

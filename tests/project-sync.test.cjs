@@ -166,6 +166,36 @@ for (const kind of ['client_action', 'task_update']) {
   });
 }
 
+test('approved client action without a task update creates the approved record used by the task close flow', async () => {
+  let project = {
+    id: 'p', info: { nombre: 'Test' },
+    disciplinasOperativas: [{ id: 'd', necesidades: [{ id: 'n', tareas: [{
+      id: 't', titulo: 'Propuesta de cocina', visibleCliente: true, estado: 'Esperando al cliente',
+      accionCliente: {
+        id: 'a', activa: true, estado: 'pendiente', tipo: 'elegir_alternativa', titulo: 'Aprobar propuesta',
+        mensaje: 'Elegí una opción.', alternativas: [{ id: 'option-a', titulo: 'Roble natural' }],
+      },
+      actualizaciones: [],
+    }] }] }],
+  };
+  const fetch = async (url, options = {}) => {
+    if (url.includes('/studio_users?')) return Response.json([{ role: 'owner', studio_id: 's' }]);
+    if (options.method === 'PATCH') { project = JSON.parse(options.body).data; return new Response(null, { status: 204 }); }
+    if (url.includes('/projects?')) return Response.json([{ id: 'p', data: project }]);
+    throw Error(url);
+  };
+  const dependencies = { '../_lib/auth.js': { requireSupabaseUser: async () => ({ id: 'owner' }) } };
+  const handler = load('api/portal/respond.ts', fetch, dependencies).default;
+  const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
+  await handler({ method: 'POST', headers: {}, body: { projectId: 'p', kind: 'client_action', taskId: 't', approved: true, optionId: 'option-a' } }, res);
+  assert.equal(res.code, 200);
+  const task = project.disciplinasOperativas[0].necesidades[0].tareas[0];
+  assert.equal(task.accionCliente.activa, false);
+  assert.equal(task.actualizaciones.length, 1);
+  assert.equal(task.actualizaciones[0].estado, 'aprobada');
+  assert.equal(task.actualizaciones[0].titulo, 'Aprobar propuesta');
+});
+
 test('previously saved partial replies display changes requested without modifying newer updates', () => {
   const reconcile = load('api/_lib/client-response-state.ts', () => { throw Error('No requests expected'); }).reconcileClientResponses;
   const project = { disciplinasOperativas: [{ necesidades: [{ tareas: [{

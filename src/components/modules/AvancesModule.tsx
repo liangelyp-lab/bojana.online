@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { ModalHeader, ModalFooter, Card, Badge, Button, EmptyState, InputControl, Modal, TextAreaControl } from '../ui/DesignSystem';
 
+const currentLocalDateTime = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
 interface AvancesModuleProps {
   project: ProjectData;
   isAdmin: boolean;
@@ -30,6 +32,10 @@ export default function AvancesModule({
   onToast
 }: AvancesModuleProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const openCreateModal = () => {
+    setNewDate(currentLocalDateTime());
+    setShowCreateModal(true);
+  };
 
   // Lightbox modal state
   const [lightboxData, setLightboxData] = useState<{
@@ -40,7 +46,7 @@ export default function AvancesModule({
 
   // New Avance form state
   const [newTitle, setNewTitle] = useState('');
-  const [newDate, setNewDate] = useState('02 OCT 2026');
+  const [newDate, setNewDate] = useState(currentLocalDateTime);
   const [newText, setNewText] = useState('');
   const [newCategory, setNewCategory] = useState('Terminaciones');
   const [newPhotosRaw, setNewPhotosRaw] = useState('');
@@ -102,7 +108,7 @@ export default function AvancesModule({
     const newPost: AvancePost = {
       id: `av-${Date.now()}`,
       titulo: newTitle.trim(),
-      fecha: newDate.trim() || new Date().toLocaleDateString('es-AR').toUpperCase(),
+      fecha: newDate.trim() ? new Date(newDate).toISOString() : new Date().toISOString(),
       texto: newText.trim(),
       categoria: newCategory.trim() || 'General',
       autor: 'Bojana Estudio',
@@ -125,14 +131,13 @@ export default function AvancesModule({
 
   return (
     <div className="space-y-6 w-full pb-8 animate-fade-in">
-
       {/* CHRONOLOGICAL FEED OF POSTS */}
       {posts.length === 0 ? (
         <EmptyState
           icon={Camera}
           title="Aún no hay avances publicados"
           description="Bojana Estudio publicará aquí las actualizaciones fotográficas del proyecto a medida que se ejecuten las tareas."
-          action={isAdmin ? { label: 'Publicar nuevo avance', onClick: () => setShowCreateModal(true), icon: Plus } : undefined}
+          action={isAdmin ? { label: 'Publicar nuevo avance', onClick: openCreateModal, icon: Plus } : undefined}
         />
       ) : (
         <div className="space-y-6">
@@ -316,10 +321,9 @@ export default function AvancesModule({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-sans text-bojana-muted font-medium block mb-1">Fecha</label>
+                  <label className="font-sans text-bojana-muted font-medium block mb-1">Fecha y hora</label>
                   <InputControl
-                    type="text"
-                    placeholder="02 OCT 2026"
+                    type="datetime-local"
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
                     className="w-full bg-bojana-surface p-2 text-xs text-bojana-ink font-sans"

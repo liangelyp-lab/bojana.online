@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatPortalDate } from '../../design/format';
 import { ProjectData } from '../../types';
 import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
 import { Card, Badge, Button, EmptyState, PageHeader, ProjectProgressStatusBadge } from '../ui';
@@ -146,7 +147,7 @@ export default function StudioDashboard({
               const status = getProjectStatus(p);
               const progress = getEffectiveProgress(p);
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
-              const updateDate = p.info?.ultimaActualizacion || 'Reciente';
+              const updateDate = p.info?.ultimaActualizacion ? formatPortalDate(p.info.ultimaActualizacion) : 'Reciente';
 
               return (
                 <Card key={p.id} elevation="hover" onClick={() => onSelectProject(p.id)} tabIndex={0} role="group" onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelectProject(p.id); } }} aria-label={`Abrir proyecto ${title}`} className="group flex flex-col justify-between cursor-pointer space-y-6">
@@ -210,7 +211,7 @@ export default function StudioDashboard({
                 </div>
 
                 <div className="flex shrink-0 flex-col items-end gap-2 text-right text-xs">
-                  <span className="text-ink-faint block">{act.fecha}</span>
+                  <span className="text-ink-faint block">{formatPortalDate(act.fecha)}</span>
                   {act.isCommunication ? (
                     <Button variant="secondary"
                       type="button"

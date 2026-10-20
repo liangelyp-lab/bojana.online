@@ -945,7 +945,8 @@ export function generateEmptyOperationalDisciplines(
 export function updateTaskInDisciplines(
   disciplines: OperationalDiscipline[],
   taskId: string,
-  taskUpdates: Partial<ExecutionTask>
+  taskUpdates: Partial<ExecutionTask>,
+  options: { allowTaskCompletionWithPendingDependencies?: boolean } = {},
 ): {
   updatedDisciplines: OperationalDiscipline[];
   affectedNeed?: OperationalNeed;
@@ -955,7 +956,7 @@ export function updateTaskInDisciplines(
   const allTasks = disciplines.flatMap(d => d.necesidades.flatMap(n => n.tareas));
   const currentTask = allTasks.find(task => task.id === taskId);
   const executing = taskUpdates.estado && ['En curso', 'En revisión', 'Completado'].includes(taskUpdates.estado);
-  if (currentTask && executing && (getPendingTaskDependencies(allTasks, currentTask).length ||
+  if (currentTask && executing && !options.allowTaskCompletionWithPendingDependencies && (getPendingTaskDependencies(allTasks, currentTask).length ||
       (currentTask.accionCliente?.activa && currentTask.accionCliente.estado === 'pendiente' && taskUpdates.estado === 'Completado'))) {
     return { updatedDisciplines: disciplines, newProjectProgress: calculateProjectProgressFromDisciplines(disciplines) };
   }

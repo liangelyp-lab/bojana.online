@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatPortalDate } from '../../design/format';
 import { ProjectData } from '../../types';
 import {
   getEffectiveProgress,
@@ -172,7 +173,7 @@ export default function StudioProjectsList({
             const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
             const subtitle = p.info?.subtitulo || p.brief?.subtitulo || '';
             const stage = p.info?.etapaActual || 'Documentación ejecutiva';
-            const updateDate = p.info?.ultimaActualizacion || '02 Oct';
+            const updateDate = p.info?.ultimaActualizacion ? formatPortalDate(p.info.ultimaActualizacion) : '02 Oct';
             const isCopied = copiedId === p.id;
             const issuedLink = issuedLinks[p.id] || activeLinks[p.id]?.[0];
             const activeLinkCount = activeLinks[p.id]?.length || 0;
@@ -198,7 +199,7 @@ export default function StudioProjectsList({
                 <div className="flex items-center justify-between md:justify-end gap-6 shrink-0 pt-4 md:pt-0 border-t md:border-t-0 border-line text-xs">
                   <div className="text-left md:text-right">
                     <div className="text-xs text-ink-muted">
-                      <span>Etapa: </span>
+                      <span aria-label="Etapa" title="Etapa">📍 </span>
                       <strong className="text-ink font-semibold">{stage}</strong>
                     </div>
 
@@ -206,11 +207,7 @@ export default function StudioProjectsList({
                       <span className="text-xs font-semibold text-clay-dark block mt-0.5">
                         {pendingDecisions} {pendingDecisions === 1 ? 'decisión pendiente' : 'decisiones pendientes'}
                       </span>
-                    ) : (
-                      <span className="text-xs text-forest font-semibold block mt-0.5">
-                        Sin decisiones pendientes
-                      </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="text-right text-xs text-ink-muted">

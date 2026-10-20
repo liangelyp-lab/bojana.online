@@ -4,6 +4,47 @@ import { Button, StatusBadge } from "./DesignSystem"
 
 export type NoticeTone = "info" | "action" | "warning" | "success" | "error"
 
+export type NavigationNotificationItem<TContext = undefined> = {
+  id: string
+  title?: string
+  description: string
+  date?: string
+  read?: boolean
+  context?: TContext
+}
+
+export function NavigationNotificationPanel<TContext = undefined>({
+  items,
+  onSelect,
+  onClose,
+  title = "Notificaciones recientes",
+  emptyMessage = "No hay notificaciones recientes.",
+  className = "",
+}: {
+  items: NavigationNotificationItem<TContext>[]
+  onSelect: (item: NavigationNotificationItem<TContext>) => void
+  onClose?: () => void
+  title?: string
+  emptyMessage?: string
+  className?: string
+}) {
+  return <section aria-label={title} className={`rounded-2xl border border-line bg-white p-4 text-left text-ink shadow-xl ${className}`}>
+    <div className="flex items-center justify-between gap-3">
+      <p className="text-sm font-semibold">{title}</p>
+      {onClose && <Button variant="icon" size="xs" ariaLabel="Cerrar notificaciones" title="Cerrar notificaciones" onClick={onClose}><X className="size-3" aria-hidden="true" /></Button>}
+    </div>
+    {items.length === 0 ? <p className="mt-2 text-xs leading-relaxed text-ink-muted">{emptyMessage}</p> : <div className="mt-3 min-w-0 space-y-2">
+      {items.map(item => <Button variant="tertiary" key={item.id} type="button" className={`!flex !w-full !min-w-0 !flex-col !items-stretch !justify-start !rounded-xl border border-line px-3 py-2.5 text-left ${item.read ? "!bg-stone/30" : "!bg-white hover:!bg-stone"}`} onClick={() => onSelect(item)}>
+        <span className="flex min-w-0 items-center justify-between gap-2">
+          {item.title && <span className="min-w-0 truncate text-xs font-semibold text-ink">{item.title}</span>}
+          {item.date && <span className="shrink-0 text-[11px] text-ink-muted">{item.date}</span>}
+        </span>
+        <span className={`${item.title ? "mt-0.5 block min-w-0 break-words text-[11px] text-ink-muted" : "block min-w-0 break-words text-xs font-semibold text-ink"}`}>{item.description}</span>
+      </Button>)}
+    </div>}
+  </section>
+}
+
 export function InlineNotice({ tone, title, description, actions, onDismiss, filled = false, compact = false, eyebrow, icon: IconOverride }: {
   tone: NoticeTone
   title: string
@@ -28,7 +69,7 @@ export function InlineNotice({ tone, title, description, actions, onDismiss, fil
 
   return <article role={tone === "error" ? "alert" : "status"} className={`flex ${compact ? "flex-row items-center gap-2.5 rounded-xl p-3" : "flex-col items-stretch justify-between gap-4 rounded-2xl p-4 sm:flex-row sm:items-center"} border ${frame} ${filled ? filledSurface[tone] : surface}`}>
     <span className={`grid ${compact ? "size-7" : "size-10"} shrink-0 place-items-center rounded-full border ${filled ? filledIcon : icon}`}><Icon className={compact ? "size-3.5" : "size-5"} aria-hidden="true" /></span>
-    <div className={`min-w-0 ${compact ? "flex-1" : "flex flex-1 items-center gap-3"}`}>
+    <div className="flex min-w-0 flex-1 items-center gap-3">
       <div className="min-w-0 flex-1">
         {eyebrow && <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-muted">{eyebrow}</p>}
         <p className={compact ? "text-xs font-medium leading-4 text-ink" : "text-sm font-medium text-ink"}>{title}</p>
@@ -38,7 +79,7 @@ export function InlineNotice({ tone, title, description, actions, onDismiss, fil
         {actions}
         {onDismiss && <Button variant="icon" size="xs" ariaLabel="Cerrar notificación" onClick={onDismiss}><X className="size-4" /></Button>}
       </div>}
-      {compact && (actions || onDismiss) && <div className="mt-2 flex items-center gap-2">
+      {compact && (actions || onDismiss) && <div className="flex shrink-0 items-center gap-2">
         {actions}
         {onDismiss && <Button variant="icon" size="xs" ariaLabel="Cerrar notificación" onClick={onDismiss}><X className="size-4" /></Button>}
       </div>}

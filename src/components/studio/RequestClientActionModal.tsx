@@ -190,7 +190,7 @@ export default function RequestClientActionModal({
       adjuntos,
       // Sending a request always opens a new client-response cycle.
       estado: 'pendiente',
-      fechaSolicitud: existing?.fechaSolicitud || `${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'short' }).toUpperCase()} · ${new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs`,
+      fechaSolicitud: existing?.fechaSolicitud || new Date().toISOString(),
       solicitudEnviadaEmail: sendEmail || existing?.solicitudEnviadaEmail || false,
       emailDestinatario: clientEmail,
       emailEntregado: sendEmail || existing?.emailEntregado || false,

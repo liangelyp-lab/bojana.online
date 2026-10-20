@@ -11,19 +11,21 @@ interface CommunicationPanelProps {
   activeUser?: { nombre: string }
   onToast: (message: string) => void
   onUpdateProject: (project: ProjectData) => void
+  onOpenTask?: (taskId: string) => void
 }
 
 function isCommunicationEntry(activity: ProjectActivityLog) {
   return activity.descripcion.startsWith("Mensaje del cliente:")
     || activity.descripcion.startsWith("Respuesta del estudio:")
     || activity.descripcion.startsWith("Correo enviado al cliente:")
+    || activity.descripcion.startsWith("Solicitud enviada al cliente:")
 }
 
 function messageText(activity: ProjectActivityLog) {
-  return activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio|Correo enviado al cliente):\s*/, "")
+  return activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio|Correo enviado al cliente|Solicitud enviada al cliente):\s*/, "")
 }
 
-export default function CommunicationPanel({ project, activeUser, onToast, onUpdateProject }: CommunicationPanelProps) {
+export default function CommunicationPanel({ project, activeUser, onToast, onUpdateProject, onOpenTask }: CommunicationPanelProps) {
   const senderName = activeUser?.nombre?.trim() || "Bojana Estudio"
   const [channel, setChannel] = useState<ReplyChannel>("portal")
   const [reply, setReply] = useState("")
@@ -32,6 +34,21 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
   const projectMessages = useMemo(() => {
     const activityMessages = (project.actividadReciente || []).filter(isCommunicationEntry)
     const activityIds = new Set(activityMessages.map(activity => activity.id))
+    const actionMessages: ProjectActivityLog[] = (project.disciplinasOperativas || []).flatMap(discipline =>
+      (discipline.necesidades || []).flatMap(need =>
+        (need.tareas || []).flatMap(task => {
+          const action = task.accionCliente
+          if (!action) return []
+          return [{
+            id: `client-action-${action.id}`,
+            fecha: action.fechaSolicitud || "Ahora",
+            descripcion: `Solicitud enviada al cliente: ${action.titulo}\n${action.mensaje}\nAcción requerida: ${action.accionRequeridaTexto}`,
+            autor: "Bojana Estudio",
+            taskId: task.id,
+          }]
+        }),
+      ),
+    ).filter(activity => !activityIds.has(activity.id))
     const invitationMessages: ProjectActivityLog[] = (project.historialInvitaciones || [])
       .filter(invitation => !activityIds.has(invitation.id))
       .map(invitation => ({
@@ -40,20 +57,21 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
         descripcion: `Correo enviado al cliente: ${invitation.asunto} · ${invitation.email}`,
         autor: invitation.enviadoPor.split(" <")[0] || "Bojana Estudio",
       }))
-    return [...activityMessages, ...invitationMessages].slice().reverse()
-  }, [project.actividadReciente, project.historialInvitaciones])
+    return [...activityMessages, ...invitationMessages, ...actionMessages].slice().reverse()
+  }, [project.actividadReciente, project.disciplinasOperativas, project.historialInvitaciones])
   const clientEmail = project.cliente?.email?.trim() || ""
 
   const registerActivity = (description: string, emailSent = false) => {
+    const now = new Date().toISOString()
     const activity: ProjectActivityLog = {
       id: `communication-${Date.now()}`,
-      fecha: "Ahora",
+      fecha: now,
       descripcion: description,
       autor: senderName,
     }
     const emailHistoryEntry: ProjectInvitationLog | null = emailSent ? {
       id: `email-${Date.now()}`,
-      fecha: "Ahora",
+      fecha: now,
       destinatario: project.cliente?.nombre || "Comitente",
       email: clientEmail,
       enviadoPor: `${senderName} <info@bojana.com.ar>`,
@@ -70,7 +88,7 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Ahora",
+        ultimaActualizacion: now,
       },
     })
   }
@@ -128,6 +146,7 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
           ) : projectMessages.map(activity => {
             const fromClient = activity.descripcion.startsWith("Mensaje del cliente:")
             const isEmail = activity.descripcion.startsWith("Correo enviado al cliente:")
+            const isClientAction = activity.descripcion.startsWith("Solicitud enviada al cliente:")
             return (
               <article className={`flex ${fromClient ? "justify-start" : "justify-end"}`} key={activity.id}>
                 <div className={`w-full rounded-xl border p-3 ${fromClient ? "border-line bg-stone/45" : "max-w-[92%] border-mint/40 bg-mint-pale/40"}`}>
@@ -136,6 +155,9 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
                     <time className="shrink-0 text-ink-faint">{formatPortalDate(activity.fecha)}</time>
                   </div>
                   <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{messageText(activity)}</p>
+                  {isClientAction && activity.taskId && onOpenTask && (
+                    <Button className="mt-3" onClick={() => onOpenTask(activity.taskId!)} size="xs" type="button" variant="secondary">Revisar tarea</Button>
+                  )}
                 </div>
               </article>
             )

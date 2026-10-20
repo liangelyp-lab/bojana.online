@@ -41,7 +41,7 @@ export interface ContractualBase {
 // ─── INVITATION LOG ──────────────────────────────────────────────────────────
 export interface ProjectInvitationLog {
   id: string;
-  fecha: string;               // e.g. "03 OCT 2026 · 10:42"
+  fecha: string;               // ISO timestamp for new entries; legacy display strings remain supported.
   destinatario: string;        // Client name
   email: string;               // Client email
   enviadoPor: string;          // e.g. "Bojana Estudio <info@bojana.com.ar>"
@@ -328,7 +328,7 @@ export interface ClientActionRequired {
 
   // Request status & notification tracking
   estado: ClientActionStatus;
-  fechaSolicitud?: string;   // ej: "08 OCT · 10:42 hs"
+  fechaSolicitud?: string;   // ISO timestamp for new requests; legacy display strings remain supported.
   solicitudEnviadaEmail?: boolean;
   emailDestinatario?: string;
   emailEntregado?: boolean;
@@ -336,7 +336,7 @@ export interface ClientActionRequired {
 
   // Resolution by client
   respuestaCliente?: {
-    fecha: string;           // ej: "09 OCT · 14:32 hs"
+    fecha: string;           // ISO timestamp for new responses; legacy display strings remain supported.
     decision: 'aprobado' | 'requiere_cambios' | 'alternativa_elegida' | 'info_enviada';
     alternativaElegidaId?: string;
     comentario?: string;
@@ -377,6 +377,10 @@ export interface TaskUpdate {
   visibleCliente?: boolean;
   /** Optional operational stage this communication documents or requests. */
   subetapaId?: string;
+  /** Published as the curated, final task close in the client project timeline. */
+  cierrePublicado?: boolean;
+  /** Use a hero presentation for a visual deliverable in the client timeline. */
+  cierreDestacado?: boolean;
 }
 
 export interface ExpectedDeliverable {
@@ -444,6 +448,11 @@ export interface OperationalNeed {
   fechaEntregaEstimada?: string;
   tareas: ExecutionTask[];
   progresoCalculado?: number; // 0 - 100
+  /** The phase-level curated close shown in the client project timeline. */
+  cierrePublicado?: boolean;
+  cierreFecha?: string;
+  /** Use a hero presentation for a visual deliverable in the client timeline. */
+  cierreDestacado?: boolean;
 }
 
 export interface OperationalDiscipline {
@@ -529,7 +538,7 @@ export interface ProjectGeneralInfo {
   estadoGeneral: EstadoGeneralProyecto;
   etapaActual: string; // ej: "Documentación ejecutiva"
   proximoHito: string; // ej: "Inicio de obra · 18 octubre"
-  ultimaActualizacion: string; // ej: "2 octubre 2026"
+  ultimaActualizacion: string; // ISO timestamp for new changes; legacy date labels remain supported.
   fechaInicio: string;
   fechaFin: string;
   publicado: boolean;

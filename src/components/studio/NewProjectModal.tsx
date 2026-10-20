@@ -361,7 +361,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
         estadoGeneral: "En Planificación",
         etapaActual: "",
         proximoHito: draft.hitos[0]?.nombre || "",
-        ultimaActualizacion: "Hoy",
+        ultimaActualizacion: new Date().toISOString(),
         fechaInicio: draft.inicio,
         fechaFin: draft.fin,
         publicado: initialProject?.info?.publicado || false,

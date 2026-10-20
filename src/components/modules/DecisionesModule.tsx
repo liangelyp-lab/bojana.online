@@ -60,7 +60,7 @@ export default function DecisionesModule({
 
   // Client or Admin approves an option
   const handleApproveOption = (decisionId: string, optionId: string, optionTitle: string) => {
-    const today = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const today = new Date().toISOString();
     const authorName = isAdmin ? 'Bojana Estudio' : (project.cliente.nombre || 'Cliente');
 
     const updated = decisiones.map(d => {
@@ -69,7 +69,7 @@ export default function DecisionesModule({
           id: `c-${Date.now()}`,
           autor: authorName,
           rol: isAdmin ? 'admin' : 'cliente',
-          fecha: new Date().toLocaleDateString('es-AR'),
+          fecha: new Date().toISOString(),
           texto: `Aprobado por ${authorName} (${optionTitle}).`
         };
 
@@ -104,7 +104,7 @@ export default function DecisionesModule({
           id: `c-${Date.now()}`,
           autor: authorName,
           rol: isAdmin ? 'admin' : 'cliente',
-          fecha: new Date().toLocaleDateString('es-AR'),
+          fecha: new Date().toISOString(),
           texto: commentText
         };
 
@@ -135,7 +135,7 @@ export default function DecisionesModule({
           id: `c-${Date.now()}`,
           autor: authorName,
           rol: isAdmin ? 'admin' : 'cliente',
-          fecha: new Date().toLocaleDateString('es-AR'),
+          fecha: new Date().toISOString(),
           texto: text
         };
         return {
@@ -153,7 +153,7 @@ export default function DecisionesModule({
 
   // Direct status update for technical reviews
   const handleSetStatus = (decisionId: string, status: DecisionStatus) => {
-    const today = new Date().toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const today = new Date().toISOString();
     const updated = decisiones.map(d => {
       if (d.id === decisionId) {
         return {
@@ -205,7 +205,7 @@ export default function DecisionesModule({
       titulo: newTitle.trim(),
       tipo: newType,
       descripcion: newDesc.trim() || 'Propuesta de Bojana Estudio para convalidación del comitente.',
-      fechaCreacion: new Date().toLocaleDateString('es-AR'),
+      fechaCreacion: new Date().toISOString(),
       estado: 'Pendiente',
       opciones,
       comentarios: [
@@ -213,7 +213,7 @@ export default function DecisionesModule({
           id: `c-init-${Date.now()}`,
           autor: 'Bojana Estudio',
           rol: 'admin',
-          fecha: new Date().toLocaleDateString('es-AR'),
+          fecha: new Date().toISOString(),
           texto: 'Propuesta enviada para su revisión. Aguardamos su confirmación.'
         }
       ]

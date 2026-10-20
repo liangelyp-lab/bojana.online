@@ -106,10 +106,27 @@ function applyResponse(project: Record<string, any>, body: ResponseBody) {
       if (body.updateId && !update) return task;
       matched = true;
       const approved = Boolean(body.approved);
+      const generatedUpdate = update ? undefined : {
+        id: `client-action-${task.id}-${Date.now()}`,
+        version: Math.max(0, ...(task.actualizaciones || []).map((item: any) => Number(item.version) || 0)) + 1,
+        titulo: task.accionCliente.titulo || task.titulo,
+        descripcion: task.accionCliente.mensaje || task.descripcionTrabajo,
+        recursos: (task.accionCliente.adjuntos || []).map((item: any) => item.url).filter(Boolean),
+        accion: ["enviar_informacion", "subir_documento"].includes(task.accionCliente.tipo) ? "solicitud_informacion" : "revision",
+        estado: approved ? "aprobada" : "cambios_solicitados",
+        fecha: now,
+        autor: "Cliente",
+        visibilidad: "publicada",
+        visibleCliente: true,
+        respuesta: comment || undefined,
+        opciones: task.accionCliente.alternativas,
+      };
       return {
         ...resolveTaskResponse(task, approved),
         accionCliente: { ...task.accionCliente, activa: false, estado: approved ? "aprobado" : "requiere_ajustes", respuestaCliente: { fecha: now, decision: approved ? (task.accionCliente.tipo === "elegir_alternativa" ? "alternativa_elegida" : "aprobado") : "requiere_cambios", alternativaElegidaId: approved ? body.optionId : undefined, comentario: comment || undefined } },
-        actualizaciones: (task.actualizaciones || []).map((item: any) => item.id === update?.id ? { ...item, estado: approved ? "aprobada" : "cambios_solicitados", respuesta: comment || undefined } : item),
+        actualizaciones: update
+          ? (task.actualizaciones || []).map((item: any) => item.id === update.id ? { ...item, estado: approved ? "aprobada" : "cambios_solicitados", respuesta: comment || undefined } : item)
+          : [...(task.actualizaciones || []), generatedUpdate],
       };
     }
     if (body.kind === "task_update") {

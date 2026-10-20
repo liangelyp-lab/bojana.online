@@ -1,4 +1,5 @@
 import { ModalHeader, ModalFooter } from '../ui/DesignSystem';
+import { formatPortalDate } from '../../design/format';
 import { projectStatusTone, taskStateLabel, updateStatusTone } from '../../design/status';
 import {
   Modal,
@@ -440,7 +441,7 @@ export default function OperationalExecutionPanel({
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Hoy",
+        ultimaActualizacion: new Date().toISOString(),
       },
     })
 
@@ -526,7 +527,7 @@ export default function OperationalExecutionPanel({
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Hoy",
+        ultimaActualizacion: new Date().toISOString(),
       },
     })
 
@@ -611,7 +612,7 @@ export default function OperationalExecutionPanel({
     if (!newActivityText.trim()) return
     const newAct = {
       id: `act-${Date.now()}`,
-      fecha: "Hoy",
+      fecha: new Date().toISOString(),
       descripcion: newActivityText.trim(),
       autor: "Bojana Estudio",
     }
@@ -641,13 +642,7 @@ export default function OperationalExecutionPanel({
     const newPost: AvancePost = {
       id: `project-update-${Date.now()}`,
       titulo: title,
-      fecha: now
-        .toLocaleDateString("es-AR", {
-          day: "2-digit",
-          month: "short",
-          year: "numeric",
-        })
-        .toUpperCase(),
+      fecha: now.toISOString(),
       texto: text,
       fotos: [],
       categoria: projectUpdateDraft.categoria.trim() || "General",
@@ -655,7 +650,7 @@ export default function OperationalExecutionPanel({
     }
     const newActivity = {
       id: `activity-${Date.now()}`,
-      fecha: "Ahora",
+      fecha: new Date().toISOString(),
       descripcion: `Nueva actualización publicada: "${title}".`,
       autor: "Bojana Estudio",
     }
@@ -666,7 +661,7 @@ export default function OperationalExecutionPanel({
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Ahora",
+        ultimaActualizacion: new Date().toISOString(),
       },
     })
     setProjectUpdateDraft({ titulo: "", texto: "", categoria: "General" })
@@ -746,6 +741,7 @@ export default function OperationalExecutionPanel({
     sendEmailImmediately: boolean,
   ) => {
     if (!selectedTaskForAction) return
+    const now = new Date().toISOString()
 
     const { task, prefill } = selectedTaskForAction
     const nextStatus: EstadoEtapa = "Esperando al cliente"
@@ -767,7 +763,7 @@ export default function OperationalExecutionPanel({
               : prefill.accion === "solicitud_informacion"
                 ? "solicitud_enviada"
                 : "en_revision",
-          fecha: new Date().toISOString(),
+          fecha: now,
           autor: "Bojana Estudio",
           visibilidad: "publicada",
           responsableRespuesta:
@@ -794,7 +790,8 @@ export default function OperationalExecutionPanel({
 
     const newActivity = {
       id: `act-${Date.now()}`,
-      fecha: "Hoy",
+      fecha: now,
+      taskId: task.id,
       descripcion: `Se solicitó acción al comitente: "${actionData.titulo}" (${actionData.accionRequeridaTexto}).`,
       autor: "Bojana Estudio",
     }
@@ -802,7 +799,7 @@ export default function OperationalExecutionPanel({
     const emailActivity = sendEmailImmediately
       ? {
           id: emailLogId,
-          fecha: "Hoy",
+          fecha: now,
           descripcion: `Correo enviado al cliente: ${project.cliente?.email || "el cliente"} · Solicitud: "${actionData.titulo}".`,
           autor: "Bojana Estudio",
         }
@@ -810,7 +807,7 @@ export default function OperationalExecutionPanel({
     const emailHistoryEntry: ProjectInvitationLog | null = sendEmailImmediately
       ? {
           id: emailLogId,
-          fecha: `${new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()} · ${new Date().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })} hs`,
+          fecha: now,
           destinatario: project.cliente?.nombre || "Comitente",
           email: project.cliente?.email || "",
           enviadoPor: "Bojana Estudio <info@bojana.com.ar>",
@@ -835,7 +832,7 @@ export default function OperationalExecutionPanel({
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Hoy",
+        ultimaActualizacion: now,
       },
     })
 
@@ -864,7 +861,7 @@ export default function OperationalExecutionPanel({
   const subtitle =
     project.info?.subtitulo ||
     "Remodelación integral · Arquitectura + Construcción"
-  const lastUpdate = project.info?.ultimaActualizacion || "02 Oct"
+  const lastUpdate = project.info?.ultimaActualizacion ? formatPortalDate(project.info.ultimaActualizacion) : "02 Oct"
 
   const selected = disciplines
     .flatMap((disc) =>
@@ -903,6 +900,28 @@ export default function OperationalExecutionPanel({
         cambiosSinPublicar: (project.info.cambiosSinPublicar || 0) + 1,
       },
     })
+  }
+  const publishNeedClose = (discId: string, needId: string, featured: boolean) => {
+    const updatedDisciplines = disciplines.map((discipline) => discipline.id !== discId
+      ? discipline
+      : {
+          ...discipline,
+          necesidades: discipline.necesidades.map((need) => need.id !== needId
+            ? need
+            : { ...need, cierrePublicado: true, cierreFecha: need.cierreFecha || new Date().toISOString(), cierreDestacado: need.cierreDestacado || featured }),
+        })
+    onUpdateProject({
+      ...project,
+      disciplinasOperativas: updatedDisciplines,
+      info: {
+        ...project.info,
+        cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
+        ultimaActualizacion: new Date().toISOString(),
+      },
+    })
+    onToast(featured ? "Cierre de fase publicado y destacado en el portal." : "Cierre de fase publicado en el portal.")
+    setExpandedTaskId(null)
+    setTaskPanel(null)
   }
   const documentFunctionLabels: Record<DocumentFunction, string> = {
     entrada: "Información de entrada",
@@ -1016,7 +1035,7 @@ export default function OperationalExecutionPanel({
     )
     const notification = isNewPublishedUpdate ? {
       id: `activity-${Date.now()}`,
-      fecha: "Ahora",
+      fecha: new Date().toISOString(),
       taskId: task.id,
       updateId: update.id,
       descripcion: `Nueva actualización en ${task.titulo}: "${update.titulo}" (v${update.version}).`,
@@ -1032,7 +1051,7 @@ export default function OperationalExecutionPanel({
       info: {
         ...project.info,
         cambiosSinPublicar: (project.info?.cambiosSinPublicar || 0) + 1,
-        ultimaActualizacion: "Ahora",
+        ultimaActualizacion: new Date().toISOString(),
       },
     })
     onToast(
@@ -1069,7 +1088,7 @@ export default function OperationalExecutionPanel({
     const latestUpdate = (task.actualizaciones || [])
       .slice()
       .sort((a, b) => b.version - a.version)[0]
-    const approvedUpdate = editingUpdate?.estado === "aprobada"
+    const approvedUpdate = latestUpdate?.estado === "aprobada"
     const contentTypes = task.tiposContenido?.length
       ? task.tiposContenido
       : ["archivo"]
@@ -1188,30 +1207,6 @@ export default function OperationalExecutionPanel({
                     <StatusBadge tone={statusTone} showDot={false} size="s">
                       {statusLabel}
                     </StatusBadge>
-                    <span className="text-bojana-muted">
-                      {update.autor || "Bojana Estudio"} ·{" "}
-                      {new Date(update.fecha).toLocaleDateString("es-AR", {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </span>
-                    <span className="text-bojana-muted">
-                      ·{" "}
-                      {visible ? "Visible para cliente" : "Oculta para cliente"}
-                    </span>
-                    {(update.recursos || []).map((resource) => (
-                      <a
-                        key={resource}
-                        href={resource}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex max-w-full items-center gap-1 rounded-full border border-bojana-line bg-white px-2 py-1 text-forest hover:underline"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <ExternalLink className="size-3 shrink-0" />
-                        <span className="max-w-48 truncate">{resource}</span>
-                      </a>
-                    ))}
                     <Button
                       variant="icon"
                       className="!size-7"
@@ -1228,12 +1223,8 @@ export default function OperationalExecutionPanel({
                       variant="link"
                       size="s"
                       state={visible ? "default" : "disabled"}
-                      ariaLabel={`${
-                        visible ? "Ocultar" : "Mostrar"
-                      } actualización ${update.titulo}`}
-                      tooltip={`${
-                        visible ? "Ocultar" : "Mostrar"
-                      } actualización ${update.titulo}`}
+                      ariaLabel={visible ? "Ocultar cliente" : "Mostrar cliente"}
+                      tooltip={visible ? "Ocultar cliente" : "Mostrar cliente"}
                       onClick={(event) => {
                         event.stopPropagation()
                         changeTask(task, {
@@ -1289,8 +1280,14 @@ export default function OperationalExecutionPanel({
                 <ModalHeader title="Historial de la tarea" onClose={() => setHistoryUpdateId(null)} />
                 <div className="bojana-modal-body space-y-3">
                   {taskHistory.map((entry) => <article key={entry.id} className={`rounded-xl border p-3 ${entry.id === historyUpdate.id ? "border-forest/40 bg-mint-pale/30" : "border-bojana-line bg-bojana-surface/50"}`}>
-                    <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-ink">v{entry.version} · {entry.titulo}</p><span className="text-xs text-bojana-muted">{new Date(entry.fecha).toLocaleString("es-AR")}</span></div>
+                    <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-ink">v{entry.version} · {entry.titulo}</p><span className="text-xs text-bojana-muted">{formatPortalDate(entry.fecha)}</span></div>
                     <p className="mt-1 text-xs text-bojana-muted">{taskUpdateNotificationLabel(entry.accion)} · {entry.estado === "aprobada" ? "Aprobada" : entry.estado === "cambios_solicitados" ? "Cambios solicitados" : entry.estado === "en_revision" ? "En revisión" : entry.estado === "borrador" ? "Borrador interno" : "Publicada"}</p>
+                    <p className="mt-1 text-xs text-bojana-muted">
+                      {entry.autor || "Bojana Estudio"} ·{" "}
+                      {entry.visibleCliente === false || entry.visibilidad === "interna"
+                        ? "Oculta para cliente"
+                        : "Visible para cliente"}
+                    </p>
                     {entry.descripcion && <p className="mt-3 leading-5 text-ink-muted">{entry.descripcion}</p>}
                     {(entry.recursos || []).length > 0 && <div className="mt-3 space-y-1.5">{(entry.recursos || []).map((resource) => <a key={resource} href={resource} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-forest hover:underline"><ExternalLink className="size-3.5" /><span className="truncate">{resource}</span></a>)}</div>}
                     {entry.respuesta && <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-ink-muted">Respuesta del cliente · {entry.respuesta}</p>}
@@ -1300,23 +1297,12 @@ export default function OperationalExecutionPanel({
           )}
           {approvedUpdate && (
             <CompactNotice tone="success">
-              Esta actualización ya fue aprobada. No requiere volver a publicar
-              ni marcar la tarea como terminada.
+              Esta actualización fue aprobada. El cierre se publica desde la fase cuando todas sus tareas estén completas.
             </CompactNotice>
-          )}
-          {approvedUpdate && task.estado !== "Completado" && (
-            <Button
-              variant="secondary"
-              type="button"
-
-              onClick={() => changeTask(task, { estado: "Completado" })}
-            >
-              Marcar tarea como terminada
-            </Button>
           )}
           {!updateDraftOpen &&
             latestUpdate?.estado === "cambios_solicitados" && (
-              <Button size="xs"
+              <Button size="s"
                 variant="tertiary"
                 className="mt-2 self-start"
                 onClick={() => {
@@ -1679,7 +1665,7 @@ export default function OperationalExecutionPanel({
           )}
           {!updateDraftOpen &&
             latestUpdate?.estado !== "cambios_solicitados" && (
-              <Button size="xs"
+              <Button size="s"
                 variant="tertiary"
                 className="mt-2 self-start"
                 onClick={() => {
@@ -2867,7 +2853,12 @@ export default function OperationalExecutionPanel({
                       {showDisciplineTitle && (
                         <h3 className="bojana-label px-1 pt-3">{disc.id}</h3>
                       )}
-                    <Card expandable padding="none" elevation="raised" expanded={!isCollapsed} onExpandedChange={() => toggleDiscipline(key)} expandLabel={displayNeed.nombre} header={<span className="bojana-heading-section">{displayNeed.nombre}</span>} className="bojana-discipline-card">
+                    <Card expandable padding="none" elevation="raised" expanded={!isCollapsed} onExpandedChange={() => toggleDiscipline(key)} expandLabel={displayNeed.nombre} header={<span className="bojana-heading-section">{displayNeed.nombre}</span>} headerActions={(() => {
+                      const ready = displayNeed.tareas.length > 0 && displayNeed.tareas.every((task) => taskStateFromUpdates(task) === "Completado")
+                      if (displayNeed.cierrePublicado) return <div className="flex items-center gap-2"><StatusBadge tone="active" size="s" showDot={false}>{displayNeed.cierreDestacado ? "Cierre destacado" : "Cierre de fase publicado"}</StatusBadge>{!displayNeed.cierreDestacado && <Button size="xs" variant="tertiary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, true) }}>Destacar en portal</Button>}</div>
+                      if (!ready) return undefined
+                      return <div className="flex items-center gap-2"><Button size="xs" variant="secondary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, false) }}>Publicar cierre de fase</Button><Button size="xs" variant="tertiary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, true) }}>Publicar y destacar</Button></div>
+                    })()} className="bojana-discipline-card">
                       {/* Needs under this Discipline */}
                       {!isCollapsed && (
                         <div className="divide-y divide-bojana-line">
@@ -2929,13 +2920,13 @@ export default function OperationalExecutionPanel({
                                     <Button
                                       ariaLabel={
                                         need.visibleCliente !== false
-                                          ? `Ocultar ${need.nombre} completo para el cliente`
-                                          : `Mostrar ${need.nombre} completo para el cliente`
+                                          ? "Ocultar cliente"
+                                          : "Mostrar cliente"
                                       }
                                       tooltip={
                                         need.visibleCliente !== false
-                                          ? `Ocultar ${need.nombre} completo para el cliente`
-                                          : `Mostrar ${need.nombre} completo para el cliente`
+                                          ? "Ocultar cliente"
+                                          : "Mostrar cliente"
                                       }
                                       variant="link"
                                       size="s"
@@ -3072,13 +3063,13 @@ export default function OperationalExecutionPanel({
                                                 <Button
                                                   ariaLabel={
                                                     task.visibleCliente
-                                                      ? `Ocultar ${task.titulo} para el cliente`
-                                                      : `Mostrar ${task.titulo} al cliente`
+                                                      ? "Ocultar cliente"
+                                                      : "Mostrar cliente"
                                                   }
                                                   tooltip={
                                                     task.visibleCliente
-                                                      ? `Ocultar ${task.titulo} para el cliente`
-                                                      : `Mostrar ${task.titulo} al cliente`
+                                                      ? "Ocultar cliente"
+                                                      : "Mostrar cliente"
                                                   }
                                                   variant="link"
                                                   size="s"
