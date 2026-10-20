@@ -57,6 +57,7 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  const [html, setHtml] = useState("")
   useEffect(() => {
     if (!request) return
     setScopeType(request.scopeType)
@@ -65,6 +66,7 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
     setDescription("")
     setSelectedIds([])
     setTemplateId("")
+    setHtml("")
     setCreating(true)
   }, [request])
   const templates = useMemo(() => getStudioVisualizationTemplates(), [])
@@ -96,7 +98,7 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
     setCreating(false); setTemplateId(""); setScopeType("project"); setScopeId(""); setSelectedIds([]); setTitle(""); setDescription("")
   }
   function createView() {
-    if (!template || selectedIds.length === 0) return
+    if (!template || (template.type === "html" ? !html.trim() : selectedIds.length === 0)) return
     const picked = selectedSources.filter(item => selectedIds.includes(item.id))
     if (template.type === "gallery" && !picked.some(item => item.isImage)) return
     const view: ProjectDeliveryView = {
@@ -106,7 +108,7 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
       componentId: template.id,
       componentName: template.name,
       componentType: template.type,
-      html: template.html,
+      html: template.type === "html" ? html : undefined,
       galleryOptions: template.galleryOptions,
       scopeType,
       scopeId: scopeType === "project" ? undefined : scopeId,
@@ -166,17 +168,22 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
     </article>)}
     {admin && <Drawer open={creating} title="Agregar vista" onClose={resetForm}><div className="space-y-4 p-6">
         {templates.length === 0 ? <p className="text-sm text-ink-muted">Primero guardá una Galería o un HTML en Configuración del estudio.</p> : <>
-          <label className="block text-xs font-semibold text-ink">Componente<select value={templateId} onChange={event => setTemplateId(event.target.value)} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="">Elegir de Configuración</option>{templates.map(item => <option key={item.id} value={item.id}>{item.name} · {item.type === "gallery" ? "Galería" : "HTML"}</option>)}</select></label>
+          <label className="block text-xs font-semibold text-ink">Componente<select value={templateId} onChange={event => { setTemplateId(event.target.value); setHtml(templates.find(item => item.id === event.target.value)?.html || "") }} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="">Elegir de Configuración</option>{templates.map(item => <option key={item.id} value={item.id}>{item.name} · {item.type === "gallery" ? "Galería" : "HTML"}</option>)}</select></label>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="block text-xs font-semibold text-ink">Contenido asociado<select value={scopeType} onChange={event => { setScopeType(event.target.value as typeof scopeType); setScopeId(""); setSelectedIds([]) }} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="project">Todo el proyecto</option><option value="phase">Una fase</option><option value="task">Una tarea</option></select></label>
             {scopeType !== "project" && <label className="block text-xs font-semibold text-ink">{scopeType === "phase" ? "Fase" : "Tarea"}<select value={scopeId} onChange={event => { setScopeId(event.target.value); setSelectedIds([]) }} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="">Elegir</option>{(scopeType === "phase" ? phaseOptions : taskOptions).map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>}
           </div>
           <div className="grid gap-3 sm:grid-cols-2"><Field label="Título de esta vista" value={title} onChange={event => setTitle(event.target.value)} placeholder={template?.name || "Ej. Renders de interiores"} /><Field label="Descripción" value={description} onChange={event => setDescription(event.target.value)} placeholder="Una breve explicación para el cliente" /></div>
+          {template?.type === "html" && <div className="space-y-3">
+            <label className="block text-xs font-semibold text-ink">Código HTML de esta vista<textarea value={html} onChange={event => setHtml(event.target.value)} rows={12} spellCheck={false} placeholder="Pegá aquí el código HTML para este proyecto" className="bojana-control mt-2 w-full resize-y p-3 font-mono text-xs leading-5" /></label>
+            <div><p className="mb-2 text-xs font-semibold text-ink">Vista previa</p><iframe title="Vista previa HTML del proyecto" sandbox="allow-downloads" srcDoc={html} className="min-h-64 w-full rounded-xl border border-line bg-white" /></div>
+            <p className="text-xs text-ink-muted">Los archivos asociados son opcionales para una vista HTML.</p>
+          </div>}
           <div><p className="mb-2 text-xs font-semibold text-ink">Elegí los archivos existentes</p>{selectedSources.length ? <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-line p-2">{selectedSources.map(item => {
             const checked = selectedIds.includes(item.id)
             return <label key={item.id} className="flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm hover:bg-stone"><input type="checkbox" checked={checked} onChange={event => setSelectedIds(current => event.target.checked ? [...current, item.id] : current.filter(id => id !== item.id))} /><span className="min-w-0 flex-1 truncate">{item.name}</span><span className="shrink-0 text-xs text-ink-muted">{item.taskTitle} · {item.isImage ? "Imagen" : "Descargable"}</span></label>
           })}</div> : <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-muted">No hay archivos asociados a tareas visibles en este alcance.</p>}<p className="mt-2 text-xs leading-5 text-ink-muted">Al crear y publicar la vista, los archivos elegidos quedan visibles para el cliente junto con ella.</p></div>
-          <div className="flex justify-end"><Button disabled={!template || selectedIds.length === 0 || (template.type === "gallery" && !selectedSources.some(item => selectedIds.includes(item.id) && item.isImage))} onClick={createView}>Crear vista</Button></div>
+          <div className="flex justify-end"><Button disabled={!template || (template.type === "html" ? !html.trim() : !selectedSources.some(item => selectedIds.includes(item.id) && item.isImage))} onClick={createView}>Crear vista</Button></div>
         </>}
       </div></Drawer>}
   </section>

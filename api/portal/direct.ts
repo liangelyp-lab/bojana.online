@@ -226,7 +226,7 @@ export function toClientProject(project: Record<string, any>) {
   const publicDeliveryViews = (project.vistasEntrega || []).filter((view: any) => view.published === true).map((view: any) => ({
     ...view,
     items: (view.items || []).filter((item: any) => typeof item.url === "string" && publicFileUrls.has(item.url)),
-  })).filter((view: any) => view.items.length > 0);
+  })).filter((view: any) => view.items.length > 0 || (view.componentType === "html" && typeof view.html === "string" && view.html.trim().length > 0));
 
   return {
     id: project.id,
