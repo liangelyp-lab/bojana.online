@@ -1483,6 +1483,7 @@ function AdminPortal({
                         studioEmail={studioEmail}
                         focusTaskId={notificationTarget?.taskId}
                         focusUpdateId={notificationTarget?.updateId}
+                        onDismissTaskFocus={() => setNotificationTarget(undefined)}
                       />
                       <aside className="space-y-6">
                         <ClientActions comments={clientComments} decision={workspaceDecision} onReviewDecision={onReviewDecision} pendingAction={pendingClientAction} />

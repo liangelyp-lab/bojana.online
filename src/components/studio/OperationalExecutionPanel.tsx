@@ -16,7 +16,7 @@ import { getPendingTaskDependencies } from "../../services/projectStructure"
 import ProjectProgressBar from "./ProjectProgressBar"
 import TaskDeliverables from "../storage/TaskDeliverables"
 import { publishStorageProject } from "../../services/driveStorageService"
-import { Fragment, useEffect, useState, type FormEvent } from "react"
+import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from "react"
 import {
   ProjectData,
   ProjectInvitationLog,
@@ -93,6 +93,7 @@ interface OperationalExecutionPanelProps {
   studioEmail?: string
   focusTaskId?: string
   focusUpdateId?: string
+  onDismissTaskFocus?: () => void
   onViewStory?: () => void
   onBackToProjects?: () => void
 }
@@ -150,11 +151,12 @@ export default function OperationalExecutionPanel({
   studioEmail,
   focusTaskId,
   focusUpdateId,
+  onDismissTaskFocus,
   onViewStory,
   onBackToProjects,
 }: OperationalExecutionPanelProps) {
   // Ensure operational disciplines exist
-  const disciplines: OperationalDiscipline[] =
+  const disciplines: OperationalDiscipline[] = useMemo(() =>
     project.disciplinasOperativas && project.disciplinasOperativas.length > 0
       ? project.disciplinasOperativas.map((discipline) => ({
           ...discipline,
@@ -163,7 +165,9 @@ export default function OperationalExecutionPanel({
             tareas: need.tareas || [],
           })),
         }))
-      : generateEmptyOperationalDisciplines(project.disciplinas || [])
+      : generateEmptyOperationalDisciplines(project.disciplinas || []),
+    [project.disciplinasOperativas, project.disciplinas],
+  )
 
   // Expanded disciplines state
   const [collapsedDisciplines, setCollapsedDisciplines] =
@@ -183,9 +187,13 @@ export default function OperationalExecutionPanel({
   } | null>(null)
   const [indexSearch, setIndexSearch] = useState("")
   const [taskError, setTaskError] = useState("")
+  const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
+  const handledFocus = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!focusTaskId) return
+    if (!focusTaskId) { handledFocus.current = null; return }
+    const focusKey = JSON.stringify([project.id, focusTaskId, focusUpdateId])
+    if (handledFocus.current === focusKey) return
     const target = disciplines
       .flatMap((d) =>
         d.necesidades.flatMap((n) =>
@@ -194,6 +202,8 @@ export default function OperationalExecutionPanel({
       )
       .find((item) => item.task.id === focusTaskId)
     if (!target) return
+    handledFocus.current = focusKey
+    setHighlightedTaskId(focusTaskId)
     setCollapsedDisciplines((prev) => ({
       ...prev,
       [target.discipline.id]: false,
@@ -207,7 +217,34 @@ export default function OperationalExecutionPanel({
         .getElementById(`workspace-task-${focusTaskId}`)
         ?.scrollIntoView({ behavior: "smooth", block: "start" }),
     )
-  }, [focusTaskId, focusUpdateId, disciplines])
+  }, [project.id, focusTaskId, focusUpdateId, disciplines])
+
+  useEffect(() => {
+    if (!highlightedTaskId) return
+    const dismiss = () => {
+      setHighlightedTaskId(null)
+      setTaskPanel(current => current?.id === highlightedTaskId ? null : current)
+      setExpandedTaskId(current => current === highlightedTaskId ? null : current)
+      setUpdateDraftOpen(false)
+      onDismissTaskFocus?.()
+    }
+    const outside = (event: PointerEvent) => {
+      const target = event.target
+      if (!(target instanceof Element)) return
+      if (document.querySelector('[role="dialog"]')) return
+      if (document.getElementById(`workspace-task-${highlightedTaskId}`)?.contains(target) || target.closest('[role="dialog"], [role="listbox"], [role="menu"], [data-radix-popper-content-wrapper]')) return
+      dismiss()
+    }
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !document.querySelector('[role="dialog"], [role="listbox"], [role="menu"]')) dismiss()
+    }
+    document.addEventListener("pointerdown", outside)
+    document.addEventListener("keydown", escape)
+    return () => {
+      document.removeEventListener("pointerdown", outside)
+      document.removeEventListener("keydown", escape)
+    }
+  }, [highlightedTaskId, onDismissTaskFocus])
 
   // Real-time recalculation event to show prominent cascading feedback
   const [recalcEvent, setRecalcEvent] = useState<RecalculationEvent | null>(
@@ -3050,7 +3087,7 @@ export default function OperationalExecutionPanel({
                                             key={task.id}
                                             id={`workspace-task-${task.id}`}
                                             className={`rounded-bojana-widget border-[0.5px] border-bojana-line bg-bojana-surface overflow-hidden transition ${
-                                              focusTaskId === task.id
+                                              highlightedTaskId === task.id
                                                 ? "focused-notification-task"
                                                 : ""
                                             } ${
@@ -3065,6 +3102,10 @@ export default function OperationalExecutionPanel({
                                               onClick={() => {
                                                 const close =
                                                   activeTaskMode === "update"
+                                                if (close && highlightedTaskId === task.id) {
+                                                  setHighlightedTaskId(null)
+                                                  onDismissTaskFocus?.()
+                                                }
                                                 setTaskPanel(
                                                   close
                                                     ? null
