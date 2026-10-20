@@ -262,7 +262,7 @@ export default function StudioSettingsView({
       return
     setCreateError("")
     try {
-      const response = await fetch("/api/admin/team-user-access", {
+      const response = await fetch("/api/admin/team-users", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -287,7 +287,7 @@ export default function StudioSettingsView({
   const resendTeamInvite = async (user: TeamUser) => {
     setCreateError("")
     try {
-      const response = await fetch("/api/admin/team-user-access", {
+      const response = await fetch("/api/admin/team-users", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -324,7 +324,7 @@ export default function StudioSettingsView({
   const generateTeamCredentials = async (user: TeamUser) => {
     setCreateError("")
     try {
-      const response = await fetch("/api/admin/team-user-access", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "credentials", userId: user.id }) })
+      const response = await fetch("/api/admin/team-users", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "credentials", userId: user.id }) })
       const data = (await response.json()) as { password?: string; error?: string }
       if (!response.ok || !data.password) throw new Error(data.error || "No pudimos generar la contraseña.")
       setCredentials({ id: user.id, name: user.nombre, email: user.email, role: user.rol, password: data.password, projectName: "Acceso actualizado" })
@@ -350,7 +350,7 @@ export default function StudioSettingsView({
   const editTeamProjects = async (user: TeamUser) => {
     setCreateError("")
     try {
-      const response = await fetch("/api/admin/team-user-access", {
+      const response = await fetch("/api/admin/team-users", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -377,7 +377,7 @@ export default function StudioSettingsView({
   }
   const saveTeamProjects = async (): Promise<boolean> => {
     if (!editingUser) return false
-    const response = await fetch("/api/admin/team-user-access", {
+    const response = await fetch("/api/admin/team-users", {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },

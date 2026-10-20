@@ -172,8 +172,8 @@ async function revokeLink(req: VercelRequest, res: VercelResponse) {
   }
 }
 
-/** Public projection: direct links must never serialize staff, credentials or internal work notes. */
-function toClientProject(project: Record<string, any>) {
+/** Public projection: direct links must never serialize staff, credentials or unpublished module data. */
+export function toClientProject(project: Record<string, any>) {
   const visibleTasks = (project.disciplinasOperativas || []).map((discipline: any) => ({
     id: discipline.id,
     pesoPorcentaje: discipline.pesoPorcentaje,
@@ -186,7 +186,10 @@ function toClientProject(project: Record<string, any>) {
         id: task.id, titulo: task.titulo, pesoPorcentaje: task.pesoPorcentaje, estado: task.estado,
         descripcionTrabajo: task.descripcionTrabajo, fecha: task.fecha, visibleCliente: true, etapa: task.etapa,
         notaCliente: task.notaCliente,
-        subetapas: task.subetapas,
+        subetapas: (task.subetapas || []).map((stage: any) => ({
+          id: stage.id, label: stage.label, completada: Boolean(stage.completada),
+          pesoPorcentaje: stage.pesoPorcentaje, estado: stage.estado,
+        })),
         entregablesEsperados: (task.entregablesEsperados || []).filter((item: any) => item.publicadoCliente),
         actualizaciones: (task.actualizaciones || []).filter((item: any) => item.visibleCliente || item.visibilidad === 'publicada').map((item: any) => ({
           id: item.id, version: item.version, titulo: item.titulo, descripcion: item.descripcion, recursos: item.recursos,
@@ -199,7 +202,13 @@ function toClientProject(project: Record<string, any>) {
           id: task.accionCliente.id, activa: task.accionCliente.activa, tipo: task.accionCliente.tipo,
           titulo: task.accionCliente.titulo, mensaje: task.accionCliente.mensaje,
           accionRequeridaTexto: task.accionCliente.accionRequeridaTexto, fechaLimite: task.accionCliente.fechaLimite,
-          alternativas: task.accionCliente.alternativas, adjuntos: task.accionCliente.adjuntos,
+          alternativas: (task.accionCliente.alternativas || []).map((option: any) => ({
+            id: option.id, letra: option.letra, titulo: option.titulo, descripcion: option.descripcion,
+            imagenUrl: option.imagenUrl, costoEstimado: option.costoEstimado,
+          })),
+          adjuntos: (task.accionCliente.adjuntos || []).map((attachment: any) => ({
+            id: attachment.id, nombre: attachment.nombre, url: attachment.url, tipo: attachment.tipo,
+          })),
           estado: task.accionCliente.estado, respuestaCliente: task.accionCliente.respuestaCliente,
         } : undefined,
       })),
@@ -209,12 +218,24 @@ function toClientProject(project: Record<string, any>) {
   return {
     id: project.id,
     lifecycleStatus: project.lifecycleStatus,
-    info: project.info,
+    info: {
+      nombre: project.info?.nombre, tipoProyecto: project.info?.tipoProyecto, portadaUrl: project.info?.portadaUrl,
+      subtitulo: project.info?.subtitulo, codigo: project.info?.codigo, descripcion: project.info?.descripcion,
+      ubicacion: project.info?.ubicacion, superficie: project.info?.superficie, estadoGeneral: project.info?.estadoGeneral,
+      etapaActual: project.info?.etapaActual, proximoHito: project.info?.proximoHito,
+      ultimaActualizacion: project.info?.ultimaActualizacion, fechaInicio: project.info?.fechaInicio,
+      fechaFin: project.info?.fechaFin, publicado: project.info?.publicado, portalPublicado: project.info?.portalPublicado,
+    },
     disciplinas: project.disciplinas || [],
     cliente: { nombre: project.cliente?.nombre || project.cliente?.empresa || 'Cliente', empresa: project.cliente?.empresa || '' },
     modulos: (project.modulos || []).filter((module: any) => module.habilitado),
-    progreso: project.progreso || [], avances: project.avances || [], documentos: project.documentos || [],
-    visualizaciones: project.visualizaciones || { galeria: [], tours: [] }, decisiones: project.decisiones || [], materiales: project.materiales || [],
+    // Legacy module records have no publication flag. Never expose them through
+    // a bearer link until each record carries an explicit public marker.
+    progreso: [], avances: [], documentos: [], materiales: [], decisiones: [],
+    visualizaciones: {
+      galeria: (project.visualizaciones?.galeria || []).filter((item: any) => item.publicadoCliente === true),
+      tours: (project.visualizaciones?.tours || []).filter((tour: any) => tour.publicado === true),
+    },
     disciplinasOperativas: visibleTasks, progresoTotalCalculado: project.progresoTotalCalculado,
     tareaFocalPublicadaId: project.tareaFocalPublicadaId, ultimaModificacion: project.ultimaModificacion,
   };

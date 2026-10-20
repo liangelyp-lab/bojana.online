@@ -8,7 +8,7 @@ import {
 } from "react"
 import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronDown, ChevronUp, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
-import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
+import { getAllProjects, saveAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
 import { calculateNeedProgress, calculateTaskProgress } from "./types";
 import StudioDashboard from "./components/studio/StudioDashboard";
@@ -30,6 +30,7 @@ import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, Histo
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
+import { persistClientPortalResponse, type ClientPortalResponse } from "./services/clientPortalService";
 
 
 // ─── Icon ────────────────────────────────────────────────────────────────────
@@ -2446,6 +2447,7 @@ function ClientPortal({
   onBackToAdmin,
   showAdminLink,
   onUpdateProject,
+  onPersistClientResponse,
   onToast,
   availableProjects,
   selectedProjectId,
@@ -2457,6 +2459,7 @@ function ClientPortal({
   onBackToAdmin: () => void
   showAdminLink: boolean
   onUpdateProject: (updated: ProjectData) => void
+  onPersistClientResponse: (response: Omit<ClientPortalResponse, "projectId" | "token">, updated: ProjectData) => Promise<void>
   onToast: (msg: string) => void
   availableProjects: ProjectData[]
   selectedProjectId: string | null
@@ -2675,9 +2678,14 @@ function ClientPortal({
         : `El cliente solicitó cambios sobre ${actionTask?.titulo || "la decisión"}${comment ? `: ${comment}` : "."}`,
       autor: currentProject.cliente?.nombre || "Cliente",
     }
-    onUpdateProject({ ...currentProject, disciplinasOperativas: updatedDisciplines, decisiones: updatedDecisions, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } })
-    if (approved) onApproveDecision(option)
-    onToast(approved ? "Respuesta enviada: aprobación registrada." : "Comentario enviado: se solicitaron cambios.")
+    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, decisiones: updatedDecisions, actividadReciente: [responseActivity, ...(currentProject.actividadReciente || [])], info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1, ultimaActualizacion: "Hoy" } }
+    const response = actionTask
+      ? { kind: "client_action" as const, taskId: actionTask.id, approved, optionId: option || undefined, comment }
+      : { kind: "decision" as const, decisionId: projectDecision?.id, approved, optionId: option || undefined, comment }
+    void onPersistClientResponse(response, updated).then(() => {
+      if (approved) onApproveDecision(option)
+      onToast(approved ? "Respuesta enviada: aprobación registrada." : "Comentario enviado: se solicitaron cambios.")
+    }).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos registrar tu respuesta."))
   }
   const sendClientMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -2689,7 +2697,7 @@ function ClientPortal({
       descripcion: `Mensaje del cliente: ${message}`,
       autor: currentProject.cliente?.nombre || "Cliente",
     }
-    onUpdateProject({
+    const updated = {
       ...currentProject,
       actividadReciente: [messageActivity, ...(currentProject.actividadReciente || [])],
       info: {
@@ -2697,9 +2705,11 @@ function ClientPortal({
         cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1,
         ultimaActualizacion: "Ahora",
       },
-    })
-    setClientMessage("")
-    onToast("Mensaje enviado al equipo y guardado en el proyecto.")
+    }
+    void onPersistClientResponse({ kind: "message", message }, updated).then(() => {
+      setClientMessage("")
+      onToast("Mensaje enviado al equipo y guardado en el proyecto.")
+    }).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos enviar el mensaje."))
   }
   const clientHistoryUpdates = projectTasks.flatMap(task =>
     (task.actualizaciones || [])
@@ -2760,29 +2770,27 @@ function ClientPortal({
         }),
       })),
     }))
-    onUpdateProject({ ...currentProject, disciplinasOperativas: updatedDisciplines, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1 } })
-    onToast(status === "aprobada" ? "Actualización aprobada." : "Se solicitaron cambios sobre esta actualización.")
+    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info?.cambiosSinPublicar || 0) + 1 } }
+    void onPersistClientResponse({ kind: "task_update", taskId, updateId, status }, updated).then(() => onToast(status === "aprobada" ? "Actualización aprobada." : "Se solicitaron cambios sobre esta actualización.")).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos registrar tu respuesta."))
   }
   const updateDeliverable = (taskId: string, deliverableId: string, status: ExpectedDeliverableStatus, file?: File) => {
+    if (file) { onToast("La carga de archivos desde el portal todavía no está disponible."); return }
     const updatedDisciplines = (currentProject.disciplinasOperativas || []).map(discipline => ({
       ...discipline,
       necesidades: discipline.necesidades.map(need => ({
         ...need,
         tareas: need.tareas.map(task => {
           if (task.id !== taskId) return task
-          const updatedFiles = file
-            ? [...(task.archivos || []), { nombre: file.name, url: URL.createObjectURL(file), tipo: file.type.startsWith("image/") ? "imagen" as const : file.type.startsWith("video/") ? "video" as const : file.type === "application/pdf" ? "pdf" as const : "descargable" as const, funcion: "entrada" as const, entregableId: deliverableId }]
-            : task.archivos
           return {
             ...task,
-            archivos: updatedFiles,
+            archivos: task.archivos,
             entregablesEsperados: (task.entregablesEsperados || []).map(deliverable => deliverable.id === deliverableId ? { ...deliverable, estado: status } : deliverable),
           }
         }),
       })),
     }))
-    onUpdateProject({ ...currentProject, disciplinasOperativas: updatedDisciplines, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info.cambiosSinPublicar || 0) + 1 } })
-    onToast(file ? "Información recibida y asociada a la tarea." : status === "aprobado" ? "Entrega aprobada para esta tarea." : "Se solicitaron cambios sobre la entrega.")
+    const updated = { ...currentProject, disciplinasOperativas: updatedDisciplines, info: { ...currentProject.info, cambiosSinPublicar: (currentProject.info.cambiosSinPublicar || 0) + 1 } }
+    void onPersistClientResponse({ kind: "deliverable", taskId, deliverableId, status }, updated).then(() => onToast(status === "aprobado" ? "Entrega aprobada para esta tarea." : "Se solicitaron cambios sobre la entrega.")).catch((error) => onToast(error instanceof Error ? error.message : "No pudimos registrar tu respuesta."))
   }
 
   return (
@@ -3197,6 +3205,14 @@ export default function App() {
     setAllProjects(getAllProjects())
   }
 
+  const handleClientPortalResponse = async (response: Omit<ClientPortalResponse, "projectId" | "token">, updated: ProjectData) => {
+    await persistClientPortalResponse({ ...response, projectId: updated.id, token: directToken || undefined })
+    setAllProjects((current) => current.map((project) => project.id === updated.id ? updated : project))
+    // Keep the browser cache useful for authenticated clients, but do not run
+    // the staff-only project save route after a client response.
+    if (!directToken) saveAllProjects(getAllProjects().map((project) => project.id === updated.id ? updated : project))
+  }
+
   const handleSignOut = () => {
     void signOutAuth()
     setActiveUser(null)
@@ -3294,6 +3310,7 @@ export default function App() {
           showAdminLink={!directToken && ["owner", "admin", "team"].includes(activeUser?.rol || "")}
           onToast={showToast}
           onUpdateProject={handleUpdateProject}
+          onPersistClientResponse={handleClientPortalResponse}
           availableProjects={allProjects}
           selectedProjectId={selectedProjectId}
           onProjectChange={setSelectedProjectId}
