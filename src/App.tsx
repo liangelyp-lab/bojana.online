@@ -2080,9 +2080,7 @@ function ProgressSection({
 
   return (
     <section>
-      <SectionTitle eyebrow="Estado del proyecto">
-        Avanzamos segun lo previsto
-      </SectionTitle>
+      <SectionTitle>Avanzamos segun lo previsto</SectionTitle>
       <div className="rounded-3xl border border-line bg-white p-7 md:p-8">
           <div>
             <div>
@@ -2143,7 +2141,6 @@ function StorySection({ updates, compact = false, onViewAll }: { updates: { date
             Ver historia completa <Icon className="size-4" name="arrow" />
           </Button>
         }
-        eyebrow="Ultimos avances"
       >
         La historia del proyecto
       </SectionTitle>
