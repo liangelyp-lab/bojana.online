@@ -246,9 +246,11 @@ export interface ClientConfig {
 
 export interface InternalMilestone {
   id: string;
-  fecha: string; // ej: "15 OCT"
+  fecha: string; // ISO date from the planning form, e.g. "2026-10-15"
   nombre: string; // ej: "Entrega documentación"
   estado?: string;
+  faseId?: string;
+  tareaId?: string;
 }
 
 export interface ProjectActivityLog {
@@ -427,6 +429,8 @@ export interface OperationalNeed {
   visibleCliente?: boolean; // Publica u oculta la necesidad completa en el portal.
   tipoNecesidad?: 'etapas' | 'tareas' | 'coleccion';
   esColeccion?: boolean; // ej: Avances de obra o Materiales que contienen múltiples ítems
+  fechaInicioEstimada?: string;
+  fechaEntregaEstimada?: string;
   tareas: ExecutionTask[];
   progresoCalculado?: number; // 0 - 100
 }

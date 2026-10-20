@@ -13,19 +13,17 @@ export default function ProjectProgressBar({ project, value }: { project: Projec
       ...discipline,
       necesidades: (discipline.necesidades || []).filter(need => (need.tareas || []).some(task => task.estado !== "Fuera de alcance")),
     })).filter(discipline => discipline.necesidades.length > 0);
-    const totalDisciplineWeight = disciplines.reduce((sum, discipline) => sum + (discipline.pesoPorcentaje || 0), 0);
-    return disciplines.flatMap(discipline => {
-      const disciplineShare = totalDisciplineWeight > 0 ? (discipline.pesoPorcentaje || 0) / totalDisciplineWeight : 1 / disciplines.length;
-      const totalNeedWeight = discipline.necesidades.reduce((sum, need) => sum + (need.pesoPorcentaje || 0), 0);
-      return discipline.necesidades.map(need => ({
+    const needs = disciplines.flatMap(discipline => discipline.necesidades.map(need => ({ discipline, need })));
+    const totalNeedWeight = needs.reduce((sum, { need }) => sum + (need.pesoPorcentaje || 0), 0);
+    return needs.map(({ discipline, need }) => ({
         id: `${discipline.id}-${need.id}`,
         label: need.nombre,
-        weight: disciplineShare * (totalNeedWeight > 0 ? (need.pesoPorcentaje || 0) / totalNeedWeight : 1 / discipline.necesidades.length) * 100,
+        // Segment widths follow the exact phase weights configured in the editor.
+        weight: totalNeedWeight > 0 ? (need.pesoPorcentaje || 0) / totalNeedWeight * 100 : 100 / needs.length,
         progress: calculateNeedProgress({ ...need, publishedProgress: undefined }),
         taskCount: (need.tareas || []).filter(task => task.estado !== "Fuera de alcance").length,
         completedTaskCount: (need.tareas || []).filter(task => task.estado === "Completada").length,
       })).filter(segment => segment.weight > 0);
-    });
   }, [project.disciplinasOperativas]);
   const showGranular = granular && segments.length > 0;
   const taskStatusCounts = useMemo<StatusBarTaskStatusCounts>(() => {
@@ -55,5 +53,5 @@ export default function ProjectProgressBar({ project, value }: { project: Projec
   const status = getProjectStatusLabel(project);
   const statusTone = status === "Completado" ? "active" : status === "Revisión" ? "waiting" : status === "En progreso" ? "info" : "gray";
 
-  return <StatusBar value={value} size="s" mode={showGranular ? "granular" : "completo"} taskCount={segments.reduce((total, segment) => total + (segment.taskCount || 0), 0)} completedTaskCount={segments.reduce((total, segment) => total + (segment.completedTaskCount || 0), 0)} taskStatusCounts={taskStatusCounts} segments={segments} activeSegment={hoveredSegment} expandedSegment={expandedSegment} onSegmentHover={setHoveredSegment} onSegmentClick={id => setExpandedSegment(current => current === id ? null : id)} ariaLabel="Progreso del proyecto" projectStatus={<StatusBadge tone={statusTone} size="s">{status}</StatusBadge>} onModeChange={next => { setGranular(next === "granular"); setExpandedSegment(null); setHoveredSegment(null); }} />;
+  return <StatusBar value={value} size="s" mode={showGranular ? "granular" : "completo"} phaseCount={segments.length} taskCount={segments.reduce((total, segment) => total + (segment.taskCount || 0), 0)} completedTaskCount={segments.reduce((total, segment) => total + (segment.completedTaskCount || 0), 0)} taskStatusCounts={taskStatusCounts} segments={segments} activeSegment={hoveredSegment} expandedSegment={expandedSegment} onSegmentHover={setHoveredSegment} onSegmentClick={id => setExpandedSegment(current => current === id ? null : id)} ariaLabel="Progreso del proyecto" projectStatus={<StatusBadge tone={statusTone} size="s">{status}</StatusBadge>} onModeChange={next => { setGranular(next === "granular"); setExpandedSegment(null); setHoveredSegment(null); }} />;
 }

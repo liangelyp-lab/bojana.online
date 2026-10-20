@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
+import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Componentes',
@@ -103,6 +103,19 @@ export const TaskRowStory: Story = {
   render: ({ showDescription, showDetails, showOwner, showDue, showStatus, showActions, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><TaskRow title="Documentación ejecutiva" description={showDescription ? 'Arquitectura' : undefined} details={showDetails ? '2 entregables · 1 publicado' : undefined} owner={showOwner ? <><span className="grid size-8 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">LM</span><span className="text-xs font-medium text-ink-muted">Lucía Martín</span></> : undefined} due={showDue ? <><PortalIcon icon={CalendarDays} size="s" color="line" />18 oct.</> : undefined} status={showStatus ? <StatusBadge tone="waiting" size="s">Esperando cliente</StatusBadge> : undefined} actions={showActions ? <Button variant="icon" size="s" ariaLabel="Más opciones">•••</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>
 };
 
+export const PhaseRowStory: Story = {
+  name: 'Phase Row',
+  args: { showSummary: true, showProgress: true, showWeight: true, expanded: false, interactive: true },
+  argTypes: {
+    showSummary: { control: 'boolean', description: 'Mostrar tareas completadas y avance' },
+    showProgress: { control: 'boolean', description: 'Mostrar avance de la fase' },
+    showWeight: { control: 'boolean', description: 'Mostrar peso dentro del proyecto' },
+    expanded: { control: 'boolean', description: 'Mostrar estado expandido' },
+    interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
+  },
+  render: ({ showSummary, showProgress, showWeight, expanded, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><PhaseRow title="Documentación ejecutiva" summary={showSummary ? '5/12 tareas completadas' : undefined} progress={showProgress ? '42% de avance' : undefined} weight={showWeight ? 'Peso: 20%' : undefined} expanded={expanded} onClick={interactive ? () => {} : undefined} /></div>,
+};
+
 export const HistoryRowStory: Story = {
   name: 'History Row',
   args: { showDescription: true, showStatus: true, showAction: true, interactive: true },
@@ -135,7 +148,7 @@ export const TabsStory: Story = { args: { divider: true }, argTypes: { divider: 
 export const StatusBarStory: Story = {
   name: 'Status Bar',
   args: { value: 60, size: 'm', mode: 'granular', color: 'forest', trackColor: 'white', showLabels: true, expandOnClick: true, showModeToggle: true, showMetadata: true },
-  argTypes: { value: { control: { type: 'number', min: 0, max: 100, step: 1 } }, size: { control: 'select', options: ['s', 'm', 'l'] }, mode: { control: 'select', options: ['granular', 'completo'], description: 'Mostrar progreso por segmentos o como total' }, color: { control: 'select', options: ['forest', 'clay', 'mint', 'warning', 'ink', 'stone'], description: 'Color del progreso' }, trackColor: { control: 'select', options: ['same', 'white'], description: 'Color del tramo pendiente' }, showLabels: { control: 'boolean' }, expandOnClick: { control: 'boolean', description: 'Expandir el progreso de la sección seleccionada' }, showModeToggle: { control: 'boolean', description: 'Permitir alternar entre progreso total y por etapas con el chip de intercambio' }, showMetadata: { control: 'boolean', description: 'Mostrar avance, tareas y los estados sobre la barra' } },
+  argTypes: { value: { control: { type: 'number', min: 0, max: 100, step: 1 } }, size: { control: 'select', options: ['s', 'm', 'l'] }, mode: { control: 'select', options: ['granular', 'completo'], description: 'Mostrar progreso por segmentos o como total' }, color: { control: 'select', options: ['forest', 'clay', 'mint', 'warning', 'ink', 'stone'], description: 'Color del progreso' }, trackColor: { control: 'select', options: ['same', 'white'], description: 'Color del tramo pendiente' }, showLabels: { control: 'boolean' }, expandOnClick: { control: 'boolean', description: 'Expandir el progreso de la sección seleccionada' }, showModeToggle: { control: 'boolean', description: 'Permitir alternar entre progreso total y por fases con el chip de intercambio' }, showMetadata: { control: 'boolean', description: 'Mostrar avance, fases y los estados sobre la barra' } },
   render: ({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata }) => <StatusBarStoryExample value={value} size={size} mode={mode} color={color} trackColor={trackColor} showLabels={showLabels} expandOnClick={expandOnClick} showModeToggle={showModeToggle} showMetadata={showMetadata} />,
 };
 
@@ -150,7 +163,7 @@ function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabel
   const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
   const [currentMode, setCurrentMode] = useState(mode);
   useEffect(() => { setCurrentMode(mode); setExpandedSegment(null); setActiveSegment(null); }, [mode]);
-  return <StatusBar value={value} mode={currentMode} color={color} trackColor={trackColor} size={size} showLabels={showLabels} taskCount={showMetadata ? segments.reduce((total, segment) => total + segment.taskCount, 0) : undefined} completedTaskCount={showMetadata ? segments.reduce((total, segment) => total + segment.completedTaskCount, 0) : undefined} taskStatusCounts={showMetadata ? { completed: 5, 'in-progress': 2, review: 1, waiting: 1, adjustments: 1, pending: 2, paused: 1, 'out-of-scope': 1 } : undefined} segments={segments} activeSegment={activeSegment} expandedSegment={expandOnClick && currentMode === "granular" ? expandedSegment : null} onSegmentHover={setActiveSegment} onSegmentClick={id => { setActiveSegment(id); if (expandOnClick) setExpandedSegment(current => current === id ? null : id); }} projectStatus={<StatusBadge tone="active" size="s">En tiempo</StatusBadge>} onModeChange={showModeToggle ? next => { setCurrentMode(next); setExpandedSegment(null); setActiveSegment(null); } : undefined} />;
+  return <StatusBar value={value} mode={currentMode} color={color} trackColor={trackColor} size={size} showLabels={showLabels} phaseCount={showMetadata ? segments.length : undefined} taskCount={showMetadata ? segments.reduce((total, segment) => total + segment.taskCount, 0) : undefined} completedTaskCount={showMetadata ? segments.reduce((total, segment) => total + segment.completedTaskCount, 0) : undefined} taskStatusCounts={showMetadata ? { completed: 5, 'in-progress': 2, review: 1, waiting: 1, adjustments: 1, pending: 2, paused: 1, 'out-of-scope': 1 } : undefined} segments={segments} activeSegment={activeSegment} expandedSegment={expandOnClick && currentMode === "granular" ? expandedSegment : null} onSegmentHover={setActiveSegment} onSegmentClick={id => { setActiveSegment(id); if (expandOnClick) setExpandedSegment(current => current === id ? null : id); }} projectStatus={<StatusBadge tone="active" size="s">En tiempo</StatusBadge>} onModeChange={showModeToggle ? next => { setCurrentMode(next); setExpandedSegment(null); setActiveSegment(null); } : undefined} />;
 }
 
 function FilterBarExample({ showSearch, showLayoutIcon, background }: { showSearch: boolean; showLayoutIcon: boolean; background: 'white' | 'canvas-light' | 'canvas' | 'stone' | 'transparent' }) {

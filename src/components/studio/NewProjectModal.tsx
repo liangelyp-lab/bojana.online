@@ -35,6 +35,8 @@ interface Need {
   pesoPorcentaje?: number;
   visibleCliente?: boolean;
   tiposContenido: TaskContentType[];
+  fechaInicioEstimada?: string;
+  fechaEntregaEstimada?: string;
   tareas: ExecutionTask[];
 }
 interface Draft {
@@ -137,6 +139,8 @@ const projectToDraft = (project: ProjectData): Draft => ({
     disciplina: discipline.id,
     pesoPorcentaje: need.pesoPorcentaje ?? 100,
     visibleCliente: need.visibleCliente !== false,
+    fechaInicioEstimada: need.fechaInicioEstimada || "",
+    fechaEntregaEstimada: need.fechaEntregaEstimada || "",
     tiposContenido: Array.from(new Set(need.tareas.flatMap((task) => task.tiposContenido || ['archivo']))) as TaskContentType[],
     tareas: need.tareas.map((task) => ({ ...task, pesoPorcentaje: task.pesoPorcentaje ?? 100, tiposContenido: task.tiposContenido || ['archivo'] })),
   }))),
@@ -258,6 +262,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   };
   const tasks = draft.necesidades.flatMap((n) => n.tareas);
+  const phaseWeightTotal = draft.necesidades.reduce((sum, need) => sum + (need.pesoPorcentaje ?? 0), 0);
   const updateNeed = (id: string, update: Partial<Need>) =>
     set(
       "necesidades",
@@ -316,7 +321,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
         id: preset ? `${disciplina}-${preset.id}` : uid(),
         nombre: preset?.label || "",
         disciplina,
-        pesoPorcentaje: 100,
+        pesoPorcentaje: 0,
         visibleCliente: true,
         tiposContenido: ['archivo'],
         tareas: [],
@@ -333,6 +338,8 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
         discipline: n.disciplina,
         pesoPorcentaje: n.pesoPorcentaje,
         visibleCliente: n.visibleCliente,
+        fechaInicioEstimada: n.fechaInicioEstimada,
+        fechaEntregaEstimada: n.fechaEntregaEstimada,
         tasks: n.tareas.map((t) => ({
           ...t,
           tiposContenido: n.tiposContenido || ['archivo'],
@@ -451,6 +458,11 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
       setNotice("La fecha de fin debe ser igual o posterior al inicio.");
       return;
     }
+    if (draft.necesidades.length > 0 && Math.abs(phaseWeightTotal - 100) > 0.001) {
+      setNotice(`Los pesos de las fases deben sumar 100%. Actualmente suman ${phaseWeightTotal}%.`);
+      setActiveSection(creationSections[3]);
+      return;
+    }
     if (
       draft.actorSiguiente === "cliente" &&
       !tasks.some((t) => t.id === draft.tareaSiguiente && t.visibleCliente)
@@ -495,6 +507,10 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
     ),
     progreso: [],
   } as unknown as ProjectData);
+  const milestoneTargets = draft.necesidades.flatMap((need) => [
+    { value: `fase:${need.id}`, label: `Fase · ${need.nombre || "Sin nombre"}` },
+    ...need.tareas.map((task) => ({ value: `tarea:${task.id}`, label: `Tarea · ${task.titulo || "Sin título"}` })),
+  ]);
 
   return (
     <div
@@ -642,7 +658,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
             {draft.hitos.map((h, i) => (
               <div
                 key={h.id}
-                className="grid sm:grid-cols-[1fr_180px_auto] gap-bojana-inside"
+                className="grid sm:grid-cols-[minmax(0,1fr)_180px_220px_auto] gap-bojana-inside"
               >
                 <Field
                   label="Hito"
@@ -670,6 +686,23 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                     )
                   }
                 />
+                <label className="min-w-0">
+                  <span className="bojana-label">Relacionado con</span>
+                  <SelectControl
+                    className="mt-1 w-full"
+                    value={h.tareaId ? `tarea:${h.tareaId}` : h.faseId ? `fase:${h.faseId}` : ""}
+                    onChange={(event) => {
+                      const [kind, id] = event.target.value.split(":");
+                      set("hitos", draft.hitos.map((x) => x.id === h.id
+                        ? { ...x, faseId: kind === "fase" ? id : undefined, tareaId: kind === "tarea" ? id : undefined }
+                        : x,
+                      ));
+                    }}
+                  >
+                    <option value="">Sin vincular</option>
+                    {milestoneTargets.map((target) => <option key={target.value} value={target.value}>{target.label}</option>)}
+                  </SelectControl>
+                </label>
                 <Remove
                   label={`Quitar hito ${i + 1}`}
                   onClick={() =>
@@ -879,7 +912,10 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
             <p className="text-sm leading-6 text-bojana-muted">
               Elegí necesidades y agregá las tareas reales del alcance. Las
               etapas son agrupaciones opcionales dentro de cada necesidad. Definí
-              el peso de cada tarea y de sus etapas para calcular el progreso.
+              el peso de cada fase dentro del proyecto: el total debe sumar 100%.
+            </p>
+            <p className={`text-sm font-semibold ${Math.abs(phaseWeightTotal - 100) < 0.001 ? "text-bojana-success" : "text-bojana-clay"}`}>
+              Peso total de las fases: {phaseWeightTotal}% / 100%
             </p>
             {draft.disciplinas.map((disc) => (
               <div
@@ -969,6 +1005,20 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                     }}
                   />
                 </div>
+                <div className="grid gap-bojana-inside sm:grid-cols-2">
+                  <Field
+                    label="Inicio estimado de la fase"
+                    type="date"
+                    value={need.fechaInicioEstimada || ""}
+                    onChange={(v) => updateNeed(need.id, { fechaInicioEstimada: v })}
+                  />
+                  <Field
+                    label="Entrega estimada de la fase"
+                    type="date"
+                    value={need.fechaEntregaEstimada || ""}
+                    onChange={(v) => updateNeed(need.id, { fechaEntregaEstimada: v })}
+                  />
+                </div>
                 {need.tareas.map((task) => {
                   const taskIsExpanded = expandedTasks[task.id] ?? false;
                   return (
@@ -1017,6 +1067,12 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                       </div>
                     </div>
                     {taskIsExpanded && <div className="ml-4 space-y-bojana-block px-3 pb-3">
+                    <Field
+                      label="Entrega estimada de la tarea"
+                      type="date"
+                      value={task.fecha || ""}
+                      onChange={(v) => updateTask(need, task.id, { fecha: v })}
+                    />
                     {(task.subetapas || []).length > 0 && <div className="ml-8 w-full max-w-[42rem] space-y-bojana-inside">
                       {(task.subetapas || []).map((stage, stageIndex) => (
                         editingStageId === `${task.id}:${stage.id}` ? (

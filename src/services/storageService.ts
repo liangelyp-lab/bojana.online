@@ -915,6 +915,8 @@ export function generateEmptyOperationalDisciplines(
     label?: string;
     pesoPorcentaje?: number;
     visibleCliente?: boolean;
+    fechaInicioEstimada?: string;
+    fechaEntregaEstimada?: string;
     tasks?: (Pick<ExecutionTask, 'id' | 'titulo'> & Partial<ExecutionTask>)[];
   }[]
 ): OperationalDiscipline[] {
@@ -927,6 +929,8 @@ export function generateEmptyOperationalDisciplines(
       tipoNecesidad: 'tareas' as const,
       pesoPorcentaje: cfg.pesoPorcentaje ?? 100,
       visibleCliente: cfg.visibleCliente !== false,
+      fechaInicioEstimada: cfg.fechaInicioEstimada,
+      fechaEntregaEstimada: cfg.fechaEntregaEstimada,
       tareas: (cfg.tasks || []).map((task, index) => ({
         ...task,
         id: task.id || `${disc}-${cfg.needId}-task-${index + 1}`,
@@ -1660,6 +1664,64 @@ export const INITIAL_CLIENTS: ClientEntity[] = [
 const STORAGE_KEY = 'BOJANA_CLIENT_PORTAL_PROJECTS_V8';
 const CLIENTS_STORAGE_KEY = 'BOJANA_CLIENTS_LIST_V3';
 
+/**
+ * Phase weights represent shares of the whole project. Older projects stored
+ * them as independent values inside each discipline, so normalize them once
+ * while preserving their relative importance.
+ */
+export function normalizeProjectPhaseWeights(project: ProjectData): { project: ProjectData; changed: boolean } {
+  const phases = (project.disciplinasOperativas || []).flatMap((discipline) =>
+    discipline.necesidades.map((need) => ({ disciplineId: discipline.id, needId: need.id, weight: Math.max(0, need.pesoPorcentaje ?? 0) })),
+  );
+  if (phases.length === 0) return { project, changed: false };
+
+  const total = phases.reduce((sum, phase) => sum + phase.weight, 0);
+  const nextWeights = new Map<string, number>();
+  let assigned = 0;
+  phases.forEach((phase, index) => {
+    const rawWeight = total > 0 ? phase.weight / total * 100 : 100 / phases.length;
+    const weight = index === phases.length - 1
+      ? Math.round((100 - assigned) * 100) / 100
+      : Math.round(rawWeight * 100) / 100;
+    assigned += weight;
+    nextWeights.set(`${phase.disciplineId}:${phase.needId}`, weight);
+  });
+
+  const changed = phases.some((phase) => Math.abs(phase.weight - (nextWeights.get(`${phase.disciplineId}:${phase.needId}`) || 0)) > 0.001);
+  if (!changed) return { project, changed: false };
+
+  return {
+    changed: true,
+    project: {
+      ...project,
+      disciplinasOperativas: (project.disciplinasOperativas || []).map((discipline) => ({
+        ...discipline,
+        necesidades: discipline.necesidades.map((need) => ({
+          ...need,
+          pesoPorcentaje: nextWeights.get(`${discipline.id}:${need.id}`) ?? need.pesoPorcentaje,
+        })),
+      })),
+    },
+  };
+}
+
+function removePreviewStatusDemoTasks(project: ProjectData): { project: ProjectData; changed: boolean } {
+  let changed = false;
+  const disciplinasOperativas = (project.disciplinasOperativas || []).map((discipline) => ({
+    ...discipline,
+    necesidades: discipline.necesidades.map((need) => {
+      const tareas = need.tareas.filter((task) => {
+        const isDemo = task.id.startsWith('status-demo-')
+          || task.descripcionTrabajo === 'Tarea de demostración para revisar los estados del StatusBadge.';
+        changed ||= isDemo;
+        return !isDemo;
+      });
+      return tareas.length === need.tareas.length ? need : { ...need, tareas };
+    }),
+  }));
+  return changed ? { project: { ...project, disciplinasOperativas }, changed } : { project, changed };
+}
+
 export function getAllProjects(): ProjectData[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -1673,10 +1735,15 @@ export function getAllProjects(): ProjectData[] {
       return [];
     }
     // ─ Migrate old projects without lifecycleStatus ─
-    const migrated = parsed.map((p: ProjectData) => ({
-      ...p,
-      lifecycleStatus: p.lifecycleStatus ?? 'ACTIVO'
-    }));
+    let didMigrate = false;
+    const migrated = parsed.map((p: ProjectData) => {
+      const withLifecycle = { ...p, lifecycleStatus: p.lifecycleStatus ?? 'ACTIVO' };
+      const withoutDemoTasks = removePreviewStatusDemoTasks(withLifecycle);
+      const normalized = normalizeProjectPhaseWeights(withoutDemoTasks.project);
+      didMigrate ||= withoutDemoTasks.changed || normalized.changed || p.lifecycleStatus === undefined;
+      return normalized.project;
+    });
+    if (didMigrate) localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
     return migrated;
   } catch (e) {
     console.error('Error reading projects from storage:', e);
@@ -1795,11 +1862,21 @@ export async function hydrateProjectsFromSupabase(): Promise<ProjectData[] | nul
   if (!isSupabaseConfigured) return null;
   try {
     const projects = await listRemoteProjects();
+    const normalized = projects.map((project) => {
+      const withoutDemoTasks = removePreviewStatusDemoTasks(project);
+      const withNormalizedWeights = normalizeProjectPhaseWeights(withoutDemoTasks.project);
+      return { project: withNormalizedWeights.project, changed: withoutDemoTasks.changed || withNormalizedWeights.changed };
+    });
+    const normalizedProjects = normalized.map((result) => result.project);
+    const changedProjects = normalized.filter((result) => result.changed).map((result) => result.project);
     // An empty successful response is meaningful for clients: it clears a
     // stale local project instead of leaving them looking at another account's
     // cached data.
-    saveAllProjects(projects);
-    return projects;
+    saveAllProjects(normalizedProjects);
+    if (changedProjects.length > 0) {
+      void Promise.allSettled(changedProjects.map((project) => saveRemoteProject(project)));
+    }
+    return normalizedProjects;
   } catch (error) {
     console.error('Error loading projects from Supabase:', error);
     return null;

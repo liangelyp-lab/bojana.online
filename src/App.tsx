@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
-import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronDown, ChevronUp, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
@@ -26,7 +26,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -143,17 +143,17 @@ function SectionTitle({
   children,
   action,
 }: {
-  eyebrow: string
+  eyebrow?: string
   children: ReactNode
   action?: ReactNode
 }) {
   return (
     <div className="mb-6 flex items-end justify-between gap-4">
       <div>
-        <Eyebrow>{eyebrow}</Eyebrow>
+        {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
         <Heading
           as="h2"
-          className="mt-2 font-display text-3xl leading-tight text-ink"
+          className={`${eyebrow ? "mt-2" : ""} font-display text-3xl leading-tight text-ink`}
         >
           {children}
         </Heading>
@@ -1292,13 +1292,15 @@ function AdminPortal({
   const completedCount = useMemo(() => workspaceTasks.filter(t => t.status === "Completado").length, [workspaceTasks])
   const inProgressCount = useMemo(() => workspaceTasks.filter(t => t.status === "En curso").length, [workspaceTasks])
   const waitingClientCount = useMemo(() => workspaceDecision?.status === "pendiente" ? 1 : 0, [workspaceDecision])
-  const progressPercent = workspaceTasks.length ? Math.round((completedCount / workspaceTasks.length) * 100) : 0
+  // This is the project-wide weighted progress: the same source rendered by the
+  // status bar and client portal. The task count below remains a separate count.
+  const progressPercent = currentProject ? getEffectiveProgress(currentProject) : 0
   const deliveryDate = currentProject?.info?.fechaFin
   const deliveryTimestamp = deliveryDate ? new Date(`${deliveryDate}T00:00:00`).getTime() : Number.NaN
   const deliveryDays = Number.isFinite(deliveryTimestamp)
     ? Math.max(0, Math.ceil((deliveryTimestamp - Date.now()) / 86400000))
     : null
-  const nextMilestone = currentProject?.info?.proximoHito || workspaceMilestones[0]?.nombre || "Sin próximo hito"
+  const nextMilestone = currentProject ? getNextProjectMilestone(currentProject) : "Sin próximo hito"
 
   return (
     <div className="min-h-screen bg-canvas text-ink lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden">
@@ -1852,6 +1854,45 @@ function ProjectHero({
   )
 }
 
+function formatMilestoneDate(date: string) {
+  const parsed = new Date(`${date}T00:00:00`)
+  if (Number.isNaN(parsed.getTime())) return date
+  return new Intl.DateTimeFormat("es-AR", { day: "numeric", month: "short" })
+    .format(parsed)
+    .replace(".", "")
+}
+
+function getNextProjectMilestone(project: ProjectData) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const targetDates = new Map<string, string>()
+  const phaseCandidates = (project.disciplinasOperativas || []).flatMap(discipline =>
+    discipline.necesidades
+      .filter(phase => calculateNeedProgress(phase) < 100 && phase.fechaEntregaEstimada)
+      .map(phase => ({ id: `fase:${phase.id}`, title: `Entrega de ${phase.nombre}`, date: phase.fechaEntregaEstimada! })),
+  )
+  const taskCandidates = (project.disciplinasOperativas || []).flatMap(discipline =>
+    discipline.necesidades.flatMap(phase => phase.tareas
+      .filter(task => task.estado !== "Completado" && task.fecha)
+      .map(task => ({ id: `tarea:${task.id}`, title: task.titulo, date: task.fecha! })),
+    ),
+  )
+  ;[...phaseCandidates, ...taskCandidates].forEach(item => targetDates.set(item.id, item.date))
+  const explicitCandidates = (project.hitosInternos || [])
+    .filter(milestone => milestone.estado !== "Completado" && milestone.estado !== "Cancelado")
+    .map(milestone => ({
+      title: milestone.nombre,
+      date: milestone.fecha || (milestone.tareaId ? targetDates.get(`tarea:${milestone.tareaId}`) : milestone.faseId ? targetDates.get(`fase:${milestone.faseId}`) : undefined),
+    }))
+    .filter((item): item is { title: string; date: string } => Boolean(item.date))
+  const candidates = [...explicitCandidates, ...phaseCandidates, ...taskCandidates]
+    .map(item => ({ ...item, timestamp: new Date(`${item.date}T00:00:00`).getTime() }))
+    .filter(item => Number.isFinite(item.timestamp) && item.timestamp >= today.getTime())
+    .sort((a, b) => a.timestamp - b.timestamp)
+  const next = candidates[0]
+  return next ? `${next.title} · ${formatMilestoneDate(next.date)}` : project.info?.proximoHito || "Sin próximo hito"
+}
+
 function ActionCard({
   decision,
   onApprove,
@@ -2024,47 +2065,52 @@ function ActionCard({
   )
 }
 
+type ClientProgressGroups = {
+  area: string
+  needs: {
+    id: string
+    name: string
+    progress: number
+    weight: number
+    projectWeight: number
+    tasks: {
+      task: import("./types").ExecutionTask
+      title: string
+      progress: number
+      weight: number
+      contribution: number
+      status: string
+      types: string[]
+      update?: string
+    }[]
+  }[]
+}[]
+
 function ProgressSection({
   progressPercent,
   completedCount,
   totalCount,
   progressGroups,
-  expandedTaskId,
+  mode,
+  selectedNeedId,
   featuredTaskId,
-  onTaskToggle,
+  onNeedSelect,
+  onModeChange,
 }: {
   progressPercent: number
   completedCount: number
   totalCount: number
-  progressGroups: {
-    area: string
-    needs: {
-      id: string
-      name: string
-      progress: number
-      weight: number
-      projectWeight: number
-      tasks: {
-        task: import("./types").ExecutionTask
-        title: string
-        progress: number
-        weight: number
-        contribution: number
-        status: string
-        types: string[]
-        update?: string
-      }[]
-    }[]
-  }[]
-  expandedTaskId: string | null
+  progressGroups: ClientProgressGroups
+  mode: 'granular' | 'completo'
+  selectedNeedId: string | null
   featuredTaskId?: string
-  onTaskToggle: (taskId: string) => void
+  onNeedSelect: (needId: string | null) => void
+  onModeChange: (mode: 'granular' | 'completo') => void
 }) {
   const [hoveredNeedId, setHoveredNeedId] = useState<string | null>(null)
-  const [expandedNeedId, setExpandedNeedId] = useState<string | null>(null)
-  const [granular, setGranular] = useState(true)
   const allNeeds = progressGroups.flatMap(group => group.needs)
-  const featuredNeedId = featuredTaskId ? allNeeds.find(need => need.tasks.some(task => task.task.id === featuredTaskId))?.id : undefined
+  const phaseCount = allNeeds.length
+  const projectTaskCount = allNeeds.reduce((count, need) => count + need.tasks.length, 0)
   const taskStatusCounts = allNeeds.flatMap(need => need.tasks).reduce<StatusBarTaskStatusCounts>((counts, item) => {
     const stateMap = { Pendiente: 'pending', 'En curso': 'in-progress', 'En revisión': 'review', 'Esperando al cliente': 'waiting', 'Requiere ajustes': 'adjustments', Completado: 'completed', Pausada: 'paused', 'Fuera de alcance': 'out-of-scope' } as const
     const state = stateMap[item.task.estado]
@@ -2072,63 +2118,75 @@ function ProgressSection({
     return counts
   }, {})
 
-  useEffect(() => {
-    if (!featuredNeedId) return
-    setGranular(true)
-    setExpandedNeedId(featuredNeedId)
-  }, [featuredNeedId])
-
-  return (
-    <section>
+  return <section>
+    <div className="mb-6">
       <SectionTitle>Avanzamos segun lo previsto</SectionTitle>
-      <div className="rounded-3xl border border-line bg-white p-7 md:p-8">
-          <div>
-            <div>
-              <p className="font-display text-5xl text-ink">{progressPercent}%</p>
-              <p className="mt-2 text-sm text-ink-muted">
-                {completedCount} de {totalCount} tareas completadas
-              </p>
-            </div>
-          </div>
-          <div className="mt-7">
-              <StatusBar value={progressPercent} mode={granular ? "granular" : "completo"} taskCount={totalCount} completedTaskCount={completedCount} taskStatusCounts={taskStatusCounts} segments={allNeeds.map(need => ({ id: need.id, label: need.name, weight: need.projectWeight, progress: need.progress, taskCount: need.tasks.length, completedTaskCount: need.tasks.filter(task => task.status === "Completada").length }))} activeSegment={hoveredNeedId} expandedSegment={expandedNeedId} onSegmentClick={id => setExpandedNeedId(current => current === id ? null : id)} onSegmentHover={setHoveredNeedId} ariaLabel={`Progreso del proyecto: ${progressPercent} por ciento`} projectStatus={<StatusBadge tone="active" size="s" showDot={false}>En tiempo</StatusBadge>} onModeChange={next => { setGranular(next === "granular"); setExpandedNeedId(null); setHoveredNeedId(null) }} />
-          </div>
-        <div className="mt-8 border-t border-line pt-7">
-          <div className="space-y-3">
-            {allNeeds.filter(need => need.id === expandedNeedId).map(need => {
-              const inProgress = need.tasks.filter(task => task.status === "En curso" || task.status === "En revisión" || task.status === "Esperando información").length;
-              const pending = need.tasks.filter(task => task.status === "No iniciada" || task.status === "Pausada" || task.status === "Requiere ajustes").length;
-              const completed = need.tasks.filter(task => task.status === "Completada").length;
-              const isExpanded = expandedNeedId === need.id;
-              return <div key={need.id} onMouseEnter={() => setHoveredNeedId(need.id)} onMouseLeave={() => setHoveredNeedId(null)} className={`rounded-2xl bg-stone/60 p-4 transition ${hoveredNeedId === need.id ? "ring-2 ring-clay/40" : ""}`}>
-                <div role="button" tabIndex={0} onClick={() => setExpandedNeedId(isExpanded ? null : need.id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setExpandedNeedId(isExpanded ? null : need.id) } }} className="flex cursor-pointer items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-ink">{need.name}</p>
-                    <p className="mt-1 text-xs text-ink-muted">{completed} hechas · {inProgress} en curso · {pending} {pending === 1 ? "pendiente" : "pendientes"} · {need.projectWeight.toFixed(1)}% del proyecto</p>
-                  </div>
-                  <span className="text-xs text-ink-muted">{isExpanded ? "▲" : "▼"}</span>
-                </div>
-                {isExpanded && <div className="mt-3 space-y-2">
-                  {need.tasks.map(task => <div key={task.task.id}>
-                    <div role="button" tabIndex={0} onClick={() => onTaskToggle(task.task.id)} onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onTaskToggle(task.task.id) } }} className={`flex cursor-pointer flex-wrap items-center gap-2 rounded-lg px-2 py-1 text-xs transition hover:bg-clay-pale/50 ${expandedTaskId === task.task.id ? "bg-clay-pale/50" : ""}`}>
-                      <span className={`size-2 rounded-full ${task.progress === 100 ? "bg-forest" : task.progress > 0 ? "bg-clay" : "bg-line-strong"}`} />
-                      <span className="font-semibold text-ink">{task.title}</span>
-                      <span className="text-ink-muted">{task.contribution}% de la necesidad · {task.progress}% completada · {task.status}</span>
-                      {task.types.map(type => <Badge key={type} className="!px-2 !py-0.5"><Icon className="size-3" name={type === "Imágenes" ? "eye" : type === "Videos" ? "publish" : type === "Descargables" ? "download" : "file"} />{type}</Badge>)}
-                      {task.update && <span className="basis-full pl-4 text-ink-muted">Última actualización: {task.update}</span>}
-                      <span className="ml-auto text-ink-muted">{expandedTaskId === task.task.id ? "▲" : "▼"}</span>
-                    </div>
-                    {expandedTaskId === task.task.id && <ClientTaskInlineDetails task={task.task} />}
-                  </div>)}
-                </div>}
-              </div>;
-            })}
-            {allNeeds.length === 0 && <p className="text-sm text-ink-muted">Todavía no hay necesidades visibles para mostrar.</p>}
-          </div>
-        </div>
+      <p className="-mt-4 text-sm text-ink-muted">Tu proyecto consta de {phaseCount} {phaseCount === 1 ? "fase" : "fases"} divididas en {projectTaskCount} {projectTaskCount === 1 ? "tarea" : "tareas"}.</p>
+    </div>
+    <div className="rounded-3xl border border-line bg-white p-7 md:p-8">
+      <p className="font-display text-5xl text-ink">{progressPercent}%</p>
+      <div className="mt-7">
+        <StatusBar value={progressPercent} mode={mode} phaseCount={phaseCount} taskCount={totalCount} completedTaskCount={completedCount} taskStatusCounts={taskStatusCounts} segments={allNeeds.map(need => ({ id: need.id, label: need.name, weight: need.projectWeight, progress: need.progress, taskCount: need.tasks.length, completedTaskCount: need.tasks.filter(task => task.status === "Completada").length }))} activeSegment={hoveredNeedId} expandedSegment={selectedNeedId} onSegmentClick={id => onNeedSelect(id)} onExpandedSegmentClose={() => onNeedSelect(null)} closeOnOutsideClick={false} onSegmentHover={setHoveredNeedId} ariaLabel={`Progreso del proyecto: ${progressPercent} por ciento`} projectStatus={<StatusBadge tone="active" size="s" showDot={false}>En tiempo</StatusBadge>} onModeChange={next => { onModeChange(next); onNeedSelect(null); setHoveredNeedId(null) }} />
       </div>
-    </section>
-  )
+    </div>
+  </section>
+}
+
+function ClientProjectTasksSection({
+  progressGroups,
+  mode,
+  selectedNeedId,
+  expandedTaskId,
+  onNeedSelect,
+  onTaskToggle,
+  onUpdateStatus,
+}: {
+  progressGroups: ClientProgressGroups
+  mode: 'granular' | 'completo'
+  selectedNeedId: string | null
+  expandedTaskId: string | null
+  onNeedSelect: (needId: string | null) => void
+  onTaskToggle: (needId: string, taskId: string) => void
+  onUpdateStatus: (taskId: string, updateId: string, status: "aprobada" | "cambios_solicitados") => void
+}) {
+  return <section className="-mt-5 space-y-0">
+    <div className="overflow-hidden rounded-3xl border border-line bg-white">
+      {progressGroups.map(group => group.needs.filter(need => !selectedNeedId || need.id === selectedNeedId).map(need => {
+        const expanded = selectedNeedId === need.id
+        const completed = need.tasks.filter(task => task.status === "Completada").length
+        return <section key={need.id} className="border-b border-line last:border-0">
+          <PhaseRow
+            title={need.name}
+            summary={`${completed}/${need.tasks.length} tareas completadas`}
+            progress={`${Math.round(need.progress)}% de avance`}
+            weight={`Peso: ${need.weight.toFixed(0)}%`}
+            expanded={expanded}
+            onClick={() => onNeedSelect(expanded ? null : need.id)}
+          />
+          {expanded && <div className="border-t border-line bg-white">
+            {need.tasks.map(item => {
+              const latestUpdate = (item.task.actualizaciones || []).filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna").slice().sort((a, b) => b.version - a.version)[0]
+              const taskExpanded = expandedTaskId === item.task.id
+              return <div key={item.task.id} className={taskExpanded ? "bg-stone/50" : ""}>
+                <TaskRow
+                  title={<span className="inline-flex min-w-0 items-center gap-2"><span className={`size-2 shrink-0 rounded-full ${item.progress === 100 ? "bg-forest" : item.progress > 0 ? "bg-clay" : "bg-line-strong"}`} /><span className="truncate">{item.title}</span></span>}
+                  description={item.task.descripcionTrabajo}
+                  details={item.update ? `Última actualización: ${item.update}` : undefined}
+                  owner={<span className="text-xs text-ink-muted">{Math.round(item.progress)}% de avance</span>}
+                  status={<StatusBadge tone={item.status === "Completada" ? "active" : item.status === "En revisión" ? "waiting" : "gray"} size="s" showDot={false}>{item.status}</StatusBadge>}
+                  actions={taskExpanded ? <ChevronUp className="size-4 text-ink-muted" aria-hidden="true" /> : <ChevronDown className="size-4 text-ink-muted" aria-hidden="true" />}
+                  onClick={() => onTaskToggle(need.id, item.task.id)}
+                />
+                {taskExpanded && <div className="border-t border-line px-5 py-4 sm:px-6"><ClientTaskInlineDetails task={item.task} />
+                  {latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button><Button variant="secondary" onClick={() => onUpdateStatus(item.task.id, latestUpdate.id, "cambios_solicitados")}>Solicitar cambios</Button></div>}
+                </div>}
+              </div>
+            })}
+          </div>}
+        </section>
+      }))}
+    </div>
+  </section>
 }
 
 function StorySection({ updates }: { updates: { date: string; title: string; description: string; tag: string; color: string }[] }) {
@@ -2278,74 +2336,14 @@ function ClientDeliverableWidget({
   )
 }
 
-function ClientTaskContentWidget({
-  task,
-  latestUpdate,
-  onStatusChange,
-}: {
-  task: import("./types").ExecutionTask
-  latestUpdate?: import("./types").TaskUpdate
-  onStatusChange?: (status: "aprobada" | "cambios_solicitados") => void
-}) {
-  const typeLabels: Record<import("./types").TaskContentType, string> = {
-    archivo: "Archivos",
-    imagenes: "Imágenes",
-    videos: "Videos",
-    descargables: "Descargables",
-  }
-  const files = (task.archivos || []).filter(file => file.publicadoCliente !== false)
-  const rawTypes = task.tiposContenido && task.tiposContenido.length > 0
-    ? task.tiposContenido
-    : files.map(file => file.tipo === "imagen" ? "imagenes" : file.tipo === "video" ? "videos" : file.tipo === "descargable" ? "descargables" : "archivo" as const)
-  const types = rawTypes.map(type => typeLabels[type] || type).filter((type, index, list) => list.indexOf(type) === index)
-
-  return (
-    <article className="rounded-3xl border border-line bg-white p-6 md:p-7">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <Heading as="h3" className="text-xl font-semibold text-ink">{task.titulo}</Heading>
-          {task.estado === "Completado" && latestUpdate && (
-            <p className="mt-1 text-sm text-ink-muted">
-              Entregable publicado · {latestUpdate.titulo}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap justify-end gap-2">
-          <StatusBadge tone={task.estado === "Completado" ? "active" : "gray"} size="s">{task.estado === "Completado" ? "Completada" : task.estado}</StatusBadge>
-          {types.map(type => <Badge key={type}><Icon className="size-3.5" name={type === "Imágenes" ? "eye" : type === "Videos" ? "publish" : type === "Descargables" ? "download" : "file"} />{type}</Badge>)}
-        </div>
-      </div>
-      {files.length > 0 ? (
-        <div className="mt-5 grid gap-2 sm:grid-cols-2">
-          {files.map(file => <div key={`${file.nombre}-${file.url}`} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
-            {file.tipo === "imagen" && file.url && <img src={file.url} alt={file.nombre} className="max-h-56 w-full object-cover" />}
-            {file.tipo === "video" && file.url && <video src={file.url} controls className="max-h-56 w-full bg-ink" />}
-            <div className="flex items-center gap-3 p-3">
-              <Icon className="size-4 shrink-0 text-ink-muted" name={file.tipo === "video" ? "publish" : file.tipo === "imagen" ? "eye" : "file"} />
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">{file.nombre}</span>
-              <Button ariaLabel={`Abrir ${file.nombre}`} className="!size-9 !p-0" onClick={() => file.url && window.open(file.url, "_blank", "noopener,noreferrer")} variant="icon"><Icon className="size-4" name={file.tipo === "descargable" || file.tipo === "pdf" ? "download" : "arrow"} /></Button>
-            </div>
-          </div>)}
-        </div>
-      ) : <p className="mt-4 text-sm text-ink-muted">El contenido de esta tarea se mostrará cuando el estudio lo publique.</p>}
-      {task.estado === "Completado" && (latestUpdate?.recursos || []).length > 0 && <div className="mt-4 space-y-2">
-        {(latestUpdate?.recursos || []).map(resource => <div key={resource} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
-          {isImageResource(resource) && <img src={resource} alt="Recurso final de la tarea" className="max-h-56 w-full object-cover" />}
-          <a className="block truncate p-3 text-sm font-semibold text-forest underline-offset-2 hover:underline" href={resource} rel="noreferrer" target="_blank">{resource}</a>
-        </div>)}
-      </div>}
-      {latestUpdate?.accion === "revision" && latestUpdate.estado === "en_revision" && (
-        <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-4">
-          <Button onClick={() => onStatusChange?.("aprobada")}><Icon className="size-4" name="check" /> Aprobar</Button>
-          <Button onClick={() => onStatusChange?.("cambios_solicitados")} variant="secondary">Solicitar cambios</Button>
-        </div>
-      )}
-    </article>
-  )
-}
-
 function ClientTaskInlineDetails({ task }: { task: import("./types").ExecutionTask }) {
-  const updates = (task.actualizaciones || []).filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna").slice().reverse()
+  const latestUpdate = (task.actualizaciones || [])
+    .filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna")
+    .slice()
+    .sort((a, b) => b.version - a.version || new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]
+  // A task is a view of its current work. Older updates remain available in
+  // Historia, so they cannot be mistaken for a pending client response here.
+  const updates = latestUpdate ? [latestUpdate] : []
   const files = (task.archivos || []).filter(file => file.publicadoCliente !== false)
   const typeLabels: Record<string, string> = { archivo: "Archivos", imagenes: "Imágenes", videos: "Videos", descargables: "Descargables" }
   const types = (task.tiposContenido || (task.archivos || []).map(file => file.tipo === "imagen" ? "imagenes" : file.tipo === "video" ? "videos" : file.tipo === "descargable" ? "descargables" : "archivo"))
@@ -2358,6 +2356,7 @@ function ClientTaskInlineDetails({ task }: { task: import("./types").ExecutionTa
     {task.descripcionTrabajo && <p className="text-sm leading-5 text-ink-muted">{task.descripcionTrabajo}</p>}
     {files.length > 0 && <div className="space-y-2">{files.map(file => <ClientFileResource key={`${file.nombre}-${file.url}`} file={file} />)}</div>}
     {updates.length > 0 && <div className="space-y-2">
+      <p className="bojana-label">Última actualización</p>
       {updates.map(update => <div key={update.id} className="rounded-xl bg-stone/60 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2"><span className="font-semibold text-ink">v{update.version} · {update.titulo}</span><span className="text-ink-muted">{update.accion === "revision" ? "Para revisión" : update.accion === "solicitud_informacion" ? "Solicitud de información" : update.accion === "publicar_terminar" ? "Entrega final" : "Avance publicado"}</span></div>
         {update.descripcion && <p className="mt-1 text-ink-muted">{update.descripcion}</p>}
@@ -2397,6 +2396,8 @@ function ClientPortal({
 }) {
   const [active, setActive] = useState("Resumen")
   const [expandedClientTaskId, setExpandedClientTaskId] = useState<string | null>(null)
+  const [selectedNeedId, setSelectedNeedId] = useState<string | null>(null)
+  const [progressMode, setProgressMode] = useState<'granular' | 'completo'>('granular')
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null)
   const [clientMessage, setClientMessage] = useState("")
   const notificationCount = (currentProject.actividadReciente || []).length
@@ -2408,6 +2409,7 @@ function ClientPortal({
 
   useEffect(() => {
     setExpandedClientTaskId(getProgressFocusTaskId(currentProject) || null)
+    setProgressMode('granular')
   }, [currentProject])
 
   useEffect(() => {
@@ -2451,21 +2453,24 @@ function ClientPortal({
   )
   const completedCount = projectTasks.filter(task => task.estado === "Completado").length
   const visibleDisciplines = (currentProject.disciplinasOperativas || []).filter(discipline => discipline.necesidades.some(need => need.visibleCliente !== false && need.tareas.some(task => task.visibleCliente)))
-  const disciplineWeightTotal = visibleDisciplines.reduce((sum, discipline) => sum + (discipline.pesoPorcentaje ?? 100), 0) || 1
+  const visiblePhaseWeightTotal = visibleDisciplines
+    .flatMap(discipline => discipline.necesidades)
+    .filter(need => need.visibleCliente !== false && need.tareas.some(task => task.visibleCliente))
+    .reduce((sum, need) => sum + (need.pesoPorcentaje ?? 100), 0) || 1
   const progressGroups = visibleDisciplines.map(discipline => {
     const visibleNeeds = discipline.necesidades.filter(need => need.visibleCliente !== false && need.tareas.some(task => task.visibleCliente))
-    const needWeightTotal = visibleNeeds.reduce((sum, need) => sum + (need.pesoPorcentaje ?? 100), 0) || 1
     return {
       area: discipline.id,
       needs: visibleNeeds.map(need => {
+        const clientVisibleTasks = need.tareas.filter(task => task.visibleCliente)
         return ({
         id: `${discipline.id}-${need.id}`,
         name: need.nombre,
-        // Use live task progress so this breakdown matches every badge.
-        progress: calculateNeedProgress({ ...need, publishedProgress: undefined }),
+        // Every client-facing number uses the same published task set.
+        progress: calculateNeedProgress({ ...need, tareas: clientVisibleTasks, publishedProgress: undefined }),
         weight: need.pesoPorcentaje ?? 100,
-        projectWeight: (((discipline.pesoPorcentaje ?? 100) / disciplineWeightTotal) * ((need.pesoPorcentaje ?? 100) / needWeightTotal)) * 100,
-        tasks: need.tareas.filter(task => task.visibleCliente).map(task => {
+        projectWeight: ((need.pesoPorcentaje ?? 100) / visiblePhaseWeightTotal) * 100,
+        tasks: clientVisibleTasks.map(task => {
         const latestUpdate = (task.actualizaciones || []).filter(update => update.estado !== "borrador").slice().sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]
         const typeLabels: Record<string, string> = { archivo: "Archivos", imagenes: "Imágenes", videos: "Videos", descargables: "Descargables" }
         const types = (task.tiposContenido || (task.archivos || []).map(file => file.tipo === "imagen" ? "imagenes" : file.tipo === "video" ? "videos" : file.tipo === "descargable" ? "descargables" : "archivo"))
@@ -2486,6 +2491,27 @@ function ClientPortal({
       }),
     }
   })
+  // The client-facing current phase follows the work that is actually in motion.
+  // A manually focused task is only the fallback, so an already completed task
+  // never keeps the hero pinned to a phase that has finished.
+  const activePhaseTaskStates = new Set([
+    "En curso",
+    "En revisión",
+    "Esperando al cliente",
+    "Requiere ajustes",
+  ])
+  const allClientPhases = progressGroups.flatMap(group => group.needs)
+  const phaseWithActiveWork = allClientPhases.find(phase =>
+    phase.tasks.some(({ task }) => activePhaseTaskStates.has(task.estado)),
+  )
+  const focusedTaskId = getProgressFocusTaskId(currentProject)
+  const phaseWithFocusedTask = focusedTaskId
+    ? allClientPhases.find(phase => phase.tasks.some(({ task }) => task.id === focusedTaskId))
+    : undefined
+  const currentProjectPhase = phaseWithActiveWork?.name
+    || phaseWithFocusedTask?.name
+    || currentProject.info?.etapaActual
+    || "Sin fase activa"
   // Keep every portal badge and summary tied to the same canonical progress
   // calculation used by the studio view.
   const progressPercent = getEffectiveProgress(currentProject)
@@ -2527,7 +2553,14 @@ function ClientPortal({
             ...need,
             tareas: need.tareas.map(task => task.id !== actionTask.id ? task : {
               ...task,
-              estado: approved ? "Completado" as import("./types").EstadoEtapa : task.estado,
+              // A client approval resolves this specific update. It only
+              // completes the task when the studio explicitly published a
+              // final delivery; ordinary reviews keep the task in progress.
+              estado: approved
+                ? actionUpdate?.accion === "publicar_terminar"
+                  ? "Completado" as import("./types").EstadoEtapa
+                  : "En curso" as import("./types").EstadoEtapa
+                : "En revisión" as import("./types").EstadoEtapa,
               accionCliente: task.accionCliente ? {
                 ...task.accionCliente,
                 estado: (approved ? "aprobado" : "requiere_ajustes") as import("./types").ClientActionStatus,
@@ -2599,13 +2632,6 @@ function ClientPortal({
   )
   // A task card represents its current state, so it uses only its latest
   // published update. Earlier versions remain in the project history.
-  const latestClientUpdates = projectTasks.flatMap(task => {
-    const latestUpdate = (task.actualizaciones || [])
-      .filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna")
-      .slice()
-      .sort((a, b) => b.version - a.version || new Date(b.fecha).getTime() - new Date(a.fecha).getTime())[0]
-    return latestUpdate ? [{ task, update: latestUpdate }] : []
-  })
   const projectUpdates = [
     ...(currentProject.avances || []).map(advance => ({ date: advance.fecha, title: advance.titulo, description: advance.texto, tag: advance.categoria || "Avance", color: "bg-clay" })),
     ...(currentProject.actividadReciente || []).map(activity => ({ date: activity.fecha, title: "Actualización del proyecto", description: activity.descripcion, tag: activity.autor || "Equipo", color: "bg-forest" })),
@@ -2629,7 +2655,6 @@ function ClientPortal({
     }))),
   ].slice(0, 8)
   const projectImageUrl = currentProject.info?.portadaUrl || currentProject.visualizaciones?.galeria?.[0]?.imagenUrl || projectImage
-  const clientContentTasks = projectTasks.filter(task => (task.tiposContenido || []).length > 0 || (task.archivos || []).some(file => file.publicadoCliente !== false) || latestClientUpdates.some(item => item.task.id === task.id))
   const clientDeliverables = projectTasks.flatMap(task => (task.entregablesEsperados || []).filter(deliverable => deliverable.publicadoCliente !== false).map(deliverable => ({ task, deliverable })))
   const updateTaskUpdateStatus = (taskId: string, updateId: string, status: "aprobada" | "cambios_solicitados") => {
     const updatedDisciplines = (currentProject.disciplinasOperativas || []).map(discipline => ({
@@ -2638,7 +2663,11 @@ function ClientPortal({
         ...need,
         tareas: need.tareas.map(task => task.id !== taskId ? task : {
           ...task,
-          estado: status === "aprobada" ? "Completado" as import("./types").EstadoEtapa : task.estado,
+          estado: status === "aprobada"
+            ? (task.actualizaciones || []).find(update => update.id === updateId)?.accion === "publicar_terminar"
+              ? "Completado" as import("./types").EstadoEtapa
+              : "En curso" as import("./types").EstadoEtapa
+            : "En revisión" as import("./types").EstadoEtapa,
           actualizaciones: (task.actualizaciones || []).map(update => update.id === updateId ? { ...update, estado: status } : update),
         }),
       })),
@@ -2697,8 +2726,8 @@ function ClientPortal({
           <main className="mx-auto max-w-content px-5 py-7 md:px-10 md:py-10 lg:px-12 lg:py-12">
             <ProjectHero
               imageUrl={projectImageUrl}
-              nextMilestone={currentProject.info?.proximoHito || "Sin próximo hito"}
-              projectPhase={currentProject.info?.etapaActual || "Sin etapa definida"}
+              nextMilestone={getNextProjectMilestone(currentProject)}
+              projectPhase={currentProjectPhase}
               projectDesc={currentProject.info?.ubicacion || activeProject.desc}
               projectName={currentProject.info?.nombre || activeProject.name}
               projectStatus={getProjectStatusLabel(currentProject)}
@@ -2715,22 +2744,25 @@ function ClientPortal({
                     completedCount={completedCount}
                     progressGroups={progressGroups}
                     progressPercent={progressPercent}
-                    expandedTaskId={expandedClientTaskId}
                     featuredTaskId={getProgressFocusTaskId(currentProject)}
-                    onTaskToggle={taskId => setExpandedClientTaskId(current => current === taskId ? null : taskId)}
+                    mode={progressMode}
+                    selectedNeedId={selectedNeedId}
+                    onNeedSelect={setSelectedNeedId}
+                    onModeChange={setProgressMode}
                     totalCount={projectTasks.length}
                   />
-                  {clientContentTasks.length > 0 && (
-                    <section className="space-y-4">
-                      <SectionTitle>Tareas</SectionTitle>
-                      <div className="grid gap-4">
-                        {clientContentTasks.map(task => {
-                          const latestUpdate = latestClientUpdates.find(item => item.task.id === task.id)?.update
-                          return <ClientTaskContentWidget key={task.id} task={task} latestUpdate={latestUpdate} onStatusChange={status => latestUpdate && updateTaskUpdateStatus(task.id, latestUpdate.id, status)} />
-                        })}
-                      </div>
-                    </section>
-                  )}
+                  <ClientProjectTasksSection
+                    progressGroups={progressGroups}
+                    mode={progressMode}
+                    selectedNeedId={selectedNeedId}
+                    expandedTaskId={expandedClientTaskId}
+                    onNeedSelect={setSelectedNeedId}
+                    onTaskToggle={(needId, taskId) => {
+                      setSelectedNeedId(needId)
+                      setExpandedClientTaskId(current => current === taskId ? null : taskId)
+                    }}
+                    onUpdateStatus={updateTaskUpdateStatus}
+                  />
                   {clientDeliverables.length > 0 && (
                     <section className="space-y-4">
                       <SectionTitle eyebrow="Trabajo asociado">Entregables y acciones</SectionTitle>
@@ -2931,44 +2963,6 @@ export default function App() {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false)
   const [projectBeingEdited, setProjectBeingEdited] = useState<ProjectData | undefined>(undefined)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!localPreview || allProjects.length === 0) return
-    const demoMarker = "status-demo-pendiente"
-    const target = allProjects[0]
-    if (target.disciplinasOperativas?.some(discipline => discipline.necesidades.some(need => need.tareas.some(task => task.id === demoMarker)))) return
-    const demoStates = [
-      ["Pendiente", "Demo · No iniciada"],
-      ["En curso", "Demo · En curso"],
-      ["En revisión", "Demo · En revisión"],
-      ["Esperando al cliente", "Demo · Esperando cliente"],
-      ["Requiere ajustes", "Demo · Requiere ajustes"],
-      ["Completado", "Demo · Completada"],
-      ["Pausada", "Demo · Pausada"],
-      ["Fuera de alcance", "Demo · Fuera de alcance"],
-    ] as const
-    const firstDiscipline = target.disciplinasOperativas?.[0]
-    const firstNeed = firstDiscipline?.necesidades?.[0]
-    if (!firstDiscipline || !firstNeed) return
-    const demoTasks = demoStates.map(([estado, titulo], index) => ({
-      id: index === 0 ? demoMarker : `status-demo-${index}`,
-      titulo,
-      pesoPorcentaje: 0,
-      estado,
-      tipoEtapa: "estado" as const,
-      visibleCliente: true,
-      descripcionTrabajo: "Tarea de demostración para revisar los estados del StatusBadge.",
-    }))
-    const updatedProject = {
-      ...target,
-      disciplinasOperativas: target.disciplinasOperativas!.map((discipline, disciplineIndex) => disciplineIndex !== 0 ? discipline : {
-        ...discipline,
-        necesidades: discipline.necesidades.map((need, needIndex) => needIndex !== 0 ? need : { ...need, tareas: [...need.tareas, ...demoTasks] }),
-      }),
-    }
-    saveProjectData(updatedProject)
-    setAllProjects(projects => projects.map(project => project.id === updatedProject.id ? updatedProject : project))
-  }, [localPreview])
 
   useEffect(() => {
     if (!directToken || directToken === "portal-direct") return

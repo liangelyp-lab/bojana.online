@@ -1,6 +1,6 @@
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, LoaderCircle, ChevronDown, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, LucideIcon } from 'lucide-react';
+import { X, LoaderCircle, ChevronDown, ChevronUp, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, LucideIcon } from 'lucide-react';
 import { DecisionStatus, EstadoEtapa } from '../../types';
 import { taskStateLabel } from '../../design/status';
 
@@ -531,6 +531,37 @@ export function TaskRow({
   </article>;
 }
 
+export function PhaseRow({
+  title,
+  summary,
+  progress,
+  weight,
+  expanded = false,
+  onClick,
+}: {
+  title: React.ReactNode;
+  summary?: React.ReactNode;
+  progress?: React.ReactNode;
+  weight?: React.ReactNode;
+  expanded?: boolean;
+  onClick?: () => void;
+}) {
+  const interactive = Boolean(onClick);
+  return <article className={`border-b border-line last:border-0 ${expanded ? 'bg-stone/50' : ''}`}>
+    <button type="button" disabled={!interactive} onClick={onClick} className={`flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition sm:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`}>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold text-ink">{title}</span>
+        {summary && <span className="mt-1 block text-xs text-ink-muted">{summary}</span>}
+      </span>
+      <span className="flex shrink-0 items-center gap-3">
+        {progress && <span className="text-xs text-ink-muted">{progress}</span>}
+        {weight && <span className="text-xs font-semibold text-ink-muted">{weight}</span>}
+        {interactive && (expanded ? <ChevronUp className="size-4 text-ink-muted" aria-hidden="true" /> : <ChevronDown className="size-4 text-ink-muted" aria-hidden="true" />)}
+      </span>
+    </button>
+  </article>;
+}
+
 export function HistoryRow({
   date,
   title,
@@ -790,11 +821,14 @@ export function StatusBar({
   trackColor = 'white',
   expandedSegment = null,
   showLabels = true,
+  phaseCount,
   taskCount,
   completedTaskCount,
   taskStatusCounts,
   activeSegment,
   onSegmentClick,
+  onExpandedSegmentClose,
+  closeOnOutsideClick = true,
   onSegmentHover,
   onModeChange,
   projectStatus,
@@ -809,11 +843,14 @@ export function StatusBar({
   trackColor?: 'same' | 'white';
   expandedSegment?: string | null;
   showLabels?: boolean;
+  phaseCount?: number;
   taskCount?: number;
   completedTaskCount?: number;
   taskStatusCounts?: StatusBarTaskStatusCounts;
   activeSegment?: string | null;
   onSegmentClick?: (id: string) => void;
+  onExpandedSegmentClose?: () => void;
+  closeOnOutsideClick?: boolean;
   onSegmentHover?: (id: string | null) => void;
   onModeChange?: (mode: 'granular' | 'completo') => void;
   projectStatus?: React.ReactNode;
@@ -873,25 +910,27 @@ export function StatusBar({
   }, [expanded?.id]);
 
   useEffect(() => {
-    if (!expanded || !onSegmentClick) return;
+    if (!expanded || !onSegmentClick || !closeOnOutsideClick) return;
     const handleOutsideClick = (event: PointerEvent) => {
-      if (!statusBarRef.current?.contains(event.target as Node)) onSegmentClick(expanded.id);
+      if (!statusBarRef.current?.contains(event.target as Node)) {
+        onExpandedSegmentClose ? onExpandedSegmentClose() : onSegmentClick(expanded.id);
+      }
     };
     document.addEventListener('pointerdown', handleOutsideClick);
     return () => document.removeEventListener('pointerdown', handleOutsideClick);
-  }, [expanded, onSegmentClick]);
+  }, [closeOnOutsideClick, expanded, onExpandedSegmentClose, onSegmentClick]);
   return (
     <div ref={statusBarRef} className="flex w-full items-start gap-3">
       <div className="min-w-0 flex-1 space-y-2">
-      {(taskCount !== undefined || onModeChange || expanded) && <div className="flex flex-wrap items-center gap-2">
+      {(phaseCount !== undefined || taskCount !== undefined || onModeChange || expanded) && <div className="flex flex-wrap items-center gap-2">
         {expanded ? <>
-          {onSegmentClick && <Button variant="icon" size="xs" ariaLabel="Volver al progreso granular" tooltip="Volver al progreso granular" onClick={() => handleSegmentClick(expanded.id)}><PortalIcon icon={ArrowLeft} size="xs" /></Button>}
+          {onSegmentClick && <Button variant="icon" size="xs" ariaLabel="Volver al progreso granular" tooltip="Volver al progreso granular" onClick={() => onExpandedSegmentClose ? onExpandedSegmentClose() : handleSegmentClick(expanded.id)}><PortalIcon icon={ArrowLeft} size="xs" /></Button>}
           {projectStatus}
         </> : <>
-          {onModeChange && displayedTaskCount !== undefined ? <div className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por etapas' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${displayedValue}%` : `${displayedTaskCount} tareas`}</StatusBadge></button>
+          {onModeChange && phaseCount !== undefined ? <div className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
+            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por fases' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${displayedValue}%` : `${phaseCount} fases`}</StatusBadge></button>
             <ArrowLeftRight size={10} aria-hidden="true" className="shrink-0 text-ink" />
-            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por etapas' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${displayedTaskCount} tareas` : `${displayedValue}%`}</StatusBadge></button>
+            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por fases' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${phaseCount} fases` : `${displayedValue}%`}</StatusBadge></button>
           </div> : <>
             <StatusBadge size="s" showDot={false}>{displayedValue}%</StatusBadge>
             {displayedTaskCount !== undefined && <StatusBadge size="s" showDot={false}>{displayedCompletedCount !== undefined ? `${displayedCompletedCount}/${displayedTaskCount}` : displayedTaskCount} tareas</StatusBadge>}
@@ -912,7 +951,7 @@ export function StatusBar({
         aria-valuenow={displayedValue}
         className={`${trackHeight} relative flex min-w-0 flex-1 gap-0.5 ${expanded || mode === 'completo' ? 'overflow-hidden' : 'overflow-visible'} rounded-full border border-white ${trackClass} p-0.5`}
       >
-        {mode === 'completo' || expanded ? <span ref={expandedBarRef} onClick={() => expanded && handleSegmentClick(expanded.id)} className={`relative block h-full w-full origin-center overflow-hidden rounded-full border border-transparent ${colorClasses.granular} ${expanded ? 'cursor-pointer' : ''}`}><span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${displayedValue}%` }} /></span> : segments.length > 0 ? segments.map((segment, index) => {
+        {mode === 'completo' || expanded ? <span ref={expandedBarRef} onClick={() => expanded && (onExpandedSegmentClose ? onExpandedSegmentClose() : handleSegmentClick(expanded.id))} className={`relative block h-full w-full origin-center overflow-hidden rounded-full border border-transparent ${colorClasses.granular} ${expanded ? 'cursor-pointer' : ''}`}><span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${displayedValue}%` }} /></span> : segments.length > 0 ? segments.map((segment, index) => {
           const edgeRadius = segments.length === 1 ? 'rounded-full' : index === 0 ? 'rounded-l-full' : index === segments.length - 1 ? 'rounded-r-full' : 'rounded-none';
           const content = <span className={`relative block h-full w-full origin-center overflow-hidden ${edgeRadius} border border-transparent ${colorClasses.stroke} ${colorClasses.granular} transition duration-150 group-hover:z-10 group-hover:scale-y-110 group-hover:shadow-md ${activeSegment === segment.id ? `z-10 scale-y-110 shadow-md ${colorClasses.activeStroke}` : ''}`}>
             <span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${Math.max(0, Math.min(100, segment.progress))}%` }} />
