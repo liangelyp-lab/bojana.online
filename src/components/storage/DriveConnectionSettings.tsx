@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { FolderOpen } from 'lucide-react';
 import { Button, Field } from '../ui/DesignSystem';
 import { getStorageStatus, storageJson, storageRequest, type StorageStatus } from '../../services/driveStorageService';
-const button = "bojana-button bojana-button-secondary min-h-11 px-4 border border-bojana-line rounded-full text-sm text-bojana-ink hover:bg-bojana-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bojana-ink disabled:opacity-50";
+const connectionLinkClass = "bojana-button bojana-button-secondary inline-flex min-h-11 items-center rounded-full px-4";
 export default function DriveConnectionSettings() {
   const [status, setStatus] = useState<StorageStatus | null>(null);
   const [password, setPassword] = useState('');
@@ -23,13 +23,13 @@ export default function DriveConnectionSettings() {
       : !status.authorized ? <form className="space-y-3" onSubmit={e => { e.preventDefault(); void act(async () => { await storageJson('/session', { password }); setPassword(''); }); }}>
         <Field id="drive-studio-key" label="Clave de archivos del estudio" type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} className="min-h-11 text-sm" />
         <p className="text-base text-bojana-muted">Usá la clave configurada para autorizar el acceso a los archivos reales del estudio.</p>
-        <Button variant="secondary" type="submit" className={button} disabled={busy}>Autorizar acceso</Button>
+        <Button variant="secondary" type="submit" size="l" disabled={busy}>Autorizar acceso</Button>
       </form> : <>
         <p className="text-sm text-bojana-ink" role="status">{status.connected ? `Google Drive conectado · ${status.account}` : 'Google Drive sin conectar'}</p>
         <div className="flex flex-wrap gap-bojana-inside">
-          <a href="/api/storage/oauth/start" className={button + "inline-flex items-center"}>{status.connected ? 'Reconectar Google Drive' : 'Conectar Google Drive'}</a>
-          {status.connected && <Button variant="secondary" type="button" className={button} disabled={busy} onClick={() => { if (window.confirm('¿Desconectar Drive? Se conservarán los archivos, pero no estarán disponibles en el portal hasta reconectar.')) void act(() => storageRequest('/connection', { method: 'DELETE' })); }}>Desconectar</Button>}
-          <Button variant="secondary" type="button" className={button} disabled={busy} onClick={() => void act(() => storageRequest('/session', { method: 'DELETE' }))}>Cerrar acceso a archivos</Button>
+          <a href="/api/storage/oauth/start" className={connectionLinkClass}>{status.connected ? 'Reconectar Google Drive' : 'Conectar Google Drive'}</a>
+          {status.connected && <Button variant="secondary" type="button" size="l" disabled={busy} onClick={() => { if (window.confirm('¿Desconectar Drive? Se conservarán los archivos, pero no estarán disponibles en el portal hasta reconectar.')) void act(() => storageRequest('/connection', { method: 'DELETE' })); }}>Desconectar</Button>}
+          <Button variant="secondary" type="button" size="l" disabled={busy} onClick={() => void act(() => storageRequest('/session', { method: 'DELETE' }))}>Cerrar acceso a archivos</Button>
         </div>
         <p className="text-base text-bojana-muted">Los archivos se guardan en la cuenta del estudio. Cada entregable conserva el contexto de su tarea; cargarlo no lo publica ni envía un email.</p>
       </>}

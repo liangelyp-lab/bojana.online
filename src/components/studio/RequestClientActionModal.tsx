@@ -266,17 +266,14 @@ export default function RequestClientActionModal({
                     { id: 'subir_documento', label: 'Subir documento' },
                     { id: 'confirmar_decision', label: 'Confirmar decisión' },
                   ].map((t) => (
-                    <Button variant="primary"
+                    <Button variant={tipo === t.id ? 'primary' : 'secondary'}
                       key={t.id}
                       type="button"
                       onClick={() => handleTypeChange(t.id as ClientActionType)}
-                      className={`bojana-button bojana-button-primary p-3 rounded-full border text-left transition cursor-pointer flex flex-col justify-between ${
-                        tipo === t.id
-                          ? "bg-bojana-ink text-bojana-inverse border-bojana-line shadow-bojana-widget"
-                          : "bg-bojana-surface text-bojana-ink border-bojana-line hover:border-bojana-line"
-                      }`}
+                      ariaPressed={tipo === t.id}
+                      className="w-full"
                     >
-                      <strong className="block text-xs font-medium">{t.label}</strong>
+                      {t.label}
                     </Button>
                   ))}
                 </div>
@@ -350,7 +347,6 @@ export default function RequestClientActionModal({
                     <Button variant="tertiary"
                       type="button"
                       onClick={handleAddAlternative}
-                      className="bojana-button bojana-button-text text-xs font-sans font-medium text-bojana-ink hover:text-bojana-success flex items-center gap-bojana-inside cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Agregar alternativa</span>
@@ -560,16 +556,15 @@ export default function RequestClientActionModal({
           <Button variant="tertiary"
             type="button"
             onClick={onClose}
-            className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink px-3 py-2 rounded-full transition cursor-pointer"
           >
             Cancelar
           </Button>
 
-          <div className="flex items-center gap-bojana-inside w-full sm:w-auto justify-end">
+          <div className="flex flex-col items-stretch gap-bojana-inside w-full sm:w-auto sm:flex-row sm:items-center sm:justify-end">
             <Button variant="secondary"
               type="button"
               onClick={() => handleSave(false)}
-              className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-full border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
+              className="w-full sm:w-auto"
             >
               Publicar en el sitio
             </Button>
@@ -578,7 +573,7 @@ export default function RequestClientActionModal({
               type="button"
               onClick={() => handleSave(true)}
               disabled={isSending || !titulo.trim()}
-              className="bojana-button bojana-button-primary w-full sm:w-auto px-5 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+              className="w-full sm:w-auto"
             >
               {isSending ? (
                 <>

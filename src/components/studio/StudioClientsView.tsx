@@ -158,9 +158,7 @@ export default function StudioClientsView({
                           <strong className="text-sm font-semibold text-ink group-hover:text-forest transition">
                             {p.info?.nombre || p.brief?.nombre || 'Proyecto'}
                           </strong>
-                          <div className="flex items-center gap-2 text-xs text-ink-muted">
-                            <span>{p.info?.ubicacion || 'Ubicación'}</span>
-                            <span>&bull;</span>
+                          <div className="text-xs text-ink-muted">
                             <span className="font-medium text-forest">{p.info?.estadoGeneral || 'En ejecución'}</span>
                           </div>
                         </div>

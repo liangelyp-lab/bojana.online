@@ -328,7 +328,7 @@ export default function PublishInviteModal({
                   type="button"
                   onClick={() => void handleSendEmail()}
                   disabled={!isAlreadyActive || !recipientEmail.trim() || isSending}
-                  className="bojana-button bojana-button-secondary px-4 py-2.5 rounded-full border border-bojana-line hover:bg-bojana-soft disabled:opacity-50 disabled:cursor-not-allowed text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
+
                 >
                   <Mail className="w-3.5 h-3.5" />
                   <span>{isSending ? 'Enviando email...' : 'Enviar email de bienvenida'}</span>
@@ -375,11 +375,7 @@ export default function PublishInviteModal({
 
                 {/* Project Title Block */}
                 <div className="space-y-bojana-inside">
-                  <div className="flex items-center gap-bojana-inside font-sans text-xs text-bojana-muted">
-                    <span>{disciplines}</span>
-                    <span>&bull;</span>
-                    <span>{project.info?.ubicacion || 'Nordelta, Tigre'}</span>
-                  </div>
+                  <div className="font-sans text-xs text-bojana-muted">{disciplines}</div>
                   <h3 className="bojana-heading-component text-3xl sm:text-4xl font-sans font-medium text-bojana-ink uppercase tracking-normal">
                     {title}
                   </h3>
@@ -561,7 +557,7 @@ export default function PublishInviteModal({
           <Button variant="secondary"
             type="button"
             onClick={handleCopyLink}
-            className="bojana-button bojana-button-secondary w-full sm:w-auto px-4 py-2.5 rounded-full border border-bojana-line hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer"
+            className="w-full sm:w-auto"
           >
             {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
             <span>{copiedLink ? '¡Enlace copiado!' : 'Copiar acceso directo'}</span>
@@ -572,7 +568,7 @@ export default function PublishInviteModal({
             <Button variant="tertiary"
               type="button"
               onClick={onClose}
-              className="bojana-button bojana-button-text px-4 py-2.5 rounded-full text-bojana-muted hover:text-bojana-ink text-xs font-sans font-medium transition cursor-pointer"
+
             >
               Cancelar
             </Button>
@@ -581,7 +577,7 @@ export default function PublishInviteModal({
               type="button"
               onClick={handlePublish}
               disabled={isPublishing}
-              className="bojana-button bojana-button-primary w-full sm:w-auto px-6 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink disabled:opacity-50 text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+              className="w-full sm:w-auto"
             >
               {isPublishing ? (
                 <>

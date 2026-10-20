@@ -225,7 +225,7 @@ export default function DocumentosModule({
                         if (currentRev?.url) window.open(currentRev.url, '_blank', 'noopener,noreferrer');
                         onToast(currentRev?.url ? `Abriendo ${doc.titulo} (${currentRev.numeroRevision}).` : `No hay un archivo descargable asociado a ${doc.titulo}.`);
                       }}
-                      className="bojana-button bojana-button-primary px-3.5 py-2 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+
                     >
                       <Download className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Descargar ({doc.formato})</span>
@@ -235,7 +235,7 @@ export default function DocumentosModule({
                       <Button variant="tertiary"
                         type="button"
                         onClick={() => toggleExpandHistory(doc.id)}
-                        className="bojana-button bojana-button-text px-3 py-2 rounded-full bg-bojana-soft hover:bg-bojana-soft text-bojana-ink text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer"
+
                       >
                         <History className="w-3.5 h-3.5 text-bojana-muted" />
                         <span>Historial ({previousRevs.length})</span>
@@ -251,7 +251,7 @@ export default function DocumentosModule({
                             setShowAddRevisionModal(doc.id);
                             setRevisionNumber(`Revisión 0${doc.revisiones.length + 1}`);
                           }}
-                          className="bojana-button bojana-button-secondary px-2.5 py-2 rounded-full bg-bojana-waiting hover:bg-bojana-waiting text-bojana-ink border border-bojana-line text-xs font-sans font-medium flex items-center gap-bojana-inside transition"
+
                           title="Subir nueva revisión"
                         >
                           <UploadCloud className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export default function DocumentosModule({
                               if (rev.url) window.open(rev.url, '_blank', 'noopener,noreferrer');
                               onToast(rev.url ? `Abriendo versión histórica ${rev.numeroRevision}.` : 'No hay un archivo asociado a esta revisión.');
                             }}
-                            className="bojana-button bojana-button-text px-2.5 py-1 rounded-full bg-bojana-soft hover:bg-bojana-soft text-bojana-ink font-sans text-xs font-medium flex items-center gap-bojana-inside transition"
+
                           >
                             <Download className="w-3 h-3" />
                             <span>Descargar</span>
@@ -390,13 +390,13 @@ export default function DocumentosModule({
                 <Button variant="secondary"
                   type="button"
                   onClick={() => setShowAddDocModal(false)}
-                  className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-full border border-bojana-line text-bojana-ink font-sans"
+
                 >
                   Cancelar
                 </Button>
                 <Button variant="primary"
                   type="submit"
-                  className="bojana-button bojana-button-primary px-4 py-1.5 rounded-full bg-bojana-ink text-bojana-inverse font-sans font-medium"
+
                 >
                   Registrar Documento
                 </Button>

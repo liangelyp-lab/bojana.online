@@ -1,4 +1,5 @@
 import { ModalHeader, ModalFooter } from '../ui/DesignSystem';
+import { projectStatusTone, updateStatusTone } from '../../design/status';
 import {
   Modal,
   Card,
@@ -78,7 +79,19 @@ import {
   Mail,
   Bell,
   Palette,
+  MessageSquare,
 } from "lucide-react"
+
+const taskStatusIcons: Record<EstadoEtapa, typeof Check> = {
+  Pendiente: Circle,
+  "En curso": Zap,
+  "En revisión": Eye,
+  "Esperando al cliente": MessageSquare,
+  "Requiere ajustes": AlertCircle,
+  Completado: CheckCircle2,
+  Pausada: Clock,
+  "Fuera de alcance": Circle,
+}
 
 type UpdateOptionDraft = {
   id: string
@@ -1122,17 +1135,7 @@ export default function OperationalExecutionPanel({
                             : update.accion === "solicitud_informacion"
                               ? "Solicitud de información"
                               : "Borrador interno"
-                const statusTone =
-                  update.estado === "cambios_solicitados"
-                    ? "danger"
-                    : update.estado === "aprobada"
-                      ? "active"
-                      : update.accion === "revision" ||
-                          update.accion === "solicitud_informacion"
-                        ? "waiting"
-                        : update.accion === "borrador"
-                          ? "neutral"
-                          : "active"
+                const statusTone = updateStatusTone(update.estado, update.accion)
                 return (
                   <div
                     key={update.id}
@@ -1300,7 +1303,7 @@ export default function OperationalExecutionPanel({
             <Button
               variant="secondary"
               type="button"
-              className="bojana-button bojana-button-secondary text-xs"
+
               onClick={() => changeTask(task, { estado: "Completado" })}
             >
               Marcar tarea como terminada
@@ -1786,7 +1789,7 @@ export default function OperationalExecutionPanel({
                     <Button
                       variant="secondary"
                       type="button"
-                      className="bojana-button bojana-button-text text-[11px]"
+
                       onClick={() =>
                         changeTask(task, {
                           entregablesEsperados: (
@@ -1809,7 +1812,7 @@ export default function OperationalExecutionPanel({
                         <Button
                           variant="secondary"
                           type="button"
-                          className="bojana-button bojana-button-text text-[11px]"
+
                           onClick={() => {
                             changeTask(task, {
                               entregablesEsperados: (
@@ -1867,7 +1870,7 @@ export default function OperationalExecutionPanel({
                 <Button
                   variant="secondary"
                   type="button"
-                  className="bojana-button bojana-button-secondary shrink-0"
+                  className="shrink-0"
                   onClick={() => addExpectedDeliverable(task)}
                   disabled={!newExpectedDeliverable.trim()}
                 >
@@ -2070,7 +2073,7 @@ export default function OperationalExecutionPanel({
             <Button
               variant="tertiary"
               type="button"
-              className="bojana-button bojana-button-text"
+
               onClick={() => setExpandedTaskId(null)}
             >
               Deseleccionar tarea
@@ -2115,7 +2118,7 @@ export default function OperationalExecutionPanel({
                 variant="primary"
                 type="button"
                 onClick={() => setIsPublishModalOpen(true)}
-                className="bojana-button bojana-button-primary w-full py-2.5 px-4 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+                className="w-full"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Publicar cambios</span>
@@ -2141,7 +2144,7 @@ export default function OperationalExecutionPanel({
                 variant="primary"
                 type="button"
                 onClick={handlePublishChanges}
-                className="bojana-button bojana-button-primary w-full py-2.5 px-4 rounded-full bg-bojana-success hover:bg-bojana-success text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
+                className="w-full"
               >
                 <Sparkles className="w-3.5 h-3.5 text-bojana-ink" />
                 <span>Revisar y publicar</span>
@@ -2251,7 +2254,7 @@ export default function OperationalExecutionPanel({
               variant="secondary"
               type="button"
               onClick={onViewStory}
-              className="bojana-button bojana-button-secondary w-full py-2 px-3 rounded-full border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition"
+              className="w-full"
             >
               <span>Ver Portal & Story</span>
               <ExternalLink className="w-3 h-3 text-bojana-muted" />
@@ -2316,7 +2319,7 @@ export default function OperationalExecutionPanel({
               type="button"
               onClick={handleAddActivityLog}
               disabled={!newActivityText.trim()}
-              className="bojana-button bojana-button-primary px-3 py-1.5 rounded-full bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium disabled:opacity-40"
+
             >
               +
             </Button>
@@ -2443,7 +2446,7 @@ export default function OperationalExecutionPanel({
                 variant="tertiary"
                 type="button"
                 onClick={onBackToProjects}
-                className="bojana-button bojana-button-text text-xs font-sans text-bojana-muted hover:text-bojana-ink transition flex items-center gap-bojana-inside font-medium mb-1"
+                className="mb-1"
               >
                 <span>&larr; Volver a Proyectos</span>
               </Button>
@@ -2453,15 +2456,7 @@ export default function OperationalExecutionPanel({
                 {projectTitle}
               </h1>
               <StatusBadge
-                tone={
-                  getProjectStatusLabel(project) === "Completado"
-                    ? "active"
-                    : getProjectStatusLabel(project) === "Revisión"
-                      ? "waiting"
-                      : getProjectStatusLabel(project) === "En progreso"
-                        ? "info"
-                        : "gray"
-                }
+                tone={projectStatusTone(getProjectStatusLabel(project))}
                 size="s"
               >
                 {getProjectStatusLabel(project)}
@@ -2490,14 +2485,9 @@ export default function OperationalExecutionPanel({
 
           <div className="flex items-center gap-3 shrink-0 flex-wrap">
             <Button
-              variant="primary"
+              variant={project.lifecycleStatus === "ACTIVO" ? "secondary" : "primary"}
               type="button"
               onClick={() => setIsPublishModalOpen(true)}
-              className={`bojana-button bojana-button-primary px-4 py-2.5 rounded-full text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget ${
-                project.lifecycleStatus === "ACTIVO"
-                  ? "bg-bojana-soft hover:bg-bojana-soft text-bojana-ink border border-bojana-line"
-                  : "bg-bojana-success hover:bg-bojana-success text-bojana-inverse shadow-bojana-widget"
-              }`}
             >
               <Check className="w-3.5 h-3.5" />
               <span>
@@ -2512,7 +2502,7 @@ export default function OperationalExecutionPanel({
                 variant="primary"
                 type="button"
                 onClick={onViewStory}
-                className="bojana-button bojana-button-primary px-5 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget group"
+                className="group"
               >
                 <span>Ver como cliente</span>
                 <ExternalLink className="w-3.5 h-3.5 text-bojana-ink group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition" />
@@ -2604,7 +2594,7 @@ export default function OperationalExecutionPanel({
             variant="primary"
             type="button"
             onClick={() => setIsPublishModalOpen(true)}
-            className="bojana-button bojana-button-primary px-5 py-2.5 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center justify-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget shrink-0 self-start sm:self-auto"
+            className="shrink-0 self-start sm:self-auto"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Publicar cambios</span>
@@ -2746,7 +2736,7 @@ export default function OperationalExecutionPanel({
                               needId: nextPriorityTask.needId,
                             })
                           }
-                          className="bojana-button bojana-button-text text-xs font-sans text-bojana-ink hover:text-bojana-ink font-medium flex items-center gap-bojana-inside cursor-pointer"
+
                         >
                           <AlertCircle className="w-3.5 h-3.5 text-bojana-ink" />
                           <span>Requiere acción del cliente</span>
@@ -2761,7 +2751,7 @@ export default function OperationalExecutionPanel({
                               nextPriorityTask.task.estado,
                             )
                           }
-                          className="bojana-button bojana-button-primary px-4 py-2 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside shadow-bojana-widget cursor-pointer"
+
                         >
                           <Check className="w-3.5 h-3.5 text-bojana-success" />
                           <span>
@@ -2877,7 +2867,7 @@ export default function OperationalExecutionPanel({
                                     action?.titulo || task.titulo,
                                   )
                                 }
-                                className="bojana-button bojana-button-secondary px-3 py-1.5 rounded-full border border-bojana-line hover:bg-bojana-surface text-bojana-ink text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
+
                               >
                                 <Mail className="w-3.5 h-3.5 text-bojana-muted" />
                                 <span>Reenviar email</span>
@@ -2893,7 +2883,7 @@ export default function OperationalExecutionPanel({
                                     needId: need.id,
                                   })
                                 }
-                                className="bojana-button bojana-button-text px-4 py-1.5 rounded-full bg-bojana-waiting hover:bg-bojana-waiting text-bojana-inverse text-xs font-sans font-medium transition flex items-center gap-bojana-inside cursor-pointer shadow-bojana-widget"
+
                               >
                                 <ExternalLink className="w-3.5 h-3.5 text-bojana-ink" />
                                 <span>Ver solicitud</span>
@@ -3153,10 +3143,10 @@ export default function OperationalExecutionPanel({
                                                 <StatusBadge
                                                   state={displayState}
                                                   audience="studio"
-                                                  size="xs"
+                                                  size="s"
                                                   showDot={false}
-                                                  icon={displayState === "Completado" ? Check : undefined}
-                                                  iconOnly={displayState === "Completado"}
+                                                  icon={taskStatusIcons[displayState]}
+                                                  iconOnly
                                                   className="mt-0 self-start"
                                                 />
                                                 </div>

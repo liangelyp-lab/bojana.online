@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProjectData } from '../../types';
 import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
-import { Card, Badge, Button, EmptyState, PageHeader, StatusBadge } from '../ui';
+import { Card, Badge, Button, EmptyState, PageHeader, ProjectProgressStatusBadge } from '../ui';
 import {
   Plus,
   FolderKanban
@@ -145,13 +145,6 @@ export default function StudioDashboard({
               const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
               const status = getProjectStatus(p);
               const progress = getEffectiveProgress(p);
-              const statusTone = status === 'Completado'
-                ? 'active'
-                : status === 'Revisión'
-                  ? 'waiting'
-                  : status === 'Borrador'
-                    ? 'gray'
-                    : 'info';
               const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
 
@@ -159,10 +152,7 @@ export default function StudioDashboard({
                 <Card key={p.id} elevation="hover" onClick={() => onSelectProject(p.id)} tabIndex={0} role="group" onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelectProject(p.id); } }} aria-label={`Abrir proyecto ${title}`} className="group flex flex-col justify-between cursor-pointer space-y-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs">
-                      <StatusBadge tone={statusTone} size="s">{status}</StatusBadge>
-                      <StatusBadge size="s" showDot={false} className="font-bold">
-                        {progress}%
-                      </StatusBadge>
+                      <ProjectProgressStatusBadge progress={progress} status={status} />
                     </div>
 
                     <div>

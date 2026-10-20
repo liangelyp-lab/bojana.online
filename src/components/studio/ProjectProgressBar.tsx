@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { calculateNeedProgress, type ProjectData } from "../../types";
 import { getProgressFocusTaskId, getProjectStatusLabel } from "../../services/storageService";
+import { projectStatusTone } from "../../design/status";
 import { StatusBadge, StatusBar, type StatusBarSegment, type StatusBarTaskStatusCounts } from "../ui/DesignSystem";
 
 export default function ProjectProgressBar({ project, value }: { project: ProjectData; value: number }) {
@@ -51,7 +52,7 @@ export default function ProjectProgressBar({ project, value }: { project: Projec
     setHoveredSegment(focusSegmentId);
   }, [focusSegmentId, focusTaskId]);
   const status = getProjectStatusLabel(project);
-  const statusTone = status === "Completado" ? "active" : status === "Revisión" ? "waiting" : status === "En progreso" ? "info" : "gray";
+  const statusTone = projectStatusTone(status);
 
   return <StatusBar value={value} size="s" mode={showGranular ? "granular" : "completo"} phaseCount={segments.length} taskCount={segments.reduce((total, segment) => total + (segment.taskCount || 0), 0)} completedTaskCount={segments.reduce((total, segment) => total + (segment.completedTaskCount || 0), 0)} taskStatusCounts={taskStatusCounts} segments={segments} activeSegment={hoveredSegment} expandedSegment={expandedSegment} onSegmentHover={setHoveredSegment} onSegmentClick={id => setExpandedSegment(current => current === id ? null : id)} ariaLabel="Progreso del proyecto" projectStatus={<StatusBadge tone={statusTone} size="s">{status}</StatusBadge>} onModeChange={next => { setGranular(next === "granular"); setExpandedSegment(null); setHoveredSegment(null); }} />;
 }

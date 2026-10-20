@@ -111,8 +111,6 @@ const emptyDraft = (): Draft => ({
 const uid = () => crypto.randomUUID();
 const fieldClass =
   "bojana-control w-full min-w-0 bg-white px-3.5 py-2.5 text-xs text-ink placeholder:text-ink-faint disabled:bg-stone/50 disabled:cursor-not-allowed";
-const secondaryClass =
-  "inline-flex items-center justify-center gap-2 rounded-full border border-line bg-white px-4 py-2 text-xs font-semibold text-ink hover:bg-stone hover:border-line-strong active:scale-95 transition cursor-pointer";
 
 const projectToDraft = (project: ProjectData): Draft => ({
   nombre: project.info?.nombre || "",
@@ -358,7 +356,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
         descripcion: draft.proposito.trim(),
         tipoProyecto: draft.tipo.trim(),
         portadaUrl: draft.portada.trim(),
-        ubicacion: draft.ubicacion.trim(),
+        ubicacion: draft.ubicacion.trim() || initialProject?.info?.ubicacion || "",
         superficie: draft.superficie.trim(),
         estadoGeneral: "En Planificación",
         etapaActual: "",
@@ -534,11 +532,6 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                 label="Subtítulo"
                 value={draft.subtitulo}
                 onChange={(v) => set("subtitulo", v)}
-              />
-              <Field
-                label="Ubicación"
-                value={draft.ubicacion}
-                onChange={(v) => set("ubicacion", v)}
               />
               <Field
                 label="Superficie"
@@ -861,7 +854,6 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
                     <Button variant="secondary"
                       key={p.id}
                       type="button"
-                      className={secondaryClass}
                       disabled={draft.necesidades.some(
                         (n) => n.id === `${disc}-${p.id}`,
                       )}
@@ -1323,18 +1315,18 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
           </Section>}
         </div>
         <ModalFooter>
-          <p role="status" className="flex-1 text-sm leading-6 text-bojana-muted">
+          <p role="status" className="w-full flex-none text-sm leading-6 text-bojana-muted sm:w-auto sm:flex-1">
             {notice || "El proyecto comienza en 0%."}
           </p>
           {initialProject ? (
-            <Button variant="primary" type="submit" className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2">
+            <Button variant="primary" type="submit" size="l">
               Guardar cambios
             </Button>
           ) : (
             <>
               <Button variant="secondary"
                 type="button"
-                className={`${secondaryClass} min-h-11 px-5`}
+                size="l"
                 onClick={() => {
                   try {
                     localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
@@ -1349,7 +1341,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
               <Button variant="primary"
                 type={isLastSection ? "submit" : "button"}
                 onClick={isLastSection ? undefined : goToNextSection}
-                className="bojana-button bojana-button-primary min-h-11 bg-bojana-ink text-bojana-inverse px-5 py-2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
+                size="l"
               >
                 {isLastSection ? "Crear proyecto" : "Siguiente"}
               </Button>
@@ -1364,7 +1356,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
 function Field({ multiline = false, compact = false, onChange, ...props }: {
   label: string; value: string; onChange: (value: string) => void; multiline?: boolean; compact?: boolean; required?: boolean; placeholder?: string; type?: React.HTMLInputTypeAttribute; min?: string;
 }) {
-  const examples: Record<string, string> = { 'Nombre del proyecto': 'Ej.: Remodelación del SUM', 'Cliente / comitente': 'Ej.: Consorcio Los Alisos', 'Propósito — resultado esperado': 'Ej.: Conectar los espacios comunes', 'Ubicación': 'Ej.: Nordelta, Tigre', 'Qué incluye el alcance aprobado': 'Ej.: Planos y dos visualizaciones', 'Primer movimiento': 'Ej.: Preparar la propuesta inicial' };
+  const examples: Record<string, string> = { 'Nombre del proyecto': 'Ej.: Remodelación del SUM', 'Cliente / comitente': 'Ej.: Consorcio Los Alisos', 'Propósito — resultado esperado': 'Ej.: Conectar los espacios comunes', 'Qué incluye el alcance aprobado': 'Ej.: Planos y dos visualizaciones', 'Primer movimiento': 'Ej.: Preparar la propuesta inicial' };
   const common = { label: props.label, value: props.value, required: props.required, placeholder: props.placeholder || examples[props.label], density: compact ? 'compact' as const : 'comfortable' as const, validateOnInvalid: true, 'aria-label': props.label || props.placeholder || 'Campo del proyecto' };
   return multiline
     ? <TextArea {...common} rows={3} onChange={event => onChange(event.target.value)} />
@@ -1384,7 +1376,7 @@ function Section({
 }
 function Add({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <Button variant="secondary" type="button" className={secondaryClass} onClick={onClick}>
+    <Button variant="secondary" type="button" onClick={onClick}>
       <Plus size={16} />
       {label}
     </Button>
@@ -1392,10 +1384,10 @@ function Add({ label, onClick }: { label: string; onClick: () => void }) {
 }
 function Remove({ label, onClick }: { label: string; onClick: () => void }) {
   return (
-    <Button variant="secondary"
+    <Button variant="icon"
       type="button"
       aria-label={label}
-      className="inline-flex size-10 items-center justify-center rounded-full border-0 bg-transparent p-0 text-ink-faint transition hover:bg-transparent hover:text-ink active:scale-95"
+      size="l"
       onClick={onClick}
     >
       <X size={18} strokeWidth={1.8} />

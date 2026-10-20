@@ -1,9 +1,9 @@
 import BrandLogo from './BrandLogo';
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
+import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, Circle, CircleAlert, Eye, FolderOpen, LayoutGrid, LoaderCircle, MessageSquare, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
+import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PhaseRow, PortalIcon, ProgressDots, ProjectProgressStatusBadge, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Componentes',
@@ -89,6 +89,34 @@ export const CardsAndBadges: Story = {
     <div className="grid gap-4 sm:grid-cols-2">{(['default', 'soft', 'waiting', 'dark'] as const).map(variant => <Card key={variant} variant={variant}><strong>{variant} card</strong><p>Example content for the portal.</p></Card>)}</div></div>,
 };
 
+export const ProjectListCardStory: Story = {
+  name: 'Project List Card',
+  args: { showDiscipline: false, progress: 60, status: 'En progreso' },
+  argTypes: {
+    showDiscipline: { control: 'boolean', description: 'Mostrar la disciplina junto al estado y el avance' },
+    progress: { control: { type: 'number', min: 0, max: 100, step: 1 }, description: 'Porcentaje de avance total' },
+    status: { control: 'select', options: ['Borrador', 'En progreso', 'En revisión', 'Requiere ajustes', 'Requiere acción', 'Completado'], description: 'Estado general del proyecto' },
+  },
+  render: ({ showDiscipline, progress, status }) => <div className="max-w-5xl">
+    <Card className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+      <div className="min-w-0 flex-1 space-y-3">
+        <div>
+          <div className="flex flex-wrap items-center justify-start gap-3">
+            <h3 className="font-display text-2xl font-normal text-ink">Los Alisos</h3>
+            <ProjectProgressStatusBadge progress={progress} status={status} />
+          </div>
+          {showDiscipline && <p className="mt-1 text-xs text-ink-faint">Arquitectura · Construcción</p>}
+          <p className="mt-1 text-xs text-ink-muted">Remodelación integral de áreas comunes · <strong className="font-semibold text-ink">Consorcio Los Alisos</strong></p>
+        </div>
+      </div>
+      <div className="shrink-0 text-xs text-ink-muted md:text-right">
+        <p>Etapa: <strong className="font-semibold text-ink">Documentación ejecutiva</strong></p>
+        <p>Actualizado <strong className="font-semibold text-ink">Hoy</strong></p>
+      </div>
+    </Card>
+  </div>,
+};
+
 export const TaskRowStory: Story = {
   name: 'Task Row',
   args: { showDescription: true, showDetails: true, showOwner: true, showDue: true, showStatus: true, showActions: true, interactive: true },
@@ -148,12 +176,23 @@ export const TabsStory: Story = { args: { divider: true }, argTypes: { divider: 
 
 export const StatusBarStory: Story = {
   name: 'Status Bar',
-  args: { value: 60, size: 'm', mode: 'granular', color: 'forest', trackColor: 'white', showLabels: true, expandOnClick: true, showModeToggle: true, showMetadata: true },
-  argTypes: { value: { control: { type: 'number', min: 0, max: 100, step: 1 } }, size: { control: 'select', options: ['s', 'm', 'l'] }, mode: { control: 'select', options: ['granular', 'completo'], description: 'Mostrar progreso por segmentos o como total' }, color: { control: 'select', options: ['forest', 'clay', 'mint', 'warning', 'ink', 'stone'], description: 'Color del progreso' }, trackColor: { control: 'select', options: ['same', 'white'], description: 'Color del tramo pendiente' }, showLabels: { control: 'boolean' }, expandOnClick: { control: 'boolean', description: 'Expandir el progreso de la sección seleccionada' }, showModeToggle: { control: 'boolean', description: 'Permitir alternar entre progreso total y por fases con el chip de intercambio' }, showMetadata: { control: 'boolean', description: 'Mostrar avance, fases y los estados sobre la barra' } },
-  render: ({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata }) => <StatusBarStoryExample value={value} size={size} mode={mode} color={color} trackColor={trackColor} showLabels={showLabels} expandOnClick={expandOnClick} showModeToggle={showModeToggle} showMetadata={showMetadata} />,
+  args: { value: 60, size: 'm', mode: 'granular', color: 'forest', trackColor: 'white', showLabels: true, expandOnClick: true, showModeToggle: true, showMetadata: true, taskStatusDisplay: 'icon-count', showPercentage: true, showPhaseTaskSummary: true },
+  argTypes: { value: { control: { type: 'number', min: 0, max: 100, step: 1 } }, size: { control: 'select', options: ['s', 'm', 'l'] }, mode: { control: 'select', options: ['granular', 'completo'], description: 'Mostrar progreso por segmentos o como total' }, color: { control: 'select', options: ['forest', 'clay', 'mint', 'warning', 'ink', 'stone'], description: 'Color del progreso' }, trackColor: { control: 'select', options: ['same', 'white'], description: 'Color del tramo pendiente' }, showLabels: { control: 'boolean' }, expandOnClick: { control: 'boolean', description: 'Expandir el progreso de la sección seleccionada' }, showModeToggle: { control: 'boolean', description: 'Permitir alternar entre progreso total y por fases con el chip de intercambio' }, showMetadata: { control: 'boolean', description: 'Mostrar los contadores de estado de las tareas' }, showPercentage: { control: 'boolean', description: 'Mostrar el porcentaje grande encima de la barra' }, showPhaseTaskSummary: { control: 'boolean', description: 'Mostrar fases y tareas en un badge blanco' }, taskStatusDisplay: { control: 'select', options: ['icon-count', 'label-count'], description: 'Formato de las etiquetas de estado' } },
+  render: ({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }) => <StatusBarStoryExample value={value} size={size} mode={mode} color={color} trackColor={trackColor} showLabels={showLabels} expandOnClick={expandOnClick} showModeToggle={showModeToggle} showMetadata={showMetadata} taskStatusDisplay={taskStatusDisplay} showPercentage={showPercentage} showPhaseTaskSummary={showPhaseTaskSummary} />,
 };
 
-function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata }: { value: number; size: 's' | 'm' | 'l'; mode: 'granular' | 'completo'; color: 'forest' | 'clay' | 'mint' | 'warning' | 'ink' | 'stone'; trackColor: 'same' | 'white'; showLabels: boolean; expandOnClick: boolean; showModeToggle: boolean; showMetadata: boolean }) {
+export const ProgressDotsStory: Story = {
+  name: 'Progress Dots',
+  args: { total: 8, completed: 3, size: 'm' },
+  argTypes: {
+    total: { control: { type: 'number', min: 1, max: 20, step: 1 }, description: 'Cantidad total de puntos' },
+    completed: { control: { type: 'number', min: 0, max: 20, step: 1 }, description: 'Puntos completados en verde success' },
+    size: { control: 'select', options: ['s', 'm', 'l'] },
+  },
+  render: ({ total, completed, size }) => <div className="flex min-h-32 items-center rounded-bojana-widget border border-line bg-canvas-light p-6"><ProgressDots total={total} completed={completed} size={size} ariaLabel={`${completed} de ${total} completados`} /></div>,
+};
+
+function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabels, expandOnClick, showModeToggle, showMetadata, taskStatusDisplay, showPercentage, showPhaseTaskSummary }: { value: number; size: 's' | 'm' | 'l'; mode: 'granular' | 'completo'; color: 'forest' | 'clay' | 'mint' | 'warning' | 'ink' | 'stone'; trackColor: 'same' | 'white'; showLabels: boolean; expandOnClick: boolean; showModeToggle: boolean; showMetadata: boolean; taskStatusDisplay: 'icon-count' | 'label-count'; showPercentage: boolean; showPhaseTaskSummary: boolean }) {
   const [segments, setSegments] = useState([
     { id: 'scope', label: 'Definición de alcance', weight: 25, progress: 100, taskCount: 2, completedTaskCount: 2 },
     { id: 'design', label: 'Diseño', weight: 30, progress: 70, taskCount: 3, completedTaskCount: 2 },
@@ -164,7 +203,7 @@ function StatusBarStoryExample({ value, size, mode, color, trackColor, showLabel
   const [expandedSegment, setExpandedSegment] = useState<string | null>(null);
   const [currentMode, setCurrentMode] = useState(mode);
   useEffect(() => { setCurrentMode(mode); setExpandedSegment(null); setActiveSegment(null); }, [mode]);
-  return <StatusBar value={value} mode={currentMode} color={color} trackColor={trackColor} size={size} showLabels={showLabels} phaseCount={showMetadata ? segments.length : undefined} taskCount={showMetadata ? segments.reduce((total, segment) => total + segment.taskCount, 0) : undefined} completedTaskCount={showMetadata ? segments.reduce((total, segment) => total + segment.completedTaskCount, 0) : undefined} taskStatusCounts={showMetadata ? { completed: 5, 'in-progress': 2, review: 1, waiting: 1, adjustments: 1, pending: 2, paused: 1, 'out-of-scope': 1 } : undefined} segments={segments} activeSegment={activeSegment} expandedSegment={expandOnClick && currentMode === "granular" ? expandedSegment : null} onSegmentHover={setActiveSegment} onSegmentClick={id => { setActiveSegment(id); if (expandOnClick) setExpandedSegment(current => current === id ? null : id); }} projectStatus={<StatusBadge tone="active" size="s">En tiempo</StatusBadge>} onModeChange={showModeToggle ? next => { setCurrentMode(next); setExpandedSegment(null); setActiveSegment(null); } : undefined} />;
+  return <StatusBar value={value} mode={currentMode} color={color} trackColor={trackColor} size={size} showLabels={showLabels} showPercentage={showPercentage} showMetadata={showMetadata} showPhaseTaskSummary={showPhaseTaskSummary} phaseCount={showModeToggle || showMetadata || showPhaseTaskSummary ? segments.length : undefined} taskCount={showPhaseTaskSummary || showMetadata ? segments.reduce((total, segment) => total + segment.taskCount, 0) : undefined} completedTaskCount={showMetadata ? segments.reduce((total, segment) => total + segment.completedTaskCount, 0) : undefined} taskStatusCounts={showMetadata ? { completed: 5, 'in-progress': 2, review: 1, waiting: 1, adjustments: 1, pending: 2, paused: 1, 'out-of-scope': 1 } : undefined} taskStatusDisplay={taskStatusDisplay} segments={segments} activeSegment={activeSegment} expandedSegment={expandOnClick && currentMode === "granular" ? expandedSegment : null} onSegmentHover={setActiveSegment} onSegmentClick={id => { setActiveSegment(id); if (expandOnClick) setExpandedSegment(current => current === id ? null : id); }} projectStatus={<StatusBadge tone="active" size="s">En tiempo</StatusBadge>} onModeChange={showModeToggle ? next => { setCurrentMode(next); setExpandedSegment(null); setActiveSegment(null); } : undefined} />;
 }
 
 function FilterBarExample({ showSearch, showLayoutIcon, background }: { showSearch: boolean; showLayoutIcon: boolean; background: 'white' | 'canvas-light' | 'canvas' | 'stone' | 'transparent' }) {
@@ -215,7 +254,7 @@ export const HeaderAndBrand: Story = {
   },
   render: ({ title, eyebrow, description, showEyebrow, showDescription, showBackButton, showDivider, titleAccessory, showSecondaryAction, showIconButtons }) => {
     const accessory = titleAccessory === 'badge'
-      ? <Badge tone="active">Activo</Badge>
+      ? <ProjectProgressStatusBadge progress={60} status="En progreso" size="m" />
       : titleAccessory === 'button'
         ? <Button size="s" variant="secondary">Editar</Button>
         : undefined;
@@ -295,6 +334,7 @@ export const StatusBadgeVariants: Story = {
     iconOnly: false,
     iconName: 'none',
     label: 'En curso',
+    adminTaskDisplay: 'solo-icono',
   },
   argTypes: {
     tone: { control: 'select', options: ['neutral', 'active', 'warning', 'waiting', 'danger', 'info', 'gray', 'white', 'black'] },
@@ -304,12 +344,73 @@ export const StatusBadgeVariants: Story = {
     iconOnly: { control: 'boolean' },
     iconName: { control: 'select', options: ['none', ...Object.keys(lucideIcons)] },
     label: { control: 'text' },
+    adminTaskDisplay: { control: 'inline-radio', options: ['solo-icono', 'icono-y-estado'], description: 'Vista de estados de tareas dentro del proyecto admin' },
   },
-  render: ({ tone, size, showDot, filled, iconOnly, iconName, label }) => {
+  render: ({ tone, size, showDot, filled, iconOnly, iconName, label, adminTaskDisplay }) => {
     const icons = { none: undefined, ...lucideIcons };
     return <div className="max-w-3xl space-y-8">
     <header><p className="bojana-label">Componentes</p><h1 className="bojana-heading-page mt-2">StatusBadge</h1><p className="mt-2 text-sm text-ink-muted">Variantes de tono, tamaño y dot.</p></header>
     <section className="space-y-4"><div className="rounded-bojana-card border border-line bg-white p-4"><p className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">Prueba interactiva</p><StatusBadge tone={tone} size={size} showDot={showDot} filled={filled} icon={icons[iconName as keyof typeof icons]} iconOnly={iconOnly}>{label}</StatusBadge></div><div className="space-y-4">{([{ tone: 'neutral', label: 'Neutral' }, { tone: 'active', label: 'Active' }, { tone: 'warning', label: 'Warning' }, { tone: 'gray', label: 'Pending' }, { tone: 'waiting', label: 'Urgent' }, { tone: 'danger', label: 'Error' }, { tone: 'info', label: 'Info' }, { tone: 'white', label: 'White' }, { tone: 'black', label: 'Black' }] as const).map(item => <div key={item.tone} className="flex flex-wrap items-center gap-2"><span className="w-20 text-xs font-semibold text-ink-muted">{item.label}</span>{(['xs', 's', 'm', 'l'] as const).map(size => <StatusBadge key={`${item.tone}-${size}`} tone={item.tone} size={size}>{size.toUpperCase()}</StatusBadge>)}<StatusBadge tone={item.tone} size="m" showDot={false}>{item.label} · sin dot</StatusBadge><StatusBadge tone={item.tone} size="m" filled>{item.label} · filled</StatusBadge></div>)}</div><div className="space-y-2"><p className="text-xs font-semibold text-ink-muted">Solo icon</p><div className="flex flex-wrap items-center gap-2"><StatusBadge tone="active" icon={CheckCircle2} iconOnly size="xs" /><StatusBadge tone="info" icon={Building2} iconOnly size="s" /><StatusBadge tone="warning" icon={CircleAlert} iconOnly size="m" /><StatusBadge tone="danger" icon={CircleAlert} iconOnly size="l" /></div></div></section>
+    <section className="space-y-3">
+      <div><h2 className="bojana-heading-section">Aplicación en el portal</h2><p className="mt-1 text-sm text-ink-muted">Los tonos se asignan según el significado del estado en cada área.</p></div>
+      <div className="space-y-3">
+        <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3"><div><p className="bojana-label">Proyecto · encabezado y tarjetas</p><p className="mt-1 text-xs text-ink-muted">Un badge · tamaño S · tono según estado</p></div><span className="text-xs text-ink-muted">Porcentaje + estado general</span></div>
+          <div className="flex flex-wrap gap-2 p-4">{([{ label: 'Borrador', progress: 0 }, { label: 'En progreso', progress: 60 }, { label: 'En revisión', progress: 75 }, { label: 'Requiere ajustes', progress: 60 }, { label: 'Requiere acción', progress: 85 }, { label: 'Completado', progress: 100 }] as const).map(item => <ProjectProgressStatusBadge key={item.label} status={item.label} progress={item.progress} />)}</div>
+        </div>
+        <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
+          <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas dentro del proyecto · admin</p><p className="mt-1 text-xs text-ink-muted">Estado como {adminTaskDisplay === 'solo-icono' ? 'icono solo' : 'icono y texto'} · tamaño S · sin punto</p></div>
+          {([
+            { name: 'Definición de alcance', state: 'En curso', icon: LoaderCircle },
+            { name: 'Revisión técnica', state: 'En revisión', icon: Eye },
+            { name: 'Corrección solicitada', state: 'Requiere ajustes', icon: CircleAlert },
+            { name: 'Esperar respuesta', state: 'Esperando al cliente', icon: MessageSquare },
+            { name: 'Documentación', state: 'Pendiente', icon: Circle },
+            { name: 'Planta general', state: 'Completado', icon: CheckCircle2 },
+          ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><StatusBadge state={task.state} audience="studio" size="s" showDot={false} icon={task.icon} iconOnly={adminTaskDisplay === 'solo-icono'} /></div>)}
+        </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
+            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Tareas · vista del estudio</p><p className="mt-1 text-xs text-ink-muted">Fila real de tarea · tamaño S · con punto</p></div>
+            {([
+              { name: 'Definición de alcance', label: 'En curso', tone: 'info' },
+              { name: 'Revisión técnica', label: 'En revisión', tone: 'neutral' },
+              { name: 'Corrección solicitada', label: 'Requiere ajustes', tone: 'warning' },
+              { name: 'Esperar respuesta', label: 'Esperando cliente', tone: 'waiting' },
+              { name: 'Documentación', label: 'Pendiente', tone: 'gray' },
+              { name: 'Planta general', label: 'Completada', tone: 'active' },
+            ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{task.name}</span><StatusBadge tone={task.tone} size="s">{task.label}</StatusBadge></div>)}
+          </div>
+          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
+            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Fases y tareas · portal cliente</p><p className="mt-1 text-xs text-ink-muted">Fila real de tarea · tamaño S · sin punto</p></div>
+            {([
+              { name: 'Concepto y moodboard', label: 'No iniciada', tone: 'gray' },
+              { name: 'Planos', label: 'En curso', tone: 'info' },
+              { name: 'Revisión de propuesta', label: 'En revisión', tone: 'neutral' },
+              { name: 'Respuesta requerida', label: 'Esperando al cliente', tone: 'waiting' },
+              { name: 'Ajustes de diseño', label: 'Requiere ajustes', tone: 'warning' },
+              { name: 'Renders', label: 'Completada', tone: 'active' },
+              { name: 'Pausada', label: 'Pausada', tone: 'gray' },
+              { name: 'Fuera de alcance', label: 'Fuera de alcance', tone: 'gray' },
+            ] as const).map(task => <div key={task.name} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-2.5"><span className="text-sm font-medium text-ink">{task.name}</span><StatusBadge tone={task.tone} size="s" showDot={false}>{task.label}</StatusBadge></div>)}
+          </div>
+          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
+            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Decisiones · módulo</p><p className="mt-1 text-xs text-ink-muted">Tarjeta de decisión · tamaño M · con punto</p></div>
+            {([{ title: 'Elección de fachada', state: 'Pendiente' }, { title: 'Paleta aprobada', state: 'Aprobado' }, { title: 'Ajuste solicitado', state: 'Requiere cambios' }] as const).map(item => <div key={item.title} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{item.title}</span><StatusBadge state={item.state} kind="decision" size="m" /></div>)}
+            <div className="flex items-center justify-between gap-3 bg-canvas-light px-4 py-3"><span className="text-xs text-ink-muted">En panel de ejecución: tamaño S, sin punto</span><StatusBadge state="Pendiente" kind="decision" size="s" showDot={false} /></div>
+          </div>
+          <div className="overflow-hidden rounded-bojana-card border border-line bg-white">
+            <div className="border-b border-line px-4 py-3"><p className="bojana-label">Documentos, actualizaciones y acceso</p><p className="mt-1 text-xs text-ink-muted">Filas de detalle · tamaño S · sin punto</p></div>
+            {([
+              { title: 'Plano para revisar', label: 'Para revisar', tone: 'waiting' },
+              { title: 'Actualización publicada', label: 'Actualización', tone: 'gray' },
+              { title: 'Acceso al portal', label: 'Abierto', tone: 'active' },
+              { title: 'Invitación anterior', label: 'Revocada', tone: 'gray' },
+            ] as const).map(item => <div key={item.title} className="flex items-center justify-between gap-3 border-b border-line last:border-0 px-4 py-3"><span className="text-sm font-medium text-ink">{item.title}</span><StatusBadge tone={item.tone} size="s" showDot={false}>{item.label}</StatusBadge></div>)}
+          </div>
+        </div>
+      </div>
+    </section>
   </div>;
   },
 };

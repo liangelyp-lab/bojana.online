@@ -1,4 +1,5 @@
 import { formatPortalDate } from "./design/format";
+import { taskStatusTone } from "./design/status";
 import {
   createElement,
   useMemo,
@@ -20,7 +21,6 @@ import StudioSettingsView from "./components/studio/StudioSettingsView";
 import EmailInboxView from "./components/studio/EmailInboxView";
 import CommunicationPanel from "./components/studio/CommunicationPanel";
 import OperationalExecutionPanel from "./components/studio/OperationalExecutionPanel";
-import ProjectProgressBar from "./components/studio/ProjectProgressBar";
 import DecisionesModule from "./components/modules/DecisionesModule";
 import DocumentosModule from "./components/modules/DocumentosModule";
 import AvancesModule from "./components/modules/AvancesModule";
@@ -28,7 +28,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, ProjectProgressStatusBadge, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import BrandLogo from "./components/ui/BrandLogo";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -156,6 +156,7 @@ function SectionTitle({
 type TaskStatus =
   | "En curso"
   | "En revision"
+  | "Requiere ajustes"
   | "Esperando cliente"
   | "Pendiente"
   | "Completado"
@@ -189,7 +190,9 @@ function getProjectTasks(project: ProjectData): Task[] {
         const owner = project.equipo.find((member) => member.id === task.responsableId)
         const status: TaskStatus = task.estado === "Esperando al cliente"
           ? "Esperando cliente"
-          : task.estado === "En revisión" || task.estado === "Requiere ajustes"
+          : task.estado === "Requiere ajustes"
+            ? "Requiere ajustes"
+            : task.estado === "En revisión"
             ? "En revision"
             : task.estado === "Completado"
               ? "Completado"
@@ -636,35 +639,25 @@ function AdminHeader({
 function ProjectExecutionSummary({
   project,
   onPublish,
-  onBack,
   onRequestAction,
   onEditProject,
   onViewClientPortal,
 }: {
   project: ProjectData
   onPublish: () => void
-  onBack: () => void
   onRequestAction: () => void
   onEditProject: () => void
   onViewClientPortal: () => void
 }) {
-  const progress = getEffectiveProgress(project)
   const projectStatus = getProjectStatusLabel(project)
-  const statusTone = projectStatus === "Completado"
-    ? "active"
-    : projectStatus === "Revisión"
-      ? "waiting"
-      : projectStatus === "En progreso"
-        ? "info"
-        : "gray"
+  const projectProgress = getEffectiveProgress(project)
 
   return (
-    <section className="mb-6 px-1 py-2 md:px-2 md:py-3">
+    <section className="mb-0 px-1 pt-2 pb-0 md:px-2 md:pt-3 md:pb-0">
       <PageHeader
         divider
-        leading={<Button ariaLabel="Volver a proyectos" className="!size-6 !min-h-0 !rounded-full !p-0" onClick={onBack} size="xs" tooltip="Volver a proyectos" variant="tertiary"><ArrowLeft className="size-3" /></Button>}
         title={project.info?.nombre || "Proyecto"}
-        titleAccessory={<StatusBadge tone={statusTone} size="s">{projectStatus}</StatusBadge>}
+        titleAccessory={<ProjectProgressStatusBadge progress={projectProgress} status={projectStatus} size="m" />}
         description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion || "Sin actualizaciones"}</span></>}
         actions={<>
           <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="m" tooltip="Configurar proyecto" variant="icon">
@@ -677,9 +670,6 @@ function ProjectExecutionSummary({
           <Button onClick={onPublish} variant="primary"><Icon className="size-4" name="publish" /> Publicación y acceso</Button>
         </>}
       />
-      <div className="mt-8">
-        <ProjectProgressBar project={project} value={progress} />
-      </div>
     </section>
   )
 }
@@ -692,12 +682,13 @@ const projectTabs = [
   "Comunicación",
 ]
 
-const taskStatusBadge: Record<TaskStatus, { tone: "active" | "gray" | "info" | "neutral" | "waiting"; label: string }> = {
-  "En curso": { tone: "info", label: "En curso" },
-  "En revision": { tone: "neutral", label: "En revisión" },
-  "Esperando cliente": { tone: "waiting", label: "Esperando cliente" },
-  Pendiente: { tone: "gray", label: "Pendiente" },
-  Completado: { tone: "active", label: "Completada" },
+const taskStatusBadge: Record<TaskStatus, { label: string }> = {
+  "En curso": { label: "En curso" },
+  "En revision": { label: "En revisión" },
+  "Requiere ajustes": { label: "Requiere ajustes" },
+  "Esperando cliente": { label: "Esperando cliente" },
+  Pendiente: { label: "Pendiente" },
+  Completado: { label: "Completada" },
 }
 
 function TasksPanel({
@@ -727,7 +718,7 @@ function TasksPanel({
           ariaLabel="Filtros de tareas"
           activeTab={filter}
           onChange={setFilter}
-          tabs={["Todas", "En curso", "En revision", "Esperando cliente"].map((item) => ({ id: item, label: `${item} (${item === "Todas" ? tasks.length : tasks.filter((task) => task.status === item).length})` }))}
+          tabs={["Todas", "En curso", "En revision", "Requiere ajustes", "Esperando cliente"].map((item) => ({ id: item, label: `${item} (${item === "Todas" ? tasks.length : tasks.filter((task) => task.status === item).length})` }))}
         />
         <div>
           <SearchInput size="s" aria-label="Buscar tareas" value={search} onChange={(event) => setSearch(event.target.value)} />
@@ -744,7 +735,7 @@ function TasksPanel({
             details={(task.deliverablesCount || task.pendingApprovals) ? `${task.deliverablesCount || 0} entregables · ${task.publishedDeliverables || 0} publicados${task.pendingApprovals ? ` · ${task.pendingApprovals} aprobación${task.pendingApprovals === 1 ? "" : "es"}` : ""}` : "Sin entregables configurados"}
             owner={<><span className="grid size-8 shrink-0 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">{task.initials}</span><span className="truncate text-xs font-medium text-ink-muted">{task.owner}</span></>}
             due={<><Icon className="size-4 text-ink-faint" name="calendar" />{task.due}</>}
-            status={<Button variant="link" type="button" onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }} title="Clic para cambiar estado" className="!min-h-0"><StatusBadge tone={taskStatusBadge[task.status].tone} size="s">{taskStatusBadge[task.status].label}</StatusBadge></Button>}
+            status={<Button variant="link" type="button" onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }} title="Clic para cambiar estado" className="!min-h-0"><StatusBadge tone={taskStatusTone(taskStatusBadge[task.status].label)} size="s">{taskStatusBadge[task.status].label}</StatusBadge></Button>}
             actions={<Button ariaLabel={`Mas opciones para ${task.title}`} className="!size-9 !p-0" variant="icon" onClick={(event) => { event.stopPropagation(); onToggleTask(task.title) }}><Icon className="size-4" name="more" /></Button>}
           />
         ))}
@@ -1366,7 +1357,6 @@ function AdminPortal({
             {activeNav === "Proyectos" && selectedProjectId !== null && (
               <div>
                 <ProjectExecutionSummary
-                  onBack={() => { setNotificationTarget(undefined); setSelectedProjectId(null) }}
                   onPublish={() => setIsPublishModalOpen(true)}
                   onEditProject={onEditProject}
                   onViewClientPortal={onViewClientPortal}
@@ -1392,7 +1382,7 @@ function AdminPortal({
                     setActiveTab(tab)
                     if (tab !== "Resumen") setNotificationTarget(undefined)
                   }}
-                  className="mt-9"
+                  className="mt-0"
                   tabs={projectTabs.map((tab) => ({
                     id: tab,
                     label: tab,
@@ -1773,6 +1763,7 @@ function ProjectHero({
   projectDesc = "Reforma integral y ampliacion de una vivienda familiar en Javea, Alicante.",
   projectPhase = "Proyecto basico",
   nextMilestone = "Sin próximo hito",
+  projectSummary,
   imageUrl = projectImage,
   projectStatus = "Proyecto en marcha",
 }: {
@@ -1780,6 +1771,7 @@ function ProjectHero({
   projectDesc?: string
   projectPhase?: string
   nextMilestone?: string
+  projectSummary?: string
   imageUrl?: string
   projectStatus?: string
 }) {
@@ -1797,9 +1789,10 @@ function ProjectHero({
           >
             {projectName}
           </Heading>
-          <p className="mt-5 max-w-lg text-sm leading-7 text-white/65 md:text-base">
+          {projectDesc && <p className="mt-5 max-w-lg text-sm leading-7 text-white/65 md:text-base">
             {projectDesc}
-          </p>
+          </p>}
+          {projectSummary && <p className="mt-3 max-w-lg text-sm leading-6 text-white/65">{projectSummary}</p>}
         </div>
         <div className="mt-10 flex flex-wrap gap-x-10 gap-y-5 border-t border-white/15 pt-6">
           <div>
@@ -2113,8 +2106,8 @@ function ProgressSection({
 }) {
   const [hoveredNeedId, setHoveredNeedId] = useState<string | null>(null)
   const allNeeds = progressGroups.flatMap(group => group.needs)
+  const selectedNeed = allNeeds.find(need => need.id === selectedNeedId)
   const phaseCount = allNeeds.length
-  const projectTaskCount = allNeeds.reduce((count, need) => count + need.tasks.length, 0)
   const taskStatusCounts = allNeeds.flatMap(need => need.tasks).reduce<StatusBarTaskStatusCounts>((counts, item) => {
     const stateMap = { Pendiente: 'pending', 'En curso': 'in-progress', 'En revisión': 'review', 'Esperando al cliente': 'waiting', 'Requiere ajustes': 'adjustments', Completado: 'completed', Pausada: 'paused', 'Fuera de alcance': 'out-of-scope' } as const
     const state = stateMap[item.task.estado]
@@ -2122,17 +2115,8 @@ function ProgressSection({
     return counts
   }, {})
 
-  return <section>
-    <div className="mb-6">
-      <SectionTitle>Avanzamos segun lo previsto</SectionTitle>
-      <p className="-mt-4 text-sm text-ink-muted">Tu proyecto consta de {phaseCount} {phaseCount === 1 ? "fase" : "fases"} divididas en {projectTaskCount} {projectTaskCount === 1 ? "tarea" : "tareas"}.</p>
-    </div>
-    <div className="rounded-bojana-widget border border-line bg-white p-7 md:p-8">
-      <p className="font-display text-5xl text-ink">{progressPercent}%</p>
-      <div className="mt-7">
-        <StatusBar value={progressPercent} mode={mode} phaseCount={phaseCount} taskCount={totalCount} completedTaskCount={completedCount} taskStatusCounts={taskStatusCounts} segments={allNeeds.map(need => ({ id: need.id, label: need.name, weight: need.projectWeight, progress: need.progress, taskCount: need.tasks.length, completedTaskCount: need.tasks.filter(task => task.status === "Completada").length }))} activeSegment={hoveredNeedId} expandedSegment={selectedNeedId} onSegmentClick={id => onNeedSelect(id)} onExpandedSegmentClose={() => onNeedSelect(null)} closeOnOutsideClick={false} onSegmentHover={setHoveredNeedId} ariaLabel={`Progreso del proyecto: ${progressPercent} por ciento`} projectStatus={<StatusBadge tone="active" size="s" showDot={false}>En tiempo</StatusBadge>} onModeChange={next => { onModeChange(next); onNeedSelect(null); setHoveredNeedId(null) }} />
-      </div>
-    </div>
+  return <section className="w-full">
+    <StatusBar value={progressPercent} showPercentage showMetadata={phaseCount > 1} showPhaseTaskSummary={phaseCount > 1} showLabels={phaseCount > 1} mode={phaseCount > 1 ? mode : "completo"} phaseCount={phaseCount > 1 ? phaseCount : undefined} taskCount={phaseCount > 1 ? totalCount : undefined} completedTaskCount={phaseCount > 1 ? completedCount : undefined} taskStatusCounts={phaseCount > 1 ? taskStatusCounts : undefined} segments={allNeeds.map(need => ({ id: need.id, label: need.name, weight: need.projectWeight, progress: need.progress, taskCount: need.tasks.length, completedTaskCount: need.tasks.filter(task => task.status === "Completada").length }))} activeSegment={phaseCount > 1 ? hoveredNeedId : null} expandedSegment={phaseCount > 1 ? selectedNeedId : null} onSegmentClick={phaseCount > 1 ? id => onNeedSelect(id) : undefined} onExpandedSegmentClose={phaseCount > 1 ? () => onNeedSelect(null) : undefined} closeOnOutsideClick={false} onSegmentHover={phaseCount > 1 ? setHoveredNeedId : undefined} ariaLabel={`Progreso del proyecto: ${progressPercent} por ciento`} expandedDescription={phaseCount > 1 && selectedNeed ? `Esta fase representa el ${Math.round(selectedNeed.projectWeight)}% del proyecto` : undefined} onModeChange={phaseCount > 1 ? next => { onModeChange(next); onNeedSelect(null); setHoveredNeedId(null) } : undefined} />
   </section>
 }
 
@@ -2167,9 +2151,7 @@ function ClientProjectTasksSection({
         return <section key={need.id} className="border-b border-line last:border-0">
           <PhaseRow
             title={need.name}
-            summary={`${completed}/${need.tasks.length} tareas completadas`}
-            progress={`${Math.round(need.progress)}% de avance`}
-            weight={`Peso: ${need.weight.toFixed(0)}%`}
+            progress={`${completed}/${need.tasks.length} tareas completadas`}
             expanded={expanded}
             onClick={() => onNeedSelect(expanded ? null : need.id)}
           />
@@ -2177,12 +2159,12 @@ function ClientProjectTasksSection({
             {need.tasks.map(item => {
               const latestUpdate = (item.task.actualizaciones || []).filter(update => update.estado !== "borrador" && update.visibleCliente !== false && update.visibilidad !== "interna").slice().sort((a, b) => b.version - a.version)[0]
               const taskExpanded = expandedTaskId === item.task.id
-              return <div key={item.task.id} className={taskExpanded ? "bg-stone/50" : ""}>
+              return <div key={item.task.id}>
                 <TaskRow
-                  title={<span className="inline-flex min-w-0 items-center gap-2"><span className={`size-2 shrink-0 rounded-full ${item.progress === 100 ? "bg-forest" : item.progress > 0 ? "bg-clay" : "bg-line-strong"}`} /><span className="truncate">{item.title}</span></span>}
+                  title={<span className="truncate">{item.title}</span>}
                   description={item.task.descripcionTrabajo}
                   owner={<span className="text-xs text-ink-muted">{Math.round(item.progress)}% de avance</span>}
-                  status={<StatusBadge tone={item.status === "Completada" ? "active" : item.status === "En revisión" || item.status === "Requiere ajustes" || item.status === "Esperando al cliente" ? "waiting" : "gray"} size="s" showDot={false}>{item.status}</StatusBadge>}
+                  status={<StatusBadge tone={taskStatusTone(item.status)} size="s" showDot={false}>{item.status}</StatusBadge>}
                   actions={taskExpanded ? <ChevronUp className="size-4 text-ink-muted" aria-hidden="true" /> : <ChevronDown className="size-4 text-ink-muted" aria-hidden="true" />}
                   onClick={() => onTaskToggle(need.id, item.task.id)}
                 />
@@ -2518,6 +2500,20 @@ function ClientPortal({
       }),
     }
   })
+  const allClientPhases = progressGroups.flatMap(group => group.needs)
+  const visiblePhaseCount = allClientPhases.length
+  const singleVisiblePhaseId = visiblePhaseCount === 1 ? allClientPhases[0]?.id : undefined
+  useEffect(() => {
+    const preferenceKey = `bojana-client-phase-expanded:${currentProject.id}`
+    const preference = window.localStorage.getItem(preferenceKey)
+    setSelectedNeedId(singleVisiblePhaseId && preference !== "closed" ? singleVisiblePhaseId : null)
+  }, [currentProject.id, singleVisiblePhaseId])
+  const handleNeedSelect = (needId: string | null) => {
+    setSelectedNeedId(needId)
+    if (singleVisiblePhaseId) {
+      window.localStorage.setItem(`bojana-client-phase-expanded:${currentProject.id}`, needId ? "open" : "closed")
+    }
+  }
   // The client-facing current phase follows the work that is actually in motion.
   // A manually focused task is only the fallback, so an already completed task
   // never keeps the hero pinned to a phase that has finished.
@@ -2527,7 +2523,6 @@ function ClientPortal({
     "Esperando al cliente",
     "Requiere ajustes",
   ])
-  const allClientPhases = progressGroups.flatMap(group => group.needs)
   const phaseWithActiveWork = allClientPhases.find(phase =>
     phase.tasks.some(({ task }) => activePhaseTaskStates.has(task.estado)),
   )
@@ -2792,7 +2787,8 @@ function ClientPortal({
               imageUrl={projectImageUrl}
               nextMilestone={getNextProjectMilestone(currentProject)}
               projectPhase={currentProjectPhase}
-              projectDesc={currentProject.info?.ubicacion || activeProject.desc}
+              projectSummary={visiblePhaseCount > 1 ? `Tu proyecto consta de ${visiblePhaseCount} fases divididas en ${projectTasks.length} ${projectTasks.length === 1 ? "tarea" : "tareas"}.` : undefined}
+              projectDesc={activeProject.desc}
               projectName={currentProject.info?.nombre || activeProject.name}
               projectStatus={getProjectStatusLabel(currentProject)}
             />
@@ -2811,7 +2807,7 @@ function ClientPortal({
                     featuredTaskId={getProgressFocusTaskId(currentProject)}
                     mode={progressMode}
                     selectedNeedId={selectedNeedId}
-                    onNeedSelect={setSelectedNeedId}
+                    onNeedSelect={handleNeedSelect}
                     onModeChange={setProgressMode}
                     totalCount={projectTasks.length}
                   />
@@ -2820,7 +2816,7 @@ function ClientPortal({
                     mode={progressMode}
                     selectedNeedId={selectedNeedId}
                     expandedTaskId={expandedClientTaskId}
-                    onNeedSelect={setSelectedNeedId}
+                    onNeedSelect={handleNeedSelect}
                     onTaskToggle={(needId, taskId) => {
                       setSelectedNeedId(needId)
                       setExpandedClientTaskId(current => current === taskId ? null : taskId)
@@ -3011,7 +3007,7 @@ export default function App() {
       setActiveProject({
         name: currentProject.info?.nombre || "Casa del Olivo",
         code: currentProject.id === "p-01" ? "BE 024" : "BE " + currentProject.id.slice(-3).toUpperCase(),
-        desc: currentProject.info?.ubicacion || currentProject.brief?.ubicacion || "Bojana Estudio",
+        desc: currentProject.info?.descripcion || currentProject.brief?.proposito || "",
       })
     }
   }, [currentProject])

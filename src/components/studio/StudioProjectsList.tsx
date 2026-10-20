@@ -6,7 +6,7 @@ import {
 } from '../../services/storageService';
 import { issueSecureProjectLink, listSecureProjectLinks, revokeSecureProjectLink, type DirectProjectLink, type SecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
-import { Card, Badge, Button, EmptyState, FilterBar, FilterTabs, PageHeader, SearchInput, StatusBadge } from '../ui';
+import { Card, Button, EmptyState, FilterBar, FilterTabs, PageHeader, ProjectProgressStatusBadge, SearchInput } from '../ui';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 import {
   Plus,
@@ -58,14 +58,12 @@ export default function StudioProjectsList({
     const title = p.info?.nombre || p.brief?.nombre || '';
     const clientName = p.cliente?.nombre || '';
     const company = p.cliente?.empresa || '';
-    const location = p.info?.ubicacion || p.brief?.ubicacion || '';
     const status = p.info?.estadoGeneral || p.brief?.estadoGeneral || 'En Ejecución';
 
     const matchesSearch =
       title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.toLowerCase().includes(searchQuery.toLowerCase());
+      company.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (filterTab === 'activos') {
       return matchesSearch && status !== 'Finalizado';
@@ -174,40 +172,24 @@ export default function StudioProjectsList({
             const title = p.info?.nombre || p.brief?.nombre || 'Proyecto';
             const subtitle = p.info?.subtitulo || p.brief?.subtitulo || '';
             const stage = p.info?.etapaActual || 'Documentación ejecutiva';
-            const disciplines = p.disciplinas?.join(' · ') || p.tipoProyecto || 'Arquitectura';
             const updateDate = p.info?.ultimaActualizacion || '02 Oct';
             const isCopied = copiedId === p.id;
             const issuedLink = issuedLinks[p.id] || activeLinks[p.id]?.[0];
             const activeLinkCount = activeLinks[p.id]?.length || 0;
             const pendingDecisions = (p.decisiones || []).filter((d) => d.estado === 'Pendiente').length;
             const progressStatus = getProjectStatusLabel(p);
-            const statusTone = progressStatus === 'Completado'
-              ? 'active'
-              : progressStatus === 'Revisión'
-                ? 'waiting'
-                : progressStatus === 'Borrador'
-                  ? 'gray'
-                  : 'info';
+            const projectProgress = getEffectiveProgress(p);
 
             return (
               <Card key={p.id} elevation="hover" onClick={() => onSelectProject(p.id)} tabIndex={0} role="group" onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelectProject(p.id); } }} aria-label={`Abrir proyecto ${title}`} className="group flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer">
                 {/* Project Identity */}
                 <div className="space-y-3 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <StatusBadge tone={statusTone} size="s">{progressStatus}</StatusBadge>
-                    <Badge className="border-transparent py-0.5 font-bold text-ink">{getEffectiveProgress(p)}%</Badge>
-                    <span className="text-xs text-ink-faint">
-                      {disciplines}
-                    </span>
-                  </div>
-
                   <div>
-                    <h3 className="font-display text-2xl font-normal text-ink group-hover:text-forest transition flex items-center gap-2">
-                      <span>{title}</span>
-                    </h3>
-                    <p className="mt-1 text-xs text-ink-muted">
-                      {subtitle && `${subtitle} • `}Comitente: <strong className="text-ink font-semibold">{p.cliente?.nombre || 'Comitente'}</strong>
-                    </p>
+                    <div className="flex flex-wrap items-center justify-start gap-3">
+                      <h3 className="font-display text-2xl font-normal text-ink transition group-hover:text-forest">{title}</h3>
+                      <ProjectProgressStatusBadge progress={projectProgress} status={progressStatus} />
+                    </div>
+                    {(subtitle || p.cliente?.nombre) && <p className="mt-1 text-xs text-ink-muted">{[subtitle, p.cliente?.nombre].filter(Boolean).join(' • ')}</p>}
                   </div>
 
                 </div>

@@ -16,6 +16,7 @@ import {
   calculateProjectProgressFromDisciplines
 } from '../types';
 import { getPendingTaskDependencies } from './projectStructure';
+import type { ProjectStatusLabel } from '../design/status';
 import { isSupabaseConfigured, listRemoteProjects, saveRemoteProject } from './supabaseClient';
 
 export type ProjectSyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
@@ -68,21 +69,16 @@ export function getEffectiveProgress(project: ProjectData): number {
 }
 
 /** Canonical project badge label shared by dashboard and project list. */
-export function getProjectStatusLabel(project: ProjectData): 'Borrador' | 'En progreso' | 'Revisión' | 'Completado' {
+export function getProjectStatusLabel(project: ProjectData): ProjectStatusLabel {
   if (project.lifecycleStatus === 'BORRADOR' || project.lifecycleStatus === 'LISTO_PARA_COMPARTIR') return 'Borrador';
 
   const tasks = (project.disciplinasOperativas || []).flatMap((discipline) =>
     discipline.necesidades.flatMap((need) => need.tareas || [])
   );
-  const waitingForReview = tasks.some((task) =>
-    task.estado === 'En revisión' ||
-    task.estado === 'Esperando al cliente' ||
-    task.estado === 'Requiere ajustes' ||
-    task.accionCliente?.activa && task.accionCliente.estado === 'pendiente'
-  );
-
   if (getEffectiveProgress(project) >= 100 || project.lifecycleStatus === 'COMPLETADO') return 'Completado';
-  if (waitingForReview) return 'Revisión';
+  if (tasks.some(task => task.estado === 'Esperando al cliente' || task.accionCliente?.activa && task.accionCliente.estado === 'pendiente')) return 'Requiere acción';
+  if (tasks.some(task => task.estado === 'Requiere ajustes')) return 'Requiere ajustes';
+  if (tasks.some(task => task.estado === 'En revisión')) return 'En revisión';
   return 'En progreso';
 }
 

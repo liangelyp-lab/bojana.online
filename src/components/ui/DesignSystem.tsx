@@ -1,9 +1,9 @@
 import BrandLogo from './BrandLogo';
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, LoaderCircle, ChevronDown, ChevronUp, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, LucideIcon } from 'lucide-react';
+import { X, LoaderCircle, ChevronDown, ChevronUp, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, FileText, MessageSquare, LucideIcon } from 'lucide-react';
 import { DecisionStatus, EstadoEtapa } from '../../types';
-import { taskStateLabel } from '../../design/status';
+import { decisionStatusTone, projectProgressStatusLabel, projectStatusTone, taskStateLabel, taskStatusTone, type ProjectStatusLabel } from '../../design/status';
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return <BrandLogo className={compact ? 'h-7 w-auto' : 'h-10 w-auto'} />;
@@ -301,9 +301,9 @@ export function PageHeader({
   return (
     <header className={`bojana-page-header ${divider ? 'bojana-page-header-divider' : ''}`}>
       <div className="min-w-0">
-        {eyebrow && <p className="bojana-label">{eyebrow}</p>}
+        {eyebrow && <div className="flex items-center gap-2">{leading && <span className="shrink-0">{leading}</span>}<p className="bojana-label">{eyebrow}</p></div>}
         <div className={`flex flex-wrap items-center gap-1.5 ${eyebrow ? 'mt-2' : ''}`}>
-          {leading && <span className="shrink-0">{leading}</span>}
+          {!eyebrow && leading && <span className="shrink-0">{leading}</span>}
           <Heading className="bojana-heading-page">{title}</Heading>
           {titleAccessory}
         </div>
@@ -444,6 +444,7 @@ export function StatusBadge({
   showDot = true,
   icon,
   iconOnly = false,
+  ariaLabel,
   size = 'm',
   className = ''
 }: {
@@ -456,6 +457,7 @@ export function StatusBadge({
   showDot?: boolean;
   icon?: LucideIcon;
   iconOnly?: boolean;
+  ariaLabel?: string;
   size?: ButtonSize;
   className?: string;
 }) {
@@ -495,20 +497,8 @@ export function StatusBadge({
   } as const;
   const label = state ? (kind === 'decision' ? state : taskStateLabel(state as EstadoEtapa, audience)) : '';
   const stateTone = tone ?? (kind === 'decision'
-    ? state === 'Aprobado'
-      ? 'active'
-      : state === 'Requiere cambios'
-        ? 'waiting'
-        : 'neutral'
-    : state === 'Completado'
-      ? 'active'
-      : state === 'En curso'
-        ? 'info'
-        : state === 'Esperando al cliente'
-          ? 'waiting'
-          : state === 'En revisión' || state === 'Requiere ajustes'
-            ? 'neutral'
-            : 'gray');
+    ? decisionStatusTone(state as DecisionStatus)
+    : taskStatusTone(state as string));
   const colorClasses = filled ? filledToneClasses[stateTone] : toneClasses[stateTone];
   const Icon = icon;
   const contentClasses = iconOnly
@@ -518,11 +508,27 @@ export function StatusBadge({
   return (
     <span
       className={`inline-flex items-center rounded-full ${filled || stateTone === 'danger' ? '' : borderWidths[size]} font-semibold transition-colors ${contentClasses} ${colorClasses} ${className}`}
+      role={iconOnly ? 'img' : undefined}
+      aria-label={ariaLabel ?? (iconOnly ? label || undefined : undefined)}
+      title={iconOnly ? (ariaLabel ?? label) || undefined : undefined}
     >
       {Icon ? <Icon size={buttonIconPixels[size]} aria-hidden="true" /> : showDot && <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />}
       {!iconOnly && <span className="inline-flex items-center gap-1.5">{children ?? label}</span>}
     </span>
   );
+}
+
+const projectStatusIcons: Record<ProjectStatusLabel, LucideIcon> = {
+  'Borrador': FileText,
+  'En progreso': LoaderCircle,
+  'En revisión': Eye,
+  'Requiere ajustes': CircleAlert,
+  'Requiere acción': MessageSquare,
+  'Completado': Check,
+};
+
+export function ProjectProgressStatusBadge({ progress, status, size = 's' }: { progress: number; status: ProjectStatusLabel; size?: ButtonSize }) {
+  return <StatusBadge tone={projectStatusTone(status)} size={size} showDot={false} icon={projectStatusIcons[status]} className="font-sans">{projectProgressStatusLabel(progress, status)}</StatusBadge>;
 }
 
 export function EmptyState({
@@ -581,7 +587,7 @@ export function TaskRow({
   onClick?: () => void;
 }) {
   const interactive = Boolean(onClick);
-  return <article className={`grid gap-4 border-b border-line p-5 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_13rem] md:items-center md:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`} onClick={onClick}>
+  return <article className={`grid min-h-[4.5rem] gap-4 border-b border-line px-5 py-4 last:border-0 md:grid-cols-[minmax(0,1fr)_11rem_7rem_13rem] md:items-center md:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`} onClick={onClick}>
     <div className="min-w-0"><h3 className="truncate text-sm font-semibold text-ink">{title}</h3>{description && <p className="mt-1 text-xs text-ink-faint">{description}</p>}{details && <p className="mt-1 text-[11px] text-ink-muted">{details}</p>}</div>
     <div className="flex items-center gap-2.5">{owner}</div>
     <div className="flex items-center gap-2 text-xs text-ink-muted">{due}</div>
@@ -605,7 +611,7 @@ export function PhaseRow({
   onClick?: () => void;
 }) {
   const interactive = Boolean(onClick);
-  return <article className={`border-b border-line last:border-0 ${expanded ? 'bg-stone/50' : ''}`}>
+  return <article className="border-b border-line last:border-0">
     <button type="button" disabled={!interactive} onClick={onClick} className={`flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition sm:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`}>
       <span className="min-w-0">
         <span className="block text-sm font-semibold text-ink">{title}</span>
@@ -900,6 +906,21 @@ export type StatusBarSegment = {
 export type StatusBarTaskState = 'pending' | 'in-progress' | 'review' | 'waiting' | 'adjustments' | 'completed' | 'paused' | 'out-of-scope';
 export type StatusBarTaskStatusCounts = Partial<Record<StatusBarTaskState, number>>;
 
+export function ProgressDots({ total, completed, size = 'm', className = '', ariaLabel = 'Avance' }: {
+  total: number;
+  completed: number;
+  size?: 's' | 'm' | 'l';
+  className?: string;
+  ariaLabel?: string;
+}) {
+  const dotSize = size === 's' ? 'size-2' : size === 'l' ? 'size-4' : 'size-3';
+  const safeTotal = Math.max(0, Math.floor(total));
+  const safeCompleted = Math.max(0, Math.min(safeTotal, Math.floor(completed)));
+  return <div role="progressbar" aria-label={ariaLabel} aria-valuemin={0} aria-valuemax={safeTotal} aria-valuenow={safeCompleted} className={`inline-flex items-center gap-2 ${className}`}>
+    {Array.from({ length: safeTotal }, (_, index) => <span key={index} aria-hidden="true" className={`${dotSize} rounded-full border ${index < safeCompleted ? 'border-mint-strong bg-mint-strong' : 'border-line-strong bg-white'}`} />)}
+  </div>;
+}
+
 export function StatusBar({
   value,
   segments = [],
@@ -913,6 +934,10 @@ export function StatusBar({
   taskCount,
   completedTaskCount,
   taskStatusCounts,
+  taskStatusDisplay = 'icon-count',
+  showPercentage = false,
+  showMetadata = true,
+  showPhaseTaskSummary = false,
   activeSegment,
   onSegmentClick,
   onExpandedSegmentClose,
@@ -920,6 +945,7 @@ export function StatusBar({
   onSegmentHover,
   onModeChange,
   projectStatus,
+  expandedDescription,
   action,
   ariaLabel = 'Progreso'
 }: {
@@ -935,6 +961,10 @@ export function StatusBar({
   taskCount?: number;
   completedTaskCount?: number;
   taskStatusCounts?: StatusBarTaskStatusCounts;
+  taskStatusDisplay?: 'icon-count' | 'label-count';
+  showPercentage?: boolean;
+  showMetadata?: boolean;
+  showPhaseTaskSummary?: boolean;
   activeSegment?: string | null;
   onSegmentClick?: (id: string) => void;
   onExpandedSegmentClose?: () => void;
@@ -942,31 +972,34 @@ export function StatusBar({
   onSegmentHover?: (id: string | null) => void;
   onModeChange?: (mode: 'granular' | 'completo') => void;
   projectStatus?: React.ReactNode;
+  expandedDescription?: React.ReactNode;
   action?: React.ReactNode;
   ariaLabel?: string;
 }) {
   const trackHeight = size === 's' ? 'h-4' : size === 'l' ? 'h-6' : 'h-5';
   const normalizedValue = Math.max(0, Math.min(100, value));
   const colorClasses = {
-    forest: { solid: 'bg-forest', soft: 'bg-forest/50', granular: 'bg-forest/30', stroke: 'group-hover:border-forest', activeStroke: '!border-forest', text: 'text-forest' },
+    forest: { solid: 'bg-forest/20', soft: 'bg-forest/50', granular: 'bg-forest/10', stroke: 'group-hover:border-forest', activeStroke: '!border-forest', text: 'text-forest' },
     clay: { solid: 'bg-clay', soft: 'bg-clay/50', granular: 'bg-clay/30', stroke: 'group-hover:border-clay', activeStroke: '!border-clay', text: 'text-clay' },
-    mint: { solid: 'bg-mint-strong', soft: 'bg-mint-strong/50', granular: 'bg-mint-strong/30', stroke: 'group-hover:border-mint-strong', activeStroke: '!border-mint-strong', text: 'text-mint-strong' },
+    mint: { solid: 'bg-mint', soft: 'bg-mint/50', granular: 'bg-mint/30', stroke: 'group-hover:border-mint', activeStroke: '!border-mint', text: 'text-mint' },
     warning: { solid: 'bg-warning-strong', soft: 'bg-warning-strong/50', granular: 'bg-warning-strong/30', stroke: 'group-hover:border-warning-strong', activeStroke: '!border-warning-strong', text: 'text-warning-strong' },
     ink: { solid: 'bg-ink', soft: 'bg-ink/50', granular: 'bg-ink/30', stroke: 'group-hover:border-ink', activeStroke: '!border-ink', text: 'text-ink' },
     stone: { solid: 'bg-stone', soft: 'bg-stone/50', granular: 'bg-stone/30', stroke: 'group-hover:border-stone', activeStroke: '!border-stone', text: 'text-stone' },
   }[color];
   const trackClass = trackColor === 'white' ? 'bg-white' : colorClasses.soft;
   const expanded = expandedSegment ? segments.find(segment => segment.id === expandedSegment) : undefined;
-  const displayedTaskCount = expanded ? expanded.taskCount : taskCount;
-  const displayedCompletedCount = expanded ? expanded.completedTaskCount : completedTaskCount;
   const displayedValue = expanded ? Math.max(0, Math.min(100, expanded.progress)) : normalizedValue;
-  const statusChips: Array<{ state: StatusBarTaskState; tone: NonNullable<React.ComponentProps<typeof StatusBadge>['tone']>; icon: LucideIcon }> = [
-    { state: 'completed', tone: 'active', icon: Check },
-    { state: 'in-progress', tone: 'info', icon: LoaderCircle },
-    { state: 'review', tone: 'neutral', icon: Eye },
-    { state: 'waiting', tone: 'waiting', icon: Clock3 },
-    { state: 'adjustments', tone: 'warning', icon: CircleAlert },
-    { state: 'pending', tone: 'gray', icon: Circle },
+  const hasMetadataRow = (showMetadata && (phaseCount !== undefined || taskCount !== undefined || taskStatusCounts !== undefined)) || showPhaseTaskSummary;
+  const displayedColorClasses = expanded && expanded.progress >= 100
+    ? { solid: 'bg-mint', soft: 'bg-mint/50', granular: 'bg-mint/30', stroke: 'group-hover:border-mint', activeStroke: '!border-mint', text: 'text-mint' }
+    : colorClasses;
+  const statusChips: Array<{ state: StatusBarTaskState; label: string; tone: NonNullable<React.ComponentProps<typeof StatusBadge>['tone']>; icon: LucideIcon }> = [
+    { state: 'completed', label: 'Completadas', tone: 'active', icon: Check },
+    { state: 'in-progress', label: 'En curso', tone: 'info', icon: LoaderCircle },
+    { state: 'review', label: 'En revisión', tone: 'neutral', icon: Eye },
+    { state: 'waiting', label: 'En espera', tone: 'waiting', icon: Clock3 },
+    { state: 'adjustments', label: 'Requieren ajustes', tone: 'warning', icon: CircleAlert },
+    { state: 'pending', label: 'Pendientes', tone: 'gray', icon: Circle },
   ];
   const statusBarRef = useRef<HTMLDivElement>(null);
   const expandedBarRef = useRef<HTMLSpanElement>(null);
@@ -1010,26 +1043,20 @@ export function StatusBar({
   return (
     <div ref={statusBarRef} className="flex w-full items-start gap-3">
       <div className="min-w-0 flex-1 space-y-2">
-      {(phaseCount !== undefined || taskCount !== undefined || onModeChange || expanded) && <div className="flex flex-wrap items-center gap-2">
+      {showPercentage && <p className="font-display text-6xl text-ink" aria-label={`${displayedValue}% de avance`}>{displayedValue}%</p>}
+      {(hasMetadataRow || expanded) && <div className={`flex flex-wrap items-center gap-2 ${showPercentage ? 'mt-6' : ''}`}>
         {expanded ? <>
           {onSegmentClick && <Button variant="icon" size="xs" ariaLabel="Volver al progreso granular" tooltip="Volver al progreso granular" onClick={() => onExpandedSegmentClose ? onExpandedSegmentClose() : handleSegmentClick(expanded.id)}><PortalIcon icon={ArrowLeft} size="xs" /></Button>}
-          {projectStatus}
+          <div className="flex flex-col items-start gap-1">{projectStatus}{expandedDescription && <p className="text-sm text-ink-muted">{expandedDescription}</p>}</div>
         </> : <>
-          {onModeChange && phaseCount !== undefined ? <div className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap">
-            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por fases' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${displayedValue}%` : `${phaseCount} fases`}</StatusBadge></button>
-            <ArrowLeftRight size={10} aria-hidden="true" className="shrink-0 text-ink" />
-            <button type="button" aria-label={mode === 'completo' ? 'Mostrar progreso por fases' : 'Mostrar progreso total'} aria-pressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="cursor-pointer rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest"><StatusBadge size="s" showDot={false} tone="white">{mode === 'completo' ? `${phaseCount} fases` : `${displayedValue}%`}</StatusBadge></button>
-          </div> : <>
-            <StatusBadge size="s" showDot={false}>{displayedValue}%</StatusBadge>
-            {displayedTaskCount !== undefined && <StatusBadge size="s" showDot={false}>{displayedCompletedCount !== undefined ? `${displayedCompletedCount}/${displayedTaskCount}` : displayedTaskCount} tareas</StatusBadge>}
-          </>}
-          {statusChips.map(({ state, tone, icon }) => {
+          {showPhaseTaskSummary && phaseCount !== undefined && taskCount !== undefined && <StatusBadge size="s" showDot={false} tone="white">{`${phaseCount} ${phaseCount === 1 ? 'fase' : 'fases'} / ${taskCount} ${taskCount === 1 ? 'tarea' : 'tareas'}`}</StatusBadge>}
+          {showMetadata && statusChips.map(({ state, label, tone, icon }) => {
             const count = taskStatusCounts?.[state] || 0;
-            return count > 0 ? <StatusBadge key={state} size="s" showDot={false} tone={tone} icon={icon}>{count}</StatusBadge> : null;
+            return count > 0 ? <StatusBadge key={state} size="s" showDot={false} tone={tone} icon={taskStatusDisplay === 'icon-count' ? icon : undefined}>{taskStatusDisplay === 'icon-count' ? count : `${label} ${count}`}</StatusBadge> : null;
           })}
         </>}
       </div>}
-      <div className="flex items-center gap-2">
+      <div className={`flex items-center gap-2 ${showPercentage && !hasMetadataRow && !expanded ? 'mt-6' : ''}`}>
       <div
         key={expanded ? `expanded-${expanded.id}` : mode}
         role="progressbar"
@@ -1037,16 +1064,18 @@ export function StatusBar({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={displayedValue}
-        className={`${trackHeight} relative flex min-w-0 flex-1 gap-0.5 ${expanded || mode === 'completo' ? 'overflow-hidden' : 'overflow-visible'} rounded-full border border-white ${trackClass} p-0.5`}
+        className={`${trackHeight} relative flex min-w-0 flex-1 gap-0.5 ${expanded || mode === 'completo' ? 'overflow-hidden' : 'overflow-visible'} rounded-full border border-white ${expanded && expanded.progress >= 100 ? 'bg-mint/50' : trackClass} p-0.5`}
       >
-        {mode === 'completo' || expanded ? <span ref={expandedBarRef} onClick={() => expanded && (onExpandedSegmentClose ? onExpandedSegmentClose() : handleSegmentClick(expanded.id))} className={`relative block h-full w-full origin-center overflow-hidden rounded-full border border-transparent ${colorClasses.granular} ${expanded ? 'cursor-pointer' : ''}`}><span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${displayedValue}%` }} /></span> : segments.length > 0 ? segments.map((segment, index) => {
+        {mode === 'completo' || expanded ? <span ref={expandedBarRef} onClick={() => expanded && (onExpandedSegmentClose ? onExpandedSegmentClose() : handleSegmentClick(expanded.id))} className={`relative block h-full w-full origin-center overflow-hidden rounded-full border border-transparent ${displayedColorClasses.granular} ${expanded ? 'cursor-pointer' : ''}`}><span className={`absolute inset-y-0 left-0 ${displayedColorClasses.solid} transition-[width] duration-500`} style={{ width: `${displayedValue}%` }} /></span> : segments.length > 0 ? segments.map((segment, index) => {
           const edgeRadius = segments.length === 1 ? 'rounded-full' : index === 0 ? 'rounded-l-full' : index === segments.length - 1 ? 'rounded-r-full' : 'rounded-none';
-          const content = <span className={`relative block h-full w-full origin-center overflow-hidden ${edgeRadius} border border-transparent ${colorClasses.stroke} ${colorClasses.granular} transition duration-150 group-hover:z-10 group-hover:scale-y-110 group-hover:shadow-md ${activeSegment === segment.id ? `z-10 scale-y-110 shadow-md ${colorClasses.activeStroke}` : ''}`}>
-            <span className={`absolute inset-y-0 left-0 ${colorClasses.solid} transition-[width] duration-500`} style={{ width: `${Math.max(0, Math.min(100, segment.progress))}%` }} />
+          const isComplete = segment.progress >= 100;
+          const content = <span className={`relative block h-full w-full origin-center overflow-hidden ${edgeRadius} border border-transparent ${isComplete ? 'group-hover:border-mint' : colorClasses.stroke} ${isComplete ? 'bg-mint/30' : colorClasses.granular} transition duration-150 group-hover:z-10 group-hover:scale-y-110 group-hover:shadow-md ${activeSegment === segment.id ? `z-10 scale-y-110 shadow-md ${isComplete ? '!border-mint' : colorClasses.activeStroke}` : ''}`}>
+            <span className={`absolute inset-y-0 left-0 ${isComplete ? 'bg-mint' : colorClasses.solid} transition-[width] duration-500`} style={{ width: `${Math.max(0, Math.min(100, segment.progress))}%` }} />
           </span>;
           return onSegmentClick ? <button key={segment.id} ref={node => { if (node) segmentRefs.current.set(segment.id, node); else segmentRefs.current.delete(segment.id); }} type="button" aria-label={`${segment.label}: ${segment.progress}%`} onClick={() => handleSegmentClick(segment.id)} onMouseEnter={() => onSegmentHover?.(segment.id)} onMouseLeave={() => onSegmentHover?.(null)} className="group h-full min-w-0 border-0 bg-transparent p-0" style={{ width: `${Math.max(0, segment.weight)}%` }}>{content}</button> : <span key={segment.id} className="group block h-full min-w-0" style={{ width: `${Math.max(0, segment.weight)}%` }}>{content}</span>;
         }) : <span className="block h-full rounded-full bg-forest transition-[width] duration-500" style={{ width: `${normalizedValue}%` }} />}
       </div>
+      {!expanded && onModeChange && phaseCount !== undefined && <Button variant="tertiary" size="s" ariaLabel={mode === 'completo' ? 'Mostrar progreso por fases' : 'Mostrar progreso total'} tooltip={mode === 'completo' ? 'Mostrar progreso por fases' : 'Mostrar progreso total'} ariaPressed={mode === 'granular'} onClick={() => onModeChange(mode === 'completo' ? 'granular' : 'completo')} className="shrink-0"><PortalIcon icon={ArrowLeftRight} size="xs" /></Button>}
       {action}
       </div>
       {mode === 'granular' && showLabels && segments.length > 0 && <div className="flex w-full flex-wrap gap-y-1">
