@@ -22,7 +22,7 @@ import {
   CheckCircle2,
   Info
 } from 'lucide-react';
-import { StatusBadge, Button, Field, Select, Tabs } from '../ui/DesignSystem';
+import { ModalFooter, ModalHeader, Modal, StatusBadge, Button, Field, Select, Tabs } from '../ui/DesignSystem';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 
 interface PublishInviteModalProps {
@@ -74,14 +74,6 @@ export default function PublishInviteModal({
   const senderEmail = studioEmail.trim() || 'info@bojana.com.ar';
   const [publishError, setPublishError] = useState('');
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [isOpen, onClose]);
 
   const [activeTab, setActiveTab] = useState<'portal_preview' | 'email' | 'historial'>('portal_preview');
   const [recipientName, setRecipientName] = useState(project.cliente?.nombre || '');
@@ -174,33 +166,10 @@ export default function PublishInviteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-bojana-ink/60 backdrop-blur-xs animate-fade-in font-sans" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div
-        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl border border-line bg-canvas shadow-2xl overflow-hidden animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <>
+    <Modal open={isOpen} onClose={onClose} title="Comunicación y acceso al portal" customContent maxWidth="max-w-2xl" panelClassName="flex flex-col overflow-hidden">
         {/* 1. MODAL HEADER */}
-        <div className="p-6 border-b border-line flex items-start justify-between gap-4 bg-white/70 backdrop-blur-sm">
-          <div className="space-y-bojana-inside">
-            <h2 className="font-display text-2xl sm:text-3xl font-normal text-ink">
-              {isAlreadyActive ? 'Comunicación y acceso al portal' : 'Publicar cambios del portal'}
-            </h2>
-            <p className="text-xs text-bojana-muted">
-              {isAlreadyActive
-                ? 'El portal ya está activo y visible para el cliente. Podés enviar un email o copiar el enlace como acciones manuales.'
-                : 'Revisá qué verá el cliente. Al publicar, el portal se actualiza; enviar email o copiar enlace queda como paso posterior e independiente.'}
-            </p>
-          </div>
-
-          <Button variant="icon"
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            className="bojana-icon-button"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
+        <ModalHeader onClose={onClose} title={isAlreadyActive ? 'Comunicación y acceso al portal' : 'Publicar cambios del portal'} />
 
         {/* 2. TABS SELECTOR */}
         <Tabs
@@ -215,7 +184,7 @@ export default function PublishInviteModal({
         />
 
         {/* 3. TAB CONTENT (SCROLLABLE) */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-bojana-block bg-bojana-surface/30">
+        <div className="bojana-modal-scroll-body p-6 space-y-bojana-block bg-bojana-surface/30">
 
           {/* TAB 1: EMAIL PREVIEW */}
           {activeTab === 'email' && (
@@ -587,7 +556,7 @@ export default function PublishInviteModal({
         </div>
 
         {/* 4. MODAL FOOTER */}
-        <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
+        <ModalFooter>
           {/* Quick Copy Direct Link */}
           <Button variant="secondary"
             type="button"
@@ -627,7 +596,7 @@ export default function PublishInviteModal({
               )}
             </Button>
           </div>
-        </div>
+        </ModalFooter>
 
         {publishError && <p role="alert" className="px-6 py-3 text-sm text-bojana-error">{publishError}</p>}
 
@@ -640,7 +609,7 @@ export default function PublishInviteModal({
           </div>
         )}
 
-      </div>
+    </Modal>
       {manualCopyUrl && (
         <ManualCopyDialog
           title={title}
@@ -648,6 +617,6 @@ export default function PublishInviteModal({
           onClose={() => setManualCopyUrl('')}
         />
       )}
-    </div>
+    </>
   );
 }

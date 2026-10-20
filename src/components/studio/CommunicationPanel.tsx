@@ -1,3 +1,4 @@
+import { formatPortalDate } from '../../design/format';
 import { FormEvent, useMemo, useState } from "react"
 import type { ProjectActivityLog, ProjectData, ProjectInvitationLog } from "../../types"
 import { StatusBadge, Button, TextAreaControl } from "../ui/DesignSystem"
@@ -112,7 +113,7 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
 
   return (
     <section className="space-y-4 animate-fade-in">
-      <div className="rounded-2xl border border-line bg-white p-4 shadow-sm sm:p-5">
+      <div className="rounded-bojana-widget border border-line bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">Historial del portal</p>
@@ -131,7 +132,7 @@ export default function CommunicationPanel({ project, activeUser, onToast, onUpd
                 <div className={`w-full rounded-xl border p-3 ${fromClient ? "border-line bg-stone/45" : "max-w-[92%] border-mint/40 bg-mint-pale/40"}`}>
                   <div className="flex items-center justify-between gap-4 text-[11px]">
                     <span className="font-semibold text-ink">{fromClient ? activity.autor || "Cliente" : isEmail ? `${activity.autor || senderName} · Email` : activity.autor || senderName}</span>
-                    <time className="shrink-0 text-ink-faint">{activity.fecha}</time>
+                    <time className="shrink-0 text-ink-faint">{formatPortalDate(activity.fecha)}</time>
                   </div>
                   <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{messageText(activity)}</p>
                 </div>

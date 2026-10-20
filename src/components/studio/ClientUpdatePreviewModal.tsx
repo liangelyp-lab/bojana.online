@@ -64,7 +64,7 @@ export default function ClientUpdatePreviewModal({
               <p className="mt-1 text-xs text-ink-muted">Así verá el cliente la notificación de {projectName}.</p>
             </div>
           </div>
-          <article className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7">
+          <article className="rounded-bojana-widget border border-line bg-white p-5 shadow-sm sm:p-7">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-faint">{actionLabel(action)}</p>
@@ -81,7 +81,7 @@ export default function ClientUpdatePreviewModal({
 
             {resources.length > 0 && <div className="mt-4 space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-faint">Links y recursos</p>{resources.map(resource => <a key={resource} href={resource} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-xl border border-line bg-stone/40 px-3 py-2 text-sm text-forest underline-offset-2 hover:underline"><ExternalLink className="size-4 shrink-0" /> <span className="truncate">{resource}</span></a>)}</div>}
 
-            {options.length > 0 && <div className="mt-5 space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-faint">Opciones para aprobar</p><div className="grid gap-3 sm:grid-cols-2">{options.map((option, index) => <div key={option.id} className="overflow-hidden rounded-2xl border border-line bg-stone/40">{option.imagenUrl && <img src={option.imagenUrl} alt="" className="max-h-40 w-full object-cover" />}<div className="p-3"><p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-faint">Opción {String.fromCharCode(65 + index)}</p><p className="mt-1 font-semibold text-ink">{option.titulo || `Opción ${String.fromCharCode(65 + index)}`}</p>{option.descripcion && <p className="mt-1 text-sm text-ink-muted">{option.descripcion}</p>}</div></div>)}</div></div>}
+            {options.length > 0 && <div className="mt-5 space-y-2"><p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-faint">Opciones para aprobar</p><div className="grid gap-3 sm:grid-cols-2">{options.map((option, index) => <div key={option.id} className="overflow-hidden rounded-bojana-widget border border-line bg-stone/40">{option.imagenUrl && <img src={option.imagenUrl} alt="" className="max-h-40 w-full object-cover" />}<div className="p-3"><p className="text-xs font-semibold uppercase tracking-[0.1em] text-ink-faint">Opción {String.fromCharCode(65 + index)}</p><p className="mt-1 font-semibold text-ink">{option.titulo || `Opción ${String.fromCharCode(65 + index)}`}</p>{option.descripcion && <p className="mt-1 text-sm text-ink-muted">{option.descripcion}</p>}</div></div>)}</div></div>}
 
             <div className="mt-6 flex flex-wrap gap-2 border-t border-line pt-5">
               {action === 'revision' && <Button variant="secondary"><Check className="size-4" /> Aprobar</Button>}

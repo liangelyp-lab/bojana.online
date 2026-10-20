@@ -1,7 +1,7 @@
 import React from 'react';
 import { ProjectData } from '../../types';
 import { getEffectiveProgress, getProjectStatusLabel } from '../../services/storageService';
-import { Badge, Button, EmptyState, PageHeader, StatusBadge } from '../ui';
+import { Card, Badge, Button, EmptyState, PageHeader, StatusBadge } from '../ui';
 import {
   Plus,
   FolderKanban
@@ -156,11 +156,7 @@ export default function StudioDashboard({
               const updateDate = p.info?.ultimaActualizacion || 'Reciente';
 
               return (
-                <div
-                  key={p.id}
-                  onClick={() => onSelectProject(p.id)}
-                  className="bojana-interactive-hover group flex flex-col justify-between rounded-3xl border border-line bg-white p-7 shadow-sm cursor-pointer space-y-6"
-                >
+                <Card key={p.id} elevation="hover" onClick={() => onSelectProject(p.id)} tabIndex={0} role="group" onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelectProject(p.id); } }} aria-label={`Abrir proyecto ${title}`} className="group flex flex-col justify-between cursor-pointer space-y-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between text-xs">
                       <StatusBadge tone={statusTone} size="s">{status}</StatusBadge>
@@ -183,7 +179,7 @@ export default function StudioDashboard({
                   <div className="flex items-center justify-between border-t border-line pt-4 text-xs text-ink-muted">
                     <span>Actualizado {updateDate}</span>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
@@ -202,12 +198,12 @@ export default function StudioDashboard({
         </div>
 
         {recentActivities.length === 0 ? (
-          <div className="rounded-3xl border border-line bg-white p-10 text-center text-xs text-ink-muted">
+          <div className="rounded-bojana-widget border border-line bg-white p-10 text-center text-xs text-ink-muted">
             <FolderKanban className="size-8 mx-auto text-ink-faint opacity-50 mb-2" />
             No hay actividad reciente registrada en los proyectos existentes.
           </div>
         ) : (
-          <div className="overflow-hidden rounded-3xl border border-line bg-white shadow-sm divide-y divide-line">
+          <div className="overflow-hidden rounded-bojana-widget border border-line bg-white shadow-sm divide-y divide-line">
             {recentActivities.map((act) => (
               <div
                 key={act.id}

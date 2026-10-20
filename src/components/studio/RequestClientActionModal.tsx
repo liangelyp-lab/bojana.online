@@ -15,7 +15,7 @@ import {
   Calendar,
   ExternalLink
 } from 'lucide-react';
-import { StatusBadge, Button, Checkbox, InputControl, Tabs, TextAreaControl } from '../ui/DesignSystem';
+import { ModalFooter, ModalHeader, Modal, SelectControl, StatusBadge, Button, Checkbox, InputControl, Tabs, TextAreaControl } from '../ui/DesignSystem';
 import { createSecureProjectLink } from '../../services/projectAccess';
 
 interface RequestClientActionModalProps {
@@ -94,14 +94,6 @@ export default function RequestClientActionModal({
 }: RequestClientActionModalProps) {
   const existing = task.accionCliente;
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [isOpen, onClose]);
 
   const [activeTab, setActiveTab] = useState<'config' | 'email_preview'>('config');
   const updateTipo = prefill?.accion === 'solicitud_informacion'
@@ -241,31 +233,10 @@ export default function RequestClientActionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-bojana-ink/60 backdrop-blur-xs animate-fade-in font-sans" onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div
-        className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-3xl border border-line bg-canvas shadow-2xl overflow-hidden animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <>
+    <Modal open={isOpen} onClose={onClose} title="Solicitar acción al cliente" customContent maxWidth="max-w-2xl" panelClassName="flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="p-6 border-b border-line flex items-start justify-between gap-4 bg-white/70 backdrop-blur-sm">
-          <div className="space-y-bojana-inside">
-            <h2 className="font-display text-2xl sm:text-3xl font-normal text-ink">
-              {emailConfig.modalTitle}
-            </h2>
-            <p className="text-xs text-bojana-muted font-sans">
-              La tarea pasará a estado &ldquo;Esperando al cliente&rdquo; sin romper el flujo ni computar avance falso.
-            </p>
-          </div>
-
-          <Button variant="icon"
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar modal"
-            className="bojana-icon-button"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
+        <ModalHeader onClose={onClose} title={emailConfig.modalTitle} />
 
         {/* Tab selection */}
         <Tabs
@@ -278,7 +249,7 @@ export default function RequestClientActionModal({
         />
 
         {/* Body content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-bojana-block bg-bojana-surface/20 text-xs font-sans">
+        <div className="bojana-modal-scroll-body p-6 space-y-bojana-block bg-bojana-surface/20 text-xs font-sans">
 
           {activeTab === 'config' ? (
             <div className="space-y-bojana-block animate-fade-in">
@@ -493,10 +464,10 @@ export default function RequestClientActionModal({
                 {(task.subetapas || []).length > 0 && (
                   <label className="block border-t border-bojana-line pt-3 text-bojana-muted">
                     <span className="mb-1 block font-medium text-bojana-ink">Etapa que se completa al recibir respuesta</span>
-                    <select className="bojana-control w-full bg-bojana-surface text-xs" value={subetapaId} onChange={(event) => setSubetapaId(event.target.value)}>
+                    <SelectControl className="text-xs" value={subetapaId} onChange={(event) => setSubetapaId(event.target.value)}>
                       <option value="">No modifica una etapa</option>
                       {task.subetapas?.map((stage) => <option key={stage.id} value={stage.id}>{stage.label}</option>)}
-                    </select>
+                    </SelectControl>
                   </label>
                 )}
 
@@ -584,7 +555,7 @@ export default function RequestClientActionModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-5 border-t border-bojana-line bg-bojana-surface flex flex-col sm:flex-row items-center justify-between gap-3">
+        <ModalFooter>
           {sendError && <p role="alert" className="w-full text-xs text-bojana-error sm:absolute sm:bottom-20 sm:left-5">{sendError}</p>}
           <Button variant="tertiary"
             type="button"
@@ -616,15 +587,15 @@ export default function RequestClientActionModal({
                 </>
               ) : (
                 <>
-                  <Send className="w-3.5 h-3.5 text-bojana-ink" />
+                  <Send className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>Publicar y enviar email</span>
                 </>
               )}
             </Button>
           </div>
-        </div>
+        </ModalFooter>
 
-      </div>
-    </div>
+    </Modal>
+    </>
   );
 }

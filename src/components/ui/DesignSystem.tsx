@@ -1,3 +1,4 @@
+import BrandLogo from './BrandLogo';
 import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, LoaderCircle, ChevronDown, ChevronUp, Search, Bell, ArrowLeft, ArrowLeftRight, Check, Clock3, Circle, CircleAlert, Eye, LucideIcon } from 'lucide-react';
@@ -5,12 +6,7 @@ import { DecisionStatus, EstadoEtapa } from '../../types';
 import { taskStateLabel } from '../../design/status';
 
 export function Brand({ compact = false }: { compact?: boolean }) {
-  return (
-    <span className="bojana-brand">
-      <span className="bojana-brand-mark" aria-hidden="true">BE</span>
-      {!compact && <span>Bojana Estudio</span>}
-    </span>
-  );
+  return <BrandLogo className={compact ? 'h-7 w-auto' : 'h-10 w-auto'} />;
 }
 
 export type ButtonVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'icon' | 'link';
@@ -62,7 +58,7 @@ export function Button({
   const [tooltipOpen, setTooltipOpen] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<React.CSSProperties>({});
   const variants = {
-    primary: 'bg-forest text-white hover:bg-[#1c2b24] shadow-sm active:scale-[0.98] focus-visible:ring-forest/30',
+    primary: 'bg-forest text-white hover:bg-primary-hover shadow-sm active:scale-[0.98] focus-visible:ring-forest/30',
     secondary: 'border border-line bg-white text-ink hover:border-line-strong hover:bg-stone active:scale-[0.98] focus-visible:ring-forest/30',
     tertiary: 'text-ink-muted hover:bg-stone hover:text-ink active:scale-[0.98] focus-visible:ring-forest/30',
     danger: 'border border-clay/30 bg-clay-pale text-clay-dark hover:bg-clay hover:text-white active:scale-[0.98] focus-visible:ring-clay/30',
@@ -225,23 +221,62 @@ export function Badge({
   return <StatusBadge tone={tone} size="s" showDot={false} className={className}>{children}</StatusBadge>;
 }
 
-export function Card({
-  children,
-  variant = 'default',
-  className = ''
-}: {
-  children: React.ReactNode;
+export type CardProps = React.HTMLAttributes<HTMLElement> & {
+  as?: 'div' | 'article' | 'section';
   variant?: 'default' | 'soft' | 'waiting' | 'dark';
-  className?: string;
-}) {
+  padding?: 'none' | 'compact' | 'default';
+  elevation?: 'none' | 'raised' | 'hover';
+  selected?: boolean;
+  expandable?: boolean;
+  headerDensity?: 'default' | 'compact';
+  header?: React.ReactNode;
+  headerActions?: React.ReactNode;
+  expanded?: boolean;
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  expandLabel?: string;
+};
+
+export function Card({ children, as: Component = 'div', variant = 'default', padding = 'default', elevation = 'none', selected = false, expandable = false, headerDensity = 'default', header, headerActions, expanded, defaultExpanded = true, onExpandedChange, expandLabel = 'contenido', className = '', ...props }: CardProps) {
+  const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
+  const contentId = useId();
+  const isExpanded = expanded ?? internalExpanded;
+  const toggle = () => { const next = !isExpanded; if (expanded === undefined) setInternalExpanded(next); onExpandedChange?.(next); };
   const variants = {
     default: 'border-line bg-white text-ink',
     soft: 'border-line bg-stone/60 text-ink',
     waiting: 'border-clay/30 bg-clay-pale text-ink',
     dark: 'border-white/10 bg-forest text-white'
   };
+  const paddings = { none: 'p-0', compact: 'p-4', default: 'p-6' };
+  const elevations = { none: 'shadow-none', raised: 'shadow-bojana-sm', hover: 'shadow-bojana-sm transition hover:border-line-strong hover:shadow-bojana-md' };
+  return <Component {...props} className={`bojana-card border ${paddings[expandable ? 'none' : padding]} ${variants[variant]} ${elevations[elevation]} ${selected ? 'bojana-card-selected' : ''} ${expandable ? 'bojana-card-expandable' : ''} ${headerDensity === 'compact' ? 'bojana-card-compact-header' : ''} ${className}`}>
+    {expandable ? <>
+      <div className={`bojana-card-header ${isExpanded ? 'bojana-card-header-open' : ''}`}>
+        <button type="button" className="bojana-card-toggle" onClick={toggle} aria-expanded={isExpanded} aria-controls={contentId} aria-label={`${isExpanded ? 'Contraer' : 'Expandir'} ${expandLabel}`}>
+          <span className="min-w-0 flex-1 text-left">{header}</span>
+          {isExpanded ? <ChevronUp className="size-4 shrink-0" aria-hidden="true" /> : <ChevronDown className="size-4 shrink-0" aria-hidden="true" />}
+        </button>
+        {headerActions && <div className="bojana-card-header-actions">{headerActions}</div>}
+      </div>
+      <div id={contentId} hidden={!isExpanded} className={paddings[padding]}>{isExpanded && children}</div>
+    </> : children}
+  </Component>;
+}
 
-  return <div className={`bojana-card rounded-3xl border p-6 ${variants[variant]} ${className}`}>{children}</div>;
+/** A card whose entire surface selects an item; never nest interactive controls. */
+export function SelectionCard({ selected = false, children, className = '', type = 'button', ...props }: React.ButtonHTMLAttributes<HTMLButtonElement> & { selected?: boolean }) {
+  return <button {...props} type={type} aria-pressed={selected} className={`bojana-card bojana-selection-card ${selected ? 'bojana-card-selected' : ''} ${className}`}>{children}</button>;
+}
+
+export function MetricCard({ label, value, detail, variant = 'default' }: { label: string; value: React.ReactNode; detail?: React.ReactNode; variant?: 'default' | 'waiting' }) {
+  return <Card variant={variant} padding="compact" className="min-w-0">
+    <p className="text-xs font-medium leading-5 text-ink-muted">{label}</p>
+    <div className="mt-3 flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
+      <p className="font-display text-3xl leading-none text-ink">{value}</p>
+      {detail && <p className={`min-w-0 break-words text-xs leading-4 ${variant === 'waiting' ? 'font-semibold text-clay-dark' : 'text-ink-faint'}`}>{detail}</p>}
+    </div>
+  </Card>;
 }
 
 export function PageHeader({
@@ -279,17 +314,45 @@ export function PageHeader({
   );
 }
 
-export function Field({
-  label,
-  className = '',
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement> & { label?: string }) {
-  return (
-    <label className="block">
-      {label && <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{label}</span>}
-      <input {...props} className={`bojana-control ${className}`} />
-    </label>
-  );
+type FieldPresentation = {
+  label?: string;
+  leading?: React.ReactNode;
+  trailing?: React.ReactNode;
+  density?: 'default' | 'comfortable' | 'compact';
+  error?: string;
+  validateOnInvalid?: boolean;
+};
+function FieldLabel({ label, htmlFor, required }: { label: string; htmlFor: string; required?: boolean }) {
+  return <label htmlFor={htmlFor} className="bojana-field-label">{label}{required && <span aria-hidden="true"> *</span>}</label>;
+}
+
+const fieldDensity = { default: '', comfortable: 'px-3.5 py-2.5 text-xs', compact: 'px-3 py-1.5 text-xs' };
+
+export function Field({ label, leading, trailing, density = 'default', error, validateOnInvalid = false, onInvalid, onChange, className = '', id, ...props }: React.InputHTMLAttributes<HTMLInputElement> & FieldPresentation) {
+  const validation = useFieldValidation<HTMLInputElement>(validateOnInvalid, error, onInvalid, onChange);
+  error = validation.message;
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const errorId = `${inputId}-error`;
+  const describedBy = [props['aria-describedby'], error ? errorId : undefined].filter(Boolean).join(' ') || undefined;
+  const input = <InputControl {...props} onInvalid={validation.invalid} onChange={validation.change} id={inputId} aria-invalid={error ? true : props['aria-invalid']} aria-describedby={describedBy} className={`${leading || trailing ? 'bojana-adorned-input' : fieldDensity[density]} ${className}`} />;
+  return <div className="space-y-1.5">
+    {label && <FieldLabel label={label} htmlFor={inputId} required={props.required} />}
+    {leading || trailing ? <div className="bojana-control bojana-adorned-field"><span className="shrink-0 text-ink-faint" aria-hidden="true">{leading}</span>{input}{trailing}</div> : input}
+    {error && <p id={errorId} role="alert" className="text-xs text-bojana-error">{error}</p>}
+  </div>;
+}
+
+function useFieldValidation<T extends HTMLInputElement | HTMLTextAreaElement>(enabled: boolean, error: string | undefined, onInvalid?: (event: React.InvalidEvent<T>) => void, onChange?: React.ChangeEventHandler<T>) {
+  const [nativeError, setNativeError] = useState('');
+  return {
+    message: error || (enabled ? nativeError : ''),
+    invalid: (event: React.InvalidEvent<T>) => {
+      if (enabled) { event.preventDefault(); setNativeError(event.currentTarget.validationMessage); }
+      onInvalid?.(event);
+    },
+    change: (event: React.ChangeEvent<T>) => { setNativeError(''); onChange?.(event); },
+  };
 }
 
 export function InputControl({ className = '', ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
@@ -309,20 +372,21 @@ export function SearchInput({ className = '', size = 'm', ...props }: Omit<React
   </div>;
 }
 
-export function TextAreaControl({ className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function TextAreaControl({ className = '', ...props }: React.ComponentPropsWithRef<'textarea'>) {
   return <textarea {...props} className={`bojana-control min-h-24 resize-y ${className}`} />;
 }
 
 export function SelectControl({ className = '', children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
-  return <div className="relative"><select {...props} className={`bojana-control appearance-none pr-9 ${className}`}>{children}</select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" /></div>;
+  return <span className="relative block"><select {...props} className={`bojana-control appearance-none pr-9 ${className}`}>{children}</select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" /></span>;
 }
 
-export function TextArea({
-  label,
-  autoGrow = false,
-  className = '',
-  ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label?: string; autoGrow?: boolean }) {
+export function TextArea({ label, autoGrow = false, density = 'default', error, validateOnInvalid = false, onInvalid, onChange, id, className = '', ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & Omit<FieldPresentation, 'leading' | 'trailing'> & { autoGrow?: boolean }) {
+  const validation = useFieldValidation<HTMLTextAreaElement>(validateOnInvalid, error, onInvalid, onChange);
+  error = validation.message;
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  const errorId = `${inputId}-error`;
+  const describedBy = [props['aria-describedby'], error ? errorId : undefined].filter(Boolean).join(' ') || undefined;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const resize = () => {
     if (!autoGrow || !textareaRef.current) return;
@@ -330,26 +394,20 @@ export function TextArea({
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
   useEffect(resize, [autoGrow, props.value]);
-  return (
-    <label className="block">
-      {label && <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{label}</span>}
-      <textarea {...props} ref={autoGrow ? textareaRef : undefined} onInput={event => { resize(); props.onInput?.(event); }} className={`bojana-control min-h-24 resize-y ${className}`} />
-    </label>
-  );
+  return <div className="space-y-1.5">
+    {label && <FieldLabel label={label} htmlFor={inputId} required={props.required} />}
+    <TextAreaControl {...props} id={inputId} ref={autoGrow ? textareaRef : undefined} onInvalid={validation.invalid} onChange={validation.change} aria-invalid={error ? true : props['aria-invalid']} aria-describedby={describedBy} onInput={event => { resize(); props.onInput?.(event); }} className={`${fieldDensity[density]} ${className}`} />
+    {error && <p id={errorId} role="alert" className="text-xs text-bojana-error">{error}</p>}
+  </div>;
 }
 
-export function Select({
-  label,
-  className = '',
-  children,
-  ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }) {
-  return (
-    <label className="block">
-      {label && <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{label}</span>}
-      <span className="relative block"><select {...props} className={`bojana-control appearance-none pr-9 ${className}`}>{children}</select><ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-ink-faint" /></span>
-    </label>
-  );
+export function Select({ label, className = '', children, id, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { label?: string }) {
+  const generatedId = useId();
+  const inputId = id || generatedId;
+  return <div className="space-y-1.5">
+    {label && <FieldLabel label={label} htmlFor={inputId} required={props.required} />}
+    <SelectControl {...props} id={inputId} className={className}>{children}</SelectControl>
+  </div>;
 }
 
 export function Spinner({ label = 'Guardando…' }: { label?: string }) {
@@ -462,7 +520,7 @@ export function StatusBadge({
       className={`inline-flex items-center rounded-full ${filled || stateTone === 'danger' ? '' : borderWidths[size]} font-semibold transition-colors ${contentClasses} ${colorClasses} ${className}`}
     >
       {Icon ? <Icon size={buttonIconPixels[size]} aria-hidden="true" /> : showDot && <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />}
-      {!iconOnly && <span>{children ?? label}</span>}
+      {!iconOnly && <span className="inline-flex items-center gap-1.5">{children ?? label}</span>}
     </span>
   );
 }
@@ -483,7 +541,7 @@ export function EmptyState({
   };
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-3xl border border-line bg-white p-12 text-center shadow-sm space-y-4 animate-fade-in">
+    <div className="flex flex-col items-center justify-center rounded-bojana-widget border border-line bg-white p-12 text-center shadow-sm space-y-4 animate-fade-in">
       {Icon && (
         <div className="flex size-14 items-center justify-center rounded-2xl bg-stone text-ink-muted">
           <Icon className="size-7 opacity-80" />
@@ -610,11 +668,11 @@ export function Drawer({
   useEffect(() => {
     if (!open) return;
     const previous = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const releaseScroll = lockModalScroll();
     panel.current?.querySelector<HTMLElement>('button')?.focus();
 
     const key = (e: KeyboardEvent) => {
+      if (modalStack.length) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         closeRef.current();
@@ -638,7 +696,7 @@ export function Drawer({
 
     document.addEventListener('keydown', key);
     return () => {
-      document.body.style.overflow = overflow;
+      releaseScroll();
       document.removeEventListener('keydown', key);
       previous?.focus();
     };
@@ -674,18 +732,44 @@ export function Drawer({
   );
 }
 
+export function ModalHeader({ title, onClose, id }: { title: React.ReactNode; onClose?: () => void; id?: string }) {
+  return <header className="bojana-modal-header"><div className="min-w-0"><h2 id={id} className="bojana-heading-section">{title}</h2></div>{onClose && <Button type="button" variant="icon" size="xs" onClick={onClose} ariaLabel="Cerrar modal"><X aria-hidden="true" /></Button>}</header>;
+}
+export function ModalFooter({ children }: { children: React.ReactNode }) {
+  return <footer className="bojana-modal-footer">{children}</footer>;
+}
+
+// A stack prevents Escape in a nested preview from closing its parent dialog.
+const modalStack: Array<HTMLDivElement | null> = [];
+let modalScrollLocks = 0;
+let modalPreviousOverflow = '';
+function lockModalScroll() {
+  if (modalScrollLocks++ === 0) { modalPreviousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden'; }
+  return () => { if (--modalScrollLocks === 0) document.body.style.overflow = modalPreviousOverflow; };
+}
+
 export function Modal({
   open,
   title,
   onClose,
   maxWidth = 'max-w-xl',
-  children
+  children,
+  customContent = false,
+  panelClassName = '',
+  initialFocus,
+  fullscreen = false,
+  footer
 }: {
   open: boolean;
   title: string;
   onClose: () => void;
   maxWidth?: string;
   children: React.ReactNode;
+  customContent?: boolean;
+  panelClassName?: string;
+  initialFocus?: string;
+  fullscreen?: boolean;
+  footer?: React.ReactNode;
 }) {
   const modalRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -694,11 +778,14 @@ export function Modal({
 
   useEffect(() => {
     if (!open) return;
+    const dialog = modalRef.current;
     const previous = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    modalRef.current?.querySelector<HTMLElement>('button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])')?.focus();
+    const releaseScroll = lockModalScroll();
+    modalStack.push(dialog);
+    const firstFocus = modalRef.current?.querySelector<HTMLElement>(initialFocus || 'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])');
+    (firstFocus || dialog)?.focus();
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (modalStack.at(-1) !== dialog) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         closeRef.current();
@@ -709,7 +796,7 @@ export function Modal({
         .filter((element) => element.getClientRects().length > 0);
       const first = focusable[0];
       const last = focusable.at(-1);
-      if (!first || !last) return;
+      if (!first || !last) { e.preventDefault(); dialog?.focus(); return; }
       if (e.shiftKey && document.activeElement === first) {
         e.preventDefault();
         last.focus();
@@ -720,7 +807,9 @@ export function Modal({
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = overflow;
+      const index = modalStack.indexOf(dialog);
+      if (index >= 0) modalStack.splice(index, 1);
+      releaseScroll();
       document.removeEventListener('keydown', handleKeyDown);
       previous?.focus();
     };
@@ -729,22 +818,21 @@ export function Modal({
   if (!open) return null;
 
   return (
-    <div className="bojana-overlay" onClick={onClose}>
+    <div className={`bojana-overlay ${fullscreen ? 'bojana-overlay-fullscreen' : ''}`} onClick={event => { if (event.target === event.currentTarget) closeRef.current(); }}>
       <div
         ref={modalRef}
-        className={`bojana-modal ${maxWidth} border border-line bg-canvas p-6 shadow-xl relative animate-fade-in`}
+        tabIndex={-1}
+        className={`bojana-modal ${maxWidth} ${fullscreen ? 'bojana-modal-fullscreen' : ''}  ${panelClassName}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-labelledby={titleId}
+        aria-labelledby={customContent ? undefined : titleId}
+        aria-label={customContent ? title : undefined}
       >
-        <div className="flex items-center justify-between border-b border-line pb-4 mb-5">
-          <h3 id={titleId} className="font-display text-xl text-ink">{title}</h3>
-          <Button type="button" variant="icon" onClick={onClose} ariaLabel="Cerrar modal">
-            <X className="size-4" />
-          </Button>
-        </div>
-        {children}
+        {!customContent && <ModalHeader title={title} onClose={onClose} id={titleId} />}
+        {customContent ? children : <div className="bojana-modal-body">{children}</div>}
+        {footer && <ModalFooter>{footer}</ModalFooter>}
+
       </div>
     </div>
   );
@@ -962,7 +1050,7 @@ export function StatusBar({
       {action}
       </div>
       {mode === 'granular' && showLabels && segments.length > 0 && <div className="flex w-full flex-wrap gap-y-1">
-        {(expanded ? [expanded] : segments).map(segment => <button key={segment.id} type="button" onClick={() => handleSegmentClick(segment.id)} onMouseEnter={() => onSegmentHover?.(segment.id)} onMouseLeave={() => onSegmentHover?.(null)} className={`min-w-0 flex-none whitespace-normal break-words px-1 text-center leading-4 transition ${expanded ? `text-xs font-bold ${colorClasses.text}` : `text-[11px] font-semibold ${activeSegment === segment.id ? colorClasses.text : 'text-ink'}`}`} style={{ width: `${expanded ? 100 : Math.max(0, segment.weight)}%` }}>{segment.label}</button>)}
+        {(expanded ? [expanded] : segments).map(segment => <button key={segment.id} type="button" title={segment.label} onClick={() => handleSegmentClick(segment.id)} onMouseEnter={() => onSegmentHover?.(segment.id)} onMouseLeave={() => onSegmentHover?.(null)} className={`min-w-0 flex-none overflow-hidden text-ellipsis whitespace-nowrap px-1 text-center leading-4 transition ${expanded ? `text-xs font-bold ${colorClasses.text}` : `text-[11px] font-semibold ${activeSegment === segment.id ? colorClasses.text : 'text-ink'}`}`} style={{ width: `${expanded ? 100 : Math.max(0, segment.weight)}%` }}>{segment.label}</button>)}
       </div>}
       </div>
     </div>

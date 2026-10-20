@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { Button, Modal } from './DesignSystem';
+import { ModalFooter, Button, Modal, TextAreaControl } from './DesignSystem';
 
 interface ManualCopyDialogProps {
   title: string;
@@ -25,17 +25,17 @@ export default function ManualCopyDialog({ title, url, onClose }: ManualCopyDial
           El navegador bloqueó la copia automática. Seleccioná el enlace y copiá con ⌘C/Ctrl+C, o abrilo directamente.
         </p>
 
-        <textarea
+        <TextAreaControl
           ref={inputRef}
           value={url}
           readOnly
           rows={3}
           aria-label="Enlace de acceso directo"
           onFocus={(event) => event.currentTarget.select()}
-          className="w-full resize-none rounded-2xl border border-line bg-white p-3 text-sm text-ink outline-none focus:border-forest focus:ring-2 focus:ring-forest/20"
+          className="resize-none"
         />
 
-        <div className="flex flex-col-reverse items-stretch justify-end gap-3 sm:flex-row sm:items-center">
+        <ModalFooter>
           <Button
             type="button"
             variant="secondary"
@@ -55,7 +55,7 @@ export default function ManualCopyDialog({ title, url, onClose }: ManualCopyDial
             Abrir enlace
             <ExternalLink className="size-3.5" />
           </a>
-        </div>
+        </ModalFooter>
       </div>
     </Modal>
   );

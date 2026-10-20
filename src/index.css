@@ -1,64 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400;1,6..72,500&display=swap");
+@import "./brand/theme.css";
 @import "tailwindcss";
 
 /* ─── Design Tokens ─────────────────────────────────────────────────── */
 @theme {
-  /* Typography */
-  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
-  --font-display: "Newsreader", Georgia, serif;
-
-  /* Palette — Canvas & Surfaces */
-  --color-canvas:        #f7f6f2;
-  --color-canvas-light:  #fbfaf9;
-  --color-white:         #ffffff;
-  --color-stone:         #edece6;
-  --color-line:          #deddd6;
-  --color-line-strong:   #b8b7ab;
-
-  /* Palette — Ink / Text (Calibrated for WCAG AA/AAA Contrast on Canvas & White) */
-  --color-ink:           #1a1f19;
-  --color-ink-soft:      #2c342b;
-  --color-ink-muted:     #4d574c;
-  --color-ink-faint:     #636f62;
-
-  /* Palette — Brand accents & State Badges (High Contrast) */
-  --color-forest:        #3a3a3a;
-  --color-clay:          #a8472f;
-  --color-clay-dark:     #7a2612;
-  --color-clay-pale:     #f8ebe6;
-  --color-clay-surface:   #fdf5f2;
-  --color-sand:          #ded2bd;
-  --color-sand-strong:   #6e5220;
-  --color-sage:          #9eb5a4;
-  --color-sage-pale:     #eef3ef;
-  --color-stone-surface:  #f8f8f5;
-  --color-mint:          #8ab99c;
-  --color-mint-pale:     #e4efe7;
-  --color-mint-surface:   #f3f8f4;
-  --color-mint-strong:   #3d7a55;
-
-  /* Estados — advertencia / mostaza */
-  --color-warning-pale:   #f7efd9;
-  --color-warning-surface:#fcf8ed;
-  --color-warning:        #d4a853;
-  --color-warning-strong: #6e5220;
-
-  /* Bojana semantic color tokens - Harmonized with Refine Architectural Studio Palette */
-  --color-bojana-canvas:     var(--color-canvas);
-  --color-bojana-surface:    #ffffff;
-  --color-bojana-soft:       var(--color-stone);
-  --color-bojana-ink:        var(--color-ink);
-  --color-bojana-muted:      var(--color-ink-muted);
-  --color-bojana-line:       var(--color-line);
-  --color-bojana-line-strong:var(--color-line-strong);
-  --color-bojana-primary:    var(--color-forest);
-  --color-bojana-inverse:    #ffffff;
-  --color-bojana-success:    var(--color-forest);
-  --color-bojana-waiting:    var(--color-clay-pale);
-  --color-bojana-error:      var(--color-clay-dark);
-  --color-bojana-discipline: var(--color-ink);
-  --color-bojana-focus:      rgba(58, 58, 58, 0.12);
-
   /* Bojana border radii - Refine aesthetic */
   --radius-bojana-editorial: 0.75rem;
   --radius-bojana-widget:    1rem;
@@ -72,10 +16,10 @@
   --shadow-bojana-xs:      0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-bojana-sm:      0 1px 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04);
   --shadow-bojana-md:      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-bojana-lg:      0 1.5rem 4rem rgb(31 42 35 / 0.15);
-  --shadow-bojana-base:    0 1.5rem 4rem rgb(31 42 35 / 0.08);
+  --shadow-bojana-lg:      0 1.5rem 4rem color-mix(in srgb, var(--color-ink) 15%, transparent);
+  --shadow-bojana-base:    0 1.5rem 4rem color-mix(in srgb, var(--color-ink) 8%, transparent);
   --shadow-bojana-widget:  0 1px 3px 0 rgb(0 0 0 / 0.04);
-  --shadow-bojana-overlay: 0 1.5rem 4rem rgb(31 42 35 / 0.15);
+  --shadow-bojana-overlay: 0 1.5rem 4rem color-mix(in srgb, var(--color-ink) 15%, transparent);
 
   /* Bojana spacing scale */
   --spacing-bojana-block:  1rem;
@@ -97,12 +41,12 @@
   --spacing-hero:    29rem;
   --spacing-image:   23rem;
   --spacing-progress: 42%;
-  --shadow-card:     0 1.5rem 4rem rgb(31 42 35 / 0.1);
+  --shadow-card:     0 1.5rem 4rem color-mix(in srgb, var(--color-ink) 10%, transparent);
 }
 
 /* ─── CSS Custom Properties (for non-Tailwind use) ─────────────────── */
 :root {
-  --bojana-gradient: linear-gradient(135deg, #2d6a4f 0%, #4a9970 50%, #d4a853 100%);
+  --bojana-gradient: linear-gradient(135deg, var(--color-forest) 0%, var(--color-mint-strong) 50%, var(--color-warning) 100%);
   --bojana-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -223,9 +167,9 @@
   .focused-notification-task {
     border-color: var(--color-ink) !important;
     background: var(--color-stone) !important;
-    outline: 3px solid rgb(168 71 47 / 0.55) !important;
+    outline: 3px solid color-mix(in srgb, var(--color-clay) 55%, transparent) !important;
     outline-offset: 4px;
-    box-shadow: 0 0 0 3px rgb(26 31 25 / 0.12), 0 1rem 2rem rgb(26 31 25 / 0.12) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-ink) 12%, transparent), 0 1rem 2rem color-mix(in srgb, var(--color-ink) 12%, transparent) !important;
   }
 
   /* ── Typography ─────────────────────────────────────── */
@@ -367,17 +311,17 @@
 
   .bojana-button-primary {
     background: var(--color-forest);
-    color: #ffffff;
+    color: var(--color-white);
     border-color: var(--color-forest);
   }
 
   .bojana-button-primary:hover:not(:disabled) {
-    background: #1c2b24;
-    border-color: #1c2b24;
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
   }
 
   .bojana-button-secondary {
-    background: #ffffff;
+    background: var(--color-white);
     color: var(--color-ink);
     border-color: var(--color-line);
   }
@@ -395,7 +339,7 @@
 
   .bojana-button-danger:hover:not(:disabled) {
     background: var(--color-clay);
-    color: #ffffff;
+    color: var(--color-white);
   }
 
   .bojana-button-text {
@@ -444,7 +388,7 @@
   }
 
   .bojana-interactive-hover:hover,
-  .bojana-discipline-card:has(> .bojana-discipline-header:hover) {
+  .bojana-discipline-card:has(> .bojana-card-header:hover) {
     position: relative;
     z-index: 1;
     border-color: var(--color-line-strong) !important;
@@ -554,6 +498,17 @@
     gap: 0.375rem;
   }
 
+  .bojana-field-label {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: normal;
+    text-transform: none;
+    color: var(--color-bojana-muted);
+  }
+
   .bojana-control {
     display: block;
     width: 100%;
@@ -567,6 +522,28 @@
     line-height: 1.5;
     outline: none;
     transition: border-color var(--bojana-transition), box-shadow var(--bojana-transition);
+  }
+
+  .bojana-adorned-field {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 3rem;
+    padding: 0 1rem;
+  }
+  .bojana-adorned-field:focus-within {
+    border-color: var(--color-bojana-primary);
+    box-shadow: 0 0 0 2px var(--color-bojana-focus);
+  }
+  .bojana-adorned-field > .bojana-adorned-input {
+    min-width: 0;
+    flex: 1;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    padding: 0.75rem 0;
+    font-size: 0.875rem;
+    box-shadow: none;
   }
 
   .bojana-control:focus {
@@ -589,7 +566,7 @@
 
   .bojana-control[aria-invalid="true"] {
     border-color: var(--color-clay);
-    box-shadow: 0 0 0 2px rgb(168 71 47 / 0.14);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-clay) 14%, transparent);
   }
 
   /* ── Cards / Widgets ─────────────────────────────────── */
@@ -603,6 +580,55 @@
   .bojana-card {
     border-radius: var(--radius-bojana-widget);
     box-shadow: var(--shadow-bojana-widget);
+  }
+
+  .bojana-card-expandable { overflow: hidden; }
+  .bojana-card-header { display: flex; align-items: center; gap: 0.75rem; }
+  .bojana-card-header-open { border-bottom: 1px solid var(--color-bojana-line); }
+  .bojana-card-toggle {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 1.25rem 1.5rem;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    line-height: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .bojana-card-compact-header .bojana-card-toggle { padding: 0.75rem 1rem; }
+  .bojana-card-compact-header .bojana-card-header-actions { padding-right: 1rem; }
+  .bojana-card-toggle:hover { background: var(--color-canvas-light); }
+  .bojana-card-toggle:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: -3px; }
+  .bojana-card-header-actions { display: flex; flex-shrink: 0; align-items: center; gap: 0.75rem; padding-right: 1.25rem; }
+
+  .bojana-selection-card {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem;
+    border: 1px solid var(--color-bojana-line);
+    background: var(--color-bojana-surface);
+    color: var(--color-bojana-ink);
+    text-align: left;
+    transition: border-color var(--bojana-transition), box-shadow var(--bojana-transition);
+  }
+  .bojana-selection-card:hover:not(:disabled) { border-color: var(--color-bojana-line-strong); box-shadow: var(--shadow-bojana-md); }
+  .bojana-selection-card:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: 3px; }
+  .bojana-selection-card:disabled { opacity: 0.45; cursor: not-allowed; }
+  .bojana-card-selected {
+    border-color: var(--color-bojana-primary);
+    background: color-mix(in srgb, var(--color-mint-pale) 30%, var(--color-bojana-surface));
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-bojana-primary) 20%, transparent);
   }
 
   /* ── Skeleton ────────────────────────────────────────── */
@@ -691,6 +717,10 @@
   .bojana-studio-tabs::-webkit-scrollbar { display: none; }
 
   .bojana-project-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     position: relative;
     flex-shrink: 0;
     min-height: 0;
@@ -708,7 +738,12 @@
   }
   .bojana-project-tab:hover:not([aria-selected="true"]) { color: var(--color-bojana-ink); background: var(--color-bojana-soft); }
   .bojana-project-tab[aria-selected="true"] { color: var(--color-bojana-ink); border-bottom-color: var(--color-bojana-primary); }
-  .bojana-project-tab:focus-visible { outline: 2px solid var(--color-bojana-primary); outline-offset: -2px; }
+  .bojana-project-tab:focus-visible {
+    outline: none;
+    background: var(--color-bojana-soft);
+    box-shadow: inset 0 -3px 0 var(--color-bojana-primary);
+  }
+  .bojana-project-tab > svg { flex-shrink: 0; }
 
   /* ── Workspace / Grid Layout matching App.tsx 2-column distribution ─────────────────── */
   .bojana-workspace {
@@ -860,13 +895,59 @@
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: rgba(17, 17, 17, 0.55);
+    background: var(--color-overlay);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
     animation: bojana-fade-in 180ms ease;
+  }
+
+  .bojana-modal-header {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--color-bojana-line);
+  }
+  .bojana-modal-body { padding: 1.5rem; }
+  .bojana-modal-footer {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-bojana-line);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--color-bojana-muted);
+  }
+  .bojana-modal-footer :where(button, a) { font-size: 0.75rem !important; }
+  .bojana-modal-footer p { font-size: 0.875rem !important; line-height: 1.5; }
+  .bojana-modal-form > :not(.bojana-modal-header):not(.bojana-modal-footer) { margin: 1.25rem 1.5rem; }
+  .bojana-modal-body .bojana-modal-footer { margin: 1.5rem -1.5rem -1.5rem; }
+  .bojana-modal-fullscreen .bojana-heading-section { color: var(--color-bojana-inverse); }
+
+  /* Keep navigation visible when a long body compresses a flex modal. */
+  .bojana-modal > .bojana-studio-tabs {
+    background: var(--color-canvas-light);
+    flex-shrink: 0;
+    min-height: 3rem;
+  }
+  .bojana-modal > .bojana-studio-tabs > [role="tab"] {
+    flex-shrink: 0;
+  }
+  .bojana-modal > .bojana-modal-scroll-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   .bojana-modal {
@@ -876,11 +957,31 @@
     max-height: 90dvh;
     overflow-y: auto;
     border-radius: var(--radius-bojana-overlay);
-    background: var(--color-bojana-canvas);
+    background: var(--color-canvas-light);
     border: 1px solid var(--color-bojana-line);
     color: var(--color-bojana-ink);
     box-shadow: var(--shadow-bojana-overlay);
     animation: bojana-slide-up 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .bojana-overlay-fullscreen { padding: 0; }
+  .bojana-modal.bojana-modal-fullscreen {
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    max-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    background: color-mix(in srgb, var(--color-ink) 95%, transparent);
+    color: var(--color-bojana-inverse);
+  }
+  .bojana-modal-project { max-height: calc(100dvh - 3rem); }
+  .bojana-modal-project .bojana-project-editor {
+    height: calc(100dvh - 3rem);
+    max-height: calc(100dvh - 3rem);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   /* The project editor must never grow with its long task list. The header
@@ -909,7 +1010,7 @@
     position: fixed;
     inset: 0;
     z-index: 40;
-    background: rgba(17, 17, 17, 0.35);
+    background: var(--color-overlay-soft);
     backdrop-filter: blur(2px);
     display: flex;
     justify-content: flex-end;

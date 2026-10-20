@@ -1,3 +1,4 @@
+import BrandLogo from './BrandLogo';
 import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
@@ -227,42 +228,55 @@ const paletteGroups = [
   {
     name: 'Superficies',
     colors: [
-      ['Canvas', '--color-canvas', '#F7F6F2'], ['Canvas light', '--color-canvas-light', '#FBFAF9'], ['White', '--color-white', '#FFFFFF'], ['Stone', '--color-stone', '#EDECE6'], ['Line', '--color-line', '#DEDDD6'], ['Line strong', '--color-line-strong', '#B8B7AB'],
+      ['Canvas', '--color-canvas'], ['Canvas light', '--color-canvas-light'], ['White', '--color-white'], ['Stone', '--color-stone'], ['Line', '--color-line'], ['Line strong', '--color-line-strong'],
     ],
   },
   {
     name: 'Tinta',
     colors: [
-      ['Ink', '--color-ink', '#1A1F19'], ['Ink soft', '--color-ink-soft', '#2C342B'], ['Ink muted', '--color-ink-muted', '#4D574C'], ['Ink faint', '--color-ink-faint', '#636F62'],
+      ['Ink', '--color-ink'], ['Ink soft', '--color-ink-soft'], ['Ink muted', '--color-ink-muted'], ['Ink faint', '--color-ink-faint'],
     ],
   },
   {
     name: 'Marca',
     colors: [
-      ['Forest', '--color-forest', '#3A3A3A'], ['Sand', '--color-sand', '#DED2BD'], ['Sand strong', '--color-sand-strong', '#6E5220'], ['Sage', '--color-sage', '#9EB5A4'],
+      ['Primary', '--color-bojana-primary'], ['Primary hover', '--color-primary-hover'], ['Focus', '--color-bojana-focus'],
+      ['Forest', '--color-forest'], ['Sand', '--color-sand'], ['Sand strong', '--color-sand-strong'], ['Sage', '--color-sage'],
     ],
   },
   {
     name: 'Estados',
     colors: [
-      ['Success soft', '--color-mint-pale', '#E4EFE7'], ['Success', '--color-mint', '#8AB99C'], ['Success strong', '--color-mint-strong', '#3D7A55'],
-      ['Warning soft', '--color-warning-pale', '#F7EFD9'], ['Warning', '--color-warning', '#D4A853'], ['Warning strong', '--color-warning-strong', '#6E5220'],
-      ['Error soft', '--color-clay-pale', '#F8EBE6'], ['Error', '--color-clay', '#A8472F'], ['Error strong', '--color-clay-dark', '#7A2612'],
-      ['Success surface', '--color-sage-pale', '#EEF3EF'], ['Info surface', 'blue-50', '#EFF6FF'], ['Info border', 'blue-200', '#BFDBFE'], ['Info text', 'blue-800', '#1E40AF'], ['File accent', 'sky-600', '#0284C7'],
+      ['Success soft', '--color-mint-pale'], ['Success', '--color-mint'], ['Success strong', '--color-mint-strong'],
+      ['Warning soft', '--color-warning-pale'], ['Warning', '--color-warning'], ['Warning strong', '--color-warning-strong'],
+      ['Error soft', '--color-clay-pale'], ['Error', '--color-clay'], ['Error strong', '--color-clay-dark'],
+      ['Success surface', '--color-sage-pale'], ['Info surface', '--color-info-surface'], ['Info border', '--color-info-border'], ['Info text', '--color-info-strong'], ['File accent', '--color-upload-strong'],
     ],
   },
 ] as const;
 
 const statePaletteGroups = [
-  { name: 'Éxito', colors: [['Success surface', '--color-mint-surface', '#F3F8F4'], ['Success soft', '--color-mint-pale', '#E4EFE7'], ['Success', '--color-mint', '#8AB99C'], ['Success strong', '--color-mint-strong', '#3D7A55']] },
-  { name: 'Advertencia', colors: [['Warning surface', '--color-warning-surface', '#FCF8ED'], ['Warning soft', '--color-warning-pale', '#F7EFD9'], ['Warning', '--color-warning', '#D4A853'], ['Warning strong', '--color-warning-strong', '#6E5220']] },
-  { name: 'Error', colors: [['Error surface', '--color-clay-surface', '#FDF5F2'], ['Error soft', '--color-clay-pale', '#F8EBE6'], ['Error', '--color-clay', '#A8472F'], ['Error strong', '--color-clay-dark', '#7A2612']] },
-  { name: 'Pending', colors: [['Pending surface', '--color-stone-surface', '#F8F8F5'], ['Pending soft', '--color-stone', '#EDECE6'], ['Pending line', '--color-line', '#DEDDD6'], ['Pending text', '--color-ink-muted', '#4D574C']] },
-  { name: 'Auxiliares', colors: [['Success surface', '--color-sage-pale', '#EEF3EF'], ['Info surface', 'blue-50', '#EFF6FF'], ['Info border', 'blue-200', '#BFDBFE'], ['Info text', 'blue-800', '#1E40AF'], ['File accent', 'sky-600', '#0284C7']] },
+  { name: 'Éxito', colors: [['Success surface', '--color-mint-surface'], ['Success soft', '--color-mint-pale'], ['Success', '--color-mint'], ['Success strong', '--color-mint-strong']] },
+  { name: 'Advertencia', colors: [['Warning surface', '--color-warning-surface'], ['Warning soft', '--color-warning-pale'], ['Warning', '--color-warning'], ['Warning strong', '--color-warning-strong']] },
+  { name: 'Error', colors: [['Error surface', '--color-clay-surface'], ['Error soft', '--color-clay-pale'], ['Error', '--color-clay'], ['Error strong', '--color-clay-dark']] },
+  { name: 'Pending', colors: [['Pending surface', '--color-stone-surface'], ['Pending soft', '--color-stone'], ['Pending line', '--color-line'], ['Pending text', '--color-ink-muted']] },
+  { name: 'Auxiliares', colors: [['Success surface', '--color-sage-pale'], ['Info surface', '--color-info-surface'], ['Info border', '--color-info-border'], ['Info text', '--color-info-strong'], ['File accent', '--color-upload-strong']] },
 ] as const;
 
-function PaletteSwatches({ colors }: { colors: readonly (readonly [string, string, string])[] }) {
-  return <div className="grid gap-1 sm:grid-cols-6 lg:grid-cols-12">{colors.map(([name, token, value]) => <div key={token} className="min-w-0 overflow-hidden rounded-md border border-line bg-white"><div className="aspect-square w-full" style={{ backgroundColor: value }} /><div className="min-w-0 space-y-0.5 p-1"><div className="flex min-w-0 items-center justify-between gap-0.5"><p className="truncate text-[9px] font-semibold text-ink">{name}</p><p className="shrink-0 font-mono text-[8px] text-ink-muted">{value}</p></div><p className="truncate font-mono text-[7px] text-ink-faint">{token}</p></div></div>)}</div>;
+function PaletteSwatch({ name, token }: { name: string; token: string }) {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const [value, setValue] = useState('');
+  useEffect(() => {
+    if (ref.current) setValue(getComputedStyle(ref.current).backgroundColor);
+  }, [token]);
+  return <div className="min-w-0 overflow-hidden rounded-lg border border-line bg-white">
+    <div ref={ref} className="h-16 w-full" style={{ backgroundColor: `var(${token})` }} aria-label={name} />
+    <div className="space-y-1 p-3"><p className="text-xs font-semibold text-ink">{name}</p><code className="block break-all text-[10px] text-ink-muted">{token}</code><span className="block text-[10px] text-ink-muted">{value}</span></div>
+  </div>;
+}
+
+function PaletteSwatches({ colors }: { colors: readonly (readonly [string, string])[] }) {
+  return <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{colors.map(([name, token]) => <PaletteSwatch key={token} name={name} token={token} />)}</div>;
 }
 
 export const Palette: Story = {
@@ -298,4 +312,12 @@ export const StatusBadgeVariants: Story = {
     <section className="space-y-4"><div className="rounded-bojana-card border border-line bg-white p-4"><p className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">Prueba interactiva</p><StatusBadge tone={tone} size={size} showDot={showDot} filled={filled} icon={icons[iconName as keyof typeof icons]} iconOnly={iconOnly}>{label}</StatusBadge></div><div className="space-y-4">{([{ tone: 'neutral', label: 'Neutral' }, { tone: 'active', label: 'Active' }, { tone: 'warning', label: 'Warning' }, { tone: 'gray', label: 'Pending' }, { tone: 'waiting', label: 'Urgent' }, { tone: 'danger', label: 'Error' }, { tone: 'info', label: 'Info' }, { tone: 'white', label: 'White' }, { tone: 'black', label: 'Black' }] as const).map(item => <div key={item.tone} className="flex flex-wrap items-center gap-2"><span className="w-20 text-xs font-semibold text-ink-muted">{item.label}</span>{(['xs', 's', 'm', 'l'] as const).map(size => <StatusBadge key={`${item.tone}-${size}`} tone={item.tone} size={size}>{size.toUpperCase()}</StatusBadge>)}<StatusBadge tone={item.tone} size="m" showDot={false}>{item.label} · sin dot</StatusBadge><StatusBadge tone={item.tone} size="m" filled>{item.label} · filled</StatusBadge></div>)}</div><div className="space-y-2"><p className="text-xs font-semibold text-ink-muted">Solo icon</p><div className="flex flex-wrap items-center gap-2"><StatusBadge tone="active" icon={CheckCircle2} iconOnly size="xs" /><StatusBadge tone="info" icon={Building2} iconOnly size="s" /><StatusBadge tone="warning" icon={CircleAlert} iconOnly size="m" /><StatusBadge tone="danger" icon={CircleAlert} iconOnly size="l" /></div></div></section>
   </div>;
   },
+};
+
+export const LogoVariants: Story = {
+  name: 'Marca / Logo en fondos claros y oscuros',
+  render: () => <div className="grid gap-6 sm:grid-cols-2">
+    <div className="rounded-2xl bg-canvas p-8"><BrandLogo tone="onLight" className="h-auto w-48 max-w-full" /></div>
+    <div className="rounded-2xl bg-forest p-8"><BrandLogo tone="onDark" className="h-auto w-48 max-w-full" /></div>
+  </div>,
 };

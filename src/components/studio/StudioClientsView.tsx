@@ -9,7 +9,7 @@ import {
   X,
   ChevronRight
 } from 'lucide-react';
-import { Button, EmptyState, PageHeader } from '../ui/DesignSystem';
+import { SelectionCard, Card, Button, EmptyState, PageHeader } from '../ui/DesignSystem';
 
 interface StudioClientsViewProps {
   projects: ProjectData[];
@@ -76,16 +76,7 @@ export default function StudioClientsView({
             ).length;
 
             return (
-              <Button variant="secondary"
-                key={client.id}
-                type="button"
-                onClick={() => setSelectedClientId(client.id)}
-                className={`flex w-full items-center justify-between gap-4 rounded-3xl border p-6 text-left transition cursor-pointer shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest ${
-                  isSelected
-                    ? 'border-forest bg-mint-pale/30 ring-2 ring-forest/20'
-                    : 'border-line bg-white hover:border-line-strong hover:shadow-md'
-                }`}
-              >
+              <SelectionCard key={client.id} selected={isSelected} onClick={() => setSelectedClientId(client.id)}>
                 <div className="space-y-1.5">
                   <h3 className="font-display text-2xl font-normal text-ink">
                     {client.nombre}
@@ -103,37 +94,31 @@ export default function StudioClientsView({
                 }`}>
                   <ChevronRight className="size-4" />
                 </div>
-              </Button>
+              </SelectionCard>
             );
           })}
         </div>}
 
         {selectedClient && (
-            <div className="rounded-3xl border border-line bg-white p-7 shadow-sm space-y-6 animate-fade-in">
-              <div className="flex items-start justify-between border-b border-line pb-5">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
+            <Card key={selectedClient.id} expandable elevation="raised" expandLabel={`ficha de ${selectedClient.nombre}`} header={<>
+                  <span className="block text-xs font-bold uppercase tracking-widest text-ink-faint">
                     Ficha de comitente
-                  </p>
-                  <h3 className="mt-1 font-display text-2xl sm:text-3xl font-normal text-ink">
+                  </span>
+                  <span className="block mt-1 font-display text-2xl sm:text-3xl font-normal text-ink">
                     {selectedClient.nombre}
-                  </h3>
-                  <p className="text-xs text-ink-muted mt-0.5">
+                  </span>
+                  <span className="block text-xs text-ink-muted mt-0.5">
                     {selectedClient.empresa}
-                  </p>
-                </div>
-
-                <Button type="button" variant="icon" className="!size-8" onClick={() => setSelectedClientId(null)} ariaLabel="Cerrar ficha">
-                  <X className="size-4" />
-                </Button>
-              </div>
+                  </span>
+</>} headerActions={<Button type="button" variant="icon" size="xs" onClick={() => setSelectedClientId(null)} ariaLabel="Cerrar ficha"><X /></Button>}>
+              <div className="space-y-6">
 
               {/* Contact Info */}
               <div className="space-y-2 text-xs">
                 <p className="font-bold uppercase tracking-widest text-ink-faint">
                   Información de contacto
                 </p>
-                <div className="rounded-2xl border border-line bg-canvas/60 p-4 space-y-2.5">
+                <div className="rounded-bojana-widget border border-line bg-canvas/60 p-4 space-y-2.5">
                   <div className="flex items-center gap-2.5 text-ink font-medium">
                     <Mail className="size-4 text-ink-faint shrink-0" />
                     <span>{selectedClient.email}</span>
@@ -167,7 +152,7 @@ export default function StudioClientsView({
                       <div
                         key={p.id}
                         onClick={() => onSelectProject(p.id)}
-                        className="group flex items-center justify-between gap-3 rounded-2xl border border-line bg-canvas/40 p-4 transition hover:border-line-strong hover:bg-stone/50 cursor-pointer"
+                        className="group flex items-center justify-between gap-3 rounded-bojana-widget border border-line bg-canvas/40 p-4 transition hover:border-line-strong hover:bg-stone/50 cursor-pointer"
                       >
                         <div className="space-y-1">
                           <strong className="text-sm font-semibold text-ink group-hover:text-forest transition">
@@ -189,7 +174,8 @@ export default function StudioClientsView({
                   </div>
                 )}
               </div>
-            </div>
+              </div>
+            </Card>
         )}
       </div>
     </div>

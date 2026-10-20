@@ -1,3 +1,4 @@
+import { formatPortalDate } from "./design/format";
 import {
   createElement,
   useMemo,
@@ -27,9 +28,9 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { ModalFooter, ModalHeader, Modal, Field as SharedField, SelectControl, Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PhaseRow, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
-import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
+import BrandLogo from "./components/ui/BrandLogo";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
 import { persistClientPortalResponse, type ClientPortalResponse } from "./services/clientPortalService";
 
@@ -119,25 +120,8 @@ function Field({
   trailing?: ReactNode
   autoComplete: string
 }) {
-  return (
-    <label className="block" htmlFor={id}>
-      <span className="mb-2 block text-sm font-semibold text-ink">{label}</span>
-      <span className="bojana-control flex min-h-12 items-center gap-3 px-4 focus-within:border-forest focus-within:ring-2 focus-within:ring-mint-pale">
-        <Icon className="size-4.5 shrink-0 text-ink-faint" name={icon} />
-        <InputControl
-          autoComplete={autoComplete}
-          className="!min-w-0 !flex-1 !border-0 !rounded-none !bg-transparent !p-0 text-sm text-ink outline-none placeholder:text-ink-faint focus:!border-0 focus:!ring-0"
-          id={id}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder={placeholder}
-          required
-          type={type}
-          value={value}
-        />
-        {trailing}
-      </span>
-    </label>
-  )
+  return <SharedField id={id} label={label} type={type} value={value} onChange={event => onChange(event.target.value)} placeholder={placeholder} autoComplete={autoComplete} required leading={<Icon className="size-4.5" name={icon} />} trailing={trailing} />;
+
 }
 
 function SectionTitle({
@@ -281,7 +265,7 @@ function PasswordReset({ accessToken, refreshToken, onComplete }: { accessToken:
         </div>
         <div className="flex items-center justify-between gap-4 text-xs text-ink-faint"><p>2026 Bojana Estudio</p><p>Privacidad - Seguridad</p></div>
       </section>
-      <section className="relative hidden h-full min-h-0 overflow-hidden bg-forest p-12 text-white lg:flex lg:flex-col lg:justify-end xl:p-16"><img src={bojanaLogoWhite} alt="Bojana Estudio" className="relative h-auto w-44 opacity-80" /></section>
+      <section className="relative hidden h-full min-h-0 overflow-hidden bg-forest p-12 text-white lg:flex lg:flex-col lg:justify-end xl:p-16"><BrandLogo tone="onDark" className="relative h-auto w-44 opacity-80" /></section>
     </main>
   )
 }
@@ -449,9 +433,7 @@ function SignIn({ onSignIn, authError }: { onSignIn: (email: string, password: s
           </p>
           <div className="mt-10 flex items-center gap-4">
             <span className="h-px w-12 bg-clay" />
-            <img
-              src={bojanaLogoWhite}
-              alt="Bojana Estudio"
+            <BrandLogo tone="onDark"
               className="h-auto w-36 opacity-80"
             />
           </div>
@@ -575,9 +557,7 @@ function AdminSidebar({
     <aside className="sticky top-0 hidden h-full max-h-full w-sidebar shrink-0 flex-col overflow-visible border-r border-white/10 bg-forest px-5 py-7 text-white lg:flex">
       <div className="flex items-center justify-between gap-3 px-2">
         <div className="min-w-0 flex-1">
-          <img
-            src={bojanaLogoWhite}
-            alt="Bojana Estudio"
+          <BrandLogo tone="onDark"
             className="h-auto w-32 max-w-full"
           />
         </div>
@@ -619,7 +599,7 @@ function AdminSidebar({
         </div>
       </div>}
 
-      <div className="mt-auto rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="mt-auto rounded-bojana-widget border border-white/10 bg-white/5 p-4">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{activeUser?.nombre || "Usuario del estudio"}</p>
@@ -712,34 +692,6 @@ const projectTabs = [
   "Comunicación",
 ]
 
-function StatCard({
-  label,
-  value,
-  detail,
-  accent,
-}: {
-  label: string
-  value: string
-  detail: string
-  accent?: boolean
-}) {
-  return (
-    <Card variant={accent ? "waiting" : "default"} className="min-w-0 !p-4">
-      <p className="text-xs font-medium leading-5 text-ink-muted">{label}</p>
-      <div className="mt-3 flex flex-wrap items-end justify-between gap-x-2 gap-y-1">
-        <p className="font-display text-3xl leading-none text-ink">{value}</p>
-        <p
-          className={`min-w-0 break-words text-xs leading-4 ${
-            accent ? "font-semibold text-clay-dark" : "text-ink-faint"
-          }`}
-        >
-          {detail}
-        </p>
-      </div>
-    </Card>
-  )
-}
-
 const taskStatusBadge: Record<TaskStatus, { tone: "active" | "gray" | "info" | "neutral" | "waiting"; label: string }> = {
   "En curso": { tone: "info", label: "En curso" },
   "En revision": { tone: "neutral", label: "En revisión" },
@@ -782,7 +734,7 @@ function TasksPanel({
         </div>
       </FilterBar>
 
-      <div className="overflow-hidden rounded-3xl border border-line bg-white">
+      <Card padding="none" className="overflow-hidden">
         {visibleTasks.map((task) => (
           <TaskRow
             key={task.title}
@@ -801,7 +753,7 @@ function TasksPanel({
             No hay tareas que coincidan con los filtros o la búsqueda.
           </p>
         )}
-      </div>
+      </Card>
     </section>
   )
 }
@@ -846,7 +798,7 @@ function ClientActions({
   if (!decision) {
     if (!pendingAction) return null
     return (
-      <section className="rounded-3xl border border-line bg-white p-6">
+      <Card as="section">
         <Eyebrow>Cliente</Eyebrow>
         <Heading as="h2" className="mt-2 font-display text-2xl text-ink">Acciones y respuestas</Heading>
         {pendingActionCard}
@@ -857,23 +809,23 @@ function ClientActions({
         ) : comments.length > 0 ? (
           <div className={`${pendingAction ? "mt-5 border-t border-line pt-5" : "mt-6"} space-y-3`}>
             {comments.map(comment => (
-              <article key={comment.id} className="rounded-2xl border border-line bg-stone/40 p-4">
-                <div className="flex items-center justify-between gap-3 text-xs text-ink-muted">
+              <article key={comment.id} className="rounded-bojana-widget border border-line bg-stone/40 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
                   <span className="font-semibold text-ink">{comment.autor}</span>
-                  <span>{comment.fecha}</span>
+                  <time className="shrink-0" dateTime={/^\d{4}-\d{2}-\d{2}T/.test(comment.fecha) ? comment.fecha : undefined}>{formatPortalDate(comment.fecha)}</time>
                 </div>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">{comment.texto}</p>
               </article>
             ))}
           </div>
         ) : null}
-      </section>
+      </Card>
     )
   }
   const isApproved = decision.status === "aprobado"
 
   return (
-    <section className="rounded-3xl border border-line bg-white p-6">
+    <Card as="section">
       <div className="flex items-start justify-between gap-4">
         <div>
           <Eyebrow>Cliente</Eyebrow>
@@ -930,23 +882,23 @@ function ClientActions({
         <div className="mt-5 space-y-3 border-t border-line pt-5">
           <p className="text-xs font-semibold uppercase tracking-widest text-ink-faint">Comentarios del sitio</p>
           {comments.map(comment => (
-            <article key={comment.id} className="rounded-2xl border border-line bg-stone/40 p-4">
-              <div className="flex items-center justify-between gap-3 text-xs text-ink-muted">
+            <article key={comment.id} className="rounded-bojana-widget border border-line bg-stone/40 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
                 <span className="font-semibold text-ink">{comment.autor}</span>
-                <span>{comment.fecha}</span>
+                <time className="shrink-0" dateTime={/^\d{4}-\d{2}-\d{2}T/.test(comment.fecha) ? comment.fecha : undefined}>{formatPortalDate(comment.fecha)}</time>
               </div>
               <p className="mt-2 text-sm leading-6 text-ink-muted">{comment.texto}</p>
             </article>
           ))}
         </div>
       )}
-    </section>
+    </Card>
   )
 }
 
 function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectData["hitosInternos"]> }) {
   return (
-    <section className="rounded-3xl border border-line bg-white p-6">
+    <Card as="section">
       <Eyebrow>Proximos 7 dias</Eyebrow>
       <Heading as="h2" className="mt-2 font-display text-2xl text-ink">
         Hitos y entregas
@@ -979,7 +931,7 @@ function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectDa
           </p>
         )}
       </div>
-    </section>
+    </Card>
   )
 }
 
@@ -1451,29 +1403,7 @@ function AdminPortal({
                 {/* Sub-tab: Resumen */}
                 {activeTab === "Resumen" && (
                   <>
-                    <section className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-                      <StatCard
-                        detail={`${completedCount} de ${workspaceTasks.length} tareas`}
-                        label="Progreso general"
-                        value={`${progressPercent}%`}
-                      />
-                      <StatCard
-                        detail={inProgressCount === 0 ? "Sin tareas activas" : `${inProgressCount} activas`}
-                        label="Tareas en curso"
-                        value={String(inProgressCount)}
-                      />
-                      <StatCard
-                        accent={waitingClientCount > 0}
-                        detail={waitingClientCount > 0 ? "Requiere aprobacion" : "Al dia"}
-                        label="Esperando al cliente"
-                        value={String(waitingClientCount)}
-                      />
-                      <StatCard
-                        detail={deliveryDays === null ? nextMilestone : nextMilestone}
-                        label="Dias hasta entrega"
-                        value={deliveryDays === null ? "—" : String(deliveryDays)}
-                      />
-                    </section>
+
 
                     <div className="mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
                       <OperationalExecutionPanel
@@ -1732,7 +1662,7 @@ function ClientSidebar({
           </NotificationAnchor>
         </div>
       </div>
-      {projects.length > 1 && <label className="mt-3 block text-xs font-semibold">Proyecto<select className="bojana-control mt-1 w-full bg-white text-sm" value={selectedProjectId || projects[0]?.id || ""} onChange={event => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</select></label>}
+      {projects.length > 1 && <label className="mt-3 block text-xs font-semibold">Proyecto<SelectControl className="mt-1 text-sm" value={selectedProjectId || projects[0]?.id || ""} onChange={event => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</SelectControl></label>}
       <nav aria-label="Navegación cliente" className="mt-3 grid grid-cols-2 gap-1 min-[360px]:grid-cols-4">
         {clientNavItems.map(item => <Button key={item.label} ariaLabel={item.label} aria-current={active === item.label ? "page" : undefined} size="s" variant="tertiary" className={`min-w-0 !flex-col !gap-1 !rounded-xl !px-1 !text-[11px] ${active === item.label ? "!bg-stone !text-ink" : ""}`} onClick={() => { setActive(item.label); setNotificationsOpen(false) }}><Icon className="size-4" name={item.icon} /><span>{item.label}</span></Button>)}
       </nav>
@@ -1743,10 +1673,10 @@ function ClientSidebar({
       </section>}
     </header>
     <div className={`group fixed left-4 top-4 z-50 hidden h-[calc(100vh-2rem)] lg:block ${expanded ? "w-60" : "w-14"}`}>
-      <aside className={`flex h-full w-full shrink-0 flex-col rounded-3xl border border-line bg-white/60 py-3 shadow-card backdrop-blur transition-[width] duration-200 ${expanded ? "px-3" : "items-center px-1.5"}`}>
+      <aside className={`flex h-full w-full shrink-0 flex-col rounded-bojana-widget border border-line bg-white/60 py-3 shadow-card backdrop-blur transition-[width] duration-200 ${expanded ? "px-3" : "items-center px-1.5"}`}>
       <div className={`flex items-center ${expanded ? "justify-between px-2" : "justify-center"}`}>
         {expanded && <div className="w-36 rounded-xl px-2 py-2" title="Bojana Estudio">
-          <img src={bojanaLogoWhite} alt="Bojana Estudio" className="h-auto w-full brightness-0 opacity-70" />
+          <BrandLogo tone="onLight" className="h-auto w-full opacity-70" />
         </div>}
         <NotificationAnchor count={notificationCount}>
         <Button
@@ -1762,7 +1692,7 @@ function ClientSidebar({
       </div>
 
       <nav aria-label="Navegación cliente" className={`flex w-full flex-col ${expanded ? "mt-5 items-stretch gap-2" : "mt-4 items-center gap-1"}`}>
-        {expanded && projects.length > 1 && <label className="mb-2 block px-2 text-xs font-semibold text-ink-muted">Proyecto<select className="bojana-control mt-1 w-full bg-white text-xs" value={selectedProjectId || ""} onChange={(event) => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</select></label>}
+        {expanded && projects.length > 1 && <label className="mb-2 block px-2 text-xs font-semibold text-ink-muted">Proyecto<SelectControl className="mt-1 text-xs" value={selectedProjectId || ""} onChange={(event) => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</SelectControl></label>}
         {clientNavItems.map((item) => (
           <Button
             ariaLabel={item.label}
@@ -2062,26 +1992,21 @@ function ActionCard({
       </section>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl border border-line bg-white p-5 shadow-2xl sm:p-7">
-            <Eyebrow>Toma de decision</Eyebrow>
-            <Heading as="h3" className="mt-2 font-display text-2xl text-ink">
-              {decision.title}
-            </Heading>
-            <p className="mt-2 text-sm text-ink-muted">
-              {decision.requestType === "enviar_informacion" ? "Revisá el pedido y enviá la información solicitada." : decision.requestType === "subir_documento" ? "Revisá el pedido y adjuntá el documento solicitado." : decision.requestType === "confirmar_decision" ? "Revisá el acuerdo y confirmá tu decisión." : "Revisá el contenido y elegí una respuesta. También podés dejar un comentario para el equipo."}
-            </p>
+        <Modal open={showModal} onClose={() => setShowModal(false)} title="Respuesta del cliente" customContent maxWidth="max-w-2xl" >
+            <ModalHeader title={decision.title} onClose={() => setShowModal(false)} />
+            <div className="bojana-modal-body">
+
 
             {decision.content && <p className="mt-5 rounded-2xl bg-stone/60 p-4 text-sm leading-6 text-ink">{decision.content}</p>}
             {decision.resources && decision.resources.length > 0 && <div className="mt-4 space-y-2">
-              {decision.resources.map(resource => <div key={resource} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
+              {decision.resources.map(resource => <div key={resource} className="overflow-hidden rounded-bojana-widget border border-line bg-stone/50">
                 {isImageResource(resource) && <img src={resource} alt="Imagen de la actualización" className="max-h-64 w-full object-cover" />}
                 <a className="block truncate p-3 text-sm font-semibold text-forest underline-offset-2 hover:underline" href={resource} rel="noreferrer" target="_blank">{resource}</a>
               </div>)}
             </div>}
 
             {decision.attachments && decision.attachments.length > 0 && <div className="mt-5 space-y-2">
-              {decision.attachments.map(attachment => <div key={attachment.name} className="overflow-hidden rounded-2xl border border-line bg-stone/50">
+              {decision.attachments.map(attachment => <div key={attachment.name} className="overflow-hidden rounded-bojana-widget border border-line bg-stone/50">
                 {attachment.type === "imagen" && attachment.url && <img src={attachment.url} alt={attachment.name} className="max-h-64 w-full object-cover" />}
                 <a className="block truncate p-3 text-sm font-semibold text-forest underline-offset-2 hover:underline" href={attachment.url || "#"} rel="noreferrer" target="_blank">{attachment.name}</a>
               </div>)}
@@ -2116,10 +2041,10 @@ function ActionCard({
 
             <label className="mt-5 block">
               <span className="mb-1.5 block text-xs font-semibold text-ink-muted">{decision.requestType === "enviar_informacion" ? "Información para el equipo" : decision.requestType === "subir_documento" ? "Comentario sobre el documento" : "Comentario (opcional)"}</span>
-              <textarea className="bojana-control min-h-24 resize-y" value={comment} onChange={event => setComment(event.target.value)} placeholder="Agregá una observación o pedido de cambio..." />
+              <TextAreaControl aria-label="Comentario sobre la decisión" value={comment} onChange={event => setComment(event.target.value)} placeholder="Agregá una observación o pedido de cambio..." />
             </label>
 
-            <div className="mt-7 flex items-center justify-end gap-3 border-t border-line pt-5">
+            <ModalFooter>
               <Button variant="tertiary" onClick={() => setShowModal(false)}>
                 Cancelar
               </Button>
@@ -2134,9 +2059,9 @@ function ActionCard({
               >
                 {decision.requestType === "enviar_informacion" ? "Enviar información" : decision.requestType === "subir_documento" ? "Enviar documento" : decision.requestType === "confirmar_decision" ? "Confirmar decisión" : isChoiceRequest ? "Aprobar esta opción" : "Aprobar y continuar"} <Icon className="size-4" name="check" />
               </Button>
-            </div>
+            </ModalFooter>
           </div>
-        </div>
+          </Modal>
       )}
     </>
   )
@@ -2202,7 +2127,7 @@ function ProgressSection({
       <SectionTitle>Avanzamos segun lo previsto</SectionTitle>
       <p className="-mt-4 text-sm text-ink-muted">Tu proyecto consta de {phaseCount} {phaseCount === 1 ? "fase" : "fases"} divididas en {projectTaskCount} {projectTaskCount === 1 ? "tarea" : "tareas"}.</p>
     </div>
-    <div className="rounded-3xl border border-line bg-white p-7 md:p-8">
+    <div className="rounded-bojana-widget border border-line bg-white p-7 md:p-8">
       <p className="font-display text-5xl text-ink">{progressPercent}%</p>
       <div className="mt-7">
         <StatusBar value={progressPercent} mode={mode} phaseCount={phaseCount} taskCount={totalCount} completedTaskCount={completedCount} taskStatusCounts={taskStatusCounts} segments={allNeeds.map(need => ({ id: need.id, label: need.name, weight: need.projectWeight, progress: need.progress, taskCount: need.tasks.length, completedTaskCount: need.tasks.filter(task => task.status === "Completada").length }))} activeSegment={hoveredNeedId} expandedSegment={selectedNeedId} onSegmentClick={id => onNeedSelect(id)} onExpandedSegmentClose={() => onNeedSelect(null)} closeOnOutsideClick={false} onSegmentHover={setHoveredNeedId} ariaLabel={`Progreso del proyecto: ${progressPercent} por ciento`} projectStatus={<StatusBadge tone="active" size="s" showDot={false}>En tiempo</StatusBadge>} onModeChange={next => { onModeChange(next); onNeedSelect(null); setHoveredNeedId(null) }} />
@@ -2235,7 +2160,7 @@ function ClientProjectTasksSection({
   onRespondToClientAction: (option: string, comment: string, approved: boolean) => void
 }) {
   return <section id="client-project-tasks" className="-mt-5 space-y-0">
-    <div className="overflow-hidden rounded-3xl border border-line bg-white">
+    <Card padding="none" className="overflow-hidden">
       {progressGroups.map(group => group.needs.filter(need => !selectedNeedId || need.id === selectedNeedId).map(need => {
         const expanded = selectedNeedId === need.id
         const completed = need.tasks.filter(task => task.status === "Completada").length
@@ -2278,7 +2203,7 @@ function ClientProjectTasksSection({
           </div>}
         </section>
       }))}
-    </div>
+    </Card>
   </section>
 }
 
@@ -2289,7 +2214,7 @@ function StorySection({ updates }: { updates: { date: string; title: string; des
       <SectionTitle>
         La historia del proyecto
       </SectionTitle>
-      <div className="overflow-hidden rounded-3xl border border-line bg-white">
+      <Card padding="none" className="overflow-hidden">
         {displayedUpdates.length === 0 && <p className="p-6 text-sm text-ink-muted">Todavía no hay avances publicados para este proyecto.</p>}
         {displayedUpdates.map((update, index) => (
           <HistoryRow
@@ -2301,7 +2226,7 @@ function StorySection({ updates }: { updates: { date: string; title: string; des
             actions={<Button ariaLabel={`Ver detalle: ${update.title}`} className="!size-8 !p-0" variant="icon"><Icon className="size-3.5" name="arrow" /></Button>}
           />
         ))}
-      </div>
+      </Card>
     </section>
   )
 }
@@ -2321,10 +2246,10 @@ function DocumentsSection({ documents }: { documents: { name: string; meta: stri
         Documentos recientes
       </SectionTitle>
       <div className="grid min-w-0 grid-cols-1 gap-4">
-        {documents.length === 0 && <p className="rounded-2xl border border-dashed border-line bg-white p-6 text-sm text-ink-muted">Todavía no hay documentos publicados para este proyecto.</p>}
+        {documents.length === 0 && <p className="rounded-bojana-widget border border-dashed border-line bg-white p-6 text-sm text-ink-muted">Todavía no hay documentos publicados para este proyecto.</p>}
         {documents.map((document) => (
           <article
-            className="flex min-w-0 items-center gap-2 rounded-2xl border border-line bg-white p-3 transition-colors hover:border-line-strong sm:gap-4 sm:p-4 md:p-5"
+            className="flex min-w-0 items-center gap-2 rounded-bojana-widget border border-line bg-white p-3 transition-colors hover:border-line-strong sm:gap-4 sm:p-4 md:p-5"
             key={document.name}
           >
             <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-stone text-ink-muted">
@@ -2351,7 +2276,7 @@ function DocumentsSection({ documents }: { documents: { name: string; meta: stri
 }
 
 function ClientFileResource({ file }: { file: NonNullable<import("./types").ExecutionTask["archivos"]>[number] }) {
-  return <div className="overflow-hidden rounded-2xl border border-line bg-stone/50">
+  return <div className="overflow-hidden rounded-bojana-widget border border-line bg-stone/50">
     {file.tipo === "imagen" && file.url && <img src={file.url} alt={file.nombre} className="max-h-64 w-full object-cover" />}
     {file.tipo === "video" && file.url && <video src={file.url} controls className="max-h-64 w-full bg-ink" />}
     <div className="flex items-center gap-3 p-3">
@@ -2394,7 +2319,7 @@ function ClientDeliverableWidget({
   }
 
   return (
-    <article className="rounded-3xl border border-line bg-white p-6 md:p-7">
+    <Card as="article">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Eyebrow>{typeLabels[deliverable.tipo || "entrega_final"]}</Eyebrow>
@@ -2426,7 +2351,7 @@ function ClientDeliverableWidget({
           </label>
         </div>
       )}
-    </article>
+    </Card>
   )
 }
 
@@ -2935,7 +2860,7 @@ function ClientPortal({
             {active === "Conversaciones" && (
               <div className="mt-8 scroll-mt-8 space-y-6" id="client-conversations">
                 {clientDecision && <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} />}
-                <div className="rounded-2xl border border-line bg-white p-4 sm:p-5">
+                <div className="rounded-bojana-widget border border-line bg-white p-4 sm:p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <Eyebrow>Canal de comunicación</Eyebrow>
@@ -3013,7 +2938,7 @@ function ClientProjectsState({
 }) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-canvas px-6 py-12">
-      <section className="w-full max-w-lg rounded-3xl border border-line bg-white p-8 text-center shadow-sm sm:p-12">
+      <section className="w-full max-w-lg rounded-bojana-widget border border-line bg-white p-8 text-center shadow-sm sm:p-12">
         <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-mint-pale text-forest" aria-hidden="true">
           {loading ? <span className="size-6 animate-spin rounded-full border-2 border-forest/20 border-t-forest" /> : <span className="text-xl">BE</span>}
         </div>

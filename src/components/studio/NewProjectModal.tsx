@@ -20,7 +20,7 @@ import {
   getClientProjectSequence,
   hasDependencyCycle,
 } from "../../services/projectStructure";
-import { Button, Checkbox, Field as DesignSystemField, SelectControl, Tabs } from "../ui/DesignSystem";
+import { ModalFooter, ModalHeader, Button, Checkbox, Modal, Field as SharedField, TextArea, SelectControl, Tabs } from "../ui/DesignSystem";
 
 interface Props {
   isOpen: boolean;
@@ -153,22 +153,6 @@ const projectToDraft = (project: ProjectData): Draft => ({
 });
 
 export default function NewProjectModal(props: Props) {
-  useEffect(() => {
-    if (props.isOpen) {
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = "";
-      };
-    }
-    document.body.style.overflow = "";
-    if (!props.isOpen && window.location.hash.startsWith("#creation-")) {
-      window.history.replaceState(null, "", window.location.pathname + window.location.search);
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [props.isOpen]);
-
   return props.isOpen ? <ProjectCreationForm {...props} /> : null;
 }
 
@@ -208,13 +192,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
     if (!currentHash.startsWith("#creation-")) {
       window.history.replaceState(null, "", "#creation-0");
     }
-    const previous = document.activeElement as HTMLElement | null;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    formRef.current?.querySelector<HTMLElement>("input")?.focus();
     return () => {
-      document.body.style.overflow = overflow;
-      previous?.focus();
       if (window.location.hash.startsWith("#creation-")) {
         window.history.replaceState(null, "", window.location.pathname + window.location.search);
       }
@@ -513,58 +491,13 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
   ]);
 
   return (
-    <div
-      className="bojana-project-editor-overlay fixed inset-0 z-50 flex h-dvh items-center justify-center overflow-hidden overscroll-none bg-black/50 px-3 py-4 sm:p-6"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === "Escape") onClose();
-        if (event.key === "Tab") {
-          const elements: HTMLElement[] = Array.from(
-            formRef.current?.querySelectorAll<HTMLElement>(
-              "button:not(:disabled), input, select, textarea, a[href]",
-            ) || [],
-          );
-          const first = elements[0],
-            last = elements.at(-1);
-          if (event.shiftKey && document.activeElement === first) {
-            event.preventDefault();
-            last?.focus();
-          }
-          if (!event.shiftKey && document.activeElement === last) {
-            event.preventDefault();
-            first?.focus();
-          }
-        }
-      }}
-    >
+    <Modal open onClose={onClose} title={initialProject ? "Editar proyecto" : "Crear proyecto"} customContent maxWidth="max-w-bojana-modal" panelClassName="bojana-modal-project overflow-hidden" initialFocus="input">
       <form
         ref={formRef}
         onSubmit={finish}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="creation-title"
-        className="bojana-project-editor grid min-h-0 w-full max-w-bojana-modal overflow-hidden rounded-bojana-widget border border-line bg-bojana-canvas text-bojana-ink shadow-bojana-widget"
+        className="bojana-project-editor grid min-h-0 w-full max-w-bojana-modal overflow-hidden rounded-bojana-widget border border-line bg-canvas-light text-bojana-ink shadow-bojana-widget"
       >
-        <header className="flex justify-between items-start gap-4 border-b border-line p-6 sm:px-8 bg-white/70 backdrop-blur-sm">
-          <div>
-            <h2 id="creation-title" className="font-display text-2xl sm:text-3xl font-normal text-ink mt-1">
-              {initialProject ? "Editar proyecto" : "Crear proyecto"}
-            </h2>
-            <p className="mt-1 text-sm leading-6 text-bojana-muted">
-              {initialProject ? "Actualizá el alcance, los pesos y la estructura de trabajo." : "Configurá todo el ADN a partir del alcance aprobado."}
-            </p>
-          </div>
-          <Button variant="icon"
-            type="button"
-            aria-label="Cerrar creación"
-            onClick={onClose}
-            className="bojana-icon-button"
-          >
-            <X className="size-4" />
-          </Button>
-        </header>
+        <ModalHeader onClose={onClose} title={initialProject ? 'Editar proyecto' : 'Crear proyecto'} />
         <Tabs
           ariaLabel="Secciones del ADN del proyecto"
           panelIdPrefix="project-creation"
@@ -1389,7 +1322,7 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
             </p>
           </Section>}
         </div>
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-bojana-inside border-t border-bojana-line bg-bojana-surface p-4 sm:px-8">
+        <ModalFooter>
           <p role="status" className="flex-1 text-sm leading-6 text-bojana-muted">
             {notice || "El proyecto comienza en 0%."}
           </p>
@@ -1422,70 +1355,20 @@ function ProjectCreationForm({ onClose, onFinish, initialProject }: Props) {
               </Button>
             </>
           )}
-        </footer>
+        </ModalFooter>
       </form>
-    </div>
+    </Modal>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  multiline = false,
-  required = false,
-  compact = false,
-  placeholder,
-  min,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  multiline?: boolean;
-  required?: boolean;
-  compact?: boolean;
-  placeholder?: string;
-  min?: string;
+function Field({ multiline = false, compact = false, onChange, ...props }: {
+  label: string; value: string; onChange: (value: string) => void; multiline?: boolean; compact?: boolean; required?: boolean; placeholder?: string; type?: React.HTMLInputTypeAttribute; min?: string;
 }) {
-  const [error, setError] = useState('');
-  const examples: Record<string,string> = { 'Nombre del proyecto':'Ej.: Remodelación del SUM', 'Cliente / comitente':'Ej.: Consorcio Los Alisos', 'Propósito — resultado esperado':'Ej.: Conectar los espacios comunes', 'Ubicación':'Ej.: Nordelta, Tigre', 'Qué incluye el alcance aprobado':'Ej.: Planos y dos visualizaciones', 'Primer movimiento':'Ej.: Preparar la propuesta inicial' };
-  const validate = (e: React.InvalidEvent<HTMLInputElement|HTMLTextAreaElement>) => { e.preventDefault(); setError(e.currentTarget.validationMessage); };
-  return (
-    <div className="block text-sm space-y-bojana-inside">
-      {label && <span className="bojana-label">
-          {label}
-          {required && " *"}
-        </span>}
-      {multiline ? (
-        <textarea
-          required={required}
-          aria-invalid={!!error}
-          onInvalid={validate}
-          placeholder={placeholder || examples[label]}
-          rows={3}
-          className={`${fieldClass} ${compact ? "!px-3 !py-1.5" : ""}`}
-          value={value}
-          onChange={(e) => { setError(''); onChange(e.target.value); }}
-        />
-      ) : (
-        <DesignSystemField
-          aria-label={label}
-          required={required}
-          aria-invalid={!!error}
-          onInvalid={validate}
-          placeholder={placeholder || examples[label]}
-          min={min}
-          type={type}
-          className={`${fieldClass} ${compact ? "!px-3 !py-1.5" : ""}`}
-          value={value}
-          onChange={(e) => { setError(""); onChange(e.target.value); }}
-        />
-      )}
-      {error && <p role="alert" className="text-xs text-bojana-error">{error}</p>}
-    </div>
-  );
+  const examples: Record<string, string> = { 'Nombre del proyecto': 'Ej.: Remodelación del SUM', 'Cliente / comitente': 'Ej.: Consorcio Los Alisos', 'Propósito — resultado esperado': 'Ej.: Conectar los espacios comunes', 'Ubicación': 'Ej.: Nordelta, Tigre', 'Qué incluye el alcance aprobado': 'Ej.: Planos y dos visualizaciones', 'Primer movimiento': 'Ej.: Preparar la propuesta inicial' };
+  const common = { label: props.label, value: props.value, required: props.required, placeholder: props.placeholder || examples[props.label], density: compact ? 'compact' as const : 'comfortable' as const, validateOnInvalid: true, 'aria-label': props.label || props.placeholder || 'Campo del proyecto' };
+  return multiline
+    ? <TextArea {...common} rows={3} onChange={event => onChange(event.target.value)} />
+    : <SharedField {...common} type={props.type} min={props.min} onChange={event => onChange(event.target.value)} />;
 }
 function Section({
   index,

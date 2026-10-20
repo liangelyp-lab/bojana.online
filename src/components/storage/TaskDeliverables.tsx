@@ -1,4 +1,4 @@
-import { Button, SearchInput, Skeleton, Spinner } from '../ui/DesignSystem';
+import { Card, Button, SearchInput, Skeleton, Spinner } from '../ui/DesignSystem';
 import { useEffect, useRef, useState } from 'react';
 import { Paperclip, Upload, FolderOpen } from 'lucide-react';
 import type { ProjectData, DisciplinaType, TaskContentType } from '../../types';
@@ -62,7 +62,7 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
         void run(() => uploadDriveFile(project, taskId, discipline, file, setProgress));
       }} accept={inputAccept} />
     </div>
-    {selecting && <div className="bojana-widget border border-bojana-line bg-bojana-surface rounded-bojana-widget p-4 space-y-3">
+    {selecting && <Card padding="compact" className="space-y-3">
       <p className="text-sm text-bojana-ink">Archivos de {discipline} en este proyecto</p>
       <form className="flex gap-bojana-inside" onSubmit={e => { e.preventDefault(); void run(async () => { await listChoices(); }); }}>
         <SearchInput aria-label="Buscar archivos por nombre" value={search} onChange={e => setSearch(e.target.value)} />
@@ -75,7 +75,7 @@ export default function TaskDeliverables({ project, taskId, discipline, onChange
         <Button variant="tertiary" type="button" disabled={busy} onClick={() => setSelecting(false)}>Cerrar selector</Button>
       </div>
       <p className="text-sm text-bojana-muted">Se conserva una copia como versión del entregable. El archivo original permanece en su carpeta.</p>
-    </div>}
+    </Card>}
     {busy && <p role="status" className="text-sm text-bojana-ink"><Spinner label={progress === null ? 'Preparando archivos…' : progress < 100 ? `Subiendo archivo · ${progress}%` : 'Guardando en Drive…'} /></p>}
     {error && <p role="alert" className="text-sm text-bojana-error">{error}</p>}
   </section>;

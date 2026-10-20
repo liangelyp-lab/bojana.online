@@ -18,13 +18,13 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error
   render() {
     if (this.state.error) {
       return (
-        <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: '#f6f5f0', color: '#20231f', fontFamily: 'Arial, sans-serif' }}>
-          <section style={{ maxWidth: 640, width: '100%', background: '#fff', border: '1px solid #dedbd2', borderRadius: 20, padding: 28, boxShadow: '0 12px 32px rgba(0,0,0,.08)' }}>
-            <p style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#687266', fontWeight: 700 }}>Bojana Estudio</p>
+        <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: 24, background: 'var(--color-canvas)', color: 'var(--color-ink)', fontFamily: 'var(--font-sans)' }}>
+          <section style={{ maxWidth: 640, width: '100%', background: 'var(--color-white)', border: '1px solid var(--color-line)', borderRadius: 20, padding: 28, boxShadow: '0 12px 32px rgba(0,0,0,.08)' }}>
+            <p style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: 'var(--color-ink-muted)', fontWeight: 700 }}>Bojana Estudio</p>
             <h1 style={{ fontSize: 28, fontWeight: 500, margin: '10px 0' }}>No pudimos cargar esta vista</h1>
-            <p style={{ color: '#687266', lineHeight: 1.5 }}>El proyecto tiene un dato que necesita ser actualizado. Recargá la página para continuar.</p>
-            <Button variant="primary" type="button" onClick={() => window.location.reload()} style={{ marginTop: 18, border: 0, borderRadius: 999, padding: '12px 20px', background: '#20231f', color: '#fff', cursor: 'pointer' }}>Recargar portal</Button>
-            <details open style={{ marginTop: 20, color: '#687266', fontSize: 12 }}><summary>Detalle técnico</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre></details>
+            <p style={{ color: 'var(--color-ink-muted)', lineHeight: 1.5 }}>El proyecto tiene un dato que necesita ser actualizado. Recargá la página para continuar.</p>
+            <Button variant="primary" type="button" onClick={() => window.location.reload()} style={{ marginTop: 18, border: 0, borderRadius: 999, padding: '12px 20px', background: 'var(--color-ink)', color: 'var(--color-white)', cursor: 'pointer' }}>Recargar portal</Button>
+            <details open style={{ marginTop: 20, color: 'var(--color-ink-muted)', fontSize: 12 }}><summary>Detalle técnico</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{this.state.error.message}</pre></details>
           </section>
         </main>
       )

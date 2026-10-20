@@ -1,4 +1,7 @@
+import { ModalHeader, ModalFooter } from '../ui/DesignSystem';
 import {
+  Modal,
+  Card,
   Badge,
   Button,
   Checkbox,
@@ -1274,13 +1277,9 @@ export default function OperationalExecutionPanel({
             </div>
           )}
           {historyUpdate && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true" aria-label="Historial de la actualización">
-              <section className="max-h-[min(80vh,680px)] w-full max-w-2xl overflow-y-auto rounded-2xl border border-bojana-line bg-white p-5 text-sm shadow-2xl">
-                <div className="flex items-start justify-between gap-3">
-                  <div><p className="bojana-label">Historial de la tarea</p><p className="mt-1 font-semibold text-ink">{task.titulo}</p></div>
-                  <Button variant="icon" className="!size-8" ariaLabel="Cerrar historial" onClick={() => setHistoryUpdateId(null)}><X className="size-4" /></Button>
-                </div>
-                <div className="mt-5 space-y-3">
+            <Modal open onClose={() => setHistoryUpdateId(null)} title="Historial de la actualización" customContent maxWidth="max-w-2xl" panelClassName="text-sm">
+                <ModalHeader title="Historial de la tarea" onClose={() => setHistoryUpdateId(null)} />
+                <div className="bojana-modal-body space-y-3">
                   {taskHistory.map((entry) => <article key={entry.id} className={`rounded-xl border p-3 ${entry.id === historyUpdate.id ? "border-forest/40 bg-mint-pale/30" : "border-bojana-line bg-bojana-surface/50"}`}>
                     <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-ink">v{entry.version} · {entry.titulo}</p><span className="text-xs text-bojana-muted">{new Date(entry.fecha).toLocaleString("es-AR")}</span></div>
                     <p className="mt-1 text-xs text-bojana-muted">{taskUpdateNotificationLabel(entry.accion)} · {entry.estado === "aprobada" ? "Aprobada" : entry.estado === "cambios_solicitados" ? "Cambios solicitados" : entry.estado === "en_revision" ? "En revisión" : entry.estado === "borrador" ? "Borrador interno" : "Publicada"}</p>
@@ -1289,8 +1288,7 @@ export default function OperationalExecutionPanel({
                     {entry.respuesta && <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs text-ink-muted">Respuesta del cliente · {entry.respuesta}</p>}
                   </article>)}
                 </div>
-              </section>
-            </div>
+            </Modal>
           )}
           {approvedUpdate && (
             <p className="rounded-xl bg-mint-pale px-3 py-2 text-xs text-forest">
@@ -2926,29 +2924,7 @@ export default function OperationalExecutionPanel({
                       {showDisciplineTitle && (
                         <h3 className="bojana-label px-1 pt-3">{disc.id}</h3>
                       )}
-                    <div
-                      className="bojana-discipline-card border border-bojana-line rounded-bojana-widget overflow-hidden bg-bojana-surface shadow-bojana-widget"
-                    >
-                      {/* Discipline Header Bar */}
-                      <div
-                        onClick={() => toggleDiscipline(key)}
-                        className="bojana-discipline-header px-5 py-4 bg-bojana-surface/90 border-b border-bojana-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer"
-                      >
-                        <div className="flex items-center gap-3">
-                          <h3 className="bojana-heading-component text-sm font-medium text-bojana-ink uppercase tracking-normal font-sans">
-                            {displayNeed.nombre}
-                          </h3>
-                        </div>
-
-                        <span className="text-bojana-muted">
-                          {isCollapsed ? (
-                            <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ChevronUp className="w-4 h-4" />
-                          )}
-                        </span>
-                      </div>
-
+                    <Card expandable padding="none" elevation="raised" expanded={!isCollapsed} onExpandedChange={() => toggleDiscipline(key)} expandLabel={displayNeed.nombre} header={<span className="bojana-heading-component text-sm font-medium uppercase">{displayNeed.nombre}</span>} className="bojana-discipline-card">
                       {/* Needs under this Discipline */}
                       {!isCollapsed && (
                         <div className="divide-y divide-bojana-line">
@@ -3083,23 +3059,12 @@ export default function OperationalExecutionPanel({
                                           )?.nombre || "Sin asignar"
 
                                         return (
-                                          <div
+                                          <Card
                                             key={task.id}
                                             id={`workspace-task-${task.id}`}
-                                            className={`rounded-bojana-widget border-[0.5px] border-bojana-line bg-bojana-surface overflow-hidden transition ${
-                                              highlightedTaskId === task.id
-                                                ? "focused-notification-task"
-                                                : ""
-                                            } ${
-                                              isTaskExpanded
-                                                ? "bojana-task-expanded border-bojana-line shadow-bojana-widget"
-                                                : "border-bojana-line hover:border-bojana-line"
-                                            }`}
-                                          >
-                                            {/* Item Title Row */}
-                                            <div
-                                              className="bojana-task-row bojana-row-hover flex cursor-pointer items-start sm:items-center justify-between gap-3"
-                                              onClick={() => {
+                                            expandable headerDensity="compact" padding="none"
+                                            expanded={isTaskExpanded}
+                                            onExpandedChange={() => {
                                                 const close =
                                                   activeTaskMode === "update"
                                                 if (close && highlightedTaskId === task.id) {
@@ -3118,9 +3083,10 @@ export default function OperationalExecutionPanel({
                                                   close ? null : task.id,
                                                 )
                                                 setUpdateDraftOpen(false)
-                                              }}
-                                            >
-                                              <div className="flex items-start flex-1 min-w-0">
+
+                                            }}
+                                            expandLabel={task.titulo}
+                                            header={<>                                              <div className="flex items-start flex-1 min-w-0">
                                                 <div className="space-y-0.5 truncate">
                                                   <h4
                                                     className={`bojana-task-title text-xs font-medium font-sans ${
@@ -3137,9 +3103,8 @@ export default function OperationalExecutionPanel({
                                                     </p>
                                                   )}
                                                 </div>
-                                              </div>
-
-                                              <div className="flex self-stretch items-center shrink-0">
+                                              </div></>}
+                                            headerActions={<>                                              <div className="flex self-stretch items-center shrink-0">
                                                 <div className="flex items-center gap-3">
                                                 {pendingApprovals > 0 && (
                                                   <span className="text-[11px] font-medium text-bojana-ink">
@@ -3195,9 +3160,9 @@ export default function OperationalExecutionPanel({
                                                   className="mt-0 self-start"
                                                 />
                                                 </div>
-                                              </div>
-                                            </div>
-
+                                              </div></>}
+                                            className={`${highlightedTaskId === task.id ? 'focused-notification-task' : ''} ${isTaskExpanded ? 'bojana-task-expanded' : ''}`}
+                                          >
                                             {isTaskExpanded && (
                                               <div
                                                 className="p-3 pt-0 sm:p-4 sm:pt-0"
@@ -3212,7 +3177,7 @@ export default function OperationalExecutionPanel({
                                                 )}
                                               </div>
                                             )}
-                                          </div>
+                                          </Card>
                                         )
                                       })}
                                     </div>
@@ -3238,7 +3203,7 @@ export default function OperationalExecutionPanel({
                           })}
                         </div>
                       )}
-                    </div>
+                    </Card>
                     </Fragment>
                   )
                 })}
@@ -3253,39 +3218,12 @@ export default function OperationalExecutionPanel({
       </div>
 
       {showProjectUpdateModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 p-4"
-          onClick={(event) => {
-            if (event.target === event.currentTarget)
-              setShowProjectUpdateModal(false)
-          }}
-        >
+        <Modal open onClose={() => setShowProjectUpdateModal(false)} title="Actualización del proyecto" customContent >
           <form
-            className="w-full max-w-xl space-y-5 rounded-3xl border border-line bg-canvas p-6 shadow-2xl"
+            className="bojana-modal-form"
             onSubmit={handleCreateProjectUpdate}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-ink-faint">
-                  Actualización del proyecto
-                </p>
-                <h2 className="mt-2 font-display text-3xl font-normal text-ink">
-                  Nueva actualización
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-ink-muted">
-                  Podés publicarla aunque todavía no haya tareas cargadas.
-                </p>
-              </div>
-              <Button
-                variant="icon"
-                size="s"
-                type="button"
-                aria-label="Cerrar nueva actualización"
-                onClick={() => setShowProjectUpdateModal(false)}
-              >
-                <X aria-hidden="true" />
-              </Button>
-            </div>
+            <ModalHeader title="Nueva actualización" onClose={() => setShowProjectUpdateModal(false)} />
             <Field
               label="Título"
               value={projectUpdateDraft.titulo}
@@ -3321,7 +3259,7 @@ export default function OperationalExecutionPanel({
               placeholder="Contá qué querés comunicar al cliente..."
               value={projectUpdateDraft.texto}
             />
-            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-line pt-4">
+            <ModalFooter>
               <Button
                 onClick={() => setShowProjectUpdateModal(false)}
                 variant="tertiary"
@@ -3337,9 +3275,9 @@ export default function OperationalExecutionPanel({
               >
                 Crear actualización
               </Button>
-            </div>
+            </ModalFooter>
           </form>
-        </div>
+        </Modal>
       )}
       {taskError && !selected && (
         <p role="alert" className="text-xs text-bojana-error">

@@ -1,3 +1,4 @@
+import { formatPortalDate } from '../../design/format';
 import React, { useEffect, useState } from 'react';
 import {
   ProjectData,
@@ -13,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { Badge, Button, EmptyState, InputControl, Modal, TextAreaControl } from '../ui/DesignSystem';
+import { ModalHeader, ModalFooter, Card, Badge, Button, EmptyState, InputControl, Modal, TextAreaControl } from '../ui/DesignSystem';
 
 interface AvancesModuleProps {
   project: ProjectData;
@@ -36,16 +37,6 @@ export default function AvancesModule({
     currentIndex: number;
     title: string;
   } | null>(null);
-
-  useEffect(() => {
-    if (!lightboxData) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setLightboxData(null);
-    };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
-  }, [lightboxData]);
 
   // New Avance form state
   const [newTitle, setNewTitle] = useState('');
@@ -146,16 +137,13 @@ export default function AvancesModule({
       ) : (
         <div className="space-y-6">
           {posts.map((post) => (
-            <article
-              key={post.id}
-              className="rounded-3xl border border-line bg-white shadow-sm overflow-hidden transition hover:border-line-strong hover:shadow-md"
-            >
+            <Card as="article" key={post.id} padding="none" elevation="hover" className="overflow-hidden">
               {/* Post Header */}
               <div className="p-6 border-b border-line flex items-start justify-between gap-4">
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge tone="active">
-                      {post.fecha}
+                      {formatPortalDate(post.fecha)}
                     </Badge>
                     {post.categoria && (
                       <Badge>
@@ -254,31 +242,16 @@ export default function AvancesModule({
                   </div>
                 )}
               </div>
-            </article>
+            </Card>
           ))}
         </div>
       )}
 
       {/* 3. LIGHTBOX MODAL */}
       {lightboxData && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex flex-col justify-between p-4 sm:p-6 animate-fade-in" onClick={(event) => { if (event.target === event.currentTarget) setLightboxData(null); }}>
+        <Modal open onClose={() => setLightboxData(null)} title={lightboxData.title} fullscreen customContent panelClassName="flex flex-col justify-between">
           {/* Lightbox Topbar */}
-          <div className="flex items-center justify-between text-bojana-inverse border-b border-white/10 pb-3">
-            <div>
-              <h4 className="bojana-heading-component text-sm font-medium truncate">{lightboxData.title}</h4>
-              <p className="text-xs font-sans text-bojana-muted">
-                Foto {lightboxData.currentIndex + 1} de {lightboxData.images.length}
-              </p>
-            </div>
-            <Button variant="secondary"
-              type="button"
-              aria-label="Cerrar galería"
-              onClick={() => setLightboxData(null)}
-              className="bojana-icon-button bg-white/10 hover:bg-white/20 text-white"
-            >
-              <X className="size-4" />
-            </Button>
-          </div>
+          <ModalHeader title={lightboxData.title} onClose={() => setLightboxData(null)} />
 
           {/* Main Photo View */}
           <div className="relative flex-1 flex items-center justify-center p-2">
@@ -322,7 +295,7 @@ export default function AvancesModule({
               ))}
             </div>
           )}
-        </div>
+        </Modal>
       )}
 
       {/* 4. MODAL: PUBLICAR NUEVO AVANCE (ADMIN) */}
@@ -416,10 +389,10 @@ export default function AvancesModule({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
+              <ModalFooter>
                 <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
                 <Button type="submit">Publicar Avance</Button>
-              </div>
+              </ModalFooter>
             </form>
         </Modal>
       )}

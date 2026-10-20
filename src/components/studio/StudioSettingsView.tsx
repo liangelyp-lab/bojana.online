@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { ChevronDown, Copy, Info, KeyRound, Pencil, Plus, Save, Send, Settings2, Trash2, UserRoundCog, X } from "lucide-react"
 import type { ProjectData } from "../../types"
-import { Brand, Button, Checkbox, Drawer, EmptyState, Field, PageHeader, Select } from "../ui/DesignSystem"
+import { Brand, Button, Checkbox, Drawer, EmptyState, Field, PageHeader, Select, SelectControl } from "../ui/DesignSystem"
 import DriveConnectionSettings from "../storage/DriveConnectionSettings"
 
 interface TeamUser {
@@ -465,7 +465,7 @@ export default function StudioSettingsView({
         {currentUserRole === "owner" ? <div className="hidden lg:col-span-7">
           <form
             onSubmit={handleSave}
-            className="space-y-6 rounded-3xl border border-line bg-white p-7 shadow-sm"
+            className="space-y-6 rounded-bojana-widget border border-line bg-white p-7 shadow-sm"
           >
             <div className="flex items-center gap-4 border-b border-line pb-6">
               <Brand compact />
@@ -539,8 +539,8 @@ export default function StudioSettingsView({
           >
             <label className="text-xs font-semibold text-ink-muted">
               Proyecto
-              <select
-                className="bojana-control mt-2 w-full bg-white px-3.5 py-2.5 text-xs text-ink"
+              <SelectControl
+                className="mt-2"
                 value={projectId}
                 onChange={(event) => setProjectId(event.target.value)}
               >
@@ -550,7 +550,7 @@ export default function StudioSettingsView({
                     {project.info?.nombre || project.id}
                   </option>
                 ))}
-              </select>
+              </SelectControl>
             </label>
             <Field
               label="Nombre completo"
@@ -573,8 +573,8 @@ export default function StudioSettingsView({
             />
             <label className="text-xs font-semibold text-ink-muted">
               Permiso
-              <select
-                className="bojana-control mt-2 w-full bg-white px-3.5 py-2.5 text-xs text-ink"
+              <SelectControl
+                className="mt-2"
                 value={projectUser.rol}
                 onChange={(event) =>
                   setProjectUser({ ...projectUser, rol: event.target.value })
@@ -582,7 +582,7 @@ export default function StudioSettingsView({
               >
                 <option value="client">Cliente</option>
                 <option value="editor">Editor de proyecto</option>
-              </select>
+              </SelectControl>
             </label>
             <Button type="submit" disabled={creating}>
               {creating ? "Generando..." : "Generar acceso"}
@@ -641,7 +641,7 @@ export default function StudioSettingsView({
           </div>
         </div>
         <div className="lg:col-span-12">
-          {isAddMemberOpen && <form onSubmit={addTeamUser} className="relative mt-5 space-y-5 rounded-3xl border border-line bg-white p-7">
+          {isAddMemberOpen && <form onSubmit={addTeamUser} className="relative mt-5 space-y-5 rounded-bojana-widget border border-line bg-white p-7">
             <div className="absolute right-4 top-4"><Button variant="icon" tooltip="Cerrar formulario" ariaLabel="Cerrar formulario de miembro" onClick={() => setIsAddMemberOpen(false)}><X className="size-4" /></Button></div>
             <h4 className="font-display text-2xl font-normal text-ink">Nuevo usuario</h4>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_1fr_0.8fr_1.2fr] md:items-end">
@@ -683,7 +683,7 @@ export default function StudioSettingsView({
             {teamUsers.map((user) => {
               const isOwner = user.rol === "owner"
               const isEditing = editingUser?.id === user.id
-              return <div key={user.id} className="rounded-2xl border border-line bg-white p-4 shadow-sm">
+              return <div key={user.id} className="rounded-bojana-widget border border-line bg-white p-4 shadow-sm">
                 {isEditing ? (
                   <form onSubmit={(event) => { event.preventDefault(); void saveTeamProjects() }} className="space-y-4">
                     <div className="flex items-start justify-between gap-4">

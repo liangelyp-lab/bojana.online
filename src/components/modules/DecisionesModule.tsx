@@ -1,6 +1,7 @@
+import { formatPortalDate } from '../../design/format';
 import { MediaComparison } from '../ui/Media';
 import { decisionStateBadgeClasses } from '../../design/status';
-import { Badge, Button, EmptyState, FilterTabs, InputControl, Modal, StatusBadge, TextAreaControl } from '../ui/DesignSystem';
+import { ModalFooter, Card, Badge, Button, EmptyState, FilterTabs, InputControl, Modal, StatusBadge, TextAreaControl } from '../ui/DesignSystem';
 import React, { useState } from 'react';
 import {
   ProjectData,
@@ -230,7 +231,7 @@ export default function DecisionesModule({
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
       {/* FILTER TABS */}
-      {decisiones.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
+      {decisiones.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-bojana-widget border border-line bg-white p-3 shadow-sm">
         <FilterTabs
           ariaLabel="Estados de decisiones"
           activeTab={filterStatus}
@@ -258,10 +259,7 @@ export default function DecisionesModule({
             const requiresChanges = item.estado === 'Requiere cambios';
 
             return (
-              <div
-                key={item.id}
-                className="rounded-3xl border border-line bg-white shadow-sm overflow-hidden transition hover:border-line-strong hover:shadow-md"
-              >
+              <Card key={item.id} padding="none" elevation="hover" className="overflow-hidden">
                 {/* Decision Header */}
                 <div className="p-6 border-b border-line flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                   <div className="space-y-2">
@@ -271,7 +269,7 @@ export default function DecisionesModule({
                         {item.tipo === 'decision_diseno' ? 'Decisión de Diseño' : 'Revisión Técnica'}
                       </Badge>
                       <span className="text-xs text-ink-faint">
-                        Creada el {item.fechaCreacion}
+                        Creada el {formatPortalDate(item.fechaCreacion)}
                       </span>
                     </div>
 
@@ -301,7 +299,7 @@ export default function DecisionesModule({
                     <div className="flex items-center gap-bojana-inside font-medium">
                       <CheckCircle2 className="w-4 h-4 text-bojana-success shrink-0" />
                       <span>
-                        Aprobado por el comitente &bull; {item.fechaDecision || 'Convalidado'}
+                        Aprobado por el comitente &bull; {item.fechaDecision ? formatPortalDate(item.fechaDecision) : 'Convalidado'}
                       </span>
                       {item.opcionAprobadaId && item.opciones && (
                         <span className="text-bojana-success font-sans font-medium">
@@ -328,14 +326,7 @@ export default function DecisionesModule({
                         const isThisOptApproved = item.opcionAprobadaId === opt.id;
 
                         return (
-                          <div
-                            key={opt.id}
-                            className={`bojana-widget rounded-bojana-widget border p-4 transition flex flex-col justify-between space-y-3 ${
-                              isThisOptApproved
-                                ? "bg-bojana-soft/80 border-bojana-success ring-2 ring-bojana-success shadow-bojana-widget"
-                                : "bg-bojana-surface border-bojana-line hover:border-bojana-line"
-                            }`}
-                          >
+                          <Card key={opt.id} selected={isThisOptApproved} padding="compact" className="flex flex-col justify-between space-y-3">
                             <div className="space-y-bojana-inside">
                               {opt.imagenUrl && (item.opciones || []).filter(o => o.imagenUrl).length < 2 && (
                                 <div className="aspect-16/10 rounded-bojana-widget overflow-hidden bg-bojana-soft border border-bojana-line">
@@ -388,7 +379,7 @@ export default function DecisionesModule({
                                 </Button>
                               )}
                             </div>
-                          </div>
+                          </Card>
                         );
                       })}
                     </div>
@@ -435,7 +426,7 @@ export default function DecisionesModule({
                         <div key={c.id} className="text-xs space-y-0.5">
                           <div className="flex items-center gap-bojana-inside">
                             <strong className="text-bojana-ink font-medium">{c.autor}</strong>
-                            <span className="text-xs font-sans text-bojana-muted">{c.fecha}</span>
+                            <span className="text-xs font-sans text-bojana-muted">{formatPortalDate(c.fecha)}</span>
                           </div>
                           <p className="text-bojana-ink bg-bojana-surface p-2.5 rounded-bojana-widget border border-bojana-line inline-block font-sans max-w-2xl leading-normal">
                             {c.texto}
@@ -477,7 +468,7 @@ export default function DecisionesModule({
                   </div>
                 </div>
 
-              </div>
+              </Card>
             );
           })
         )}
@@ -583,10 +574,10 @@ export default function DecisionesModule({
                 </div>
               )}
 
-              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
+              <ModalFooter>
                 <Button type="button" variant="secondary" onClick={() => setShowCreateModal(false)}>Cancelar</Button>
                 <Button type="submit">Publicar Solicitud</Button>
-              </div>
+              </ModalFooter>
             </form>
         </Modal>
       )}

@@ -14,7 +14,7 @@ import {
   ChevronUp,
   UploadCloud
 } from 'lucide-react';
-import { Badge, Button, EmptyState, FilterTabs, Field, InputControl, SearchInput, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
+import { ModalFooter, Card, Badge, Button, EmptyState, FilterTabs, Field, InputControl, SearchInput, Modal, SelectControl, TextArea, TextAreaControl } from '../ui/DesignSystem';
 
 interface DocumentosModuleProps {
   project: ProjectData;
@@ -150,7 +150,7 @@ export default function DocumentosModule({
     <div className="space-y-6 w-full pb-8 animate-fade-in">
 
       {/* CATEGORIES FILTER & SEARCH BAR */}
-      {docs.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-line bg-white p-3 shadow-sm">
+      {docs.length > 0 && <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-bojana-widget border border-line bg-white p-3 shadow-sm">
         {/* Category Tabs */}
         <FilterTabs
           ariaLabel="Categorías de documentos"
@@ -180,10 +180,7 @@ export default function DocumentosModule({
             const isExpanded = !!expandedDocIds[doc.id];
 
             return (
-              <div
-                key={doc.id}
-                className="bg-bojana-surface border border-bojana-line rounded-bojana-widget shadow-bojana-widget overflow-hidden transition hover:border-bojana-line"
-              >
+              <Card key={doc.id} padding="none" elevation="hover" className="overflow-hidden">
                 {/* Main Card View */}
                 <div className="p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-bojana-block">
                   <div className="space-y-bojana-inside flex-1">
@@ -230,7 +227,7 @@ export default function DocumentosModule({
                       }}
                       className="bojana-button bojana-button-primary px-3.5 py-2 rounded-full bg-bojana-ink hover:bg-bojana-ink text-bojana-inverse text-xs font-sans font-medium flex items-center gap-bojana-inside transition cursor-pointer shadow-bojana-widget"
                     >
-                      <Download className="w-3.5 h-3.5 text-bojana-ink" />
+                      <Download className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Descargar ({doc.formato})</span>
                     </Button>
 
@@ -309,7 +306,7 @@ export default function DocumentosModule({
                     </div>
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })
         )}
@@ -389,7 +386,7 @@ export default function DocumentosModule({
                 />
               </div>
 
-              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
+              <ModalFooter>
                 <Button variant="secondary"
                   type="button"
                   onClick={() => setShowAddDocModal(false)}
@@ -403,7 +400,7 @@ export default function DocumentosModule({
                 >
                   Registrar Documento
                 </Button>
-              </div>
+              </ModalFooter>
             </form>
         </Modal>
       )}
@@ -437,10 +434,10 @@ export default function DocumentosModule({
                   className="text-xs"
               />
 
-              <div className="flex items-center justify-end gap-bojana-inside pt-3 border-t border-bojana-line">
+              <ModalFooter>
                 <Button type="button" variant="secondary" onClick={() => setShowAddRevisionModal(null)}>Cancelar</Button>
                 <Button type="submit">Publicar Revisión</Button>
-              </div>
+              </ModalFooter>
             </form>
         </Modal>
       )}

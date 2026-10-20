@@ -1,0 +1,78 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400;1,6..72,500&display=swap");
+
+/* Brand typography and palette shared by the portal and Storybook. */
+@theme static {
+  /* Typography */
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
+
+  /* Palette — Canvas & Surfaces */
+  --color-canvas:        #f7f6f2;
+  --color-canvas-light:  #fbfaf9;
+  --color-white:         #ffffff;
+  --color-stone:         #edece6;
+  --color-line:          #deddd6;
+  --color-line-strong:   #b8b7ab;
+
+  /* Palette — Ink / Text (Calibrated for WCAG AA/AAA Contrast on Canvas & White) */
+  --color-ink:           #1a1f19;
+  --color-ink-soft:      #2c342b;
+  --color-ink-muted:     #4d574c;
+  --color-ink-faint:     #636f62;
+
+  /* Palette — Brand accents & State Badges (High Contrast) */
+  --color-forest:        var(--color-bojana-primary);
+  --color-clay:          #a8472f;
+  --color-clay-dark:     #7a2612;
+  --color-clay-pale:     #f8ebe6;
+  --color-clay-surface:   #fdf5f2;
+  --color-sand:          #ded2bd;
+  --color-sand-strong:   #6e5220;
+  --color-sage:          #9eb5a4;
+  --color-sage-pale:     #eef3ef;
+  --color-stone-surface:  #f8f8f5;
+  --color-mint:          #8ab99c;
+  --color-mint-pale:     #e4efe7;
+  --color-mint-surface:   #f3f8f4;
+  --color-mint-strong:   #3d7a55;
+
+  /* Estados — advertencia / mostaza */
+  --color-warning-pale:   #f7efd9;
+  --color-warning-surface:#fcf8ed;
+  --color-warning:        #d4a853;
+  --color-warning-strong: #6e5220;
+
+  /* Bojana semantic color tokens - Harmonized with Refine Architectural Studio Palette */
+  --color-bojana-canvas:     var(--color-canvas);
+  --color-bojana-surface:    #ffffff;
+  --color-bojana-soft:       var(--color-stone);
+  --color-bojana-ink:        var(--color-ink);
+  --color-bojana-muted:      var(--color-ink-muted);
+  --color-bojana-line:       var(--color-line);
+  --color-bojana-line-strong:var(--color-line-strong);
+  --color-bojana-primary:    #3a3a3a;
+  --color-bojana-inverse:    #ffffff;
+  --color-bojana-success:    var(--color-forest);
+  --color-bojana-waiting:    var(--color-clay-pale);
+  --color-bojana-error:      var(--color-clay-dark);
+  --color-bojana-discipline: var(--color-ink);
+  --color-bojana-focus:      color-mix(in srgb, var(--color-bojana-primary) 12%, transparent);
+
+  --color-overlay: rgb(17 17 17 / 0.55);
+  --color-overlay-soft: rgb(17 17 17 / 0.35);
+
+  /* Interaction and functional states; also used by legacy utility names. */
+  --color-primary-hover: color-mix(in srgb, var(--color-bojana-primary) 82%, black);
+  --color-info-surface: #eff6ff;
+  --color-info-border: #bfdbfe;
+  --color-info-strong: #1e40af;
+  --color-error-strong: #b91c1c;
+  --color-upload-border: #38bdf8;
+  --color-upload-strong: #0284c7;
+  --color-blue-50: var(--color-info-surface);
+  --color-blue-200: var(--color-info-border);
+  --color-blue-800: var(--color-info-strong);
+  --color-red-700: var(--color-error-strong);
+  --color-sky-400: var(--color-upload-border);
+  --color-sky-600: var(--color-upload-strong);
+}

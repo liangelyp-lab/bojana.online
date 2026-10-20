@@ -93,7 +93,8 @@ export default function Library({ items, reportes, onToast }: LibraryProps) {
             return (
               <Card
                 key={item.id}
-                className="bojana-interactive-hover flex flex-col justify-between"
+                elevation="hover"
+                className="flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div>

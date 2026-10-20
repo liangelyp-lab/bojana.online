@@ -6,7 +6,7 @@ import {
 } from '../../services/storageService';
 import { issueSecureProjectLink, listSecureProjectLinks, revokeSecureProjectLink, type DirectProjectLink, type SecureProjectLink } from '../../services/projectAccess';
 import { copyTextToClipboard } from '../../services/clipboard';
-import { Badge, Button, EmptyState, FilterBar, FilterTabs, PageHeader, SearchInput, StatusBadge } from '../ui';
+import { Card, Badge, Button, EmptyState, FilterBar, FilterTabs, PageHeader, SearchInput, StatusBadge } from '../ui';
 import ManualCopyDialog from '../ui/ManualCopyDialog';
 import {
   Plus,
@@ -190,11 +190,7 @@ export default function StudioProjectsList({
                   : 'info';
 
             return (
-              <div
-                key={p.id}
-                onClick={() => onSelectProject(p.id)}
-                className="bojana-interactive-hover group flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-3xl border border-line bg-white p-6 shadow-sm cursor-pointer"
-              >
+              <Card key={p.id} elevation="hover" onClick={() => onSelectProject(p.id)} tabIndex={0} role="group" onKeyDown={event => { if (event.target === event.currentTarget && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelectProject(p.id); } }} aria-label={`Abrir proyecto ${title}`} className="group flex flex-col md:flex-row md:items-center justify-between gap-6 cursor-pointer">
                 {/* Project Identity */}
                 <div className="space-y-3 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -266,7 +262,7 @@ export default function StudioProjectsList({
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })
         )}
