@@ -143,13 +143,15 @@ function SectionTitle({
   eyebrow,
   children,
   action,
+  className = "",
 }: {
   eyebrow?: string
   children: ReactNode
   action?: ReactNode
+  className?: string
 }) {
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
+    <div className={`mb-6 flex items-end justify-between gap-4 ${className}`}>
       <div>
         {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
         <Heading
@@ -1729,7 +1731,7 @@ function ClientSidebar({
         </div>
       </div>
       {projects.length > 1 && <label className="mt-3 block text-xs font-semibold">Proyecto<select className="bojana-control mt-1 w-full bg-white text-sm" value={selectedProjectId || projects[0]?.id || ""} onChange={event => onProjectChange(event.target.value)}>{projects.map(project => <option key={project.id} value={project.id}>{project.info?.nombre || project.id}</option>)}</select></label>}
-      <nav aria-label="Navegación cliente" className="mt-3 grid grid-cols-4 gap-1">
+      <nav aria-label="Navegación cliente" className="mt-3 grid grid-cols-2 gap-1 min-[360px]:grid-cols-4">
         {clientNavItems.map(item => <Button key={item.label} ariaLabel={item.label} aria-current={active === item.label ? "page" : undefined} size="s" variant="tertiary" className={`min-w-0 !flex-col !gap-1 !rounded-xl !px-1 !text-[11px] ${active === item.label ? "!bg-stone !text-ink" : ""}`} onClick={() => { setActive(item.label); setNotificationsOpen(false) }}><Icon className="size-4" name={item.icon} /><span>{item.label}</span></Button>)}
       </nav>
       {notificationsOpen && <section aria-label="Notificaciones recientes" className="mt-3 max-h-64 overflow-y-auto rounded-xl border border-line bg-white p-2">
@@ -2307,6 +2309,7 @@ function DocumentsSection({ documents }: { documents: { name: string; meta: stri
   return (
     <section>
       <SectionTitle
+        className="flex-col !items-start sm:flex-row sm:!items-end"
         action={
           <Button variant="secondary">
             Todos los documentos <Icon className="size-4" name="arrow" />
@@ -2316,11 +2319,11 @@ function DocumentsSection({ documents }: { documents: { name: string; meta: stri
       >
         Documentos recientes
       </SectionTitle>
-      <div className="grid gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4">
         {documents.length === 0 && <p className="rounded-2xl border border-dashed border-line bg-white p-6 text-sm text-ink-muted">Todavía no hay documentos publicados para este proyecto.</p>}
         {documents.map((document) => (
           <article
-            className="flex items-center gap-4 rounded-2xl border border-line bg-white p-4 transition-colors hover:border-line-strong md:p-5"
+            className="flex min-w-0 items-center gap-2 rounded-2xl border border-line bg-white p-3 transition-colors hover:border-line-strong sm:gap-4 sm:p-4 md:p-5"
             key={document.name}
           >
             <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-stone text-ink-muted">
@@ -2333,10 +2336,10 @@ function DocumentsSection({ documents }: { documents: { name: string; meta: stri
               >
                 {document.name}
               </Heading>
-              <p className="mt-1 text-xs text-ink-faint">{document.meta}</p>
+              <p className="mt-1 break-words text-xs text-ink-faint [overflow-wrap:anywhere]">{document.meta}</p>
             </div>
-            <StatusBadge tone={document.status === "Para revisar" ? "waiting" : "active"} size="s" showDot={false} className="hidden sm:inline-flex">{document.status}</StatusBadge>
-            <Button ariaLabel={`Descargar ${document.name}`} className="!size-11 !p-0" variant="icon" onClick={() => document.url ? window.open(document.url, '_blank', 'noopener,noreferrer') : undefined}>
+            <span className="hidden shrink-0 sm:inline-flex"><StatusBadge tone={document.status === "Para revisar" ? "waiting" : "active"} size="s" showDot={false}>{document.status}</StatusBadge></span>
+            <Button ariaLabel={`Descargar ${document.name}`} className="!size-11 shrink-0 !p-0" variant="icon" onClick={() => document.url ? window.open(document.url, '_blank', 'noopener,noreferrer') : undefined}>
               <Icon className="size-5" name="download" />
             </Button>
           </article>
