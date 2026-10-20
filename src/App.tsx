@@ -6,7 +6,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
-import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, Share2, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bell, Calendar, Check, ChevronRight, Clock, LayoutGrid, Download, Eye, FileText, Folder, Home, LockKeyhole, Mail, Menu, MessageSquare, MoreHorizontal, Users, Plus, Upload, Search, Settings, ListChecks, X } from "lucide-react";
 import NewProjectModal from "./components/studio/NewProjectModal";
 import { getAllProjects, saveProjectData, getEffectiveProgress, getProgressFocusTaskId, getProjectStatusLabel, hydrateProjectsFromSupabase, publishAndActivateProject, subscribeProjectSync, upsertClientFromProject } from "./services/storageService";
 import type { DecisionItem, ExpectedDeliverableStatus, LibraryItem, ProjectActivityLog, ProjectData } from "./types";
@@ -26,7 +26,7 @@ import RequestClientActionModal from "./components/studio/RequestClientActionMod
 import PublishInviteModal from "./components/studio/PublishInviteModal";
 import ClientAlertModal, { clientAlertActionLabel, type ClientAlertActionType } from "./components/studio/ClientAlertModal";
 import Library from "./components/Library";
-import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
+import { Badge, Button, Card, Checkbox, EmptyState, FilterBar, FilterTabs, HistoryRow, InputControl, NotificationAnchor, PageHeader, PortalIcon, SearchInput, StatusBadge, StatusBar, Tabs, TaskRow, TextAreaControl, type StatusBarTaskStatusCounts } from "./components/ui/DesignSystem";
 import type { ExecutionTask } from "./types";
 import bojanaLogoWhite from "./assets/Bojana-Estudio-Logo-White.svg";
 import { getAccessToken, getAuthUser, requestPasswordReset, restoreSession, signInWithPassword, signOut as signOutAuth, updatePassword } from "./services/authService";
@@ -66,7 +66,7 @@ const icons: Record<IconName, React.ElementType> = {
   eye: Eye, file: FileText, folder: Folder, home: Home, lock: LockKeyhole,
   mail: Mail, menu: Menu, message: MessageSquare, more: MoreHorizontal,
   people: Users, plus: Plus, publish: Upload, search: Search, settings: Settings,
-  tasks: ListChecks, timeline: Share2,
+  tasks: ListChecks, timeline: Clock,
 }
 
 function Icon({ name, className = "size-5" }: { name: IconName; className?: string }) {
@@ -2131,63 +2131,26 @@ function ProgressSection({
   )
 }
 
-function StorySection({ updates, compact = false, onViewAll }: { updates: { date: string; title: string; description: string; tag: string; color: string }[]; compact?: boolean; onViewAll?: () => void }) {
-  const displayedUpdates = compact ? updates.slice(0, 4) : updates
+function StorySection({ updates }: { updates: { date: string; title: string; description: string; tag: string; color: string }[] }) {
+  const displayedUpdates = updates
   return (
     <section>
-      <SectionTitle
-        action={
-          <Button className="hidden sm:inline-flex" variant="secondary" onClick={onViewAll}>
-            Ver historia completa <Icon className="size-4" name="arrow" />
-          </Button>
-        }
-      >
+      <SectionTitle>
         La historia del proyecto
       </SectionTitle>
       <div className="overflow-hidden rounded-3xl border border-line bg-white">
         {displayedUpdates.length === 0 && <p className="p-6 text-sm text-ink-muted">Todavía no hay avances publicados para este proyecto.</p>}
         {displayedUpdates.map((update, index) => (
-          <article
-            className={`grid gap-4 p-6 md:grid-cols-story md:gap-8 md:p-8 ${
-              index < displayedUpdates.length - 1 ? "border-b border-line" : ""
-            }`}
-            key={update.title}
-          >
-            <div className="flex items-start gap-4 md:block">
-              <span
-                className={`mt-1 block size-2.5 rounded-full ${update.color}`}
-              />
-              <p className="mt-0 text-xs font-bold tracking-wider text-ink-faint md:mt-3">
-                {update.date}
-              </p>
-            </div>
-            <div>
-              <StatusBadge tone="gray" size="s" showDot={false}>
-                {update.tag}
-              </StatusBadge>
-              <Heading
-                as="h3"
-                className="mt-3 text-base font-semibold text-ink"
-              >
-                {update.title}
-              </Heading>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-ink-muted">
-                {update.description}
-              </p>
-            </div>
-            <Button
-              ariaLabel={`Ver detalle: ${update.title}`}
-              className="!size-11 !p-0"
-              variant="icon"
-            >
-              <Icon className="size-4" name="arrow" />
-            </Button>
-          </article>
+          <HistoryRow
+            key={`${update.date}-${update.title}-${index}`}
+            date={update.date}
+            title={update.title}
+            description={update.description}
+            status={<StatusBadge tone="gray" size="s" showDot={false}>{update.tag}</StatusBadge>}
+            actions={<Button ariaLabel={`Ver detalle: ${update.title}`} className="!size-8 !p-0" variant="icon"><Icon className="size-3.5" name="arrow" /></Button>}
+          />
         ))}
       </div>
-      <Button className="mt-4 w-full sm:hidden" variant="secondary" onClick={onViewAll}>
-        Ver historia completa <Icon className="size-4" name="arrow" />
-      </Button>
     </section>
   )
 }
@@ -2340,8 +2303,7 @@ function ClientTaskContentWidget({
     <article className="rounded-3xl border border-line bg-white p-6 md:p-7">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Eyebrow>Tarea</Eyebrow>
-          <Heading as="h3" className="mt-2 text-xl font-semibold text-ink">{task.titulo}</Heading>
+          <Heading as="h3" className="text-xl font-semibold text-ink">{task.titulo}</Heading>
           {task.estado === "Completado" && latestUpdate && (
             <p className="mt-1 text-sm text-ink-muted">
               Entregable publicado · {latestUpdate.titulo}
@@ -2758,10 +2720,9 @@ function ClientPortal({
                     onTaskToggle={taskId => setExpandedClientTaskId(current => current === taskId ? null : taskId)}
                     totalCount={projectTasks.length}
                   />
-                  <StorySection updates={projectUpdates} compact onViewAll={() => setActive("Historia")} />
                   {clientContentTasks.length > 0 && (
                     <section className="space-y-4">
-                      <SectionTitle eyebrow="Trabajo visible">Tareas</SectionTitle>
+                      <SectionTitle>Tareas</SectionTitle>
                       <div className="grid gap-4">
                         {clientContentTasks.map(task => {
                           const latestUpdate = latestClientUpdates.find(item => item.task.id === task.id)?.update

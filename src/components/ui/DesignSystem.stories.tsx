@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { ArrowLeft, Bell, Building2, CalendarDays, CheckCircle2, CircleAlert, Eye, FolderOpen, LayoutGrid, Plus, Search, Settings } from 'lucide-react';
 import { lucideIcons } from './storybookIcons';
-import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
+import { Badge, Button, Card, Checkbox, Drawer, EmptyState, Field, FilterBar, FilterTabs, HistoryRow, Modal, NotificationAnchor, NotificationCount, PageHeader, PortalIcon, SearchInput, Select, Skeleton, Spinner, StatusBadge, StatusBar, Tabs, TaskRow, TextArea } from './DesignSystem';
 
 const meta = {
   title: 'Bojana/Componentes',
@@ -101,6 +101,18 @@ export const TaskRowStory: Story = {
     interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
   },
   render: ({ showDescription, showDetails, showOwner, showDue, showStatus, showActions, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><TaskRow title="Documentación ejecutiva" description={showDescription ? 'Arquitectura' : undefined} details={showDetails ? '2 entregables · 1 publicado' : undefined} owner={showOwner ? <><span className="grid size-8 place-items-center rounded-full bg-stone text-xs font-bold text-ink-muted">LM</span><span className="text-xs font-medium text-ink-muted">Lucía Martín</span></> : undefined} due={showDue ? <><PortalIcon icon={CalendarDays} size="s" color="line" />18 oct.</> : undefined} status={showStatus ? <StatusBadge tone="waiting" size="s">Esperando cliente</StatusBadge> : undefined} actions={showActions ? <Button variant="icon" size="s" ariaLabel="Más opciones">•••</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>
+};
+
+export const HistoryRowStory: Story = {
+  name: 'History Row',
+  args: { showDescription: true, showStatus: true, showAction: true, interactive: true },
+  argTypes: {
+    showDescription: { control: 'boolean', description: 'Mostrar el detalle del evento' },
+    showStatus: { control: 'boolean', description: 'Mostrar la categoría del evento' },
+    showAction: { control: 'boolean', description: 'Mostrar acción de detalle' },
+    interactive: { control: 'boolean', description: 'Activar hover y clic de fila' },
+  },
+  render: ({ showDescription, showStatus, showAction, interactive }) => <div className="overflow-hidden rounded-3xl border border-line bg-white"><HistoryRow date="18 OCT" title="Planos arquitectónicos actualizados" description={showDescription ? 'Bojana Estudio publicó la revisión 03 para el cliente.' : undefined} status={showStatus ? <StatusBadge tone="gray" size="s" showDot={false}>Actualización</StatusBadge> : undefined} actions={showAction ? <Button variant="icon" size="s" ariaLabel="Ver detalle">→</Button> : undefined} onClick={interactive ? () => {} : undefined} /></div>,
 };
 
 export const Forms: Story = {

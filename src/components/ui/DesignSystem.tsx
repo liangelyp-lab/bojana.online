@@ -531,6 +531,32 @@ export function TaskRow({
   </article>;
 }
 
+export function HistoryRow({
+  date,
+  title,
+  description,
+  status,
+  actions,
+  onClick,
+}: {
+  date: React.ReactNode;
+  title: React.ReactNode;
+  description?: React.ReactNode;
+  status?: React.ReactNode;
+  actions?: React.ReactNode;
+  onClick?: () => void;
+}) {
+  const interactive = Boolean(onClick);
+  return <article className={`grid gap-3 border-b border-line px-5 py-4 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center sm:px-6 ${interactive ? 'bojana-row-hover cursor-pointer' : ''}`} onClick={onClick}>
+    <p className="text-xs font-semibold text-ink-faint">{date}</p>
+    <div className="min-w-0">
+      <h3 className="truncate text-sm font-semibold text-ink">{title}</h3>
+      {description && <p className="mt-1 line-clamp-2 text-xs leading-5 text-ink-muted">{description}</p>}
+    </div>
+    <div className="flex items-center justify-end gap-2">{status}{actions}</div>
+  </article>;
+}
+
 export function Drawer({
   open,
   title,
