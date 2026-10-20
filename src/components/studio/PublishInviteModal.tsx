@@ -87,6 +87,12 @@ export default function PublishInviteModal({
   const title = project.info?.nombre || 'Proyecto';
   const progress = getEffectiveProgress(project);
   const projectStatus = getProjectStatusLabel(project);
+  const isUpdateEmail = (project.historialInvitaciones?.length || 0) > 0 || progress > 0;
+  const emailSubject = isUpdateEmail ? `Actualización de tu proyecto · ${title}` : `Tu portal de proyecto · ${title}`;
+  const emailHeading = isUpdateEmail ? 'Tu proyecto tiene novedades.' : 'Tu proyecto ya tiene su espacio.';
+  const emailIntro = isUpdateEmail
+    ? 'Compartimos el estado actualizado de tu proyecto. Ingresá al portal para consultar el avance, las etapas y la documentación disponible.'
+    : 'Tu proyecto ya está disponible en el portal de Bojana Estudio. Desde este espacio vas a poder acompañar su desarrollo y consultar sus etapas, documentación y avances.';
   const subtitle = project.info?.subtitulo || project.disciplinas?.join(' · ') || '';
   const disciplines = project.disciplinas?.join(' + ') || 'Arquitectura';
   const isAlreadyActive = project.lifecycleStatus === 'ACTIVO';
@@ -153,15 +159,15 @@ export default function PublishInviteModal({
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           to: email,
-          subject: `Tu portal de proyecto · ${title}`,
-          text: `Hola ${recipientName || 'Comitente'},\n\nYa podés acceder al portal de tu proyecto "${title}" en Bojana Estudio.\n\nAccedé desde este enlace seguro (vence en 7 días):\n${url}\n\nSi tenés alguna consulta, respondé a este correo.\n\nBojana Estudio\n${senderEmail}`,
+          subject: emailSubject,
+          text: `Hola ${recipientName || 'Comitente'},\n\n${emailHeading}\n${emailIntro}\n\nProyecto: ${title}\nEstado: ${projectStatus}\nAvance: ${progress}%\n\nAccedé desde este enlace seguro (vence en 7 días):\n${url}\n\nSi tenés alguna consulta, respondé a este correo.\n\nBojana Estudio\n${senderEmail}`,
         }),
       });
       const data = await response.json() as { message?: string };
       if (!response.ok) throw new Error(data.message || 'No pudimos enviar el email.');
       const invitation = createInvitationLog(project, recipientName, email, 'lark_smtp');
       onUpdateProject?.({ ...project, historialInvitaciones: [invitation, ...(project.historialInvitaciones || [])] });
-      onToast(`Email de bienvenida enviado a ${email}.`);
+      onToast(`Email de ${isUpdateEmail ? 'actualización' : 'bienvenida'} enviado a ${email}.`);
     } catch (error) { setPublishError(error instanceof Error ? error.message : 'No pudimos enviar el email.'); }
     finally { setIsSending(false); }
   };
@@ -238,7 +244,7 @@ export default function PublishInviteModal({
                 <div className="pt-1 text-bojana-muted">
                   <span className="font-medium text-bojana-muted">Asunto:</span>{' '}
                   <span className="font-sans font-medium text-bojana-ink">
-                    Tu proyecto {title} ya está disponible
+                    {emailSubject}
                   </span>
                 </div>
               </div>
@@ -262,13 +268,13 @@ export default function PublishInviteModal({
                 {/* Main Message */}
                 <div className="space-y-bojana-inside">
                   <span className="text-xs font-sans uppercase tracking-normal text-bojana-success font-medium">
-                    Bienvenido
+                    {isUpdateEmail ? 'Actualización del proyecto' : 'Bienvenido'}
                   </span>
                   <h3 className="bojana-heading-component text-2xl sm:text-3xl font-sans font-medium text-bojana-ink">
-                    Tu proyecto ya tiene su espacio.
+                    {emailHeading}
                   </h3>
                   <p className="text-sm text-bojana-muted font-sans leading-relaxed pt-1">
-                    Estimado/a <strong className="text-bojana-ink">{recipientName || 'Comitente'}</strong>: formalizamos el inicio de tu proyecto en el sistema. Desde este espacio vas a poder acompañar el desarrollo, consultar sus etapas, documentación y avances en tiempo real.
+                    Hola <strong className="text-bojana-ink">{recipientName || 'Comitente'}</strong>: {emailIntro}
                   </p>
                 </div>
 
@@ -336,7 +342,7 @@ export default function PublishInviteModal({
 
                 >
                   <Mail className="w-3.5 h-3.5" />
-                  <span>{isSending ? 'Enviando email...' : 'Enviar email de bienvenida'}</span>
+                  <span>{isSending ? 'Enviando email...' : isUpdateEmail ? 'Enviar actualización del proyecto' : 'Enviar email de bienvenida'}</span>
                 </Button>
               </div>
             </div>
