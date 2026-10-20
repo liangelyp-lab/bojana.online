@@ -17,6 +17,24 @@ function load(file, fetch, dependencies = {}) {
   return exports;
 }
 
+test('upcoming milestones use Argentina calendar, sort dates and exclude overdue, completed and later items', () => {
+  const { upcomingMilestones, calendarDateKey } = load('src/design/format.ts', () => {});
+  const items = [
+    { fecha: '2026-10-19', estado: 'Pendiente' },
+    { fecha: '2026-10-26', estado: 'Pendiente' },
+    { fecha: '2026-10-20', estado: 'Pendiente' },
+    { fecha: '2026-10-27', estado: 'Pendiente' },
+    { fecha: '2026-10-21', estado: 'Completado' },
+    { fecha: '2026-10-22', estado: 'Cancelado' },
+    { fecha: 'invalid', estado: 'Pendiente' },
+  ];
+  const result = upcomingMilestones(items, '2026-10-21T01:00:00Z');
+  assert.equal(JSON.stringify(result.map(item => item.fecha)), JSON.stringify(['2026-10-20', '2026-10-26']));
+  assert.equal(calendarDateKey('2026-10-20'), '2026-10-20');
+  assert.equal(calendarDateKey('2026-10-21T01:00:00Z'), '2026-10-20');
+  assert.equal(items[0].fecha, '2026-10-19');
+});
+
 test('public portal preserves published phase closures and excludes hidden content', () => {
   const project = { disciplinasOperativas: [{ id: 'd', necesidades: [
     { id: 'published', nombre: 'Planos', cierrePublicado: true, cierreDestacado: true, cierreFecha: '2026-10-20T12:00:00Z', tareas: [

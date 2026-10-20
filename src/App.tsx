@@ -1,4 +1,4 @@
-import { formatPortalDate } from "./design/format";
+import { calendarDateKey, formatPortalDate, upcomingMilestones } from "./design/format";
 import { taskStatusTone } from "./design/status";
 import {
   createElement,
@@ -873,12 +873,15 @@ function ProjectActivity({ project, onOpenTask }: { project: ProjectData; onOpen
 }
 
 function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectData["hitosInternos"]> }) {
+  const upcoming = upcomingMilestones(milestones)
   return (
     <Card as="section">
       <p className="bojana-heading-component">Próximos 7 días</p>
       <div className="mt-4 space-y-5">
-        {milestones.map((milestone) => {
-          const [day, ...monthParts] = milestone.fecha.split(" ")
+        {upcoming.map((milestone) => {
+          const date = new Date(`${calendarDateKey(milestone.fecha)}T12:00:00-03:00`)
+          const day = new Intl.DateTimeFormat("es-AR", { day: "2-digit", timeZone: "America/Argentina/Buenos_Aires" }).format(date)
+          const month = new Intl.DateTimeFormat("es-AR", { month: "short", timeZone: "America/Argentina/Buenos_Aires" }).format(date).replace(".", "")
           return (
           <article className="flex items-center gap-4" key={milestone.id}>
             <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-stone text-center">
@@ -887,7 +890,7 @@ function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectDa
                   {day || "—"}
                 </span>
                 <span className="mt-1 block text-xs font-semibold text-ink-faint">
-                  {monthParts.join(" ") || ""}
+                  {month}
                 </span>
               </span>
             </div>
@@ -898,9 +901,9 @@ function UpcomingPanel({ milestones = [] }: { milestones?: NonNullable<ProjectDa
           </article>
           )
         })}
-        {milestones.length === 0 && (
+        {upcoming.length === 0 && (
           <p className="rounded-2xl border border-dashed border-line p-4 text-sm leading-6 text-ink-faint">
-            Este proyecto todavía no tiene hitos ni entregas cargados.
+            No hay hitos pendientes para los próximos 7 días.
           </p>
         )}
       </div>
@@ -1647,16 +1650,16 @@ function ClientSidebar({
       {showAdminLink && expanded && <Button ariaLabel="Volver al administrador" className="mt-2 w-full !justify-start !rounded-2xl !px-3" onClick={onBackToAdmin} title="Volver al administrador" variant="tertiary"><Icon className="size-4.5" name="dashboard" /> Volver al admin</Button>}
       {showAdminLink && !expanded && <Button ariaLabel="Volver al administrador" className="mt-2 !size-11 !justify-center !rounded-2xl !px-0" onClick={onBackToAdmin} title="Volver al administrador" variant="tertiary"><Icon className="size-4.5" name="dashboard" /></Button>}
 
-      <div className="mt-auto flex flex-col items-center" title="Elena Marquez · Arquitecta responsable">
+      <div className="mt-auto flex flex-col items-center" title="Contactar al estudio">
         <Button
-          ariaLabel="Escribir mensaje a Elena Marquez"
+          ariaLabel="Escribir mensaje al estudio"
           className={`${expanded ? "!w-full !justify-start !px-3" : "!size-11 !justify-center !px-0"} !rounded-2xl`}
           onClick={() => setActive("Conversaciones")}
-          title="Escribir mensaje a Elena Marquez"
+          title="Escribir mensaje al estudio"
           variant="tertiary"
         >
           <Icon className="size-4" name="message" />
-          {expanded && <span>Mensaje al arquitecto</span>}
+          {expanded && <span>Mensaje al estudio</span>}
         </Button>
       </div>
       </aside>
@@ -2934,7 +2937,7 @@ function ClientPortal({
                           <article className={`max-w-[92%] rounded-xl border p-3 ${fromClient ? "mr-auto border-line bg-stone/45" : "ml-auto border-mint/40 bg-mint-pale/40"}`} key={activity.id}>
                             <div className="flex items-center justify-between gap-3 text-[11px]">
                               <span className="font-semibold text-ink">{fromClient ? "Vos" : "Bojana Estudio"}</span>
-                              <span className="text-ink-faint">{activity.fecha}</span>
+                              <span className="text-ink-faint">{formatPortalDate(activity.fecha)}</span>
                             </div>
                             <p className="mt-1.5 whitespace-pre-wrap text-xs leading-5 text-ink-muted">{activity.descripcion.replace(/^(Mensaje del cliente|Respuesta del estudio):\s*/, "")}</p>
                           </article>

@@ -4,7 +4,7 @@ import {
   ProjectInvitationLog
 } from '../../types';
 import {
-  createInvitationLog
+  createInvitationLog, getEffectiveProgress, getProjectStatusLabel
 } from '../../services/storageService';
 import { getClientProjectSequence } from '../../services/projectStructure';
 import { createSecureProjectLink } from '../../services/projectAccess';
@@ -85,6 +85,8 @@ export default function PublishInviteModal({
   const [focusTaskId, setFocusTaskId] = useState(project.tareaFocalPublicadaId || '');
 
   const title = project.info?.nombre || 'Proyecto';
+  const progress = getEffectiveProgress(project);
+  const projectStatus = getProjectStatusLabel(project);
   const subtitle = project.info?.subtitulo || project.disciplinas?.join(' · ') || '';
   const disciplines = project.disciplinas?.join(' + ') || 'Arquitectura';
   const isAlreadyActive = project.lifecycleStatus === 'ACTIVO';
@@ -282,7 +284,7 @@ export default function PublishInviteModal({
                       </p>
                     </div>
                     <StatusBadge tone="neutral" size="s" showDot={false}>
-                      0% inicial
+                      {progress}% de avance
                     </StatusBadge>
                   </div>
 
@@ -340,14 +342,14 @@ export default function PublishInviteModal({
             </div>
           )}
 
-          {/* TAB 2: PORTAL WELCOME MODE PREVIEW (0%) */}
+          {/* Review of the current project snapshot */}
           {activeTab === 'portal_preview' && (
             <div id="publish-invite-panel-portal_preview" role="tabpanel" aria-labelledby="publish-invite-tab-portal_preview" className="space-y-bojana-block max-w-3xl mx-auto animate-fade-in font-sans">
 
               <div className="bojana-widget bg-bojana-waiting border border-bojana-line rounded-bojana-widget p-4 flex items-center gap-3 text-xs text-bojana-ink font-sans">
                 <Info className="w-4 h-4 text-bojana-ink shrink-0" />
                 <span>
-                  <strong>Previsualización comitente al 0%:</strong> Esto es exactamente lo que ve el cliente al abrir su enlace por primera vez. Muestra la base contractual y el roadmap de etapas antes de comenzar los avances de obra.
+                  <strong>Revisión del proyecto:</strong> Resumen del avance actual, la base contractual y las etapas. Revisá el sitio publicado para comprobar la vista completa del comitente.
                 </span>
               </div>
 
@@ -372,7 +374,7 @@ export default function PublishInviteModal({
                     <span className="font-sans text-xs text-bojana-muted">Portal de Proyecto</span>
                   </div>
                   <StatusBadge tone="active" size="s" showDot={false}>
-                    Preparado para iniciar
+                    {projectStatus}
                   </StatusBadge>
                 </div>
 
@@ -387,19 +389,19 @@ export default function PublishInviteModal({
                   </p>
                 </div>
 
-                {/* Progress 0% Indicator */}
+                {/* Current progress */}
                 <div className="bojana-widget bg-bojana-surface border border-bojana-line rounded-bojana-widget p-5 space-y-3">
                   <div className="flex items-center justify-between font-sans text-xs">
                     <span className="font-medium text-bojana-ink">Estado del proyecto</span>
                     <StatusBadge tone="neutral" size="s" showDot={false}>
-                      0% avance de ejecución
+                      {progress}% avance de ejecución
                     </StatusBadge>
                   </div>
                   <div className="w-full bg-bojana-soft h-2 rounded-bojana-widget overflow-hidden">
-                    <div className="bg-bojana-ink h-full w-[2%]" />
+                    <div className="bg-bojana-ink h-full" style={{ width: `${progress}%` }} />
                   </div>
                   <p className="text-xs font-sans text-bojana-muted">
-                    Base formalizada. El progreso comenzará a reflejarse en tiempo real con las tareas de cada etapa.
+                    El avance refleja el estado actual de las tareas de cada etapa.
                   </p>
                 </div>
 
