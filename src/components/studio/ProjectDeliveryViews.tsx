@@ -161,7 +161,7 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
         downloadMode={view.items.some(item => !item.isImage) ? "inline" : "none"}
         downloads={view.items.filter(item => !item.isImage).map(item => ({ id: item.id, label: item.name, href: item.url }))}
       /> : <div className="space-y-4">
-        {view.html && <iframe title={view.title} sandbox="allow-downloads" srcDoc={view.html} className="min-h-64 w-full rounded-xl border border-line bg-white" />}
+        {view.html && <iframe title={view.title} sandbox="allow-scripts allow-downloads" srcDoc={view.html} className="h-[min(75dvh,800px)] min-h-96 w-full rounded-xl border border-line bg-white" />}
         {view.items.length > 0 && <ul className="flex flex-wrap gap-2">{view.items.map(item => <li key={item.id}><a href={item.url} download className="rounded-lg border border-line px-3 py-2 text-sm font-semibold text-ink hover:bg-stone">↓ {item.name}</a></li>)}</ul>}
       </div>}
       {admin && !view.published && <p className="text-xs text-ink-muted">Borrador · se comparte cuando publiques los cambios.</p>}
@@ -175,8 +175,9 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
           </div>
           <div className="grid gap-3 sm:grid-cols-2"><Field label="Título de esta vista" value={title} onChange={event => setTitle(event.target.value)} placeholder={template?.name || "Ej. Renders de interiores"} /><Field label="Descripción" value={description} onChange={event => setDescription(event.target.value)} placeholder="Una breve explicación para el cliente" /></div>
           {template?.type === "html" && <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3"><p className="text-xs leading-5 text-ink-muted">Pegá el documento HTML completo reemplazando el ejemplo.</p><Button variant="tertiary" onClick={() => setHtml("")}>Limpiar código</Button></div>
             <label className="block text-xs font-semibold text-ink">Código HTML de esta vista<textarea value={html} onChange={event => setHtml(event.target.value)} rows={12} spellCheck={false} placeholder="Pegá aquí el código HTML para este proyecto" className="bojana-control mt-2 w-full resize-y p-3 font-mono text-xs leading-5" /></label>
-            <div><p className="mb-2 text-xs font-semibold text-ink">Vista previa</p><iframe title="Vista previa HTML del proyecto" sandbox="allow-downloads" srcDoc={html} className="min-h-64 w-full rounded-xl border border-line bg-white" /></div>
+            <div><p className="mb-2 text-xs font-semibold text-ink">Vista previa</p><iframe title="Vista previa HTML del proyecto" sandbox="allow-scripts allow-downloads" srcDoc={html} className="h-[min(75dvh,800px)] min-h-96 w-full rounded-xl border border-line bg-white" /></div>
             <p className="text-xs text-ink-muted">Los archivos asociados son opcionales para una vista HTML.</p>
           </div>}
           <div><p className="mb-2 text-xs font-semibold text-ink">Elegí los archivos existentes</p>{selectedSources.length ? <div className="max-h-64 space-y-1 overflow-y-auto rounded-xl border border-line p-2">{selectedSources.map(item => {
