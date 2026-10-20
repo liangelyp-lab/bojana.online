@@ -101,9 +101,11 @@ type UpdateOptionDraft = {
 
 const emptyUpdateOptions = (): UpdateOptionDraft[] => []
 
-function readCollapsedDisciplines(projectId: string): Record<string, boolean> {
+function readCollapsedDisciplines(projectId: string, phaseKeys: string[]): Record<string, boolean> {
+  if (phaseKeys.length === 1) return { [phaseKeys[0]]: false }
   try {
-    return JSON.parse(localStorage.getItem(`bojana-studio-collapsed-phases:${projectId}`) || "{}")
+    const saved = JSON.parse(localStorage.getItem(`bojana-studio-collapsed-phases:${projectId}`) || "{}")
+    return Object.fromEntries(phaseKeys.map(key => [key, typeof saved?.[key] === "boolean" ? saved[key] : true]))
   } catch {
     return {}
   }
@@ -197,14 +199,16 @@ export default function OperationalExecutionPanel({
     [project.disciplinasOperativas, project.disciplinas],
   )
 
+  const phaseKeys = disciplines.flatMap(discipline => discipline.necesidades.map(need => `need-${discipline.id}-${need.id}`))
+  const phaseKeySignature = JSON.stringify(phaseKeys)
   // Expanded disciplines state
   const [collapsedDisciplines, setCollapsedDisciplines] = useState<Record<string, boolean>>(
-    () => readCollapsedDisciplines(project.id),
+    () => readCollapsedDisciplines(project.id, phaseKeys),
   )
 
   useEffect(() => {
-    setCollapsedDisciplines(readCollapsedDisciplines(project.id))
-  }, [project.id])
+    setCollapsedDisciplines(readCollapsedDisciplines(project.id, phaseKeys))
+  }, [project.id, phaseKeySignature])
 
   // Expanded needs state for inline inspection (PROJECT -> NEED -> ITEM -> TASKS)
   const [expandedNeeds, setExpandedNeeds] = useState<Record<string, boolean>>({
@@ -349,7 +353,7 @@ export default function OperationalExecutionPanel({
 
   // Toggle discipline collapse
   const toggleDiscipline = (discId: string) => {
-    const next = { ...collapsedDisciplines, [discId]: !collapsedDisciplines[discId] }
+    const next = { ...collapsedDisciplines, [discId]: !(collapsedDisciplines[discId] ?? phaseKeys.length > 1) }
     setCollapsedDisciplines(next)
     saveCollapsedDisciplines(project.id, next)
   }
@@ -2846,7 +2850,7 @@ export default function OperationalExecutionPanel({
               {/* Disciplines as Big Blocks */}
               <div className="space-y-bojana-block">
                 {taskDisplayGroups.map(({ key, disc, need: displayNeed, showDisciplineTitle }) => {
-                  const isCollapsed = collapsedDisciplines[key]
+                  const isCollapsed = collapsedDisciplines[key] ?? phaseKeys.length > 1
 
                   return (
                     <Fragment key={key}>

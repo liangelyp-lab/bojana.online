@@ -2494,16 +2494,24 @@ function ClientPortal({
   const allClientPhases = progressGroups.flatMap(group => group.needs)
   const visiblePhaseCount = allClientPhases.length
   const singleVisiblePhaseId = visiblePhaseCount === 1 ? allClientPhases[0]?.id : undefined
+  const clientPhaseSignature = JSON.stringify(allClientPhases.map(phase => phase.id))
   useEffect(() => {
-    const preferenceKey = `bojana-client-phase-expanded:${currentProject.id}`
-    const preference = window.localStorage.getItem(preferenceKey)
-    setSelectedNeedId(singleVisiblePhaseId && preference !== "closed" ? singleVisiblePhaseId : null)
-  }, [currentProject.id, singleVisiblePhaseId])
+    if (singleVisiblePhaseId) {
+      setSelectedNeedId(singleVisiblePhaseId)
+      return
+    }
+    try {
+      const saved = window.localStorage.getItem(`bojana-client-phase-expanded:${currentProject.id}`)
+      setSelectedNeedId(allClientPhases.some(phase => phase.id === saved) ? saved : null)
+    } catch {
+      setSelectedNeedId(null)
+    }
+  }, [currentProject.id, clientPhaseSignature])
   const handleNeedSelect = (needId: string | null) => {
     setSelectedNeedId(needId)
-    if (singleVisiblePhaseId) {
-      window.localStorage.setItem(`bojana-client-phase-expanded:${currentProject.id}`, needId ? "open" : "closed")
-    }
+    try {
+      window.localStorage.setItem(`bojana-client-phase-expanded:${currentProject.id}`, needId || "")
+    } catch { /* Keep navigation working when browser storage is unavailable. */ }
   }
   // The client-facing current phase follows the work that is actually in motion.
   // A manually focused task is only the fallback, so an already completed task
