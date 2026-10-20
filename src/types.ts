@@ -115,6 +115,43 @@ export interface GalleryRenderItem {
   categoria?: string; // 'Exterior', 'Interior', 'Detalle'
 }
 
+export interface ProjectVisualizationItem {
+  id: string;
+  name: string;
+  url: string;
+  mimeType?: string;
+  isImage: boolean;
+  taskId?: string;
+  taskTitle?: string;
+  phaseId?: string;
+  phaseTitle?: string;
+}
+
+export interface ProjectDeliveryView {
+  id: string;
+  title: string;
+  description?: string;
+  componentId: string;
+  componentName: string;
+  componentType: 'gallery' | 'html';
+  html?: string;
+  galleryOptions?: {
+    showLabel: boolean;
+    showTitle: boolean;
+    showDescription: boolean;
+    showCaptions: boolean;
+    columns: 2 | 3 | 4;
+    gap: 'tight' | 'comfortable';
+    aspect: 'square' | 'landscape' | 'portrait';
+    allowZoom: boolean;
+  };
+  scopeType: 'project' | 'phase' | 'task';
+  scopeId?: string;
+  scopeTitle: string;
+  items: ProjectVisualizationItem[];
+  published?: boolean;
+}
+
 export interface HotspotPin {
   id: string;
   label: string; // ej: "Living & Comedor", "Master Suite", "Cocina", "Terraza"
@@ -577,6 +614,7 @@ export interface ProjectData {
     galeria: GalleryRenderItem[];
     tours: PlanTour[];
   }; // Módulo 5
+  vistasEntrega?: ProjectDeliveryView[];
   decisiones: DecisionItem[]; // Módulo 6
   materiales: MaterialItem[]; // Módulo 7
 

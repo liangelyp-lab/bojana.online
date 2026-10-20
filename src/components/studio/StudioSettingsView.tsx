@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react"
-import { ChevronDown, Copy, Info, KeyRound, Pencil, Plus, Save, Send, Settings2, Trash2, UserRoundCog, X } from "lucide-react"
+import { ChevronDown, Code2, Copy, Image, Info, KeyRound, Pencil, Plus, Save, Send, Settings2, Trash2, UserRoundCog, X } from "lucide-react"
 import type { ProjectData } from "../../types"
 import { Brand, Button, Checkbox, Drawer, EmptyState, Field, PageHeader, Select, SelectControl } from "../ui/DesignSystem"
 import DriveConnectionSettings from "../storage/DriveConnectionSettings"
+import { DEFAULT_GALLERY_OPTIONS, getStudioVisualizationTemplates, VISUALIZATIONS_STORAGE_KEY, type StudioVisualizationTemplate } from "../../services/studioVisualizations"
+import DeliveryGallery from "../ui/DeliveryGallery"
 
 interface TeamUser {
   id: string
@@ -26,6 +28,18 @@ interface StudioSettingsViewProps {
   onStudioEmailChange: (email: string) => void
   currentUserRole?: string
 }
+
+const galleryPreviewItems = [
+  { id: "preview-1", color: "#d6c8b6", title: "Exterior" },
+  { id: "preview-2", color: "#b6c0b5", title: "Interior" },
+  { id: "preview-3", color: "#c6b9aa", title: "Detalle" },
+  { id: "preview-4", color: "#aeb9bc", title: "Espacio" },
+].map(item => ({
+  id: item.id,
+  alt: item.title,
+  caption: item.title,
+  src: `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="${item.color}"/><path d="M0 220 130 100l80 75 70-95 120 140v80H0z" fill="#ffffff" fill-opacity=".34"/><rect x="160" y="140" width="90" height="90" fill="#ffffff" fill-opacity=".45"/></svg>`)}`,
+}))
 
 function ProjectMultiSelect({
   projects,
@@ -103,6 +117,12 @@ export default function StudioSettingsView({
   const [usersLoading, setUsersLoading] = useState(true)
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const [ownerSettingsOpen, setOwnerSettingsOpen] = useState(false)
+  const [visualizations, setVisualizations] = useState<StudioVisualizationTemplate[]>(getStudioVisualizationTemplates)
+  const [newVisualizationType, setNewVisualizationType] = useState<StudioVisualizationTemplate["type"] | null>(null)
+  const [editingVisualizationId, setEditingVisualizationId] = useState<string | null>(null)
+  const [visualizationName, setVisualizationName] = useState("")
+  const [visualizationHtml, setVisualizationHtml] = useState('<section style="font-family: sans-serif; padding: 24px;">\n  <h2>Mi visualización</h2>\n  <p>Agregá aquí tu contenido HTML.</p>\n</section>')
+  const [galleryOptions, setGalleryOptions] = useState(DEFAULT_GALLERY_OPTIONS)
 
   useEffect(() => {
     let cancelled = false
@@ -406,6 +426,32 @@ export default function StudioSettingsView({
     onStudioEmailChange(normalizedEmail)
     localStorage.setItem("bojana-studio-email", normalizedEmail)
     onToast("Configuración del estudio actualizada correctamente.")
+  }
+
+  const saveVisualizations = (next: StudioVisualizationTemplate[]) => {
+    setVisualizations(next)
+    try { localStorage.setItem(VISUALIZATIONS_STORAGE_KEY, JSON.stringify(next)) } catch { onToast("No pudimos guardar las visualizaciones en este navegador.") }
+  }
+
+  const addVisualization = () => {
+    if (!newVisualizationType) return
+    const name = visualizationName.trim() || (newVisualizationType === "gallery" ? "Galería nueva" : "HTML nuevo")
+    const saved: StudioVisualizationTemplate = { id: editingVisualizationId || crypto.randomUUID(), name, type: newVisualizationType, ...(newVisualizationType === "html" ? { html: visualizationHtml } : { galleryOptions }) }
+    const next = editingVisualizationId ? visualizations.map(item => item.id === editingVisualizationId ? saved : item) : [...visualizations, saved]
+    saveVisualizations(next)
+    setNewVisualizationType(null)
+    setEditingVisualizationId(null)
+    setVisualizationName("")
+    setGalleryOptions(DEFAULT_GALLERY_OPTIONS)
+    onToast(`${name} ${editingVisualizationId ? "actualizada" : "guardada"} en este navegador.`)
+  }
+
+  const editVisualization = (item: StudioVisualizationTemplate) => {
+    setEditingVisualizationId(item.id)
+    setNewVisualizationType(item.type)
+    setVisualizationName(item.name)
+    setVisualizationHtml(item.html || "")
+    setGalleryOptions({ ...DEFAULT_GALLERY_OPTIONS, ...item.galleryOptions })
   }
 
   async function createProjectUser(event: React.FormEvent) {
@@ -741,6 +787,43 @@ export default function StudioSettingsView({
               <Field label="Sede / Ciudad" value={studioCity} onChange={(event) => setStudioCity(event.target.value)} />
             </div>
           </form>
+          <section aria-labelledby="studio-visualizations-title" className="space-y-4 border-t border-line pt-6">
+            <div>
+              <h3 id="studio-visualizations-title" className="font-display text-xl text-ink">Visualizaciones</h3>
+              <p className="mt-1 text-sm text-ink-muted">Definí componentes reutilizables. Después estarán disponibles al agregar una vista en cada proyecto.</p>
+            </div>
+            <div className="space-y-2">
+              {visualizations.map((visualization) => <article key={visualization.id} className="flex items-center justify-between gap-3 rounded-xl border border-line bg-white p-3">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-stone text-ink-muted">{visualization.type === "gallery" ? <Image className="size-4" /> : <Code2 className="size-4" />}</span>
+                  <div className="min-w-0"><p className="truncate text-sm font-semibold text-ink">{visualization.name}</p><p className="text-xs text-ink-muted">{visualization.type === "gallery" ? "Galería de entrega" : "HTML personalizado"}</p></div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1"><Button variant="icon" ariaLabel={`Editar ${visualization.name}`} onClick={() => editVisualization(visualization)}><Pencil className="size-4" /></Button><Button variant="icon" ariaLabel={`Eliminar ${visualization.name}`} onClick={() => saveVisualizations(visualizations.filter((item) => item.id !== visualization.id))}><Trash2 className="size-4" /></Button></div>
+              </article>)}
+              {visualizations.length === 0 && <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-muted">Todavía no hay formatos guardados.</p>}
+            </div>
+            {!newVisualizationType ? <div className="grid grid-cols-2 gap-2">
+              <Button variant="secondary" onClick={() => setNewVisualizationType("gallery")}><Image className="size-4" />Agregar galería</Button>
+              <Button variant="secondary" onClick={() => setNewVisualizationType("html")}><Code2 className="size-4" />Agregar HTML</Button>
+            </div> : <div className="space-y-3 rounded-xl border border-line bg-white p-4">
+              <div className="flex items-center justify-between"><p className="text-sm font-semibold text-ink">{editingVisualizationId ? "Editar" : "Nueva"} {newVisualizationType === "gallery" ? "galería" : "visualización HTML"}</p><Button variant="icon" ariaLabel="Cancelar" onClick={() => { setNewVisualizationType(null); setEditingVisualizationId(null) }}><X className="size-4" /></Button></div>
+              <Field label="Nombre" value={visualizationName} onChange={(event) => setVisualizationName(event.target.value)} placeholder={newVisualizationType === "gallery" ? "Ej. Galería de renders" : "Ej. Recorrido interactivo"} />
+              {newVisualizationType === "gallery" ? <>
+                <p className="text-xs leading-5 text-ink-muted">Este formato queda disponible en cada proyecto. Allí vas a elegir imágenes existentes y completar el título y la descripción de esa entrega.</p>
+                <div className="grid gap-2 sm:grid-cols-2">{([
+                  ["showLabel", "Mostrar etiqueta"], ["showTitle", "Mostrar título"], ["showDescription", "Mostrar descripción"], ["showCaptions", "Mostrar pies de foto"], ["allowZoom", "Permitir ampliar imágenes"],
+                ] as const).map(([key, label]) => <label key={key} className="flex items-center gap-2 rounded-lg bg-stone/60 px-3 py-2 text-xs text-ink"><input type="checkbox" checked={galleryOptions[key]} onChange={event => setGalleryOptions(current => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}</div>
+                <div className="grid grid-cols-2 gap-3"><label className="block text-xs font-semibold text-ink">Columnas<select value={galleryOptions.columns} onChange={event => setGalleryOptions(current => ({ ...current, columns: Number(event.target.value) as 2 | 3 | 4 }))} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value={2}>2</option><option value={3}>3</option><option value={4}>4</option></select></label><label className="block text-xs font-semibold text-ink">Separación<select value={galleryOptions.gap} onChange={event => setGalleryOptions(current => ({ ...current, gap: event.target.value as "tight" | "comfortable" }))} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="tight">Fina</option><option value="comfortable">Amplia</option></select></label><label className="block text-xs font-semibold text-ink">Proporción<select value={galleryOptions.aspect} onChange={event => setGalleryOptions(current => ({ ...current, aspect: event.target.value as typeof current.aspect }))} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="square">Cuadrada</option><option value="landscape">Horizontal</option><option value="portrait">Vertical</option></select></label></div>
+                <div className="rounded-xl border border-line bg-stone/40 p-3"><p className="mb-3 text-xs font-semibold text-ink">Vista previa del componente</p><DeliveryGallery items={galleryPreviewItems} label="Entrega" title="Título de la vista" description="La descripción que completarás en cada proyecto." showLabel={galleryOptions.showLabel} showTitle={galleryOptions.showTitle} showDescription={galleryOptions.showDescription} showCaptions={galleryOptions.showCaptions} columns={galleryOptions.columns} gap={galleryOptions.gap} aspect={galleryOptions.aspect} allowZoom={galleryOptions.allowZoom} /></div>
+              </> : <>
+                <label className="block text-xs font-semibold text-ink">HTML <textarea value={visualizationHtml} onChange={(event) => setVisualizationHtml(event.target.value)} rows={7} spellCheck={false} className="bojana-control mt-2 w-full resize-y font-mono text-xs leading-5" /></label>
+                <div><p className="mb-2 text-xs font-semibold text-ink">Vista previa segura</p><iframe title="Vista previa HTML" sandbox="" srcDoc={visualizationHtml} className="h-40 w-full rounded-lg border border-line bg-white" /></div>
+                <p className="text-xs leading-5 text-ink-muted">El HTML se muestra aislado, sin acceso a la sesión ni a otras páginas.</p>
+              </>}
+              <div className="flex justify-end"><Button onClick={addVisualization}><Save className="size-4" />{editingVisualizationId ? "Guardar cambios" : "Guardar formato"}</Button></div>
+            </div>}
+            <p className="text-xs leading-5 text-ink-faint">Por ahora, estos formatos se guardan solo en este navegador. Después conectamos la biblioteca al estudio y a las entregas.</p>
+          </section>
           <DriveConnectionSettings />
         </div>
       </Drawer>

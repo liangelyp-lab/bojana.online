@@ -20,6 +20,7 @@ import StudioClientsView from "./components/studio/StudioClientsView";
 import StudioSettingsView from "./components/studio/StudioSettingsView";
 import EmailInboxView from "./components/studio/EmailInboxView";
 import CommunicationPanel from "./components/studio/CommunicationPanel";
+import { DeliveryViewsDisplay } from "./components/studio/ProjectDeliveryViews";
 import OperationalExecutionPanel from "./components/studio/OperationalExecutionPanel";
 import DecisionesModule from "./components/modules/DecisionesModule";
 import DocumentosModule from "./components/modules/DocumentosModule";
@@ -1292,7 +1293,7 @@ function AdminPortal({
                 {/* Sub-tab: Resumen */}
                 {activeTab === "Resumen" && (
                   <>
-
+                    <DeliveryViewsDisplay admin project={currentProject!} onUpdateProject={onUpdateProject} onToast={onPublishToast} />
 
                     <div className="mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
                       <OperationalExecutionPanel
@@ -2865,6 +2866,7 @@ function ClientPortal({
                   <ActionCard decision={clientDecision} onApprove={(option, comment) => respondToClientAction(option, comment, true)} onRequestChanges={comment => respondToClientAction("", comment, false)} onViewTask={actionTask ? viewActionTask : undefined} />
                 </div>}
                 <div className="mt-10 space-y-8 md:mt-12 md:space-y-10">
+                  <DeliveryViewsDisplay project={currentProject} />
                   <ProgressSection
                     completedCount={completedCount}
                     progressGroups={progressGroups}

@@ -991,6 +991,21 @@
   }
 
   .bojana-overlay-fullscreen { padding: 0; }
+  .bojana-overlay:has(.bojana-gallery-lightbox) {
+    background: transparent;
+    backdrop-filter: none;
+  }
+  .bojana-modal.bojana-gallery-lightbox {
+    width: fit-content;
+    flex-shrink: 0;
+    max-width: 88vw;
+    max-height: 85dvh;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
   .bojana-modal.bojana-modal-fullscreen {
     width: 100%;
     max-width: none;

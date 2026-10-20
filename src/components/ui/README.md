@@ -1,5 +1,11 @@
 # Base de componentes de Bojana
 
+## Galería de entrega
+
+`DeliveryGallery` es una visualización independiente disponible en Storybook → Bojana → Visualizaciones → Galería de entrega. Permite ajustar columnas, proporción, separación, textos, pies de imagen, ampliación y acciones. El visor muestra la imagen flotando sobre la grilla, sin el panel blanco; conserva Escape, foco y cierre exterior de la base compartida. Las imágenes pequeñas cargan de forma diferida; la imagen grande se solicita al abrirla. No agrega dependencias.
+
+Los enlaces a tarea y documentos, y los archivos descargables, se reciben como propiedades. Las stories usan destinos de demostración; todavía no está integrada en Resumen ni en Configuración del estudio. Al integrarla, los destinos deben usar el contexto y los permisos de publicación existentes.
+
 Los componentes compartidos viven en `src/components/ui`. Importalos desde `src/components/ui` en código nuevo; los imports existentes desde `DesignSystem` siguen funcionando. Los colores y las fuentes se definen en `src/brand/theme.css`; los estilos globales viven en `src/index.css` y se comparten con el portal y Storybook.
 
 ## Catálogo

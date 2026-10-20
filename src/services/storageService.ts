@@ -1981,6 +1981,7 @@ export function createInvitationLog(
 export function publishAndActivateProject(project: ProjectData): ProjectData {
   return {
     ...project,
+    vistasEntrega: (project.vistasEntrega || []).map(view => ({ ...view, published: true })),
     lifecycleStatus: 'ACTIVO',
     info: {
       ...project.info,

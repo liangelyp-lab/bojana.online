@@ -222,6 +222,12 @@ export function toClientProject(project: Record<string, any>) {
     })),
   })).filter((discipline: any) => discipline.necesidades.some((need: any) => need.tareas.length));
 
+  const publicFileUrls = new Set(visibleTasks.flatMap((discipline: any) => discipline.necesidades.flatMap((need: any) => need.tareas.flatMap((task: any) => (task.archivos || []).map((file: any) => file.url)))));
+  const publicDeliveryViews = (project.vistasEntrega || []).filter((view: any) => view.published === true).map((view: any) => ({
+    ...view,
+    items: (view.items || []).filter((item: any) => typeof item.url === "string" && publicFileUrls.has(item.url)),
+  })).filter((view: any) => view.items.length > 0);
+
   return {
     id: project.id,
     lifecycleStatus: project.lifecycleStatus,
@@ -243,6 +249,7 @@ export function toClientProject(project: Record<string, any>) {
       galeria: (project.visualizaciones?.galeria || []).filter((item: any) => item.publicadoCliente === true),
       tours: (project.visualizaciones?.tours || []).filter((tour: any) => tour.publicado === true),
     },
+    vistasEntrega: publicDeliveryViews,
     disciplinasOperativas: visibleTasks, progresoTotalCalculado: project.progresoTotalCalculado,
     tareaFocalPublicadaId: project.tareaFocalPublicadaId, ultimaModificacion: project.ultimaModificacion,
   };
