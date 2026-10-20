@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ProjectData, ClientEntity } from '../../types';
 import { getAllClients } from '../../services/storageService';
 import {
@@ -20,7 +20,23 @@ export default function StudioClientsView({
   projects,
   onSelectProject
 }: StudioClientsViewProps) {
-  const [clients] = useState<ClientEntity[]>(() => getAllClients());
+  const clients = useMemo<ClientEntity[]>(() => {
+    const directory = getAllClients().map(client => ({ ...client, proyectosIds: [...client.proyectosIds] }));
+    for (const project of projects) {
+      const source = project.cliente;
+      const nombre = (source?.nombre || source?.empresa || '').trim();
+      const email = (source?.email || '').trim().toLowerCase();
+      if (!nombre && !email) continue;
+      const index = directory.findIndex(client => client.proyectosIds.includes(project.id) || (email && client.email.toLowerCase() === email) || (!email && client.nombre.toLowerCase() === nombre.toLowerCase()));
+      if (index >= 0) {
+        if (!directory[index].proyectosIds.includes(project.id)) directory[index].proyectosIds.push(project.id);
+        continue;
+      }
+      const contact = source?.personas?.find(person => person.nombre.trim());
+      directory.push({ id: `cli-${project.id}`, nombre: nombre || 'Cliente', empresa: (source?.empresa || nombre).trim(), email, telefono: source?.telefono || '', proyectosIds: [project.id], contactoPrincipal: contact ? `${contact.nombre}${contact.cargo ? ` (${contact.cargo})` : ''}` : undefined });
+    }
+    return directory;
+  }, [projects]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
