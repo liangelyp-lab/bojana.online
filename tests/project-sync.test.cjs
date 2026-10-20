@@ -17,6 +17,71 @@ function load(file, fetch, dependencies = {}) {
   return exports;
 }
 
+test('public portal preserves published phase closures and excludes hidden content', () => {
+  const project = { disciplinasOperativas: [{ id: 'd', necesidades: [
+    { id: 'published', nombre: 'Planos', cierrePublicado: true, cierreDestacado: true, cierreFecha: '2026-10-20T12:00:00Z', tareas: [
+      { id: 'visible', visibleCliente: true, archivos: [{ url: 'public', publicadoCliente: true }, { url: 'private' }] },
+      { id: 'hidden-task', visibleCliente: false },
+    ] },
+    { id: 'draft', cierrePublicado: false, cierreDestacado: true, cierreFecha: 'private-date', tareas: [{ id: 't2', visibleCliente: true }] },
+    { id: 'hidden-phase', visibleCliente: false, cierrePublicado: true, tareas: [{ visibleCliente: true }] },
+  ] }] };
+  const visible = load('api/portal/direct.ts', () => { throw Error('No requests expected'); }, {
+    '../_lib/auth.js': { requireSupabaseUser: async () => null },
+  }).toClientProject(project);
+  const needs = visible.disciplinasOperativas[0].necesidades;
+  assert.equal(needs.length, 2);
+  assert.equal(needs[0].cierrePublicado, true);
+  assert.equal(needs[0].cierreDestacado, true);
+  assert.equal(needs[0].cierreFecha, '2026-10-20T12:00:00Z');
+  assert.equal(needs[0].tareas.length, 1);
+  assert.equal(needs[0].tareas[0].archivos.length, 1);
+  assert.equal(needs[1].cierreDestacado, false);
+  assert.equal(needs[1].cierreFecha, undefined);
+});
+
+for (const role of ['client', 'editor', 'owner']) {
+  test(`client response requires client membership, not ${role} staff membership`, async () => {
+    let writes = 0;
+    const handler = load('api/portal/respond.ts', async (url, options = {}) => {
+      if (url.includes('/studio_users?')) return Response.json([{ role: role === 'client' ? 'client' : 'team', studio_id: 's' }]);
+      if (url.includes('/project_members?')) {
+        assert.match(url, /role=eq.client/);
+        return Response.json(role === 'client' ? [{ id: 'm' }] : []);
+      }
+      if (options.method === 'PATCH') { writes++; return new Response(null, { status: 204 }); }
+      if (url.includes('/projects?')) return Response.json([{ id: 'p', data: { id: 'p' } }]);
+      throw Error(url);
+    }, { '../_lib/auth.js': { requireSupabaseUser: async () => ({ id: 'u' }) } }).default;
+    const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
+    await handler({ method: 'POST', body: { projectId: 'p', kind: 'message', message: 'Consulta' } }, res);
+    assert.equal(res.code, role === 'client' ? 200 : 403);
+    assert.equal(writes, role === 'client' ? 1 : 0);
+  });
+}
+
+for (const kind of ['client_action', 'task_update', 'deliverable']) {
+  for (const hidden of ['phase', 'task']) {
+    test(`${kind} rejects a hidden ${hidden} even when its child record is published`, async () => {
+      const project = { disciplinasOperativas: [{ necesidades: [{ visibleCliente: hidden !== 'phase', tareas: [{
+        id: 't', visibleCliente: hidden !== 'task',
+        accionCliente: { activa: true, estado: 'pendiente' },
+        actualizaciones: [{ id: 'u', visibleCliente: true, estado: 'en_revision' }],
+        entregablesEsperados: [{ id: 'e', publicadoCliente: true }],
+      }] }] }] };
+      const handler = load('api/portal/respond.ts', async (url, options = {}) => {
+        assert.notEqual(options.method, 'PATCH');
+        if (url.includes('/studio_users?')) return Response.json([{ role: 'owner', studio_id: 's' }]);
+        if (url.includes('/projects?')) return Response.json([{ id: 'p', data: project }]);
+        throw Error(url);
+      }, { '../_lib/auth.js': { requireSupabaseUser: async () => ({ id: 'u' }) } }).default;
+      const res = { status(code) { this.code = code; return this; }, json(body) { this.body = body; return this; } };
+      await handler({ method: 'POST', body: { projectId: 'p', kind, taskId: 't', updateId: 'u', deliverableId: 'e', approved: true, status: kind === 'task_update' ? 'aprobada' : 'aprobado' } }, res);
+      assert.equal(res.code, 400);
+    });
+  }
+}
+
 for (const scenario of [
   { role: 'team', assigned: true, sameStudio: true, expected: 200 },
   { role: 'team', assigned: false, sameStudio: true, expected: 403 },

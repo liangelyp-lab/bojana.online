@@ -65,7 +65,7 @@ async function canRespond(req: VercelRequest, body: ResponseBody, projectId: str
     const projects = await projectResponse.json() as Array<{ id: string }>;
     return projectResponse.ok && Boolean(projects[0]);
   }
-  const membership = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(user.id)}&select=id&limit=1`, { headers });
+  const membership = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(projectId)}&user_id=eq.${encodeURIComponent(user.id)}&role=eq.client&select=id&limit=1`, { headers });
   const rows = await membership.json() as Array<{ id: string }>;
   return membership.ok && Boolean(rows[0]);
 }
@@ -95,7 +95,7 @@ function applyResponse(project: Record<string, any>, body: ResponseBody) {
 
   let matched = false;
   const disciplines = (project.disciplinasOperativas || []).map((discipline: any) => ({ ...discipline, necesidades: (discipline.necesidades || []).map((need: any) => ({ ...need, tareas: (need.tareas || []).map((task: any) => {
-    if (task.id !== body.taskId) return task;
+    if (task.id !== body.taskId || need.visibleCliente === false || !task.visibleCliente) return task;
     if (body.kind === "client_action" && task.visibleCliente && task.accionCliente?.activa && task.accionCliente.estado === "pendiente") {
       if (body.approved && task.accionCliente.tipo === "elegir_alternativa" && !(task.accionCliente.alternativas || []).some((option: any) => option.id === body.optionId)) return task;
       const pendingUpdates = (task.actualizaciones || []).filter((update: any) =>

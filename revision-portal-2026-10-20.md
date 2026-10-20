@@ -1,5 +1,17 @@
 # Revisión comparativa del portal — 20 octubre 2026
 
+## Seguimiento posterior a la publicación
+
+- Versión inicial publicada: ca02eda; Vercel confirmó despliegue y el dominio sirvió los recursos compilados correspondientes.
+- Se resolvió el error TypeScript de App.tsx:2688; el chequeo de tipos y build pasan.
+- Se agregaron a la proyección pública cierrePublicado, cierreDestacado y cierreFecha, sin exponer metadatos de cierres no publicados.
+- Las respuestas por membresía ahora exigen role=client; se conserva el acceso existente de owner/admin del propio estudio.
+- Las respuestas de tareas, actualizaciones y entregables rechazan necesidades o tareas ocultas.
+- La suite ahora tiene 23 pruebas, todas pasando, incluidas regresiones de cierres, roles y contenido oculto.
+- La prueba de acceso de producción llegó a Lark; completar Authorize quedó pendiente de autorización explícita tras un bloqueo de revisión automática. Aún no se validaron proyectos reales con sesión autenticada.
+
+El resto del documento conserva la fotografía de la auditoría inicial; estos puntos sustituyen su estado anterior. Siguen pendientes concurrencia, privacidad de Drive, RLS real y recorrido integral.
+
 ## Dictamen
 
 El portal tiene una base funcional avanzada. Todavía no hay evidencia suficiente para declararlo listo para uso general con clientes. Las correcciones locales deben consolidarse, cerrar los hallazgos de permisos y consistencia, y pasar una prueba integral en un entorno con backend real.

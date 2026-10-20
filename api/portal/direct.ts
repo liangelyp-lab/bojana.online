@@ -184,6 +184,9 @@ export function toClientProject(project: Record<string, any>) {
     necesidades: (discipline.necesidades || []).filter((need: any) => need.visibleCliente !== false).map((need: any) => ({
       id: need.id, nombre: need.nombre, descripcion: need.descripcion, pesoPorcentaje: need.pesoPorcentaje,
       publishedProgress: need.publishedProgress, progresoCalculado: need.progresoCalculado,
+      cierrePublicado: need.cierrePublicado === true,
+      cierreDestacado: need.cierrePublicado === true && need.cierreDestacado === true,
+      cierreFecha: need.cierrePublicado === true ? need.cierreFecha : undefined,
       tareas: (need.tareas || []).filter((task: any) => task.visibleCliente).map((task: any) => ({
         id: task.id, titulo: task.titulo, pesoPorcentaje: task.pesoPorcentaje, estado: task.estado,
         descripcionTrabajo: task.descripcionTrabajo, fecha: task.fecha, visibleCliente: true, etapa: task.etapa,
