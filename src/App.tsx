@@ -20,7 +20,7 @@ import StudioClientsView from "./components/studio/StudioClientsView";
 import StudioSettingsView from "./components/studio/StudioSettingsView";
 import EmailInboxView from "./components/studio/EmailInboxView";
 import CommunicationPanel from "./components/studio/CommunicationPanel";
-import { DeliveryViewsDisplay } from "./components/studio/ProjectDeliveryViews";
+import { DeliveryViewsDisplay, type DeliveryViewRequest } from "./components/studio/ProjectDeliveryViews";
 import OperationalExecutionPanel from "./components/studio/OperationalExecutionPanel";
 import DecisionesModule from "./components/modules/DecisionesModule";
 import DocumentosModule from "./components/modules/DocumentosModule";
@@ -646,12 +646,14 @@ function ProjectExecutionSummary({
   onRequestAction,
   onEditProject,
   onViewClientPortal,
+  onAddView,
 }: {
   project: ProjectData
   onPublish: () => void
   onRequestAction: () => void
   onEditProject: () => void
   onViewClientPortal: () => void
+  onAddView: () => void
 }) {
   const projectStatus = getProjectStatusLabel(project)
   const projectProgress = getEffectiveProgress(project)
@@ -664,6 +666,7 @@ function ProjectExecutionSummary({
         titleAccessory={<ProjectProgressStatusBadge progress={projectProgress} status={projectStatus} size="s" />}
         description={<>{project.info?.subtitulo || project.info?.descripcion || "Sin descripción del proyecto"} <span className="text-ink-faint">| Actualizado: {project.info?.ultimaActualizacion ? formatPortalDate(project.info.ultimaActualizacion) : "Sin actualizaciones"}</span></>}
         actions={<>
+          <Button ariaLabel="Agregar vista al proyecto" onClick={onAddView} size="m" tooltip="Agregar vista" variant="icon"><PortalIcon icon={LayoutGrid} size="m" /></Button>
           <Button ariaLabel="Configurar proyecto" onClick={onEditProject} size="m" tooltip="Configurar proyecto" variant="icon">
             <PortalIcon icon={Settings} size="m" />
           </Button>
@@ -1114,6 +1117,8 @@ function AdminPortal({
 }) {
   const [activeNav, setActiveNav] = useState("Proyectos")
   const [activeTab, setActiveTab] = useState("Resumen")
+  const [deliveryViewRequest, setDeliveryViewRequest] = useState<DeliveryViewRequest>()
+  useEffect(() => { setDeliveryViewRequest(undefined) }, [selectedProjectId])
   const [notificationTarget, setNotificationTarget] = useState<{ taskId?: string; updateId?: string } | undefined>()
   const [menuOpen, setMenuOpen] = useState(false)
   const [actionModalTask, setActionModalTask] = useState<ExecutionTask | null>(null)
@@ -1265,6 +1270,7 @@ function AdminPortal({
             {activeNav === "Proyectos" && selectedProjectId !== null && (
               <div>
                 <ProjectExecutionSummary
+                  onAddView={() => { setActiveTab("Resumen"); setDeliveryViewRequest({ token: Date.now(), scopeType: "project" }) }}
                   onPublish={() => setIsPublishModalOpen(true)}
                   onEditProject={onEditProject}
                   onViewClientPortal={onViewClientPortal}
@@ -1293,10 +1299,11 @@ function AdminPortal({
                 {/* Sub-tab: Resumen */}
                 {activeTab === "Resumen" && (
                   <>
-                    <DeliveryViewsDisplay admin project={currentProject!} onUpdateProject={onUpdateProject} onToast={onPublishToast} />
+                    <DeliveryViewsDisplay key={currentProject!.id} admin project={currentProject!} request={deliveryViewRequest} onUpdateProject={onUpdateProject} onToast={onPublishToast} />
 
                     <div className="mt-8 grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
                       <OperationalExecutionPanel
+                        onAddDeliveryView={(scopeType, scopeId, title) => setDeliveryViewRequest({ token: Date.now(), scopeType, scopeId, title })}
                         onToast={onPublishToast}
                         onUpdateProject={onUpdateProject}
                         project={currentProject!}

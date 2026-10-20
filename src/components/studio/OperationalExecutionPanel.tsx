@@ -79,6 +79,7 @@ import {
   Mail,
   Palette,
   MessageSquare,
+  LayoutGrid,
 } from "lucide-react"
 
 const taskStatusIcons: Record<EstadoEtapa, typeof Check> = {
@@ -129,6 +130,7 @@ interface OperationalExecutionPanelProps {
   onDismissTaskFocus?: () => void
   onViewStory?: () => void
   onBackToProjects?: () => void
+  onAddDeliveryView?: (scopeType: "phase" | "task", scopeId: string, title: string) => void
 }
 
 interface RecalculationEvent {
@@ -184,6 +186,7 @@ export default function OperationalExecutionPanel({
   onDismissTaskFocus,
   onViewStory,
   onBackToProjects,
+  onAddDeliveryView,
 }: OperationalExecutionPanelProps) {
   // Ensure operational disciplines exist
   const disciplines: OperationalDiscipline[] = useMemo(() =>
@@ -2859,9 +2862,10 @@ export default function OperationalExecutionPanel({
                       )}
                     <Card expandable padding="none" elevation="raised" expanded={!isCollapsed} onExpandedChange={() => toggleDiscipline(key)} expandLabel={displayNeed.nombre} header={<span className="bojana-heading-section">{displayNeed.nombre}</span>} headerActions={(() => {
                       const ready = displayNeed.tareas.length > 0 && displayNeed.tareas.every((task) => taskStateFromUpdates(task) === "Completado")
-                      if (displayNeed.cierrePublicado) return <div className="flex items-center gap-2"><StatusBadge tone="active" size="s" showDot={false}>{displayNeed.cierreDestacado ? "Cierre destacado" : "Cierre de fase publicado"}</StatusBadge>{!displayNeed.cierreDestacado && <Button size="xs" variant="tertiary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, true) }}>Destacar en portal</Button>}</div>
+                      const addView = onAddDeliveryView && <Button variant="icon" size="s" ariaLabel={`Agregar vista de ${displayNeed.nombre}`} tooltip="Agregar vista de esta fase" onClick={(event) => { event.stopPropagation(); onAddDeliveryView("phase", `${disc.id}:${displayNeed.id}`, displayNeed.nombre) }}><LayoutGrid className="size-4" /></Button>
+                      if (displayNeed.cierrePublicado) return <div className="flex items-center gap-2">{addView}<StatusBadge tone="active" size="s" showDot={false}>{displayNeed.cierreDestacado ? "Cierre destacado" : "Cierre de fase publicado"}</StatusBadge>{!displayNeed.cierreDestacado && <Button size="xs" variant="tertiary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, true) }}>Destacar en portal</Button>}</div>
                       if (!ready) return undefined
-                      return <div className="flex items-center gap-2"><Button size="xs" variant="secondary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, false) }}>Publicar cierre de fase</Button><Button size="xs" variant="tertiary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, true) }}>Publicar y destacar</Button></div>
+                      return <div className="flex items-center gap-2">{addView}<Button size="xs" variant="secondary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, false) }}>Publicar cierre de fase</Button><Button size="xs" variant="tertiary" type="button" onClick={(event) => { event.stopPropagation(); publishNeedClose(disc.id, displayNeed.id, true) }}>Publicar y destacar</Button></div>
                     })()} className="bojana-discipline-card">
                       {/* Needs under this Discipline */}
                       {!isCollapsed && (
@@ -3045,6 +3049,7 @@ export default function OperationalExecutionPanel({
                                               </div></>}
                                             headerActions={<>                                              <div className="flex self-stretch items-center shrink-0">
                                                 <div className="flex items-center gap-3">
+                                                {isDone && onAddDeliveryView && <Button variant="icon" size="s" ariaLabel={`Agregar vista de ${task.titulo}`} tooltip="Agregar vista de esta tarea" onClick={(event) => { event.stopPropagation(); onAddDeliveryView("task", task.id, task.titulo) }}><LayoutGrid className="size-4" /></Button>}
                                                 {pendingApprovals > 0 && (
                                                   <span className="text-[11px] font-medium text-bojana-ink">
                                                     {pendingApprovals}{" "}

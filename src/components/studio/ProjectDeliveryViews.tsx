@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { useEffect, useMemo, useState } from "react"
+import { Trash2 } from "lucide-react"
 import type { ProjectData, ProjectDeliveryView, ProjectVisualizationItem } from "../../types"
 import DeliveryGallery from "../ui/DeliveryGallery"
-import { Button, Field } from "../ui/DesignSystem"
+import { Button, Drawer, Field } from "../ui/DesignSystem"
 import { getStudioVisualizationTemplates } from "../../services/studioVisualizations"
 
 type Source = ProjectVisualizationItem & { scopeKey: string }
@@ -36,11 +36,19 @@ function sourcesFor(project: ProjectData): Source[] {
   return sources
 }
 
-export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, onToast }: {
+export interface DeliveryViewRequest {
+  token: number
+  scopeType: "project" | "phase" | "task"
+  scopeId?: string
+  title?: string
+}
+
+export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, onToast, request }: {
   project: ProjectData
   admin?: boolean
   onUpdateProject?: (project: ProjectData) => void
   onToast?: (message: string) => void
+  request?: DeliveryViewRequest
 }) {
   const [creating, setCreating] = useState(false)
   const [templateId, setTemplateId] = useState("")
@@ -49,6 +57,16 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
+  useEffect(() => {
+    if (!request) return
+    setScopeType(request.scopeType)
+    setScopeId(request.scopeId || "")
+    setTitle(request.title || "")
+    setDescription("")
+    setSelectedIds([])
+    setTemplateId("")
+    setCreating(true)
+  }, [request])
   const templates = useMemo(() => getStudioVisualizationTemplates(), [])
   const sources = useMemo(() => sourcesFor(project), [project])
   const phaseOptions = useMemo(() => {
@@ -146,9 +164,7 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
       </div>}
       {admin && !view.published && <p className="text-xs text-ink-muted">Borrador · se comparte cuando publiques los cambios.</p>}
     </article>)}
-    {admin && <div className="rounded-2xl border border-dashed border-line bg-white p-4 sm:p-6">
-      {!creating ? <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="bojana-heading-component">Vistas para el cliente</h2><p className="mt-1 text-sm text-ink-muted">Agregá una vista con los archivos que ya están publicados en tareas del proyecto.</p></div><Button onClick={() => setCreating(true)}><Plus className="size-4" />Agregar vista</Button></div> : <div className="space-y-4">
-        <div className="flex items-center justify-between gap-3"><h2 className="bojana-heading-component">Nueva vista</h2><Button variant="tertiary" onClick={resetForm}>Cancelar</Button></div>
+    {admin && <Drawer open={creating} title="Agregar vista" onClose={resetForm}><div className="space-y-4 p-6">
         {templates.length === 0 ? <p className="text-sm text-ink-muted">Primero guardá una Galería o un HTML en Configuración del estudio.</p> : <>
           <label className="block text-xs font-semibold text-ink">Componente<select value={templateId} onChange={event => setTemplateId(event.target.value)} className="bojana-control mt-2 w-full bg-white px-3 py-2.5"><option value="">Elegir de Configuración</option>{templates.map(item => <option key={item.id} value={item.id}>{item.name} · {item.type === "gallery" ? "Galería" : "HTML"}</option>)}</select></label>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -162,7 +178,6 @@ export function DeliveryViewsDisplay({ project, admin = false, onUpdateProject, 
           })}</div> : <p className="rounded-xl border border-dashed border-line p-4 text-sm text-ink-muted">No hay archivos asociados a tareas visibles en este alcance.</p>}<p className="mt-2 text-xs leading-5 text-ink-muted">Al crear y publicar la vista, los archivos elegidos quedan visibles para el cliente junto con ella.</p></div>
           <div className="flex justify-end"><Button disabled={!template || selectedIds.length === 0 || (template.type === "gallery" && !selectedSources.some(item => selectedIds.includes(item.id) && item.isImage))} onClick={createView}>Crear vista</Button></div>
         </>}
-      </div>}
-    </div>}
+      </div></Drawer>}
   </section>
 }
