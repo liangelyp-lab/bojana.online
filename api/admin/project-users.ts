@@ -119,16 +119,25 @@ async function projectResourceHandler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).json({ projects: rows.map((row: { id: string; data: Record<string, unknown> | null }) => row.data ? { ...row.data, id: row.id } : null).filter(Boolean) });
     }
     if (req.method !== 'POST') return res.status(405).json({ error: "Method not allowed" });
-    if (!['owner', 'admin'].includes(member.role)) return res.status(403).json({ error: "Solo owners y administradores pueden guardar proyectos." });
+    if (!['owner', 'admin', 'team'].includes(member.role)) return res.status(403).json({ error: "No tenés permiso para guardar proyectos." });
     const project = req.body?.project;
     if (!project?.id || (!project.info && !project.brief)) return res.status(400).json({ error: "Proyecto inválido." });
     if (!isOwner) {
+      const existingResponse = await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(project.id)}&studio_id=eq.${encodeURIComponent(member.studio_id)}&select=id&limit=1`, { headers: adminHeaders });
+      const existing = await existingResponse.json() as Array<{ id: string }>;
+      if (!existingResponse.ok || !existing[0]) return res.status(403).json({ error: "No tenés permiso para editar este proyecto." });
       const membershipResponse = await fetch(`${baseUrl}/rest/v1/project_members?project_id=eq.${encodeURIComponent(project.id)}&user_id=eq.${encodeURIComponent(member.id)}&role=in.(owner,editor)&select=id&limit=1`, { headers: adminHeaders });
       const memberships = await membershipResponse.json() as Array<{ id: string }>;
       if (!membershipResponse.ok || !memberships[0]) return res.status(403).json({ error: "No tenés permiso para editar este proyecto." });
     }
-    const response = await fetch(`${baseUrl}/rest/v1/projects?on_conflict=id`, { method: 'POST', headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: project.id, studio_id: member.studio_id, name: project.info?.nombre || project.brief?.nombre || project.id, lifecycle_status: project.lifecycleStatus || 'BORRADOR', data: project, updated_at: new Date().toISOString() }) });
+    const projectRecord = { id: project.id, studio_id: member.studio_id, name: project.info?.nombre || project.brief?.nombre || project.id, lifecycle_status: project.lifecycleStatus || 'BORRADOR', data: project, updated_at: new Date().toISOString() };
+    // Team edits can only update an existing project. They cannot create or
+    // move projects between studios through the save endpoint.
+    const response = member.role === 'team'
+      ? await fetch(`${baseUrl}/rest/v1/projects?id=eq.${encodeURIComponent(project.id)}&studio_id=eq.${encodeURIComponent(member.studio_id)}`, { method: 'PATCH', headers: { ...adminHeaders, Prefer: 'return=representation' }, body: JSON.stringify({ name: projectRecord.name, lifecycle_status: projectRecord.lifecycle_status, data: project, updated_at: projectRecord.updated_at }) })
+      : await fetch(`${baseUrl}/rest/v1/projects?on_conflict=id`, { method: 'POST', headers: { ...adminHeaders, Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(projectRecord) });
     if (!response.ok) return res.status(502).json({ error: "No pudimos guardar el proyecto." });
+    if (member.role === 'team' && !(await response.json() as Array<{ id: string }>).length) return res.status(409).json({ error: "El proyecto ya no está disponible para guardar cambios." });
     return res.status(200).json({ ok: true });
   } catch (error) {
     console.error('Project resource failed', error);

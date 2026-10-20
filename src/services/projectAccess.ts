@@ -1,7 +1,10 @@
+import { waitForProjectSave } from './supabaseClient';
+
 export type SecureProjectLink = { id: string; url: string; expiresAt: string };
 export type DirectProjectLink = { id: string; expiresAt: string; revokedAt?: string; createdAt: string };
 
 export async function issueSecureProjectLink(projectId: string): Promise<SecureProjectLink> {
+  await waitForProjectSave(projectId);
   const response = await fetch('/api/portal/direct', { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ projectId }) });
   const data = await response.json() as Partial<SecureProjectLink> & { error?: string };
   if (!response.ok || !data.id || !data.url || !data.expiresAt) throw new Error(data.error || 'No pudimos crear el enlace directo.');

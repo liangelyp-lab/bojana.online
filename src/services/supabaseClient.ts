@@ -18,12 +18,38 @@ export async function listRemoteProjects(): Promise<ProjectData[]> {
   return data.projects || [];
 }
 
-export async function saveRemoteProject(project: ProjectData): Promise<void> {
+const projectSaves = new Map<string, Promise<void>>();
+
+/** Keep full-document writes in order so an older edit cannot finish last. */
+export function saveRemoteProject(project: ProjectData): Promise<void> {
+  const snapshot = structuredClone(project);
+  const previous = projectSaves.get(project.id) || Promise.resolve();
+  const save = previous.catch(() => undefined).then(() => persistRemoteProject(snapshot));
+  projectSaves.set(project.id, save);
+  return save;
+}
+
+/** Sharing must not succeed while local edits are pending or failed to save. */
+export async function waitForProjectSave(projectId: string): Promise<void> {
+  let save = projectSaves.get(projectId);
+  while (save) {
+    await save;
+    const latest = projectSaves.get(projectId);
+    if (latest === save) return;
+    save = latest;
+  }
+}
+
+async function persistRemoteProject(project: ProjectData): Promise<void> {
   const response = await fetch("/api/admin/project-users?resource=projects", {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ project }),
+    signal: AbortSignal.timeout(20000),
   });
-  if (!response.ok) throw new Error("No pudimos guardar el proyecto remoto.");
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({})) as { error?: string };
+    throw new Error(data.error || "No pudimos guardar el proyecto remoto.");
+  }
 }
